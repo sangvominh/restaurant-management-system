@@ -1,0 +1,145 @@
+[
+  {
+    "path": "start/read-first.md",
+    "title": "Đọc từ đâu?",
+    "group": "Bắt đầu ở đây"
+  },
+  {
+    "path": "start/reading-guide.md",
+    "title": "Cách đọc & mức độ hiệu lực",
+    "group": "Bắt đầu ở đây",
+    "handbookOrder": 0
+  },
+  {
+    "path": "start/context.md",
+    "title": "Bối cảnh dự án",
+    "group": "Bắt đầu ở đây",
+    "handbookOrder": 1
+  },
+  {
+    "path": "start/scope.md",
+    "title": "Phạm vi sản phẩm",
+    "group": "Bắt đầu ở đây",
+    "handbookOrder": 2
+  },
+  {
+    "path": "courses/requirements.md",
+    "title": "Yêu cầu ba môn",
+    "group": "Đồ án & nghiệm thu",
+    "handbookOrder": 3
+  },
+  {
+    "path": "reference/glossary.md",
+    "title": "Thuật ngữ",
+    "group": "Tham chiếu kỹ thuật",
+    "handbookOrder": 4
+  },
+  {
+    "path": "architecture/permissions.md",
+    "title": "Vai trò & phân quyền",
+    "group": "Kiến trúc",
+    "handbookOrder": 5
+  },
+  {
+    "path": "features/workflows.md",
+    "title": "Luồng nghiệp vụ chung",
+    "group": "Tính năng",
+    "handbookOrder": 6
+  },
+  {
+    "path": "reference/states.md",
+    "title": "Trạng thái & bất biến",
+    "group": "Tham chiếu kỹ thuật",
+    "handbookOrder": 7
+  },
+  {
+    "path": "architecture/overview.md",
+    "title": "Kiến trúc hệ thống",
+    "group": "Kiến trúc",
+    "handbookOrder": 8
+  },
+  {
+    "path": "reference/data-model.md",
+    "title": "Mô hình dữ liệu",
+    "group": "Tham chiếu kỹ thuật",
+    "handbookOrder": 9
+  },
+  {
+    "path": "reference/api.md",
+    "title": "API & WebSocket",
+    "group": "Tham chiếu kỹ thuật",
+    "handbookOrder": 10
+  },
+  {
+    "path": "architecture/transactions.md",
+    "title": "Transaction & vận hành",
+    "group": "Kiến trúc",
+    "handbookOrder": 11
+  },
+  {
+    "path": "features/analytics.md",
+    "title": "Big Data & KPI",
+    "group": "Tính năng",
+    "handbookOrder": 12
+  },
+  {
+    "path": "courses/roadmap.md",
+    "title": "Phân công & lộ trình",
+    "group": "Đồ án & nghiệm thu",
+    "handbookOrder": 13
+  },
+  {
+    "path": "start/development.md",
+    "title": "Bắt đầu code",
+    "group": "Bắt đầu ở đây",
+    "handbookOrder": 14
+  },
+  {
+    "path": "courses/acceptance.md",
+    "title": "Kiểm thử & demo",
+    "group": "Đồ án & nghiệm thu",
+    "handbookOrder": 15
+  },
+  {
+    "path": "decisions/open.md",
+    "title": "Quyết định còn mở",
+    "group": "Quyết định",
+    "handbookOrder": 16
+  },
+  {
+    "path": "reference/sources.md",
+    "title": "Nguồn tài liệu",
+    "group": "Tham chiếu kỹ thuật",
+    "handbookOrder": 17
+  },
+  {
+    "path": "features/index.md",
+    "title": "Bản đồ tính năng",
+    "group": "Tính năng"
+  },
+  {
+    "path": "decisions/confirmed.md",
+    "title": "Quyết định đã chốt",
+    "group": "Quyết định"
+  },
+  {
+    "path": "contributing/writing.md",
+    "title": "Viết & cập nhật tài liệu",
+    "group": "Duy trì tài liệu"
+  },
+  {
+    "path": "contributing/feature-template.md",
+    "title": "Mẫu đặc tả tính năng",
+    "group": "Duy trì tài liệu"
+  },
+  {
+    "path": "contributing/cloudflare.md",
+    "title": "Đưa lên Cloudflare",
+    "group": "Duy trì tài liệu"
+  },
+  {
+    "path": "contributing/ai-context.md",
+    "title": "Ngữ cảnh cho AI: kế hoạch",
+    "group": "Duy trì tài liệu"
+  }
+]
