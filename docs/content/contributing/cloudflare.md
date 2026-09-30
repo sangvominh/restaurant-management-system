@@ -54,6 +54,22 @@ Các branch khác có thể tạo bản preview để duyệt trước. Trang pr
 
 ## Xử lý lỗi thường gặp
 
+### Cloudflare Workers Builds
+
+Nếu log có bước `npx wrangler deploy --assets .vitepress/dist`, dự án đang dùng **Workers Builds**. Repo có cấu hình `docs/wrangler.jsonc` để triển khai website tĩnh theo quy trình này.
+
+| Ô trên Cloudflare Workers | Giá trị |
+|---|---|
+| Worker name | `restaurant-project-docs` |
+| Root directory | `docs` |
+| Build command | `npm run build` |
+| Deploy command | `npx wrangler deploy` |
+| Environment variable | `NODE_VERSION` = `22` |
+
+Lệnh deploy cũ `npx wrangler deploy --assets .vitepress/dist` vẫn dùng được. Wrangler đọc `name`, `compatibility_date` và thư mục assets từ `wrangler.jsonc`. Nếu đổi tên Worker trên Dashboard, cập nhật `name` trong file này cho khớp.
+
+Lỗi `A compatibility_date is required` xảy ra ở bước deploy dù build VitePress đã thành công. Push `docs/wrangler.jsonc` lên branch Cloudflare đang theo dõi rồi chạy lại deployment. Không cần tạo lại ứng dụng.
+
 | Biểu hiện | Kiểm tra |
 |---|---|
 | Không thấy repo | Đúng tài khoản GitHub chưa? App Cloudflare được cấp repo này chưa? |
