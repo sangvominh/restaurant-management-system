@@ -11,7 +11,7 @@ for(const page of pages){
   for(const field of ['id','specStatus','codeStatus','owner','reviewed','summary'])if(!new RegExp(`^${field}: .+`,'m').test(meta))throw Error(`Missing ${field}: ${page.path}`);
   const id=meta.match(/^id: (.+)$/m)[1];if(ids.has(id))throw Error(`Duplicate document ID: ${id}`);ids.add(id);
   if(/[A-Z]:[\\/]Users[\\/]/.test(text))throw Error(`Local path in public page: ${page.path}`);
-  if(!/^# /m.test(text))throw Error(`Missing page title: ${page.path}`);
+  if(!/^# /m.test(text)&&!/<h1(?:\s|>)/i.test(text))throw Error(`Missing page title: ${page.path}`);
 }
 async function walk(dir){for(const e of await readdir(dir,{withFileTypes:true})){if(e.name==='public')continue;const p=resolve(dir,e.name);if(e.isDirectory())await walk(p);else if(e.name.endsWith('.md')){const rel=relative(resolve(root,'content'),p).replaceAll('\\','/');if(rel!=='index.md'&&!paths.has(rel))throw Error(`Orphan page; add to navigation.json: ${rel}`)}}}
 await walk(resolve(root,'content'));
