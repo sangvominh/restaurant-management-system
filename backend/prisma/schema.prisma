@@ -24,6 +24,7 @@ model Branch {
 
   tables             RestaurantTable[]
   warehouseLocations WarehouseLocation[]
+  goodsReceipts      GoodsReceipt[]
 
   @@map("branches")
 }
@@ -54,7 +55,8 @@ model Unit {
   baseUnit     Unit?  @relation("UnitConversion", fields: [baseUnitId], references: [id], onDelete: Restrict)
   derivedUnits Unit[] @relation("UnitConversion")
 
-  materials Material[]
+  materials           Material[]
+  goodsReceiptDetails GoodsReceiptDetail[]
 
   @@map("units")
 }
@@ -81,9 +83,10 @@ model Material {
   unitId     String @map("unit_id") @db.Uuid
   categoryId String @map("category_id") @db.Uuid
 
-  unit     Unit          @relation(fields: [unitId], references: [id], onDelete: Restrict)
-  category Category      @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  lots     MaterialLot[]
+  unit                Unit                 @relation(fields: [unitId], references: [id], onDelete: Restrict)
+  category            Category             @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  lots                MaterialLot[]
+  goodsReceiptDetails GoodsReceiptDetail[]
 
   @@index([categoryId])
   @@map("materials")
@@ -95,8 +98,10 @@ model WarehouseLocation {
   name         String @db.VarChar(150)
   locationType String @map("location_type") @db.VarChar(30)
 
-  branch   Branch            @relation(fields: [branchId], references: [id], onDelete: Restrict)
-  balances MaterialBalance[]
+  branch              Branch               @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  balances            MaterialBalance[]
+  goodsReceiptDetails GoodsReceiptDetail[]
+  inventoryMovements  InventoryMovement[]
 
   @@unique([branchId, name])
   @@map("warehouse_locations")
@@ -109,8 +114,10 @@ model MaterialLot {
   expiryDate DateTime? @map("expiry_date") @db.Date
   status     String    @default("ACTIVE") @db.VarChar(20)
 
-  material Material          @relation(fields: [materialId], references: [id], onDelete: Restrict)
-  balances MaterialBalance[]
+  material            Material             @relation(fields: [materialId], references: [id], onDelete: Restrict)
+  balances            MaterialBalance[]
+  goodsReceiptDetails GoodsReceiptDetail[]
+  inventoryMovements  InventoryMovement[]
 
   @@unique([materialId, lotCode])
   @@map("material_lots")
@@ -127,4 +134,77 @@ model MaterialBalance {
 
   @@unique([locationId, materialLotId])
   @@map("material_balances")
+}
+
+model Supplier {
+  id      String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code    String  @unique @db.VarChar(30)
+  name    String  @db.VarChar(200)
+  phone   String? @db.VarChar(20)
+  email   String? @db.VarChar(150)
+  address String?
+  status  String  @default("ACTIVE") @db.VarChar(20)
+
+  receipts GoodsReceipt[]
+
+  @@map("suppliers")
+}
+
+model GoodsReceipt {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  receiptCode String    @unique @map("receipt_code") @db.VarChar(50)
+  supplierId  String    @map("supplier_id") @db.Uuid
+  branchId    String    @map("branch_id") @db.Uuid
+  status      String    @default("DRAFT") @db.VarChar(20)
+  note        String?
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  postedAt    DateTime? @map("posted_at") @db.Timestamptz(3)
+
+  supplier Supplier             @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  branch   Branch               @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  details  GoodsReceiptDetail[]
+
+  @@index([branchId, createdAt])
+  @@map("goods_receipts")
+}
+
+model GoodsReceiptDetail {
+  id            String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  receiptId     String  @map("receipt_id") @db.Uuid
+  materialId    String  @map("material_id") @db.Uuid
+  materialLotId String  @map("material_lot_id") @db.Uuid
+  locationId    String  @map("location_id") @db.Uuid
+  unitId        String  @map("unit_id") @db.Uuid
+  quantity      Decimal @db.Decimal(18, 3)
+  unitPrice     Decimal @map("unit_price") @db.Decimal(18, 2)
+
+  receipt     GoodsReceipt      @relation(fields: [receiptId], references: [id], onDelete: Restrict)
+  material    Material          @relation(fields: [materialId], references: [id], onDelete: Restrict)
+  materialLot MaterialLot       @relation(fields: [materialLotId], references: [id], onDelete: Restrict)
+  location    WarehouseLocation @relation(fields: [locationId], references: [id], onDelete: Restrict)
+  unit        Unit              @relation(fields: [unitId], references: [id], onDelete: Restrict)
+
+  movement InventoryMovement?
+
+  @@index([receiptId])
+  @@map("goods_receipt_details")
+}
+
+model InventoryMovement {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  receiptDetailId String?  @unique @map("receipt_detail_id") @db.Uuid
+  materialLotId   String   @map("material_lot_id") @db.Uuid
+  locationId      String   @map("location_id") @db.Uuid
+  movementType    String   @map("movement_type") @db.VarChar(30)
+  quantityBefore  Decimal  @map("quantity_before") @db.Decimal(18, 3)
+  quantityChange  Decimal  @map("quantity_change") @db.Decimal(18, 3)
+  quantityAfter   Decimal  @map("quantity_after") @db.Decimal(18, 3)
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  receiptDetail GoodsReceiptDetail? @relation(fields: [receiptDetailId], references: [id], onDelete: Restrict)
+  materialLot   MaterialLot         @relation(fields: [materialLotId], references: [id], onDelete: Restrict)
+  location      WarehouseLocation   @relation(fields: [locationId], references: [id], onDelete: Restrict)
+
+  @@index([materialLotId, locationId])
+  @@map("inventory_movements")
 }
