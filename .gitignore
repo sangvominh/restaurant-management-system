@@ -17,7 +17,7 @@ coverage/
 .env.*
 !.env.example
 !.env.*.example
-
+backend/.env
 # Logs
 logs/
 *.log
