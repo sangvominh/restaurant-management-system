@@ -22,7 +22,8 @@ model Branch {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  tables RestaurantTable[]
+  tables             RestaurantTable[]
+  warehouseLocations WarehouseLocation[]
 
   @@map("branches")
 }
@@ -41,4 +42,89 @@ model RestaurantTable {
 
   @@unique([branchId, code])
   @@map("restaurant_tables")
+}
+
+model Unit {
+  id               String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name             String  @unique @db.VarChar(50)
+  baseUnitId       String? @map("base_unit_id") @db.Uuid
+  conversionFactor Decimal @default(1) @map("conversion_factor") @db.Decimal(18, 6)
+  status           String  @default("ACTIVE") @db.VarChar(20)
+
+  baseUnit     Unit?  @relation("UnitConversion", fields: [baseUnitId], references: [id], onDelete: Restrict)
+  derivedUnits Unit[] @relation("UnitConversion")
+
+  materials Material[]
+
+  @@map("units")
+}
+
+model Category {
+  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name         String @db.VarChar(100)
+  categoryType String @map("category_type") @db.VarChar(30)
+  status       String @default("ACTIVE") @db.VarChar(20)
+
+  materials Material[]
+
+  @@unique([name, categoryType])
+  @@map("categories")
+}
+
+model Material {
+  id       String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code     String  @unique @db.VarChar(30)
+  name     String  @db.VarChar(200)
+  minStock Decimal @default(0) @map("min_stock") @db.Decimal(18, 3)
+  status   String  @default("ACTIVE") @db.VarChar(20)
+
+  unitId     String @map("unit_id") @db.Uuid
+  categoryId String @map("category_id") @db.Uuid
+
+  unit     Unit          @relation(fields: [unitId], references: [id], onDelete: Restrict)
+  category Category      @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  lots     MaterialLot[]
+
+  @@index([categoryId])
+  @@map("materials")
+}
+
+model WarehouseLocation {
+  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  branchId     String @map("branch_id") @db.Uuid
+  name         String @db.VarChar(150)
+  locationType String @map("location_type") @db.VarChar(30)
+
+  branch   Branch            @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  balances MaterialBalance[]
+
+  @@unique([branchId, name])
+  @@map("warehouse_locations")
+}
+
+model MaterialLot {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  materialId String    @map("material_id") @db.Uuid
+  lotCode    String    @map("lot_code") @db.VarChar(50)
+  expiryDate DateTime? @map("expiry_date") @db.Date
+  status     String    @default("ACTIVE") @db.VarChar(20)
+
+  material Material          @relation(fields: [materialId], references: [id], onDelete: Restrict)
+  balances MaterialBalance[]
+
+  @@unique([materialId, lotCode])
+  @@map("material_lots")
+}
+
+model MaterialBalance {
+  id            String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  locationId    String  @map("location_id") @db.Uuid
+  materialLotId String  @map("material_lot_id") @db.Uuid
+  quantity      Decimal @default(0) @db.Decimal(18, 3)
+
+  location    WarehouseLocation @relation(fields: [locationId], references: [id], onDelete: Restrict)
+  materialLot MaterialLot       @relation(fields: [materialLotId], references: [id], onDelete: Restrict)
+
+  @@unique([locationId, materialLotId])
+  @@map("material_balances")
 }
