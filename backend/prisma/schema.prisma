@@ -25,6 +25,7 @@ model Branch {
   tables             RestaurantTable[]
   warehouseLocations WarehouseLocation[]
   goodsReceipts      GoodsReceipt[]
+  materialIssues     MaterialIssue[]
 
   @@map("branches")
 }
@@ -55,8 +56,9 @@ model Unit {
   baseUnit     Unit?  @relation("UnitConversion", fields: [baseUnitId], references: [id], onDelete: Restrict)
   derivedUnits Unit[] @relation("UnitConversion")
 
-  materials           Material[]
-  goodsReceiptDetails GoodsReceiptDetail[]
+  materials            Material[]
+  goodsReceiptDetails  GoodsReceiptDetail[]
+  materialIssueDetails MaterialIssueDetail[]
 
   @@map("units")
 }
@@ -83,10 +85,11 @@ model Material {
   unitId     String @map("unit_id") @db.Uuid
   categoryId String @map("category_id") @db.Uuid
 
-  unit                Unit                 @relation(fields: [unitId], references: [id], onDelete: Restrict)
-  category            Category             @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  lots                MaterialLot[]
-  goodsReceiptDetails GoodsReceiptDetail[]
+  unit                 Unit                  @relation(fields: [unitId], references: [id], onDelete: Restrict)
+  category             Category              @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  lots                 MaterialLot[]
+  goodsReceiptDetails  GoodsReceiptDetail[]
+  materialIssueDetails MaterialIssueDetail[]
 
   @@index([categoryId])
   @@map("materials")
@@ -98,10 +101,11 @@ model WarehouseLocation {
   name         String @db.VarChar(150)
   locationType String @map("location_type") @db.VarChar(30)
 
-  branch              Branch               @relation(fields: [branchId], references: [id], onDelete: Restrict)
-  balances            MaterialBalance[]
-  goodsReceiptDetails GoodsReceiptDetail[]
-  inventoryMovements  InventoryMovement[]
+  branch               Branch                @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  balances             MaterialBalance[]
+  goodsReceiptDetails  GoodsReceiptDetail[]
+  inventoryMovements   InventoryMovement[]
+  materialIssueDetails MaterialIssueDetail[]
 
   @@unique([branchId, name])
   @@map("warehouse_locations")
@@ -114,10 +118,11 @@ model MaterialLot {
   expiryDate DateTime? @map("expiry_date") @db.Date
   status     String    @default("ACTIVE") @db.VarChar(20)
 
-  material            Material             @relation(fields: [materialId], references: [id], onDelete: Restrict)
-  balances            MaterialBalance[]
-  goodsReceiptDetails GoodsReceiptDetail[]
-  inventoryMovements  InventoryMovement[]
+  material             Material              @relation(fields: [materialId], references: [id], onDelete: Restrict)
+  balances             MaterialBalance[]
+  goodsReceiptDetails  GoodsReceiptDetail[]
+  inventoryMovements   InventoryMovement[]
+  materialIssueDetails MaterialIssueDetail[]
 
   @@unique([materialId, lotCode])
   @@map("material_lots")
@@ -207,4 +212,36 @@ model InventoryMovement {
 
   @@index([materialLotId, locationId])
   @@map("inventory_movements")
+}
+
+model MaterialIssue {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  issueCode String   @unique @map("issue_code") @db.VarChar(50)
+  branchId  String   @map("branch_id") @db.Uuid
+  status    String   @default("PENDING") @db.VarChar(20)
+  note      String?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  branch  Branch                @relation(fields: [branchId], references: [id])
+  details MaterialIssueDetail[]
+
+  @@map("material_issues")
+}
+
+model MaterialIssueDetail {
+  id            String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  issueId       String  @map("issue_id") @db.Uuid
+  materialId    String  @map("material_id") @db.Uuid
+  materialLotId String  @map("material_lot_id") @db.Uuid
+  locationId    String  @map("location_id") @db.Uuid
+  unitId        String  @map("unit_id") @db.Uuid
+  quantity      Decimal @db.Decimal(18, 3)
+
+  issue       MaterialIssue     @relation(fields: [issueId], references: [id])
+  material    Material          @relation(fields: [materialId], references: [id])
+  materialLot MaterialLot       @relation(fields: [materialLotId], references: [id])
+  location    WarehouseLocation @relation(fields: [locationId], references: [id])
+  unit        Unit              @relation(fields: [unitId], references: [id])
+
+  @@map("material_issue_details")
 }
