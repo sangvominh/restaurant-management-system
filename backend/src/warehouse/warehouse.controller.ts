@@ -7,10 +7,12 @@ import {
   Query,
   UsePipes,
   ValidationPipe,
+  HttpCode,
 } from '@nestjs/common';
 
 import { WarehouseService } from './warehouse.service.js';
 import { CreateReceiptDto } from './dto/create-receipt.dto.js';
+import { RejectMaterialIssueDto } from './dto/reject-material-issue.dto.js';
 
 @Controller('warehouse')
 export class WarehouseController {
@@ -56,5 +58,35 @@ export class WarehouseController {
   @Get('material-issues')
   getMaterialIssues(@Query('status') status?: string) {
     return this.warehouseService.getMaterialIssues(status);
+  }
+
+  // POST /warehouse/material-issues/XNVL001/approve
+  // GET /warehouse/material-issues/XNVL001
+  @Get('material-issues/:code')
+  getMaterialIssueByCode(@Param('code') code: string) {
+    return this.warehouseService.getMaterialIssueByCode(code);
+  }
+
+  // POST /warehouse/material-issues/XNVL001/approve
+  @Post('material-issues/:code/approve')
+  @HttpCode(200)
+  approveMaterialIssue(@Param('code') code: string) {
+    return this.warehouseService.approveMaterialIssue(code);
+  }
+
+  @Post('material-issues/:code/reject')
+  @HttpCode(200)
+  @UsePipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  )
+  rejectMaterialIssue(
+    @Param('code') code: string,
+    @Body() dto: RejectMaterialIssueDto,
+  ) {
+    return this.warehouseService.rejectMaterialIssue(code, dto.reason);
   }
 }

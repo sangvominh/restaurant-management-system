@@ -39,4 +39,19 @@ export class WarehouseService {
   getMaterialIssues(status?: string) {
     return this.materialIssueApi.getMaterialIssues(status);
   }
+
+  // Xem chi tiết phiếu xuất NVL
+  getMaterialIssueByCode(code: string) {
+    return this.materialIssueApi.getMaterialIssueByCode(code);
+  }
+
+  // Phê duyệt phiếu xuất nguyên vật liệu
+  approveMaterialIssue(code: string) {
+    return this.materialIssueApi.approveIssue(code);
+  }
+
+  // Từ chối phiếu xuất nguyên vật liệu
+  rejectMaterialIssue(code: string, reason: string) {
+    return this.materialIssueApi.rejectIssue(code, reason);
+  }
 }
