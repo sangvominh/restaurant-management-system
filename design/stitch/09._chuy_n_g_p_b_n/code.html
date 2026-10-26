@@ -1,0 +1,384 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"><meta content="mobile_stack" name="shell-type"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"><link href="https://fonts.googleapis.com" rel="preconnect"><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><style>@layer base{html,body{width:100%;margin:0;padding:0;}body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { colors: { "on-surface": "#151c27", "surface": "#f9f9ff", "surface-container": "#e7eefe", "background": "#f9f9ff", "on-secondary": "#ffffff", "on-tertiary-fixed-variant": "#284c53", "primary-fixed": "#cde5ff", "surface-container-lowest": "#ffffff", "on-secondary-container": "#033e8a", "primary-fixed-dim": "#94ccff", "surface-container-highest": "#dce2f3", "on-primary-container": "#f3f7ff", "on-primary-fixed-variant": "#004b74", "on-error": "#ffffff", "tertiary-container": "#53777e", "on-surface-variant": "#404850", "surface-tint": "#006399", "surface-container-high": "#e2e8f8", "inverse-on-surface": "#ebf1ff", "inverse-primary": "#94ccff", "on-secondary-fixed": "#001a42", "outline-variant": "#bfc7d1", "primary-container": "#0077b6", "inverse-surface": "#2a313d", "surface-dim": "#d3daea", "on-tertiary-container": "#e7fbff", "tertiary-fixed-dim": "#a8cdd5", "on-error-container": "#93000a", "secondary-fixed": "#d8e2ff", "on-background": "#151c27", "on-primary-fixed": "#001d32", "on-tertiary": "#ffffff", "secondary-fixed-dim": "#aec6ff", "surface-bright": "#f9f9ff", "secondary": "#315ca9", "on-secondary-fixed-variant": "#0f4490", "error-container": "#ffdad6", "error": "#ba1a1a", "on-primary": "#ffffff", "primary": "#005d90", "surface-variant": "#dce2f3", "surface-container-low": "#f0f3ff", "tertiary": "#3b5e65", "secondary-container": "#86adff", "on-tertiary-fixed": "#001f24", "tertiary-fixed": "#c3e9f1", "outline": "#707881" }, borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, spacing: { "margin-desktop": "2rem", "gutter-tablet": "1rem", "space-md": "0.75rem", "gutter-desktop": "1.5rem", "space-2xl": "2rem", "gutter": "0.75rem", "space-xs": "0.25rem", "space-xl": "1.5rem", "margin": "1rem", "margin-tablet": "1.5rem", "space-sm": "0.5rem", "space-lg": "1rem" }, fontFamily: { "title-md": ["Inter"], "headline-lg": ["Inter"], "body-sm": ["Inter"], "label-md": ["Inter"], "headline-md": ["Inter"], "metric-counter": ["Inter"], "headline-sm": ["Inter"], "body-lg": ["Inter"], "headline-lg-mobile": ["Inter"], "body-md": ["Inter"], "label-sm": ["Inter"], "label-lg": ["Inter"] }, fontSize: { "title-md": ["16px", { lineHeight: "22px", fontWeight: "600" }], "headline-lg": ["28px", { lineHeight: "36px", letterSpacing: "-0.02em", fontWeight: "700" }], "body-sm": ["12px", { lineHeight: "16px", fontWeight: "400" }], "label-md": ["12px", { lineHeight: "16px", letterSpacing: "0.02em", fontWeight: "600" }], "headline-md": ["20px", { lineHeight: "28px", letterSpacing: "-0.01em", fontWeight: "600" }], "metric-counter": ["22px", { lineHeight: "26px", letterSpacing: "-0.02em", fontWeight: "700" }], "headline-sm": ["18px", { lineHeight: "24px", fontWeight: "600" }], "body-lg": ["16px", { lineHeight: "24px", fontWeight: "400" }], "headline-lg-mobile": ["24px", { lineHeight: "32px", letterSpacing: "-0.01em", fontWeight: "700" }], "body-md": ["14px", { lineHeight: "20px", fontWeight: "400" }], "label-sm": ["11px", { lineHeight: "14px", letterSpacing: "0.02em", fontWeight: "500" }], "label-lg": ["14px", { lineHeight: "18px", letterSpacing: "0.01em", fontWeight: "600" }] } } } };</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-surface text-on-surface antialiased min-h-screen flex flex-col"><header class="fixed top-0 inset-x-0 z-50 bg-surface/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] pt-safe"><div class="h-16 px-space-sm flex items-center justify-between gap-space-sm"><div class="flex items-center gap-space-xs min-w-0"><button aria-label="Quay lại" class="w-11 h-11 flex items-center justify-center rounded-full text-on-surface hover:bg-surface-container-high transition-colors" onclick="history.back()"><span class="material-symbols-outlined text-[24px]">arrow_back</span></button><img alt="Restaurant Staff Logo" class="h-7 w-auto object-contain flex-shrink-0" src="https://lh3.googleusercontent.com/aida/AEtjO1XLf9ff5VAOoEicmkegDS6--7hzG5mJSNOmjX32-GdhvDsi2GKHDtXujAjUAS_xkeXWRtPw9T8vZSRmTEQb3Df1r7vWXEv99qmj9dLAA3hJRsB8NS0YwY2AcSa7vOzaEJ106dfQLQz112wEAR2s9O2ow-9cXNEwNElbTjwm10YUawITw0WgHVc-zrfwIs7iQtz51OhdPwEJ0LkAGADDeBYEqWNtLofAE_Ej_esRLYXzY3W61b6dC-M4bfE_"><div class="flex flex-col min-w-0 pl-1"><span class="font-headline-sm text-headline-sm text-on-surface truncate">Chi Tiet Don Mon</span><span class="font-body-sm text-body-sm text-on-surface-variant truncate">Nhà hàng - CN1</span></div></div><div class="flex items-center gap-space-xs flex-shrink-0"><button aria-label="Tài khoản" class="w-11 h-11 p-1 flex items-center justify-center rounded-full hover:bg-surface-container-high transition-colors"><img alt="Profile" class="w-8 h-8 rounded-full object-cover ring-2 ring-primary/20" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD1_iH5bwQw21lXOpQLkflhHzLKO1tupsVbhkhjxgNe9Ww96fQRcbusrFjGC0xjssLaLxIXBtvzz48IL7UjefcgY2SKZyZQa2DjiI2zfB2sZvKL91_B2ilfvqY6F6kg_pyKcfWsA_hrXI-Q3uBxFlNJ2_eQ7vG_kNNl2Gdb2w1MhiT0CMkFyVYCVeBOdGerXuJ6TY3AlypXBqUaQc7ifPWcTmzRVFRcE31lB4WcEOwLMxJ8HreKjEF7dQ"></button></div></div></header><main class="flex-1 w-full pt-16 bg-surface pb-safe"><div class="flex flex-col w-full pb-36">
+<!-- Top Order Meta Information Strip -->
+<div class="px-margin pt-space-md pb-space-sm">
+<div class="bg-surface-container-low rounded-xl p-space-md shadow-sm">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-12 h-12 rounded-xl bg-primary-container text-on-primary flex flex-col items-center justify-center flex-shrink-0 shadow-sm">
+<span class="font-metric-counter text-metric-counter leading-none">B04</span>
+<span class="font-label-sm text-[10px] uppercase opacity-90">Gốc</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-space-xs">
+<span class="font-title-md text-title-md text-on-surface truncate">Bàn B04 (Tầng 1)</span>
+<span class="w-2 h-2 rounded-full bg-[#f59e0b]"></span>
+</div>
+<div class="flex items-center gap-space-xs mt-0.5 text-on-surface-variant font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-[15px]">group</span>
+<span class="">6 khách</span>
+<span class="">•</span>
+<span class="font-semibold text-primary">1.250.000₫</span>
+</div>
+</div>
+</div>
+<div class="px-2.5 py-1 rounded-full bg-[#fffbeb] text-[#b45309] font-label-sm text-label-sm flex items-center gap-1 flex-shrink-0">
+<span class="w-1.5 h-1.5 rounded-full bg-[#f59e0b]"></span>
+          Đang phục vụ
+        </div>
+</div>
+</div>
+</div>
+<!-- Segmented Control Tabs -->
+<div class="px-margin mt-space-xs">
+<div class="grid grid-cols-2 p-1 bg-surface-container-high rounded-xl">
+<button class="py-2.5 rounded-lg font-label-lg text-label-lg transition-all flex items-center justify-center gap-1.5 bg-surface-container-lowest text-primary shadow-sm" id="tab-transfer" onclick="switchMode('transfer')">
+<span class="material-symbols-outlined text-[18px]">swap_horiz</span>
+<span class="">Chuyển Bàn</span>
+</button>
+<button class="py-2.5 rounded-lg font-label-lg text-label-lg transition-all flex items-center justify-center gap-1.5 text-on-surface-variant hover:text-on-surface" id="tab-merge" onclick="switchMode('merge')">
+<span class="material-symbols-outlined text-[18px]">call_merge</span>
+<span class="">Gộp Bàn</span>
+<span class="px-1.5 py-0.2 rounded-full bg-surface-variant text-[10px] font-label-sm text-on-surface-variant">Cần duyệt</span>
+</button>
+</div>
+</div>
+<!-- Area Filter Pills -->
+<div class="px-margin mt-space-md">
+<div class="flex items-center justify-between mb-space-xs">
+<span class="font-label-lg text-label-lg text-on-surface flex items-center gap-1">
+<span class="material-symbols-outlined text-primary text-[18px]">table_restaurant</span>
+        Chọn Bàn Đích (Chuyển đến)
+      </span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">4 bàn khả dụng</span>
+</div>
+<div class="flex items-center gap-space-xs overflow-x-auto pb-1 no-scrollbar">
+<button class="px-3.5 py-1.5 rounded-full bg-primary text-on-primary font-label-md text-label-md flex-shrink-0 flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-[16px]">stairs</span>
+        Tầng 1 (Sảnh Lớn)
+      </button>
+<button class="px-3.5 py-1.5 rounded-full bg-surface-container text-on-surface-variant font-label-md text-label-md flex-shrink-0 flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">ac_unit</span>
+        Tầng 2 (Phòng Lạnh)
+      </button>
+<button class="px-3.5 py-1.5 rounded-full bg-surface-container text-on-surface-variant font-label-md text-label-md flex-shrink-0 flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">deck</span>
+        Sân Vườn Ngoài Trời
+      </button>
+</div>
+</div>
+<!-- Destination Table Selection Grid -->
+<div class="px-margin mt-space-sm space-y-space-sm">
+<!-- Table 02: Selected Target -->
+<div class="relative p-space-md rounded-xl bg-surface-container-lowest shadow-md transition-all cursor-pointer" id="card-b02" onclick="selectTable('B02', 'Bàn 02', true)">
+<div class="absolute inset-0 rounded-xl bg-primary/5 pointer-events-none"></div>
+<div class="flex items-start justify-between relative z-10">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-12 h-12 rounded-xl bg-primary text-on-primary flex flex-col items-center justify-center flex-shrink-0 shadow-sm">
+<span class="font-metric-counter text-metric-counter leading-none">B02</span>
+<span class="font-label-sm text-[10px] text-primary-fixed">Tầng 1</span>
+</div>
+<div class="min-w-0">
+<div class="flex items-center gap-space-xs">
+<span class="font-title-md text-title-md text-on-surface">Bàn B02</span>
+<span class="px-2 py-0.5 rounded-full bg-[#ecfdf5] text-[#059669] font-label-sm text-label-sm flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-[#10b981]"></span>
+                Bàn trống
+              </span>
+</div>
+<div class="flex items-center gap-space-xs mt-1 text-on-surface-variant font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-[15px] text-primary">event_seat</span>
+<span class="font-medium text-on-surface">Sức chứa: 4 - 6 chỗ</span>
+</div>
+</div>
+</div>
+<div class="w-7 h-7 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-[18px]">check</span>
+</div>
+</div>
+<!-- Capacity Safe Match Alert -->
+<div class="mt-space-sm pt-space-xs flex items-center gap-1.5 text-[#059669] font-label-sm text-label-sm relative z-10">
+<span class="material-symbols-outlined text-[16px]">sentiment_very_satisfied</span>
+<span class="">Phù hợp hoàn hảo với đoàn 6 khách từ bàn B04</span>
+</div>
+</div>
+<!-- Table 01: Occupied / Merge Opportunity -->
+<div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm hover:bg-surface-container-low transition-all cursor-pointer" id="card-b01" onclick="selectTable('B01', 'Bàn 01', false, 'occupied')">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-12 h-12 rounded-xl bg-surface-container-high text-on-surface flex flex-col items-center justify-center flex-shrink-0">
+<span class="font-metric-counter text-metric-counter leading-none text-on-surface">B01</span>
+<span class="font-label-sm text-[10px] text-on-surface-variant">Tầng 1</span>
+</div>
+<div class="min-w-0">
+<div class="flex items-center gap-space-xs">
+<span class="font-title-md text-title-md text-on-surface">Bàn B01</span>
+<span class="px-2 py-0.5 rounded-full bg-[#fffbeb] text-[#b45309] font-label-sm text-label-sm flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-[#f59e0b]"></span>
+                Đang dùng bữa
+              </span>
+</div>
+<div class="flex items-center gap-space-xs mt-1 text-on-surface-variant font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-[15px]">group</span>
+<span class="">4 khách • Bàn tối đa 10 khách</span>
+</div>
+</div>
+</div>
+<button class="px-2.5 py-1 rounded-lg bg-surface-container text-secondary font-label-sm text-label-sm flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-[15px]">call_merge</span>
+          Có thể gộp đơn
+        </button>
+</div>
+</div>
+<!-- Table 03: Needs Cleaning (Disabled) -->
+<div class="p-space-md rounded-xl bg-surface-container-low/70 opacity-60">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-12 h-12 rounded-xl bg-surface-variant text-on-surface-variant flex flex-col items-center justify-center flex-shrink-0">
+<span class="font-metric-counter text-metric-counter leading-none">B03</span>
+<span class="font-label-sm text-[10px]">Tầng 1</span>
+</div>
+<div class="min-w-0">
+<div class="flex items-center gap-space-xs">
+<span class="font-title-md text-title-md text-on-surface-variant">Bàn B03</span>
+<span class="px-2 py-0.5 rounded-full bg-[#fee2e2] text-[#b91c1c] font-label-sm text-label-sm flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-[#ef4444]"></span>
+                Cần dọn dẹp
+              </span>
+</div>
+<div class="flex items-center gap-1 mt-1 text-[#b91c1c] font-body-sm text-body-sm font-medium">
+<span class="material-symbols-outlined text-[15px]">block</span>
+<span class="">Bàn chưa dọn, vui lòng dọn trước khi chuyển</span>
+</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline-variant text-[20px]">lock</span>
+</div>
+</div>
+<!-- Table 05: Reserved Soon (Disabled) -->
+<div class="p-space-md rounded-xl bg-surface-container-low/70 opacity-60">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-12 h-12 rounded-xl bg-surface-variant text-on-surface-variant flex flex-col items-center justify-center flex-shrink-0">
+<span class="font-metric-counter text-metric-counter leading-none">B05</span>
+<span class="font-label-sm text-[10px]">Tầng 1</span>
+</div>
+<div class="min-w-0">
+<div class="flex items-center gap-space-xs">
+<span class="font-title-md text-title-md text-on-surface-variant">Bàn B05</span>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">event</span>
+                Đặt trước 12:30
+              </span>
+</div>
+<div class="flex items-center gap-1 mt-1 text-[#b45309] font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-[15px]">info</span>
+<span class="">Khách đã cọc trước (Chị Linh - 8 khách)</span>
+</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline-variant text-[20px]">lock</span>
+</div>
+</div>
+</div>
+<!-- Action Transfer Preview Card -->
+<div class="px-margin mt-space-lg">
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm space-y-space-md">
+<div class="flex items-center justify-between pb-space-xs">
+<span class="font-label-lg text-label-lg text-on-surface flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-[20px]">sync_alt</span>
+          Tóm Tắt Hành Động Chuyển
+        </span>
+<span class="px-2 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed-variant font-label-sm text-label-sm">
+          Thời gian thực
+        </span>
+</div>
+<!-- Flow Visual Route -->
+<div class="flex items-center justify-between bg-surface-container-low rounded-xl p-space-md">
+<div class="flex flex-col items-center">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Bàn Nguồn</span>
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">B04</span>
+<span class="text-[11px] text-on-surface-variant">6 Khách</span>
+</div>
+<div class="flex-1 flex flex-col items-center px-space-sm">
+<span class="font-label-sm text-label-sm text-primary font-medium mb-1">Chuyển sang</span>
+<div class="w-full flex items-center justify-center gap-1">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<div class="h-0.5 flex-1 bg-primary/40"></div>
+<span class="material-symbols-outlined text-primary text-[20px]">arrow_forward</span>
+</div>
+</div>
+<div class="flex flex-col items-center">
+<span class="font-label-sm text-label-sm text-primary">Bàn Đích</span>
+<span class="font-headline-sm text-headline-sm text-primary font-bold" id="target-code-display">B02</span>
+<span class="text-[11px] text-primary font-medium">Bàn trống</span>
+</div>
+</div>
+<!-- Dishes & Bill Transfer Breakdown -->
+<div class="bg-surface-container-low/60 rounded-xl p-space-sm space-y-2">
+<div class="flex items-center justify-between font-body-sm text-body-sm text-on-surface">
+<span class="text-on-surface-variant">Món chuyển:</span>
+<span class="font-medium">Toàn bộ 4 món (9 phần)</span>
+</div>
+<div class="flex items-center justify-between font-body-sm text-body-sm text-on-surface">
+<span class="text-on-surface-variant">Tiến độ bếp:</span>
+<span class="text-[#b45309] font-medium flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px]">skillet</span>
+            2 món đang nấu • 2 món đã ra
+          </span>
+</div>
+<div class="flex items-center justify-between font-body-sm text-body-sm text-on-surface">
+<span class="text-on-surface-variant">Tổng giá trị đơn:</span>
+<span class="font-headline-sm text-headline-sm text-primary font-bold">1.250.000₫</span>
+</div>
+</div>
+<!-- Quick Transfer Reason Tags -->
+<div class="space-y-space-xs">
+<label class="font-label-md text-label-md text-on-surface-variant block">
+          Lý do chuyển (Gửi tức thì cho Bếp &amp; Thu ngân):
+        </label>
+<div class="flex flex-wrap gap-1.5">
+<button class="reason-pill px-3 py-1.5 rounded-full text-[12px] font-label-md bg-surface-container text-on-surface-variant transition-colors" onclick="selectReason(this)" type="button">
+            Khách đổi chỗ mát hơn
+          </button>
+<button class="reason-pill px-3 py-1.5 rounded-full text-[12px] font-label-md bg-surface-container text-on-surface-variant transition-colors" onclick="selectReason(this)" type="button">
+            Khách ghép thêm người (+2)
+          </button>
+<button class="reason-pill px-3 py-1.5 rounded-full text-[12px] font-label-md bg-surface-container text-on-surface-variant transition-colors" onclick="selectReason(this)" type="button">
+            Khu vực máy lạnh lỗi
+          </button>
+<button class="reason-pill px-3 py-1.5 rounded-full text-[12px] font-label-md bg-surface-container text-on-surface-variant transition-colors" onclick="selectReason(this)" type="button">
+            Yêu cầu không gian yên tĩnh
+          </button>
+</div>
+<div class="pt-1">
+<input class="w-full px-3 py-2 rounded-lg bg-surface-container-low text-on-surface placeholder:text-outline text-body-sm font-body-sm focus:outline-none focus:bg-surface-container" id="custom-note" placeholder="Nhập ghi chú thêm cho ca trưởng / thu ngân..." type="text">
+</div>
+</div>
+</div>
+</div>
+<!-- Friendly Operational Safety Alert Notice -->
+<div class="px-margin mt-space-md">
+<div class="bg-surface-container rounded-xl p-space-md flex items-start gap-space-sm text-on-surface">
+<span class="material-symbols-outlined text-primary text-[22px] flex-shrink-0 mt-0.5">info</span>
+<div class="min-w-0 font-body-sm text-body-sm space-y-1">
+<p class="font-label-md text-label-md text-primary">Tự động đồng bộ hệ thống</p>
+<p class="text-on-surface-variant leading-relaxed">
+          Đơn hàng sẽ tự động cập nhật số bàn <strong class="text-on-surface font-semibold">B02</strong> trên màn hình Bếp KDS và Máy in Thu ngân. Nhân viên chạy món sẽ nhận thông báo đổi bàn ngay trên thiết bị cầm tay.
+        </p>
+</div>
+</div>
+</div>
+<!-- Bottom Floating Execution Bar (Thumb-Zone Ergonomics) -->
+<div class="fixed bottom-0 inset-x-0 bg-surface-container-lowest/95 backdrop-blur-md shadow-[0_-4px_16px_rgba(2,62,138,0.08)] px-margin py-3 z-40 pb-safe">
+<div class="flex items-center gap-space-sm max-w-lg mx-auto">
+<button class="w-1/3 h-12 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface font-label-lg text-label-lg transition-colors flex items-center justify-center gap-1" onclick="history.back()" type="button">
+        Hủy Bỏ
+      </button>
+<button class="flex-1 h-12 rounded-xl bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2" id="btn-submit-transfer" onclick="executeTransferAction()" type="button">
+<span class="material-symbols-outlined text-[20px]">check_circle</span>
+<span id="btn-submit-text" class="">Chuyển Sang Bàn B02</span>
+</button>
+</div>
+</div>
+<!-- Subtle Notification Toast (Hidden by default, triggered on action) -->
+<div class="fixed top-20 left-1/2 -translate-x-1/2 z-50 pointer-events-none transition-all duration-300 opacity-0 translate-y-[-10px] w-11/12 max-w-sm" id="success-toast">
+<div class="bg-on-surface text-surface-container-lowest px-4 py-3 rounded-xl shadow-xl flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-[#10b981] text-white flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-[20px]">done_all</span>
+</div>
+<div class="min-w-0">
+<div class="font-label-md text-label-md">Đã chuyển bàn thành công!</div>
+<div class="font-body-sm text-[12px] opacity-80 truncate">Đã chuyển B04 ➔ B02 • Bếp &amp; Bar đã cập nhật</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+  let selectedTarget = 'B02';
+  let currentMode = 'transfer';
+
+  function selectTable(code, name, isAvailable, type) {
+    if (type === 'occupied' && currentMode === 'transfer') {
+      alert('Bàn đang có khách. Vui lòng chuyển sang tab "Gộp Bàn" nếu muốn gộp 2 đơn.');
+      return;
+    }
+    
+    selectedTarget = code;
+    const displayElement = document.getElementById('target-code-display');
+    const submitBtnText = document.getElementById('btn-submit-text');
+    
+    if (displayElement) {
+      displayElement.textContent = code;
+    }
+    if (submitBtnText) {
+      submitBtnText.textContent = currentMode === 'transfer' 
+        ? `Chuyển Sang Bàn ${code}` 
+        : `Yêu Cầu Gộp Sang Bàn ${code}`;
+    }
+  }
+
+  function switchMode(mode) {
+    currentMode = mode;
+    const tabTransfer = document.getElementById('tab-transfer');
+    const tabMerge = document.getElementById('tab-merge');
+    const submitBtnText = document.getElementById('btn-submit-text');
+
+    if (mode === 'transfer') {
+      tabTransfer.className = "py-2.5 rounded-lg font-label-lg text-label-lg transition-all flex items-center justify-center gap-1.5 bg-surface-container-lowest text-primary shadow-sm";
+      tabMerge.className = "py-2.5 rounded-lg font-label-lg text-label-lg transition-all flex items-center justify-center gap-1.5 text-on-surface-variant hover:text-on-surface";
+      if (submitBtnText) submitBtnText.textContent = `Chuyển Sang Bàn ${selectedTarget}`;
+    } else {
+      tabMerge.className = "py-2.5 rounded-lg font-label-lg text-label-lg transition-all flex items-center justify-center gap-1.5 bg-surface-container-lowest text-primary shadow-sm";
+      tabTransfer.className = "py-2.5 rounded-lg font-label-lg text-label-lg transition-all flex items-center justify-center gap-1.5 text-on-surface-variant hover:text-on-surface";
+      if (submitBtnText) submitBtnText.textContent = `Gửi Yêu Cầu Gộp Đơn Bàn ${selectedTarget}`;
+    }
+  }
+
+  function selectReason(button) {
+    const allPills = document.querySelectorAll('.reason-pill');
+    allPills.forEach(p => {
+      p.classList.remove('bg-primary-container', 'text-on-primary');
+      p.classList.add('bg-surface-container', 'text-on-surface-variant');
+    });
+
+    button.classList.remove('bg-surface-container', 'text-on-surface-variant');
+    button.classList.add('bg-primary-container', 'text-on-primary');
+    
+    const customInput = document.getElementById('custom-note');
+    if (customInput) {
+      customInput.value = button.innerText.trim();
+    }
+  }
+
+  function executeTransferAction() {
+    const toast = document.getElementById('success-toast');
+    if (!toast) return;
+
+    toast.classList.remove('opacity-0', 'translate-y-[-10px]');
+    toast.classList.add('opacity-100', 'translate-y-0');
+
+    setTimeout(() => {
+      toast.classList.remove('opacity-100', 'translate-y-0');
+      toast.classList.add('opacity-0', 'translate-y-[-10px]');
+      setTimeout(() => {
+        if (window.history.length > 1) {
+          history.back();
+        }
+      }, 400);
+    }, 1800);
+  }
+</script></main>
+
+</body></html>
