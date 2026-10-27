@@ -13,7 +13,7 @@ import { CheckBomStockDto } from '../dto/check-bom-stock.dto.js';
 @Injectable()
 export class BomApi {
   constructor(private readonly prisma: PrismaService) {}
-
+  //Tạo công thức BOM
   async createBom(dto: CreateBomDto) {
     // 1. Kiểm tra thông tin BOM
     const code = dto.code.trim();
@@ -129,7 +129,7 @@ export class BomApi {
       throw error;
     }
   }
-
+// Lấy danh sách công thức BOM
   async getBoms() {
     // 1. Lấy danh sách công thức BOM
     const boms = await this.prisma.bom.findMany({
@@ -169,7 +169,7 @@ export class BomApi {
       })),
     };
   }
-
+// Xem chi tiết công thức BOM
   async getBomByCode(code: string) {
     // 1. Tìm công thức BOM theo mã
     const bom = await this.prisma.bom.findUnique({
@@ -211,7 +211,7 @@ export class BomApi {
       },
     };
   }
-
+// Kiểm tra nguyên vật liệu theo BOM
   async checkBomStock(dto: CheckBomStockDto) {
     // 1. Tìm công thức BOM
     const bom = await this.prisma.bom.findUnique({

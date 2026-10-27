@@ -15,6 +15,7 @@ import { CreateReceiptDto } from './dto/create-receipt.dto.js';
 import { RejectMaterialIssueDto } from './dto/reject-material-issue.dto.js';
 import { CreateBomDto } from './dto/create-bom.dto.js';
 import { CheckBomStockDto } from './dto/check-bom-stock.dto.js';
+import { CreateProductionOrderDto } from './dto/create-production-order.dto.js';
 
 @Controller('warehouse')
 export class WarehouseController {
@@ -128,5 +129,67 @@ export class WarehouseController {
   )
   checkBomStock(@Body() dto: CheckBomStockDto) {
     return this.warehouseService.checkBomStock(dto);
+  }
+
+  // POST /warehouse/production-orders
+  @Post('production-orders')
+  @UsePipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  )
+  createProductionOrder(@Body() dto: CreateProductionOrderDto) {
+    return this.warehouseService.createProductionOrder(dto);
+  }
+
+  // GET /warehouse/production-orders
+  @Get('production-orders')
+  getProductionOrders(
+    @Query('status') status?: string,
+    @Query('code') code?: string,
+  ) {
+    return this.warehouseService.getProductionOrders(status, code);
+  }
+
+  // GET /warehouse/production-orders/LSX001
+  @Get('production-orders/:code')
+  getProductionOrderByCode(@Param('code') code: string) {
+    return this.warehouseService.getProductionOrderByCode(code);
+  }
+
+  // POST /warehouse/production-orders/LSX001/check-materials
+  @Post('production-orders/:code/check-materials')
+  @HttpCode(200)
+  checkProductionOrderMaterials(@Param('code') code: string) {
+    return this.warehouseService.checkProductionOrderMaterials(code);
+  }
+
+  // POST /warehouse/production-orders/LSX001/confirm
+  @Post('production-orders/:code/confirm')
+  @HttpCode(200)
+  confirmProductionOrder(@Param('code') code: string) {
+    return this.warehouseService.confirmProductionOrder(code);
+  }
+
+  // POST /warehouse/production-orders/LSX001/issue-materials
+  @Post('production-orders/:code/issue-materials')
+  @HttpCode(200)
+  issueProductionMaterials(@Param('code') code: string) {
+    return this.warehouseService.issueProductionMaterials(code);
+  }
+
+  // GET lịch sử NVL của lệnh sản xuất
+  @Get('production-orders/:code/material-movements')
+  getMaterialMovements(@Param('code') code: string) {
+    return this.warehouseService.getMaterialMovements(code);
+  }
+
+  // POST hủy lệnh sản xuất
+  @Post('production-orders/:code/cancel')
+  @HttpCode(200)
+  cancelProductionOrder(@Param('code') code: string) {
+    return this.warehouseService.cancelProductionOrder(code);
   }
 }

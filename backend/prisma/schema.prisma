@@ -200,21 +200,24 @@ model GoodsReceiptDetail {
 }
 
 model InventoryMovement {
-  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  receiptDetailId String?  @unique @map("receipt_detail_id") @db.Uuid
-  materialLotId   String   @map("material_lot_id") @db.Uuid
-  locationId      String   @map("location_id") @db.Uuid
-  movementType    String   @map("movement_type") @db.VarChar(30)
-  quantityBefore  Decimal  @map("quantity_before") @db.Decimal(18, 3)
-  quantityChange  Decimal  @map("quantity_change") @db.Decimal(18, 3)
-  quantityAfter   Decimal  @map("quantity_after") @db.Decimal(18, 3)
-  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  receiptDetailId   String?  @unique @map("receipt_detail_id") @db.Uuid
+  productionOrderId String?  @map("production_order_id") @db.Uuid
+  materialLotId     String   @map("material_lot_id") @db.Uuid
+  locationId        String   @map("location_id") @db.Uuid
+  movementType      String   @map("movement_type") @db.VarChar(30)
+  quantityBefore    Decimal  @map("quantity_before") @db.Decimal(18, 3)
+  quantityChange    Decimal  @map("quantity_change") @db.Decimal(18, 3)
+  quantityAfter     Decimal  @map("quantity_after") @db.Decimal(18, 3)
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
 
-  receiptDetail GoodsReceiptDetail? @relation(fields: [receiptDetailId], references: [id], onDelete: Restrict)
-  materialLot   MaterialLot         @relation(fields: [materialLotId], references: [id], onDelete: Restrict)
-  location      WarehouseLocation   @relation(fields: [locationId], references: [id], onDelete: Restrict)
+  receiptDetail   GoodsReceiptDetail? @relation(fields: [receiptDetailId], references: [id], onDelete: Restrict)
+  productionOrder ProductionOrder?    @relation(fields: [productionOrderId], references: [id], onDelete: Restrict)
+  materialLot     MaterialLot         @relation(fields: [materialLotId], references: [id], onDelete: Restrict)
+  location        WarehouseLocation   @relation(fields: [locationId], references: [id], onDelete: Restrict)
 
   @@index([materialLotId, locationId])
+  @@index([productionOrderId])
   @@map("inventory_movements")
 }
 
@@ -300,10 +303,11 @@ model ProductionOrder {
   note      String?  @db.Text
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
 
-  bom         Bom        @relation(fields: [bomId], references: [id], onDelete: Restrict)
-  branch      Branch     @relation(fields: [branchId], references: [id], onDelete: Restrict)
-  bomDetail   BomDetail? @relation(fields: [bomDetailId], references: [id])
-  bomDetailId String?    @db.Uuid
+  bom                Bom                 @relation(fields: [bomId], references: [id], onDelete: Restrict)
+  branch             Branch              @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  bomDetail          BomDetail?          @relation(fields: [bomDetailId], references: [id])
+  bomDetailId        String?             @db.Uuid
+  inventoryMovements InventoryMovement[]
 
   @@index([branchId, status])
   @@index([bomId])

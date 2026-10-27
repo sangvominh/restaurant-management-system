@@ -15,7 +15,7 @@ import { NotFoundException } from '@nestjs/common';
 export class ReceiptApi {
   constructor(private readonly prisma: PrismaService) {}
 
-  // 1. Hàm chính: Tạo phiếu nhập kho
+  // Hàm chính: Tạo phiếu nhập kho
   async createReceipt(dto: CreateReceiptDto) {
     try {
       return await this.prisma.$transaction(
@@ -77,7 +77,7 @@ export class ReceiptApi {
       throw error;
     }
   }
-
+// Lấy danh sách phiếu nhập kho
   async getReceipts() {
     // Lấy danh sách phiếu nhập từ PostgreSQL
     const receipts = await this.prisma.goodsReceipt.findMany({
@@ -114,7 +114,7 @@ export class ReceiptApi {
     };
   }
 
-  // 2. Kiểm tra nhà cung cấp và chi nhánh
+  //Kiểm tra nhà cung cấp và chi nhánh
 
   private async checkInfo(tx: Prisma.TransactionClient, dto: CreateReceiptDto) {
     // Tìm nhà cung cấp theo mã
@@ -138,7 +138,7 @@ export class ReceiptApi {
     return { supplier, branch };
   }
 
-  // 3. Kiểm tra và nhập một dòng nguyên vật liệu
+  //Kiểm tra và nhập một dòng nguyên vật liệu
 
   private async addMaterial(
     tx: Prisma.TransactionClient,

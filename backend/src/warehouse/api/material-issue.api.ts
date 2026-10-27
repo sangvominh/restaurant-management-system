@@ -50,7 +50,7 @@ export class MaterialIssueApi {
       })),
     };
   }
-
+// Xem chi tiết phiếu xuất nguyên vật liệu
   async getMaterialIssueByCode(code: string) {
     // 1. Tìm phiếu xuất theo mã
     const issue = await this.prisma.materialIssue.findUnique({
@@ -95,7 +95,7 @@ export class MaterialIssueApi {
       },
     };
   }
-
+// Phê duyệt phiếu xuất nguyên vật liệu
   async approveIssue(code: string) {
     try {
       return await this.prisma.$transaction(
@@ -237,7 +237,7 @@ export class MaterialIssueApi {
       throw error;
     }
   }
-
+// Từ chối phiếu xuất nguyên vật liệu
   async rejectIssue(code: string, reason: string) {
     // 1. Kiểm tra lý do
     reason = reason.trim();
