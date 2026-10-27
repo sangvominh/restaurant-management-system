@@ -13,6 +13,8 @@ import {
 import { WarehouseService } from './warehouse.service.js';
 import { CreateReceiptDto } from './dto/create-receipt.dto.js';
 import { RejectMaterialIssueDto } from './dto/reject-material-issue.dto.js';
+import { CreateBomDto } from './dto/create-bom.dto.js';
+import { CheckBomStockDto } from './dto/check-bom-stock.dto.js';
 
 @Controller('warehouse')
 export class WarehouseController {
@@ -88,5 +90,43 @@ export class WarehouseController {
     @Body() dto: RejectMaterialIssueDto,
   ) {
     return this.warehouseService.rejectMaterialIssue(code, dto.reason);
+  }
+
+  @Post('boms')
+  @UsePipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  )
+  // tạo công thức BOM
+  createBom(@Body() dto: CreateBomDto) {
+    return this.warehouseService.createBom(dto);
+  }
+  // GET /warehouse/boms
+  @Get('boms')
+  getBoms() {
+    return this.warehouseService.getBoms();
+  }
+
+  // GET /warehouse/boms/BOM001
+  @Get('boms/:code')
+  getBomByCode(@Param('code') code: string) {
+    return this.warehouseService.getBomByCode(code);
+  }
+
+  // POST /warehouse/boms/check-stock
+  @Post('boms/check-stock')
+  @HttpCode(200)
+  @UsePipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  )
+  checkBomStock(@Body() dto: CheckBomStockDto) {
+    return this.warehouseService.checkBomStock(dto);
   }
 }

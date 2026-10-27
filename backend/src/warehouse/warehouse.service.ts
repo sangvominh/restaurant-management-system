@@ -4,6 +4,9 @@ import { InventoryApi } from './api/inventory.api.js';
 import { ReceiptApi } from './api/receipt.api.js';
 import { CreateReceiptDto } from './dto/create-receipt.dto.js';
 import { MaterialIssueApi } from './api/material-issue.api.js';
+import { BomApi } from './api/bom.api.js';
+import { CreateBomDto } from './dto/create-bom.dto.js';
+import { CheckBomStockDto } from './dto/check-bom-stock.dto.js';
 
 @Injectable()
 export class WarehouseService {
@@ -11,6 +14,7 @@ export class WarehouseService {
     private readonly inventoryApi: InventoryApi,
     private readonly receiptApi: ReceiptApi,
     private readonly materialIssueApi: MaterialIssueApi,
+    private readonly bomApi: BomApi,
   ) {}
 
   //Danh sách tồn kho
@@ -53,5 +57,25 @@ export class WarehouseService {
   // Từ chối phiếu xuất nguyên vật liệu
   rejectMaterialIssue(code: string, reason: string) {
     return this.materialIssueApi.rejectIssue(code, reason);
+  }
+
+  // Tạo công thức BOM
+  createBom(dto: CreateBomDto) {
+    return this.bomApi.createBom(dto);
+  }
+
+  // Lấy danh sách công thức BOM
+  getBoms() {
+    return this.bomApi.getBoms();
+  }
+
+  // Xem chi tiết công thức BOM
+  getBomByCode(code: string) {
+    return this.bomApi.getBomByCode(code);
+  }
+
+  // Kiểm tra nguyên vật liệu theo BOM
+  checkBomStock(dto: CheckBomStockDto) {
+    return this.bomApi.checkBomStock(dto);
   }
 }
