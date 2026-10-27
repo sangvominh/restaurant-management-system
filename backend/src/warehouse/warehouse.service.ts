@@ -9,7 +9,7 @@ import { CreateBomDto } from './dto/create-bom.dto.js';
 import { CheckBomStockDto } from './dto/check-bom-stock.dto.js';
 import { ProductionOrderApi } from './api/production-order.api.js';
 import { CreateProductionOrderDto } from './dto/create-production-order.dto.js';
-
+import { AssignProductionOrderDto } from './dto/assign-production-order.dto.js';
 @Injectable()
 export class WarehouseService {
   constructor(
@@ -120,5 +120,15 @@ export class WarehouseService {
   // Hủy lệnh sản xuất
   cancelProductionOrder(code: string) {
     return this.productionOrderApi.cancelProductionOrder(code);
+  }
+
+  // Xem tiến độ sản xuất
+  getProductionOrderProgress(code: string) {
+    return this.productionOrderApi.getProductionOrderProgress(code);
+  }
+
+  // Giao lệnh sản xuất cho nhân viên
+  assignProductionOrder(code: string, dto: AssignProductionOrderDto) {
+    return this.productionOrderApi.assignProductionOrder(code, dto);
   }
 }

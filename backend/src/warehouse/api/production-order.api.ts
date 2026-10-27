@@ -9,6 +9,7 @@ import { PrismaService } from '../../prisma/prisma.service.js';
 import { Prisma } from '../../generated/prisma/client.js';
 import { CreateProductionOrderDto } from '../dto/create-production-order.dto.js';
 import { BomApi } from './bom.api.js';
+import { AssignProductionOrderDto } from '../dto/assign-production-order.dto.js';
 
 @Injectable()
 export class ProductionOrderApi {
@@ -773,6 +774,126 @@ export class ProductionOrderApi {
         orderCode: order.code,
         status: 'CANCELLED',
         materialStatus: order.materialStatus,
+      },
+    };
+  }
+
+  // Lấy tiến độ lệnh sản xuất
+  async getProductionOrderProgress(code: string) {
+    // 1. Tìm lệnh sản xuất
+    const order = await this.prisma.productionOrder.findUnique({
+      where: { code: code.trim() },
+      include: {
+        bom: true,
+        branch: true,
+      },
+    });
+
+    if (!order) {
+      throw new NotFoundException('Không tìm thấy lệnh sản xuất');
+    }
+
+    // 2. Xác định giai đoạn hiện tại
+    let phase = 'WAITING_CONFIRMATION';
+
+    if (order.status === 'CANCELLED') {
+      phase = 'CANCELLED';
+    } else if (order.status === 'COMPLETED') {
+      phase = 'COMPLETED';
+    } else if (order.status === 'IN_PROGRESS') {
+      phase = 'PRODUCING';
+    } else if (order.status === 'PENDING') {
+      if (order.materialStatus === 'SHORTAGE') {
+        phase = 'WAITING_MATERIALS';
+      } else if (order.materialStatus === 'ISSUED') {
+        phase = order.assignedEmployeeCode
+          ? 'READY_TO_START'
+          : 'WAITING_ASSIGNMENT';
+      } else {
+        phase = 'WAITING_ISSUE';
+      }
+    }
+
+    // 3. Trả kết quả
+    return {
+      message: 'Lấy tiến độ sản xuất thành công',
+      data: {
+        orderCode: order.code,
+        productCode: order.bom.productCode,
+        branchCode: order.branch.code,
+        quantity: order.quantity.toString(),
+
+        status: order.status,
+        materialStatus: order.materialStatus,
+        phase,
+
+        assignedEmployeeCode: order.assignedEmployeeCode,
+        assignedAt: order.assignedAt,
+        createdAt: order.createdAt,
+      },
+    };
+  }
+
+  // Giao lệnh sản xuất cho nhân viên
+  async assignProductionOrder(code: string, dto: AssignProductionOrderDto) {
+    // 1. Kiểm tra mã nhân viên
+    const employeeCode = dto.employeeCode.trim();
+
+    if (!employeeCode) {
+      throw new BadRequestException('Mã nhân viên không hợp lệ');
+    }
+
+    // 2. Tìm lệnh sản xuất
+    const order = await this.prisma.productionOrder.findUnique({
+      where: { code: code.trim() },
+    });
+
+    if (!order) {
+      throw new NotFoundException('Không tìm thấy lệnh sản xuất');
+    }
+
+    // 3. Kiểm tra trạng thái
+    if (order.status !== 'PENDING') {
+      throw new ConflictException('Lệnh chưa sẵn sàng để giao');
+    }
+
+    // 4. Kiểm tra nguyên vật liệu
+    if (order.materialStatus !== 'ISSUED') {
+      throw new ConflictException('Lệnh chưa được cấp phát nguyên vật liệu');
+    }
+
+    // 5. Kiểm tra đã giao việc chưa
+    if (order.assignedEmployeeCode) {
+      throw new ConflictException('Lệnh đã được giao cho nhân viên');
+    }
+
+    // 6. Giao lệnh
+    const result = await this.prisma.productionOrder.updateMany({
+      where: {
+        id: order.id,
+        status: 'PENDING',
+        materialStatus: 'ISSUED',
+        assignedEmployeeCode: null,
+      },
+      data: {
+        assignedEmployeeCode: employeeCode,
+        assignedAt: new Date(),
+      },
+    });
+
+    if (result.count !== 1) {
+      throw new ConflictException('Lệnh đã được xử lý');
+    }
+
+    // 7. Trả kết quả
+    return {
+      message: 'Giao lệnh sản xuất thành công',
+      data: {
+        orderCode: order.code,
+        employeeCode,
+        status: 'PENDING',
+        materialStatus: 'ISSUED',
+        phase: 'READY_TO_START',
       },
     };
   }

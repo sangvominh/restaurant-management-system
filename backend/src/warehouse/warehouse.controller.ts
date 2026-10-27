@@ -16,6 +16,7 @@ import { RejectMaterialIssueDto } from './dto/reject-material-issue.dto.js';
 import { CreateBomDto } from './dto/create-bom.dto.js';
 import { CheckBomStockDto } from './dto/check-bom-stock.dto.js';
 import { CreateProductionOrderDto } from './dto/create-production-order.dto.js';
+import { AssignProductionOrderDto } from './dto/assign-production-order.dto.js';
 
 @Controller('warehouse')
 export class WarehouseController {
@@ -191,5 +192,27 @@ export class WarehouseController {
   @HttpCode(200)
   cancelProductionOrder(@Param('code') code: string) {
     return this.warehouseService.cancelProductionOrder(code);
+  }
+
+  // GET tiến độ lệnh sản xuất
+  @Get('production-orders/:code/progress')
+  getProductionOrderProgress(@Param('code') code: string) {
+    return this.warehouseService.getProductionOrderProgress(code);
+  }
+// POST giao lệnh sản xuất cho nhân viên
+  @Post('production-orders/:code/assign')
+  @HttpCode(200)
+  @UsePipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  )
+  assignProductionOrder(
+    @Param('code') code: string,
+    @Body() dto: AssignProductionOrderDto,
+  ) {
+    return this.warehouseService.assignProductionOrder(code, dto);
   }
 }

@@ -303,6 +303,9 @@ model ProductionOrder {
   note      String?  @db.Text
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
 
+  assignedEmployeeCode String?   @map("assigned_employee_code") @db.VarChar(50)
+  assignedAt           DateTime? @map("assigned_at") @db.Timestamptz(3)
+
   bom                Bom                 @relation(fields: [bomId], references: [id], onDelete: Restrict)
   branch             Branch              @relation(fields: [branchId], references: [id], onDelete: Restrict)
   bomDetail          BomDetail?          @relation(fields: [bomDetailId], references: [id])
