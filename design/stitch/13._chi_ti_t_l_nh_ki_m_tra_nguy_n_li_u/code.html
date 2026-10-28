@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+
+<html lang="vi"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_stack" name="shell-type"/><style>@layer base{html,body{width:100vw;margin:0;padding:0;}body{overscroll-behavior:none;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { colors: { "surface": "#f9f9ff", "on-secondary-container": "#033e8a", "on-error-container": "#93000a", "surface-container-low": "#f0f3ff", "outline": "#707881", "surface-container-high": "#e2e8f8", "secondary": "#315ca9", "on-tertiary-fixed": "#001f24", "inverse-primary": "#94ccff", "surface-container-lowest": "#ffffff", "on-primary-fixed": "#001d32", "surface-container": "#e7eefe", "error-container": "#ffdad6", "on-surface-variant": "#404850", "on-secondary": "#ffffff", "surface-container-highest": "#dce2f3", "on-primary": "#ffffff", "secondary-container": "#86adff", "on-error": "#ffffff", "tertiary-fixed": "#c3e9f1", "secondary-fixed-dim": "#aec6ff", "tertiary": "#3b5e65", "on-tertiary-fixed-variant": "#284c53", "primary": "#005d90", "background": "#f9f9ff", "error": "#ba1a1a", "on-secondary-fixed-variant": "#0f4490", "inverse-surface": "#2a313d", "tertiary-container": "#53777e", "surface-variant": "#dce2f3", "on-tertiary": "#ffffff", "on-primary-container": "#f3f7ff", "outline-variant": "#bfc7d1", "surface-dim": "#d3daea", "on-secondary-fixed": "#001a42", "on-primary-fixed-variant": "#004b74", "primary-fixed-dim": "#94ccff", "on-tertiary-container": "#e7fbff", "inverse-on-surface": "#ebf1ff", "surface-tint": "#006399", "primary-container": "#0077b6", "on-surface": "#151c27", "on-background": "#151c27", "tertiary-fixed-dim": "#a8cdd5", "surface-bright": "#f9f9ff", "secondary-fixed": "#d8e2ff", "primary-fixed": "#cde5ff" }, borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, spacing: { "space-2xl": "2rem", "gutter": "0.75rem", "margin-tablet": "1.5rem", "space-lg": "1rem", "space-xl": "1.5rem", "gutter-desktop": "1.5rem", "space-xs": "0.25rem", "gutter-tablet": "1rem", "space-md": "0.75rem", "space-sm": "0.5rem", "margin": "1rem", "margin-desktop": "2rem" }, fontFamily: { "body-sm": ["Inter"], "metric-counter": ["Inter"], "body-md": ["Inter"], "headline-lg": ["Inter"], "headline-md": ["Inter"], "label-sm": ["Inter"], "headline-lg-mobile": ["Inter"], "label-lg": ["Inter"], "headline-sm": ["Inter"], "title-md": ["Inter"], "label-md": ["Inter"], "body-lg": ["Inter"] }, fontSize: { "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }], "metric-counter": ["22px", { "lineHeight": "26px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }], "headline-lg": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "500" }], "headline-lg-mobile": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700" }], "label-lg": ["14px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "600" }], "headline-sm": ["18px", { "lineHeight": "24px", "fontWeight": "600" }], "title-md": ["16px", { "lineHeight": "22px", "fontWeight": "600" }], "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600" }], "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }] } } } };</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-surface font-body-md text-on-surface flex flex-col min-h-screen"><header class="fixed top-0 w-full z-50 pt-safe bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 px-margin flex items-center justify-between gap-space-sm"><div class="flex items-center gap-space-xs min-w-0"><button aria-label="Quay lại" class="w-11 h-11 flex items-center justify-center rounded-full text-on-surface hover:bg-surface-container transition-colors" onclick="history.back()"><span class="material-symbols-outlined text-[24px]">arrow_back</span></button><div class="flex flex-col min-w-0"><span class="font-label-sm text-label-sm text-primary uppercase tracking-wider truncate">Nhà hàng - CN1</span><h1 class="font-headline-sm text-headline-sm text-on-surface font-semibold truncate">13. Chi Tiết Lệnh & Kiểm Tra Nguyên Liệu</h1></div></div><div class="flex items-center gap-space-xs shrink-0"><button aria-label="Thông báo" class="w-11 h-11 flex items-center justify-center rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors"><span class="material-symbols-outlined text-[22px]">notifications</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="flex flex-col relative w-full pt-16 pb-safe bg-surface min-h-screen"><div class="flex flex-col w-full pb-32">
+<!-- Status & Quick Overview Card -->
+<div class="px-margin pt-space-md">
+<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+<!-- Card Top Ribbon Indicator -->
+<div class="h-1.5 w-full bg-amber-500"></div>
+<div class="p-space-lg flex flex-col gap-space-md">
+<!-- Order Code & Status Badge -->
+<div class="flex items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="font-label-sm text-label-sm text-primary uppercase font-bold tracking-wider">Lệnh sản xuất</span>
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">#LSX-001</span>
+</div>
+<!-- Amber Status Tag -->
+<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700">
+<span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+<span class="font-label-md text-label-md font-semibold">Chờ thực hiện</span>
+</div>
+</div>
+<!-- Dish Meta Details -->
+<div class="flex items-start gap-space-md">
+<div class="w-14 h-14 rounded-xl bg-surface-container-low shrink-0 overflow-hidden relative">
+<img class="w-full h-full object-cover" data-alt="Tô bò sốt vang bốc khói nghi ngút màu đỏ nâu đậm đà với khoai tây cà rốt hầm mềm trong bếp công nghiệp nhà hàng cao cấp ánh sáng tự nhiên ấm áp phong cách ẩm thực chuyên nghiệp" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDYu1ANE6XaLGFVXgLSBjKoLOPy-pw-oFdBlskkamok6eN-LLkNZR_LE2CAHngsMc3SgrOcgdYTA-cNeTyBFjIhtBFEQvnaA6C_hqBG18fUZh1yfpRahnWsni8-SFYD0TuqkPwL7xuAIOLFb7BMcRZ8fknib9_rBkQKQalXQn9_SNOaGqHahGNfNqVZcilDlhQSDnMzRM70KuUnV3gkU0mFPZ1Luo3vv0soH3PbNQg_"/>
+</div>
+<div class="flex flex-col min-w-0">
+<h2 class="font-title-md text-title-md text-on-surface font-semibold leading-tight line-clamp-1">Bò Sốt Vang</h2>
+<span class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1 mt-0.5">Mẻ hầm sơ chế bán thành phẩm</span>
+<div class="inline-flex items-center gap-1 mt-1 text-primary">
+<span class="material-symbols-outlined text-[16px]">restaurant</span>
+<span class="font-label-md text-label-md font-bold">Kế hoạch: 10 phần</span>
+</div>
+</div>
+</div>
+<!-- Supervisor & Timing Info Grid -->
+<div class="bg-surface-container-low rounded-lg p-space-md grid grid-cols-2 gap-space-sm">
+<div class="flex flex-col gap-0.5">
+<div class="flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-[15px]">schedule</span>
+<span class="font-label-sm text-label-sm">Thời hạn hoàn tất</span>
+</div>
+<span class="font-label-lg text-label-lg text-on-surface font-semibold">11:30 (Trưa nay)</span>
+</div>
+<div class="flex flex-col gap-0.5">
+<div class="flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-[15px]">badge</span>
+<span class="font-label-sm text-label-sm">Bếp phụ trách</span>
+</div>
+<span class="font-label-lg text-label-lg text-on-surface font-semibold truncate">Nguyễn Tuấn Anh</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant truncate">Bếp chính - Bếp 1</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Warning Banner (Material Shortage) -->
+<div class="px-margin pt-space-md">
+<div class="bg-amber-50/90 rounded-xl p-space-md shadow-sm flex items-start gap-space-md">
+<div class="w-9 h-9 rounded-full bg-amber-500/10 flex items-center justify-center shrink-0 text-amber-700">
+<span class="material-symbols-outlined text-[22px]">warning</span>
+</div>
+<div class="flex flex-col min-w-0">
+<h3 class="font-label-lg text-label-lg font-bold text-amber-900 leading-tight">Cảnh báo thiếu nguyên liệu tồn kho</h3>
+<p class="font-body-sm text-body-sm text-amber-800/90 mt-1 leading-normal">
+          Tồn kho hiện tại không đủ để hoàn thành toàn bộ mẻ! Vui lòng đề nghị xuất nguyên liệu bổ sung trước khi bấm bắt đầu sản xuất.
+        </p>
+</div>
+</div>
+</div>
+<!-- Section Title & Readiness Metric -->
+<div class="px-margin pt-space-lg flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">fact_check</span>
+<h3 class="font-title-md text-title-md text-on-surface font-bold">Bảng định lượng (BOM)</h3>
+</div>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-primary-container/10 text-primary-container font-semibold">
+      4 thành phần
+    </span>
+</div>
+<!-- Material Checklist (BOM Card List) -->
+<div class="px-margin pt-space-sm flex flex-col gap-space-sm">
+<!-- Item 1: Bắp bò hoa thái khối (Missing) -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col gap-space-sm relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-error"></div>
+<div class="flex items-start justify-between gap-space-sm pl-1">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined text-[20px]">lunch_dining</span>
+</div>
+<div class="flex flex-col min-w-0">
+<h4 class="font-title-md text-title-md text-on-surface font-semibold truncate">Bắp bò hoa thái khối</h4>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Quy cách: kg (Thịt tươi mát)</span>
+</div>
+</div>
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-error-container text-on-error-container font-label-md text-label-md font-bold shrink-0">
+<span class="material-symbols-outlined text-[14px]">remove_circle</span>
+          Thiếu 1.5 kg
+        </span>
+</div>
+<div class="bg-surface-container-low rounded-lg p-2.5 grid grid-cols-3 gap-2 text-center ml-1">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Lượng cần</span>
+<span class="font-label-lg text-label-lg font-bold text-on-surface mt-0.5">5.0 kg</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Khả dụng</span>
+<span class="font-label-lg text-label-lg font-semibold text-on-surface mt-0.5">3.5 kg</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-error font-medium">Chênh lệch</span>
+<span class="font-label-lg text-label-lg font-bold text-error mt-0.5">-1.5 kg</span>
+</div>
+</div>
+</div>
+<!-- Item 2: Rượu vang đỏ đà lạt (Sufficient) -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col gap-space-sm relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500"></div>
+<div class="flex items-start justify-between gap-space-sm pl-1">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined text-[20px]">wine_bar</span>
+</div>
+<div class="flex flex-col min-w-0">
+<h4 class="font-title-md text-title-md text-on-surface font-semibold truncate">Rượu vang đỏ Đà Lạt</h4>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Quy cách: Lít (Chai 750ml)</span>
+</div>
+</div>
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 font-label-md text-label-md font-bold shrink-0">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+          0 (Đủ)
+        </span>
+</div>
+<div class="bg-surface-container-low rounded-lg p-2.5 grid grid-cols-3 gap-2 text-center ml-1">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Lượng cần</span>
+<span class="font-label-lg text-label-lg font-bold text-on-surface mt-0.5">0.8 Lít</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Khả dụng</span>
+<span class="font-label-lg text-label-lg font-semibold text-emerald-700 mt-0.5">2.0 Lít</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-emerald-600 font-medium">Trạng thái</span>
+<span class="font-label-lg text-label-lg font-bold text-emerald-700 mt-0.5">+1.2 Lít</span>
+</div>
+</div>
+</div>
+<!-- Item 3: Sốt cà chua cô đặc & Quế hồi (Sufficient) -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col gap-space-sm relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500"></div>
+<div class="flex items-start justify-between gap-space-sm pl-1">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined text-[20px]">soup_kitchen</span>
+</div>
+<div class="flex flex-col min-w-0">
+<h4 class="font-title-md text-title-md text-on-surface font-semibold truncate">Sốt cà chua cô đặc & Quế hồi</h4>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Quy cách: Bộ (Gói gia vị hầm)</span>
+</div>
+</div>
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 font-label-md text-label-md font-bold shrink-0">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+          0 (Đủ)
+        </span>
+</div>
+<div class="bg-surface-container-low rounded-lg p-2.5 grid grid-cols-3 gap-2 text-center ml-1">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Lượng cần</span>
+<span class="font-label-lg text-label-lg font-bold text-on-surface mt-0.5">2 bộ</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Khả dụng</span>
+<span class="font-label-lg text-label-lg font-semibold text-emerald-700 mt-0.5">5 bộ</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-emerald-600 font-medium">Trạng thái</span>
+<span class="font-label-lg text-label-lg font-bold text-emerald-700 mt-0.5">+3 bộ</span>
+</div>
+</div>
+</div>
+<!-- Item 4: Hành tây & Cà rốt củ (Missing) -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col gap-space-sm relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-error"></div>
+<div class="flex items-start justify-between gap-space-sm pl-1">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined text-[20px]">nutrition</span>
+</div>
+<div class="flex flex-col min-w-0">
+<h4 class="font-title-md text-title-md text-on-surface font-semibold truncate">Hành tây & Cà rốt củ</h4>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Quy cách: kg (Sơ chế gọt vỏ)</span>
+</div>
+</div>
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-error-container text-on-error-container font-label-md text-label-md font-bold shrink-0">
+<span class="material-symbols-outlined text-[14px]">remove_circle</span>
+          Thiếu 1.0 kg
+        </span>
+</div>
+<div class="bg-surface-container-low rounded-lg p-2.5 grid grid-cols-3 gap-2 text-center ml-1">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Lượng cần</span>
+<span class="font-label-lg text-label-lg font-bold text-on-surface mt-0.5">2.0 kg</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Khả dụng</span>
+<span class="font-label-lg text-label-lg font-semibold text-on-surface mt-0.5">1.0 kg</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-error font-medium">Chênh lệch</span>
+<span class="font-label-lg text-label-lg font-bold text-error mt-0.5">-1.0 kg</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Summary & Kitchen Protocol Notes -->
+<div class="px-margin pt-space-lg flex flex-col gap-space-md">
+<!-- Progress Indicator Card -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold">Tiến độ đáp ứng nguyên liệu</span>
+<span class="font-headline-sm text-headline-sm text-amber-600 font-bold">2/4 đạt chuẩn (50%)</span>
+</div>
+<!-- Progress Bar Track -->
+<div class="w-full h-3 rounded-full bg-surface-container-high overflow-hidden flex">
+<div class="h-full bg-amber-500 rounded-full transition-all duration-300" style="width: 50%;"></div>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant pt-1 font-body-sm text-body-sm">
+<span class="flex items-center gap-1 text-emerald-700 font-medium">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span> 2 nguyên liệu đủ
+        </span>
+<span class="flex items-center gap-1 text-error font-medium">
+<span class="w-2 h-2 rounded-full bg-error"></span> 2 nguyên liệu thiếu
+        </span>
+</div>
+</div>
+<!-- Safety & Chef Note Card -->
+<div class="bg-surface-container-low rounded-xl p-space-md flex items-start gap-space-sm shadow-sm">
+<span class="material-symbols-outlined text-primary text-[22px] shrink-0 mt-0.5">info</span>
+<div class="flex flex-col min-w-0">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold">Lưu ý an toàn bếp & chất lượng</span>
+<p class="font-body-md text-body-md text-on-surface-variant mt-0.5 leading-relaxed">
+          Món sốt vang cần hầm tối thiểu 45 phút sau khi nhận đủ thịt bò từ kho mát. Đảm bảo niêm phong nhiệt độ đạt chuẩn HACCP.
+        </p>
+</div>
+</div>
+</div>
+<!-- Fixed Bottom Action Container (Thumb Zone Ergonomics) -->
+<div class="fixed bottom-0 left-0 right-0 z-40 bg-surface-container-lowest/95 backdrop-blur-md shadow-[0_-4px_20px_rgba(0,119,182,0.1)] px-margin py-space-md pb-safe flex flex-col gap-space-sm">
+<!-- Secondary & Request Actions Row -->
+<div class="grid grid-cols-2 gap-space-sm w-full">
+<!-- Secondary Action: Re-check Stock -->
+<button class="h-12 rounded-lg bg-surface-container-low text-primary font-label-lg text-label-lg font-semibold flex items-center justify-center gap-1.5 active:scale-[0.98] transition-all" id="btn-recheck" type="button">
+<span class="material-symbols-outlined text-[19px]">sync</span>
+<span>Kiểm tra lại kho</span>
+</button>
+<!-- Workflow Action: Request Additional Stock -->
+<button class="h-12 rounded-lg bg-primary-container text-on-primary font-label-lg text-label-lg font-semibold flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.98] transition-all" id="btn-request" type="button">
+<span class="material-symbols-outlined text-[19px]">outbox</span>
+<span>Đề nghị xuất kho</span>
+</button>
+</div>
+<!-- Main CTA: Start Production (Disabled State) -->
+<div class="flex flex-col w-full items-center gap-1">
+<button aria-disabled="true" class="w-full h-12 rounded-lg bg-surface-container-highest text-outline font-label-lg text-label-lg font-bold flex items-center justify-center gap-2 cursor-not-allowed opacity-80" disabled="" type="button">
+<span class="material-symbols-outlined text-[18px]">lock</span>
+<span>Bắt đầu sản xuất</span>
+</button>
+<!-- Clarifying Status Helper -->
+<p class="font-label-sm text-label-sm text-on-surface-variant text-center flex items-center justify-center gap-1 mt-0.5">
+<span class="material-symbols-outlined text-[13px] text-outline">help</span>
+        Chỉ mở khi lệnh được giao và nguyên liệu đã được kho cấp đủ 100%
+      </p>
+</div>
+</div>
+</div>
+<script>
+  // Simple interaction feedback for secondary and request actions
+  document.getElementById('btn-recheck')?.addEventListener('click', function() {
+    const icon = this.querySelector('.material-symbols-outlined');
+    if (icon) {
+      icon.classList.add('animate-spin');
+      setTimeout(() => {
+        icon.classList.remove('animate-spin');
+      }, 700);
+    }
+  });
+
+  document.getElementById('btn-request')?.addEventListener('click', function() {
+    this.classList.add('opacity-90');
+    setTimeout(() => {
+      this.classList.remove('opacity-90');
+    }, 200);
+  });
+</script></main></body></html>
