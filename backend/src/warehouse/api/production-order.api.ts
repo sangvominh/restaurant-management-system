@@ -125,6 +125,7 @@ export class ProductionOrderApi {
       'IN_PROGRESS',
       'COMPLETED',
       'CANCELLED',
+      'WAITING_APPROVAL',
     ];
 
     if (status && !validStatus.includes(status)) {
@@ -802,6 +803,8 @@ export class ProductionOrderApi {
       phase = 'COMPLETED';
     } else if (order.status === 'IN_PROGRESS') {
       phase = 'PRODUCING';
+    } else if (order.status === 'WAITING_APPROVAL') {
+      phase = 'WAITING_APPROVAL';
     } else if (order.status === 'PENDING') {
       if (order.materialStatus === 'SHORTAGE') {
         phase = 'WAITING_MATERIALS';
@@ -894,6 +897,59 @@ export class ProductionOrderApi {
         status: 'PENDING',
         materialStatus: 'ISSUED',
         phase: 'READY_TO_START',
+      },
+    };
+  }
+
+  // Bắt đầu sản xuất
+  async startProductionOrder(code: string) {
+    // 1. Tìm lệnh sản xuất
+    const order = await this.prisma.productionOrder.findUnique({
+      where: { code: code.trim() },
+    });
+
+    if (!order) {
+      throw new NotFoundException('Không tìm thấy lệnh sản xuất');
+    }
+
+    // 2. Kiểm tra điều kiện bắt đầu
+    if (
+      order.status !== 'PENDING' ||
+      order.materialStatus !== 'ISSUED' ||
+      !order.assignedEmployeeCode
+    ) {
+      throw new ConflictException('Lệnh chưa đủ điều kiện bắt đầu sản xuất');
+    }
+
+    if (!['MAKE_TO_STOCK', 'HYBRID'].includes(order.productionMode)) {
+      throw new BadRequestException('Hình thức sản xuất không hợp lệ');
+    }
+
+    // 3. Chuyển trạng thái
+    const result = await this.prisma.productionOrder.updateMany({
+      where: {
+        id: order.id,
+        status: 'PENDING',
+        materialStatus: 'ISSUED',
+        assignedEmployeeCode: { not: null },
+      },
+      data: {
+        status: 'IN_PROGRESS',
+      },
+    });
+
+    if (result.count !== 1) {
+      throw new ConflictException('Lệnh đã được xử lý');
+    }
+
+    // 4. Trả kết quả
+    return {
+      message: 'Bắt đầu sản xuất thành công',
+      data: {
+        orderCode: order.code,
+        employeeCode: order.assignedEmployeeCode,
+        status: 'IN_PROGRESS',
+        materialStatus: 'ISSUED',
       },
     };
   }

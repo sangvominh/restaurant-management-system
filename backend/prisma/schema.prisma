@@ -105,11 +105,13 @@ model WarehouseLocation {
   name         String @db.VarChar(150)
   locationType String @map("location_type") @db.VarChar(30)
 
-  branch               Branch                @relation(fields: [branchId], references: [id], onDelete: Restrict)
-  balances             MaterialBalance[]
-  goodsReceiptDetails  GoodsReceiptDetail[]
-  inventoryMovements   InventoryMovement[]
-  materialIssueDetails MaterialIssueDetail[]
+  branch                 Branch                  @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  balances               MaterialBalance[]
+  goodsReceiptDetails    GoodsReceiptDetail[]
+  inventoryMovements     InventoryMovement[]
+  materialIssueDetails   MaterialIssueDetail[]
+  finishedGoodsBalances  FinishedGoodsBalance[]
+  finishedGoodsMovements FinishedGoodsMovement[]
 
   @@unique([branchId, name])
   @@map("warehouse_locations")
@@ -297,14 +299,14 @@ model ProductionOrder {
   productionMode String  @map("production_mode") @db.VarChar(30)
   quantity       Decimal @db.Decimal(18, 3)
 
-  status         String @default("NEW") @db.VarChar(20)
-  materialStatus String @default("UNCHECKED") @map("material_status") @db.VarChar(20)
+  status         String   @default("NEW") @db.VarChar(20)
+  materialStatus String   @default("UNCHECKED") @map("material_status") @db.VarChar(20)
+  note           String?  @db.Text
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
 
-  note      String?  @db.Text
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
-
-  assignedEmployeeCode String?   @map("assigned_employee_code") @db.VarChar(50)
-  assignedAt           DateTime? @map("assigned_at") @db.Timestamptz(3)
+  assignedEmployeeCode String?               @map("assigned_employee_code") @db.VarChar(50)
+  assignedAt           DateTime?             @map("assigned_at") @db.Timestamptz(3)
+  finishedGoodsReceipt FinishedGoodsReceipt?
 
   bom                Bom                 @relation(fields: [bomId], references: [id], onDelete: Restrict)
   branch             Branch              @relation(fields: [branchId], references: [id], onDelete: Restrict)
@@ -315,4 +317,57 @@ model ProductionOrder {
   @@index([branchId, status])
   @@index([bomId])
   @@map("production_orders")
+}
+
+model FinishedGoodsReceipt {
+  id                String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code              String @unique @db.VarChar(50)
+  productionOrderId String @unique @map("production_order_id") @db.Uuid
+
+  reportedQuantity Decimal  @map("reported_quantity") @db.Decimal(18, 3)
+  acceptedQuantity Decimal? @map("accepted_quantity") @db.Decimal(18, 3)
+
+  status           String    @default("PENDING") @db.VarChar(20)
+  note             String?   @db.Text
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  approvedAt       DateTime? @map("approved_at") @db.Timestamptz(3)
+  rejectedQuantity Decimal?  @map("rejected_quantity") @db.Decimal(18, 3)
+  inspectionNote   String?   @map("inspection_note") @db.Text
+  inspectedAt      DateTime? @map("inspected_at") @db.Timestamptz(3)
+
+  movement FinishedGoodsMovement?
+
+  productionOrder ProductionOrder @relation(fields: [productionOrderId], references: [id], onDelete: Restrict)
+
+  @@index([status, createdAt])
+  @@map("finished_goods_receipts")
+}
+
+model FinishedGoodsBalance {
+  id          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  productCode String  @map("product_code") @db.VarChar(50)
+  locationId  String  @map("location_id") @db.Uuid
+  quantity    Decimal @default(0) @db.Decimal(18, 3)
+
+  location WarehouseLocation @relation(fields: [locationId], references: [id], onDelete: Restrict)
+
+  @@unique([productCode, locationId])
+  @@map("finished_goods_balances")
+}
+
+model FinishedGoodsMovement {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  receiptId      String   @unique @map("receipt_id") @db.Uuid
+  productCode    String   @map("product_code") @db.VarChar(50)
+  locationId     String   @map("location_id") @db.Uuid
+  quantityBefore Decimal  @map("quantity_before") @db.Decimal(18, 3)
+  quantityChange Decimal  @map("quantity_change") @db.Decimal(18, 3)
+  quantityAfter  Decimal  @map("quantity_after") @db.Decimal(18, 3)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  receipt FinishedGoodsReceipt @relation(fields: [receiptId], references: [id], onDelete: Restrict)
+
+  location WarehouseLocation @relation(fields: [locationId], references: [id], onDelete: Restrict)
+
+  @@map("finished_goods_movements")
 }

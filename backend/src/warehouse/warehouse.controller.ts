@@ -17,6 +17,8 @@ import { CreateBomDto } from './dto/create-bom.dto.js';
 import { CheckBomStockDto } from './dto/check-bom-stock.dto.js';
 import { CreateProductionOrderDto } from './dto/create-production-order.dto.js';
 import { AssignProductionOrderDto } from './dto/assign-production-order.dto.js';
+import { ApproveFinishedGoodsDto } from './dto/approve-finished-goods.dto.js';
+import { RejectFinishedGoodsDto } from './dto/reject-finished-goods.dto.js';
 
 @Controller('warehouse')
 export class WarehouseController {
@@ -199,7 +201,7 @@ export class WarehouseController {
   getProductionOrderProgress(@Param('code') code: string) {
     return this.warehouseService.getProductionOrderProgress(code);
   }
-// POST giao lệnh sản xuất cho nhân viên
+  // POST giao lệnh sản xuất cho nhân viên
   @Post('production-orders/:code/assign')
   @HttpCode(200)
   @UsePipes(
@@ -215,4 +217,41 @@ export class WarehouseController {
   ) {
     return this.warehouseService.assignProductionOrder(code, dto);
   }
+
+  // POST /warehouse/production-orders/LSX001/start
+  @Post('production-orders/:code/start')
+  @HttpCode(200)
+  startProductionOrder(@Param('code') code: string) {
+    return this.warehouseService.startProductionOrder(code);
+  }
+
+  // GET /warehouse/finished-goods-receipts
+  @Get('finished-goods-receipts')
+  getFinishedGoodsReceipts(@Query('status') status?: string) {
+    return this.warehouseService.getFinishedGoodsReceipts(status);
+  }
+
+  
+//Duyệt nhập thành phẩm
+@Post('finished-goods-receipts/:code/approve')
+@HttpCode(200)
+@UsePipes(new ValidationPipe({ whitelist: true }))
+approveFinishedGoodsReceipt(
+  @Param('code') code: string,
+  @Body() dto: ApproveFinishedGoodsDto,
+) {
+  return this.warehouseService.approveFinishedGoodsReceipt(code, dto);
+}
+
+//Từ chối phiếu thành phẩm
+@Post('finished-goods-receipts/:code/reject')
+@HttpCode(200)
+@UsePipes(new ValidationPipe({ whitelist: true }))
+rejectFinishedGoodsReceipt(
+  @Param('code') code: string,
+  @Body() dto: RejectFinishedGoodsDto,
+) {
+  return this.warehouseService.rejectFinishedGoodsReceipt(code, dto);
+}
+
 }

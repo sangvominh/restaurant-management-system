@@ -10,6 +10,9 @@ import { CheckBomStockDto } from './dto/check-bom-stock.dto.js';
 import { ProductionOrderApi } from './api/production-order.api.js';
 import { CreateProductionOrderDto } from './dto/create-production-order.dto.js';
 import { AssignProductionOrderDto } from './dto/assign-production-order.dto.js';
+import { FinishedGoodsApi } from './api/finished-goods.api.js';
+import { ApproveFinishedGoodsDto } from './dto/approve-finished-goods.dto.js';
+import { RejectFinishedGoodsDto } from './dto/reject-finished-goods.dto.js';
 @Injectable()
 export class WarehouseService {
   constructor(
@@ -18,6 +21,7 @@ export class WarehouseService {
     private readonly materialIssueApi: MaterialIssueApi,
     private readonly bomApi: BomApi,
     private readonly productionOrderApi: ProductionOrderApi,
+    private readonly finishedGoodsApi: FinishedGoodsApi,
   ) {}
 
   //Danh sách tồn kho
@@ -130,5 +134,25 @@ export class WarehouseService {
   // Giao lệnh sản xuất cho nhân viên
   assignProductionOrder(code: string, dto: AssignProductionOrderDto) {
     return this.productionOrderApi.assignProductionOrder(code, dto);
+  }
+
+  // Cho phép bắt đầu sản xuất
+  startProductionOrder(code: string) {
+    return this.productionOrderApi.startProductionOrder(code);
+  }
+
+  // Lấy phiếu thành phẩm
+  getFinishedGoodsReceipts(status?: string) {
+    return this.finishedGoodsApi.getReceipts(status);
+  }
+
+  //Duyệt nhập thành phẩm
+  approveFinishedGoodsReceipt(code: string, dto: ApproveFinishedGoodsDto) {
+    return this.finishedGoodsApi.approveReceipt(code, dto);
+  }
+
+  //Từ chối phiếu thành phẩm
+  rejectFinishedGoodsReceipt(code: string, dto: RejectFinishedGoodsDto) {
+    return this.finishedGoodsApi.rejectReceipt(code, dto);
   }
 }
