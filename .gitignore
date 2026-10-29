@@ -1,0 +1,9 @@
+@"
+node_modules/
+.env
+.next/
+dist/
+backups/
+sao-luu-*.json
+tu-dong-truoc-khi-phuc-hoi-*.json
+"@ | Set-Content .gitignore

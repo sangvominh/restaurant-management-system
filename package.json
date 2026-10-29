@@ -1,0 +1,9 @@
+{
+  "name": "restaurant-management-system",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "backend"
+  ]
+}
