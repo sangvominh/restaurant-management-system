@@ -1,4 +1,3 @@
-
 import {
   IsString,
   IsNotEmpty,
@@ -20,4 +19,9 @@ export class ApproveFinishedGoodsDto {
   @IsString()
   @MaxLength(500)
   reason?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  wasteReason?: string;
 }

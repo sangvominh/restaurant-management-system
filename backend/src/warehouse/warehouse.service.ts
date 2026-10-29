@@ -13,6 +13,8 @@ import { AssignProductionOrderDto } from './dto/assign-production-order.dto.js';
 import { FinishedGoodsApi } from './api/finished-goods.api.js';
 import { ApproveFinishedGoodsDto } from './dto/approve-finished-goods.dto.js';
 import { RejectFinishedGoodsDto } from './dto/reject-finished-goods.dto.js';
+import { WasteApi } from './api/waste.api.js';
+import { RejectWasteDto } from './dto/reject-waste.dto.js';
 @Injectable()
 export class WarehouseService {
   constructor(
@@ -22,6 +24,7 @@ export class WarehouseService {
     private readonly bomApi: BomApi,
     private readonly productionOrderApi: ProductionOrderApi,
     private readonly finishedGoodsApi: FinishedGoodsApi,
+    private readonly wasteApi: WasteApi,
   ) {}
 
   //Danh sách tồn kho
@@ -154,5 +157,40 @@ export class WarehouseService {
   //Từ chối phiếu thành phẩm
   rejectFinishedGoodsReceipt(code: string, dto: RejectFinishedGoodsDto) {
     return this.finishedGoodsApi.rejectReceipt(code, dto);
+  }
+
+  // Xem tồn kho thành phẩm
+  getFinishedGoodsInventory(branchCode: string, productCode?: string) {
+    return this.finishedGoodsApi.getInventory(branchCode, productCode);
+  }
+
+  // Xem chi tiết phiếu thành phẩm
+  getFinishedGoodsReceiptByCode(code: string) {
+    return this.finishedGoodsApi.getReceiptByCode(code);
+  }
+
+  // Lấy lịch sử nhập thành phẩm
+  getFinishedGoodsMovements() {
+    return this.finishedGoodsApi.getFinishedGoodsMovements();
+  }
+
+  // Lấy danh sách tồn kho
+  getInventoryMovements() {
+    return this.inventoryApi.getInventoryMovements();
+  }
+
+  // Lấy danh sách yêu cầu hao hụt
+  getWasteRequests(status?: string) {
+    return this.wasteApi.getRequests(status);
+  }
+
+  // Duyệt yêu cầu hao hụt
+  approveWasteRequest(code: string) {
+    return this.wasteApi.approveRequest(code);
+  }
+
+  // Từ chối yêu cầu hao hụt
+  rejectWasteRequest(code: string, dto: RejectWasteDto) {
+    return this.wasteApi.rejectRequest(code, dto);
   }
 }

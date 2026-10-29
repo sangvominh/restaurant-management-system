@@ -109,6 +109,13 @@ export class FinishedGoodsApi {
               'Phải ghi lý do khi số lượng bị chênh lệch',
             );
           }
+          const wasteReason = dto.wasteReason?.trim();
+
+          if (rejected.gt(0) && !wasteReason) {
+            throw new BadRequestException(
+              'Phải ghi lý do thành phẩm không đạt',
+            );
+          }
 
           // 4. Kiểm tra vị trí kho đúng chi nhánh
           const location = await tx.warehouseLocation.findFirst({
@@ -184,6 +191,18 @@ export class FinishedGoodsApi {
               quantityAfter: balance.quantity,
             },
           });
+
+          // Tạo yêu cầu xử lý thành phẩm không đạt
+          if (rejected.gt(0)) {
+            await tx.wasteRequest.create({
+              data: {
+                code: `HH-${receipt.code}`,
+                receiptId: receipt.id,
+                quantity: rejected,
+                reason: wasteReason!,
+              },
+            });
+          }
 
           return {
             message: 'Duyệt nhập thành phẩm thành công',
@@ -299,5 +318,143 @@ export class FinishedGoodsApi {
 
       throw error;
     }
+  }
+
+  // Lấy tồn kho thành phẩm theo chi nhánh và sản phẩm
+  async getInventory(branchCode: string, productCode?: string) {
+    // 1. Kiểm tra chi nhánh
+    if (!branchCode?.trim()) {
+      throw new BadRequestException('Thiếu mã chi nhánh');
+    }
+
+    const branch = await this.prisma.branch.findUnique({
+      where: { code: branchCode.trim() },
+    });
+
+    if (!branch) {
+      throw new NotFoundException('Không tìm thấy chi nhánh');
+    }
+
+    // 2. Lấy tồn kho thành phẩm
+    const balances = await this.prisma.finishedGoodsBalance.findMany({
+      where: {
+        location: { branchId: branch.id },
+        ...(productCode?.trim()
+          ? {
+              productCode: {
+                contains: productCode.trim(),
+                mode: 'insensitive' as const,
+              },
+            }
+          : {}),
+      },
+      include: { location: true },
+      orderBy: { productCode: 'asc' },
+      take: 100,
+    });
+
+    // 3. Trả kết quả
+    return {
+      message: 'Lấy tồn kho thành phẩm thành công',
+      data: {
+        branchCode: branch.code,
+        totalItems: balances.length,
+        items: balances.map((item) => ({
+          productCode: item.productCode,
+          locationName: item.location.name,
+          quantity: item.quantity.toString(),
+        })),
+      },
+    };
+  }
+
+  // Lấy chi tiết phiếu thành phẩm theo mã
+  async getReceiptByCode(code: string) {
+    // 1. Tìm phiếu thành phẩm
+    const receipt = await this.prisma.finishedGoodsReceipt.findUnique({
+      where: { code: code.trim() },
+      include: {
+        productionOrder: {
+          include: {
+            bom: true,
+            branch: true,
+          },
+        },
+        movement: {
+          include: { location: true },
+        },
+      },
+    });
+
+    if (!receipt) {
+      throw new NotFoundException('Không tìm thấy phiếu thành phẩm');
+    }
+
+    const order = receipt.productionOrder;
+    const movement = receipt.movement;
+
+    // 2. Trả chi tiết
+    return {
+      message: 'Lấy chi tiết phiếu thành phẩm thành công',
+      data: {
+        receiptCode: receipt.code,
+        orderCode: order.code,
+        productCode: order.bom.productCode,
+        branchCode: order.branch.code,
+
+        plannedQuantity: order.quantity.toString(),
+        reportedQuantity: receipt.reportedQuantity.toString(),
+        acceptedQuantity: receipt.acceptedQuantity?.toString() ?? null,
+        rejectedQuantity: receipt.rejectedQuantity?.toString() ?? null,
+
+        receiptStatus: receipt.status,
+        productionStatus: order.status,
+
+        employeeNote: receipt.note,
+        inspectionNote: receipt.inspectionNote,
+        inspectedAt: receipt.inspectedAt,
+        approvedAt: receipt.approvedAt,
+
+        inventoryMovement: movement
+          ? {
+              locationName: movement.location.name,
+              quantityBefore: movement.quantityBefore.toString(),
+              quantityChange: movement.quantityChange.toString(),
+              quantityAfter: movement.quantityAfter.toString(),
+              createdAt: movement.createdAt,
+            }
+          : null,
+      },
+    };
+  }
+
+  // Lấy lịch sử nhập thành phẩm
+  async getFinishedGoodsMovements() {
+    const movements = await this.prisma.finishedGoodsMovement.findMany({
+      include: {
+        receipt: {
+          include: {
+            productionOrder: true,
+          },
+        },
+        location: true,
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+    });
+
+    return {
+      message: 'Lấy lịch sử nhập thành phẩm thành công',
+      data: movements.map((item) => ({
+        receiptCode: item.receipt.code,
+        orderCode: item.receipt.productionOrder.code,
+        productCode: item.productCode,
+        locationName: item.location.name,
+        quantityBefore: item.quantityBefore.toString(),
+        quantityChange: item.quantityChange.toString(),
+        quantityAfter: item.quantityAfter.toString(),
+        createdAt: item.createdAt,
+      })),
+    };
   }
 }

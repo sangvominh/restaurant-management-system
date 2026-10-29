@@ -335,9 +335,9 @@ model FinishedGoodsReceipt {
   inspectionNote   String?   @map("inspection_note") @db.Text
   inspectedAt      DateTime? @map("inspected_at") @db.Timestamptz(3)
 
-  movement FinishedGoodsMovement?
-
-  productionOrder ProductionOrder @relation(fields: [productionOrderId], references: [id], onDelete: Restrict)
+  movement        FinishedGoodsMovement?
+  wasteRequest    WasteRequest?
+  productionOrder ProductionOrder        @relation(fields: [productionOrderId], references: [id], onDelete: Restrict)
 
   @@index([status, createdAt])
   @@map("finished_goods_receipts")
@@ -370,4 +370,21 @@ model FinishedGoodsMovement {
   location WarehouseLocation @relation(fields: [locationId], references: [id], onDelete: Restrict)
 
   @@map("finished_goods_movements")
+}
+
+model WasteRequest {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code         String    @unique @db.VarChar(60)
+  receiptId    String    @unique @map("receipt_id") @db.Uuid
+  quantity     Decimal   @db.Decimal(18, 3)
+  reason       String    @db.Text
+  status       String    @default("PENDING") @db.VarChar(20)
+  decisionNote String?   @map("decision_note") @db.Text
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  processedAt  DateTime? @map("processed_at") @db.Timestamptz(3)
+
+  receipt FinishedGoodsReceipt @relation(fields: [receiptId], references: [id], onDelete: Restrict)
+
+  @@index([status, createdAt])
+  @@map("waste_requests")
 }

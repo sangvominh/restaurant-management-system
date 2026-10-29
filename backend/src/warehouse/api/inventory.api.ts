@@ -115,4 +115,34 @@ export class InventoryApi {
       },
     };
   }
+
+  // Lấy lịch sử NVL
+  async getInventoryMovements() {
+    const movements = await this.prisma.inventoryMovement.findMany({
+      include: {
+        materialLot: {
+          include: { material: true },
+        },
+        location: true,
+        productionOrder: true,
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+    });
+
+    return {
+      message: 'Lấy lịch sử NVL thành công',
+      data: movements.map((item) => ({
+        materialCode: item.materialLot.material.code,
+        lotCode: item.materialLot.lotCode,
+        locationName: item.location.name,
+        orderCode: item.productionOrder?.code ?? null,
+        movementType: item.movementType,
+        quantityBefore: item.quantityBefore.toString(),
+        quantityChange: item.quantityChange.toString(),
+        quantityAfter: item.quantityAfter.toString(),
+        createdAt: item.createdAt,
+      })),
+    };
+  }
 }

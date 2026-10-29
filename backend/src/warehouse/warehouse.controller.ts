@@ -19,6 +19,7 @@ import { CreateProductionOrderDto } from './dto/create-production-order.dto.js';
 import { AssignProductionOrderDto } from './dto/assign-production-order.dto.js';
 import { ApproveFinishedGoodsDto } from './dto/approve-finished-goods.dto.js';
 import { RejectFinishedGoodsDto } from './dto/reject-finished-goods.dto.js';
+import { RejectWasteDto } from './dto/reject-waste.dto.js';
 
 @Controller('warehouse')
 export class WarehouseController {
@@ -231,27 +232,75 @@ export class WarehouseController {
     return this.warehouseService.getFinishedGoodsReceipts(status);
   }
 
-  
-//Duyệt nhập thành phẩm
-@Post('finished-goods-receipts/:code/approve')
-@HttpCode(200)
-@UsePipes(new ValidationPipe({ whitelist: true }))
-approveFinishedGoodsReceipt(
-  @Param('code') code: string,
-  @Body() dto: ApproveFinishedGoodsDto,
-) {
-  return this.warehouseService.approveFinishedGoodsReceipt(code, dto);
-}
+  //Duyệt nhập thành phẩm
+  @Post('finished-goods-receipts/:code/approve')
+  @HttpCode(200)
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  approveFinishedGoodsReceipt(
+    @Param('code') code: string,
+    @Body() dto: ApproveFinishedGoodsDto,
+  ) {
+    return this.warehouseService.approveFinishedGoodsReceipt(code, dto);
+  }
 
-//Từ chối phiếu thành phẩm
-@Post('finished-goods-receipts/:code/reject')
-@HttpCode(200)
-@UsePipes(new ValidationPipe({ whitelist: true }))
-rejectFinishedGoodsReceipt(
-  @Param('code') code: string,
-  @Body() dto: RejectFinishedGoodsDto,
-) {
-  return this.warehouseService.rejectFinishedGoodsReceipt(code, dto);
-}
+  // Từ chối nhập thành phẩm
+  @Post('finished-goods-receipts/:code/reject')
+  @HttpCode(200)
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  rejectFinishedGoodsReceipt(
+    @Param('code') code: string,
+    @Body() dto: RejectFinishedGoodsDto,
+  ) {
+    return this.warehouseService.rejectFinishedGoodsReceipt(code, dto);
+  }
 
+  // GET /warehouse/finished-goods-inventory?branchCode=BR001&productCode=PROD001
+  @Get('finished-goods-inventory')
+  getFinishedGoodsInventory(
+    @Query('branchCode') branchCode: string,
+    @Query('productCode') productCode?: string,
+  ) {
+    return this.warehouseService.getFinishedGoodsInventory(
+      branchCode,
+      productCode,
+    );
+  }
+  // GET /warehouse/finished-goods-receipts/:code
+  @Get('finished-goods-receipts/:code')
+  getFinishedGoodsReceiptByCode(@Param('code') code: string) {
+    return this.warehouseService.getFinishedGoodsReceiptByCode(code);
+  }
+
+  // GET /warehouse/finished-goods-movements
+  @Get('finished-goods-movements')
+  getFinishedGoodsMovements() {
+    return this.warehouseService.getFinishedGoodsMovements();
+  }
+
+  // GET /warehouse/inventory-movements
+  @Get('inventory-movements')
+  getInventoryMovements() {
+    return this.warehouseService.getInventoryMovements();
+  }
+
+  // GET /warehouse/waste-requests?status=PENDING
+  @Get('waste-requests')
+  getWasteRequests(@Query('status') status?: string) {
+    return this.warehouseService.getWasteRequests(status);
+  }
+
+  // POST /warehouse/waste-requests/:code/approve
+  @Post('waste-requests/:code/approve')
+  @HttpCode(200)
+  approveWasteRequest(@Param('code') code: string) {
+    return this.warehouseService.approveWasteRequest(code);
+  }
+
+  // POST /warehouse/waste-requests/:code/reject
+  @Post('waste-requests/:code/reject')
+  @HttpCode(200)
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  rejectWasteRequest(@Param('code') code: string, @Body() dto: RejectWasteDto) {
+    return this.warehouseService.rejectWasteRequest(code, dto);
+  }
 }
