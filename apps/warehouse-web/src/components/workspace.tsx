@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { fetchFinishedGoodsStockReal } from "@/services/product.service";
 import { ArrowDownToLine, ArrowRight, Check, ChevronDown, ChevronLeft, ChevronRight, CirclePlus, Download, Eye, Filter, Package, Plus, Search, SlidersHorizontal, X } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { materials, issueRequests, productionOrders, branches, chartData } from "@/mock/data";
@@ -34,6 +35,15 @@ export default function Workspace({ section }: { section: string }) {
   const [draftName, setDraftName] = useState(""); const [draftBranch, setDraftBranch] = useState(branches[1]); const [notice, setNotice] = useState("");
   const [formError, setFormError] = useState("");
   const [rows, setRows] = useState(config.rows);
+  useEffect(() => {
+    if (section === "finished-goods") {
+      fetchFinishedGoodsStockReal().then((items) => {
+        if (items?.length) {
+          setRows(items.map((p) => row(p.code, p.name, p.category, p.unit, `${p.quantity}`, `${p.minimum}`, p.status)));
+        }
+      }).catch(() => {});
+    }
+  }, [section]);
   const filtered = useMemo(() => rows.filter((item) => Object.values(item).some((v) => v.toLowerCase().includes(query.toLowerCase())) && (section !== "inventory" || category === "Tất cả phân loại" || item.category === category) && ((section !== "material-issues" && section !== "finished-issues") || tab === "Tất cả" || item.status === tab) && (branchFilter === "Tất cả chi nhánh" || !item.branch || item.branch.includes(branchFilter.replace("Chi nhánh ", "")) || item.branch === branchFilter)), [rows, query, category, section, tab, branchFilter]);
   const isInventory = section === "inventory"; const isIssues = section === "material-issues" || section === "finished-issues";
   function applyStatus(status: RequestStatus) { if (!detail) return; setRows((current) => current.map((r) => r.code === detail.code ? { ...r, status } : r)); setDetail(null); }

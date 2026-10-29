@@ -7,7 +7,7 @@ import {
   AlertTriangle, Archive, Bell, Boxes, ChartNoAxesCombined, ChevronDown, ChevronLeft,
   ChevronRight, ClipboardList, Factory, FileClock, FileInput, FileOutput, LayoutDashboard,
   Menu, PackageCheck, PackageOpen, PanelLeftClose, Search, Settings2, ShieldCheck,
-  ShoppingBasket, Soup, Truck, X,
+  ShoppingBasket, Soup, Truck, UtensilsCrossed, X,
 } from "lucide-react";
 
 const groups = [
@@ -19,6 +19,7 @@ const groups = [
     { title: "Duyệt xuất nguyên vật liệu", href: "/material-issues", icon: FileOutput },
     { title: "Duyệt xuất thành phẩm", href: "/finished-issues", icon: PackageOpen },
     { title: "Hao hụt / Hư hỏng", href: "/losses", icon: AlertTriangle },
+    { title: "Quản lý món ăn", href: "/products", icon: UtensilsCrossed },
   ] },
   { label: "SẢN XUẤT MRP", items: [
     { title: "Công thức BOM", href: "/bom", icon: Soup },
