@@ -8,6 +8,8 @@ import {
   UsePipes,
   ValidationPipe,
   HttpCode,
+  Patch,
+  Delete,
 } from '@nestjs/common';
 
 import { WarehouseService } from './warehouse.service.js';
@@ -20,6 +22,9 @@ import { AssignProductionOrderDto } from './dto/assign-production-order.dto.js';
 import { ApproveFinishedGoodsDto } from './dto/approve-finished-goods.dto.js';
 import { RejectFinishedGoodsDto } from './dto/reject-finished-goods.dto.js';
 import { RejectWasteDto } from './dto/reject-waste.dto.js';
+import { CreateSupplierDto } from './dto/create-supplier.dto.js';
+import { UpdateSupplierDto } from './dto/update-supplier.dto.js';
+import { CreateMaterialDto } from './dto/create-material.dto.js';
 
 @Controller('warehouse')
 export class WarehouseController {
@@ -302,5 +307,50 @@ export class WarehouseController {
   @UsePipes(new ValidationPipe({ whitelist: true }))
   rejectWasteRequest(@Param('code') code: string, @Body() dto: RejectWasteDto) {
     return this.warehouseService.rejectWasteRequest(code, dto);
+  }
+
+  // 1. Danh sách và tìm kiếm
+  @Get('suppliers')
+  getSuppliers(@Query('search') search?: string) {
+    return this.warehouseService.getSuppliers(search);
+  }
+
+  // 2. Xem chi tiết
+  @Get('suppliers/:code')
+  getSupplierByCode(@Param('code') code: string) {
+    return this.warehouseService.getSupplierByCode(code);
+  }
+
+  // 3. Thêm
+  @Post('suppliers')
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  createSupplier(@Body() dto: CreateSupplierDto) {
+    return this.warehouseService.createSupplier(dto);
+  }
+
+  // 4. Sửa
+  @Patch('suppliers/:code')
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  updateSupplier(@Param('code') code: string, @Body() dto: UpdateSupplierDto) {
+    return this.warehouseService.updateSupplier(code, dto);
+  }
+
+  // 5. Xóa
+  @Delete('suppliers/:code')
+  deleteSupplier(@Param('code') code: string) {
+    return this.warehouseService.deleteSupplier(code);
+  }
+
+  // GET danh sách NVL
+  @Get('materials')
+  getMaterials(@Query('search') search?: string) {
+    return this.warehouseService.getMaterials(search);
+  }
+
+  // POST thêm NVL
+  @Post('materials')
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  createMaterial(@Body() dto: CreateMaterialDto) {
+    return this.warehouseService.createMaterial(dto);
   }
 }

@@ -15,6 +15,11 @@ import { ApproveFinishedGoodsDto } from './dto/approve-finished-goods.dto.js';
 import { RejectFinishedGoodsDto } from './dto/reject-finished-goods.dto.js';
 import { WasteApi } from './api/waste.api.js';
 import { RejectWasteDto } from './dto/reject-waste.dto.js';
+import { SupplierApi } from './api/supplier.api.js';
+import { CreateSupplierDto } from './dto/create-supplier.dto.js';
+import { UpdateSupplierDto } from './dto/update-supplier.dto.js';
+import { MaterialApi } from './api/material.api.js';
+import { CreateMaterialDto } from './dto/create-material.dto.js';
 @Injectable()
 export class WarehouseService {
   constructor(
@@ -25,6 +30,8 @@ export class WarehouseService {
     private readonly productionOrderApi: ProductionOrderApi,
     private readonly finishedGoodsApi: FinishedGoodsApi,
     private readonly wasteApi: WasteApi,
+    private readonly supplierApi: SupplierApi,
+    private readonly materialApi: MaterialApi,
   ) {}
 
   //Danh sách tồn kho
@@ -192,5 +199,39 @@ export class WarehouseService {
   // Từ chối yêu cầu hao hụt
   rejectWasteRequest(code: string, dto: RejectWasteDto) {
     return this.wasteApi.rejectRequest(code, dto);
+  }
+
+  // Lấy danh sách nhà cung cấp
+  getSuppliers(search?: string) {
+    return this.supplierApi.getSuppliers(search);
+  }
+
+  //Chi tiết nhà cung cấp
+  getSupplierByCode(code: string) {
+    return this.supplierApi.getSupplierByCode(code);
+  }
+
+  // Thêm nhà cung cấp
+  createSupplier(dto: CreateSupplierDto) {
+    return this.supplierApi.createSupplier(dto);
+  }
+
+  //cập nhật ncc
+  updateSupplier(code: string, dto: UpdateSupplierDto) {
+    return this.supplierApi.updateSupplier(code, dto);
+  }
+
+  // Xóa nhà cung cấp chưa phát sinh phiếu nhập
+  deleteSupplier(code: string) {
+    return this.supplierApi.deleteSupplier(code);
+  }
+
+  //Xem danh sách, tìm kiếm NVL
+  getMaterials(search?: string) {
+    return this.materialApi.getMaterials(search);
+  }
+  //Thêm nguyên vật liệu mới
+  createMaterial(dto: CreateMaterialDto) {
+    return this.materialApi.createMaterial(dto);
   }
 }
