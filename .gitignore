@@ -1,42 +1,48 @@
-# Compiled output
-/dist
-/node_modules
-/.next
-/build
+# ===== Dependencies =====
+node_modules/
+**/node_modules/
 
-# TypeScript build cache
+# ===== Build output =====
+dist/
+**/dist/
+build/
+**/.next/
+
+# ===== TypeScript cache =====
 *.tsbuildinfo
 
-# Logs
-logs
+# ===== Database =====
+*.sqlite
+*.sqlite-journal
+*.sqlite-shm
+*.sqlite-wal
+
+# ===== Environment =====
+.env
+.env.*
+!.env.example
+
+# ===== Logs =====
+logs/
 *.log
 npm-debug.log*
 pnpm-debug.log*
 yarn-debug.log*
 
-# OS
+# ===== OS =====
 .DS_Store
+Thumbs.db
 
-# Tests
-/coverage
+# ===== Tests =====
+coverage/
+.nyc_output/
 
-# IDEs
-/.idea
+# ===== IDE =====
+.idea/
 .vscode/*
 !.vscode/settings.json
 !.vscode/extensions.json
 
-# dotenv
-.env
-.env.development.local
-.env.test.local
-.env.production.local
-.env.local
-
-# Temp
-.temp
-.tmp
-
-# Database (SQLite dev)
-*.sqlite
-*.sqlite-journal
+# ===== Temp =====
+.temp/
+.tmp/
