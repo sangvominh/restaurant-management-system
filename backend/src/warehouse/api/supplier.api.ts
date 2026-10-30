@@ -92,7 +92,7 @@ export class SupplierApi {
     }
   }
 
-  // 4. Sửa nhà cung cấp
+  //Sửa nhà cung cấp
   async updateSupplier(code: string, dto: UpdateSupplierDto) {
     const data: Prisma.SupplierUpdateInput = {};
 
@@ -151,7 +151,7 @@ export class SupplierApi {
     return normalized || null;
   }
 
-  // 5. Xóa nhà cung cấp chưa có phiếu nhập
+  //Xóa nhà cung cấp chưa có phiếu nhập
   async deleteSupplier(code: string) {
     try {
       await this.prisma.supplier.delete({

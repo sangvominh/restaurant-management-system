@@ -1,4 +1,3 @@
-
 import {
   Injectable,
   BadRequestException,
@@ -9,6 +8,7 @@ import {
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { Prisma } from '../../generated/prisma/client.js';
 import { CreateMaterialDto } from '../dto/create-material.dto.js';
+import { UpdateMaterialDto } from '../dto/update-material.dto.js';
 
 @Injectable()
 export class MaterialApi {
@@ -48,7 +48,7 @@ export class MaterialApi {
     };
   }
 
-  // hêm nguyên vật liệu
+  // thêm nguyên vật liệu
   async createMaterial(dto: CreateMaterialDto) {
     const code = dto.code.trim();
     const name = dto.name.trim();
@@ -113,6 +113,79 @@ export class MaterialApi {
         error.code === 'P2002'
       ) {
         throw new ConflictException('Mã NVL đã tồn tại');
+      }
+
+      throw error;
+    }
+  }
+
+  //chi tiết nguyên vật liệu
+  async getMaterialByCode(code: string) {
+    const material = await this.prisma.material.findUnique({
+      where: { code: code.trim() },
+      include: {
+        category: true,
+        unit: true,
+      },
+    });
+
+    if (!material) {
+      throw new NotFoundException('Không tìm thấy NVL');
+    }
+
+    return {
+      message: 'Lấy chi tiết NVL thành công',
+      data: {
+        code: material.code,
+        name: material.name,
+        categoryName: material.category.name,
+        unitName: material.unit.name,
+        minStock: material.minStock.toString(),
+        status: material.status,
+      },
+    };
+  }
+
+  //cập nhật nvl
+  async updateMaterial(code: string, dto: UpdateMaterialDto) {
+    const data: any = {};
+
+    if (dto.name !== undefined) {
+      data.name = dto.name.trim();
+
+      if (!data.name) {
+        throw new BadRequestException('Tên NVL không được để trống');
+      }
+    }
+
+    if (dto.minStock !== undefined) {
+      data.minStock = new Prisma.Decimal(dto.minStock);
+    }
+
+    if (dto.status !== undefined) {
+      data.status = dto.status;
+    }
+
+    if (Object.keys(data).length === 0) {
+      throw new BadRequestException('Chưa có thông tin cần cập nhật');
+    }
+
+    try {
+      const material = await this.prisma.material.update({
+        where: { code: code.trim() },
+        data,
+      });
+
+      return {
+        message: 'Cập nhật NVL thành công',
+        data: material,
+      };
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
+        throw new NotFoundException('Không tìm thấy NVL');
       }
 
       throw error;

@@ -20,6 +20,9 @@ import { CreateSupplierDto } from './dto/create-supplier.dto.js';
 import { UpdateSupplierDto } from './dto/update-supplier.dto.js';
 import { MaterialApi } from './api/material.api.js';
 import { CreateMaterialDto } from './dto/create-material.dto.js';
+import { CategoryApi } from './api/category.api.js';
+import { UpdateMaterialDto } from './dto/update-material.dto.js';
+
 @Injectable()
 export class WarehouseService {
   constructor(
@@ -32,6 +35,7 @@ export class WarehouseService {
     private readonly wasteApi: WasteApi,
     private readonly supplierApi: SupplierApi,
     private readonly materialApi: MaterialApi,
+    private readonly categoryApi: CategoryApi,
   ) {}
 
   //Danh sách tồn kho
@@ -233,5 +237,17 @@ export class WarehouseService {
   //Thêm nguyên vật liệu mới
   createMaterial(dto: CreateMaterialDto) {
     return this.materialApi.createMaterial(dto);
+  }
+
+  getMaterialByCode(code: string) {
+    return this.materialApi.getMaterialByCode(code);
+  }
+
+  updateMaterial(code: string, dto: UpdateMaterialDto) {
+    return this.materialApi.updateMaterial(code, dto);
+  }
+
+  getCategories() {
+    return this.categoryApi.getCategories();
   }
 }

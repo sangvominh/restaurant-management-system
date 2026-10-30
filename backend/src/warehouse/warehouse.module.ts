@@ -15,6 +15,7 @@ import { FinishedGoodsApi } from './api/finished-goods.api.js';
 import { WasteApi } from './api/waste.api.js';
 import { SupplierApi } from './api/supplier.api.js';
 import { MaterialApi } from './api/material.api.js';
+import { CategoryApi } from './api/category.api.js';
 
 @Module({
   imports: [PrismaModule],
@@ -32,6 +33,7 @@ import { MaterialApi } from './api/material.api.js';
     WasteApi,
     SupplierApi,
     MaterialApi,
+    CategoryApi,
   ],
 })
 export class WarehouseModule {}

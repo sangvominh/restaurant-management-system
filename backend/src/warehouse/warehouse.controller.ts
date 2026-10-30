@@ -25,6 +25,7 @@ import { RejectWasteDto } from './dto/reject-waste.dto.js';
 import { CreateSupplierDto } from './dto/create-supplier.dto.js';
 import { UpdateSupplierDto } from './dto/update-supplier.dto.js';
 import { CreateMaterialDto } from './dto/create-material.dto.js';
+import { UpdateMaterialDto } from './dto/update-material.dto.js';
 
 @Controller('warehouse')
 export class WarehouseController {
@@ -352,5 +353,22 @@ export class WarehouseController {
   @UsePipes(new ValidationPipe({ whitelist: true }))
   createMaterial(@Body() dto: CreateMaterialDto) {
     return this.warehouseService.createMaterial(dto);
+  }
+
+  
+  @Get('materials/:code')
+  getMaterialByCode(@Param('code') code: string) {
+    return this.warehouseService.getMaterialByCode(code);
+  }
+
+  @Patch('materials/:code')
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  updateMaterial(@Param('code') code: string, @Body() dto: UpdateMaterialDto) {
+    return this.warehouseService.updateMaterial(code, dto);
+  }
+
+  @Get('categories')
+  getCategories() {
+    return this.warehouseService.getCategories();
   }
 }
