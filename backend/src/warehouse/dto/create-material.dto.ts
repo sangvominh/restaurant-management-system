@@ -1,15 +1,20 @@
-
-import { IsString, IsNotEmpty, MaxLength, Matches } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  MaxLength,
+  Matches,
+  IsIn,
+} from 'class-validator';
 
 export class CreateMaterialDto {
   @IsString()
   @IsNotEmpty()
-  @MaxLength(50)
+  @MaxLength(30)
   code: string;
 
   @IsString()
   @IsNotEmpty()
-  @MaxLength(150)
+  @MaxLength(200)
   name: string;
 
   @IsString()
@@ -18,6 +23,7 @@ export class CreateMaterialDto {
 
   @IsString()
   @IsNotEmpty()
+  @IsIn(['MATERIAL', 'RAW_MATERIAL'])
   categoryType: string;
 
   @IsString()

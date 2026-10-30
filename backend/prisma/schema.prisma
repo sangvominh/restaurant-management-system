@@ -68,6 +68,8 @@ model Unit {
 
 model Category {
   id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    code String @unique @db.VarChar(20)
+
   name         String @db.VarChar(100)
   categoryType String @map("category_type") @db.VarChar(30)
   status       String @default("ACTIVE") @db.VarChar(20)

@@ -10,8 +10,8 @@ VALUES ('kg', 1)
 ON CONFLICT (name) DO NOTHING;
 
 -- 3. Phân loại nguyên vật liệu
-INSERT INTO categories (name, category_type)
-VALUES ('Thịt', 'MATERIAL')
+INSERT INTO categories (code, name, category_type)
+VALUES ('DM-SEED-MEAT', 'Thịt', 'MATERIAL')
 ON CONFLICT (name, category_type) DO NOTHING;
 
 -- 4. Nguyên vật liệu

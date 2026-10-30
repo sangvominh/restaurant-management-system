@@ -148,14 +148,16 @@ export class MaterialApi {
 
   //cập nhật nvl
   async updateMaterial(code: string, dto: UpdateMaterialDto) {
-    const data: any = {};
+    const data: Prisma.MaterialUpdateInput = {};
 
     if (dto.name !== undefined) {
-      data.name = dto.name.trim();
+      const name = dto.name.trim();
 
-      if (!data.name) {
+      if (!name) {
         throw new BadRequestException('Tên NVL không được để trống');
       }
+
+      data.name = name;
     }
 
     if (dto.minStock !== undefined) {

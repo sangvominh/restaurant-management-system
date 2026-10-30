@@ -1,18 +1,15 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { WarehouseController } from './warehouse.controller.js';
+import { WarehouseService } from './warehouse.service.js';
 
 describe('WarehouseController', () => {
-  let controller: WarehouseController;
+  it('passes the supplier search term to the service', async () => {
+    const service = {
+      getSuppliers: vi.fn().mockResolvedValue({ data: [] }),
+    } as unknown as WarehouseService;
+    const controller = new WarehouseController(service);
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [WarehouseController],
-    }).compile();
+    await controller.getSuppliers('NCC001');
 
-    controller = module.get<WarehouseController>(WarehouseController);
-  });
-
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
+    expect(service.getSuppliers).toHaveBeenCalledWith('NCC001');
   });
 });

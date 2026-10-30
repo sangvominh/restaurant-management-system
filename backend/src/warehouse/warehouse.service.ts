@@ -22,6 +22,8 @@ import { MaterialApi } from './api/material.api.js';
 import { CreateMaterialDto } from './dto/create-material.dto.js';
 import { CategoryApi } from './api/category.api.js';
 import { UpdateMaterialDto } from './dto/update-material.dto.js';
+import { CreateCategoryDto } from './dto/create-category.dto.js';
+import { UpdateCategoryDto } from './dto/update-category.dto.js';
 
 @Injectable()
 export class WarehouseService {
@@ -39,13 +41,17 @@ export class WarehouseService {
   ) {}
 
   //Danh sách tồn kho
-  getInventory() {
-    return this.inventoryApi.getInventory();
+  getInventory(branchCode?: string) {
+    return this.inventoryApi.getInventory(branchCode);
+  }
+
+  getInventoryAlerts(branchCode?: string) {
+    return this.inventoryApi.getInventoryAlerts(branchCode);
   }
 
   // Chi tiết tồn kho
-  getInventoryByCode(code: string) {
-    return this.inventoryApi.getInventoryByCode(code);
+  getInventoryByCode(code: string, branchCode?: string) {
+    return this.inventoryApi.getInventoryByCode(code, branchCode);
   }
 
   // Tạo phiếu nhập
@@ -53,8 +59,13 @@ export class WarehouseService {
     return this.receiptApi.createReceipt(dto);
   }
 
-  getReceipts() {
-    return this.receiptApi.getReceipts();
+  getReceipts(
+    supplierCode?: string,
+    branchCode?: string,
+    from?: string,
+    to?: string,
+  ) {
+    return this.receiptApi.getReceipts(supplierCode, branchCode, from, to);
   }
   // Xem chi tiết phiếu nhập theo mã
   getReceiptByCode(code: string) {
@@ -249,5 +260,17 @@ export class WarehouseService {
 
   getCategories() {
     return this.categoryApi.getCategories();
+  }
+
+  createCategory(dto: CreateCategoryDto) {
+    return this.categoryApi.createCategory(dto);
+  }
+
+  updateCategory(code: string, dto: UpdateCategoryDto) {
+    return this.categoryApi.updateCategory(code, dto);
+  }
+
+  getUnits() {
+    return this.categoryApi.getUnits();
   }
 }

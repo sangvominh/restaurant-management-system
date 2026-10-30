@@ -50,7 +50,7 @@ export class MaterialIssueApi {
       })),
     };
   }
-// Xem chi tiết phiếu xuất nguyên vật liệu
+  // Xem chi tiết phiếu xuất nguyên vật liệu
   async getMaterialIssueByCode(code: string) {
     // 1. Tìm phiếu xuất theo mã
     const issue = await this.prisma.materialIssue.findUnique({
@@ -95,7 +95,7 @@ export class MaterialIssueApi {
       },
     };
   }
-// Phê duyệt phiếu xuất nguyên vật liệu
+  // Phê duyệt phiếu xuất nguyên vật liệu
   async approveIssue(code: string) {
     try {
       return await this.prisma.$transaction(
@@ -128,6 +128,14 @@ export class MaterialIssueApi {
             throw new BadRequestException('Phiếu chưa có nguyên vật liệu');
           }
 
+          const formatter = new Intl.DateTimeFormat('sv-SE', {
+            timeZone: 'Asia/Ho_Chi_Minh',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+          });
+          const today = formatter.format(new Date());
+
           // 3. Chuyển phiếu sang APPROVED
           const updated = await tx.materialIssue.updateMany({
             where: {
@@ -149,16 +157,23 @@ export class MaterialIssueApi {
               item.materialLot.status !== 'ACTIVE' ||
               item.unit.status !== 'ACTIVE' ||
               item.materialLot.materialId !== item.materialId ||
-              item.location.branchId !== issue.branchId
+              item.location.branchId !== issue.branchId ||
+              (item.materialLot.expiryDate !== null &&
+                formatter.format(item.materialLot.expiryDate) < today)
             ) {
-              throw new BadRequestException('Thông tin NVL không hợp lệ');
+              throw new BadRequestException(
+                'Thông tin NVL không hợp lệ hoặc lô đã hết hạn',
+              );
             }
 
             // Quy đổi về đơn vị tồn kho
             let quantity = item.quantity;
 
             if (item.unitId !== item.material.unitId) {
-              if (item.unit.baseUnitId !== item.material.unitId) {
+              if (
+                item.unit.baseUnitId !== item.material.unitId ||
+                item.unit.conversionFactor.lte(0)
+              ) {
                 throw new BadRequestException('Đơn vị tính không phù hợp');
               }
 
@@ -237,7 +252,7 @@ export class MaterialIssueApi {
       throw error;
     }
   }
-// Từ chối phiếu xuất nguyên vật liệu
+  // Từ chối phiếu xuất nguyên vật liệu
   async rejectIssue(code: string, reason: string) {
     // 1. Kiểm tra lý do
     reason = reason.trim();

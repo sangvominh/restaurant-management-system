@@ -26,6 +26,8 @@ import { CreateSupplierDto } from './dto/create-supplier.dto.js';
 import { UpdateSupplierDto } from './dto/update-supplier.dto.js';
 import { CreateMaterialDto } from './dto/create-material.dto.js';
 import { UpdateMaterialDto } from './dto/update-material.dto.js';
+import { CreateCategoryDto } from './dto/create-category.dto.js';
+import { UpdateCategoryDto } from './dto/update-category.dto.js';
 
 @Controller('warehouse')
 export class WarehouseController {
@@ -33,14 +35,23 @@ export class WarehouseController {
 
   // API 1: Lấy danh sách tồn kho
   @Get('inventory')
-  getInventory() {
-    return this.warehouseService.getInventory();
+  getInventory(@Query('branchCode') branchCode?: string) {
+    return this.warehouseService.getInventory(branchCode);
+  }
+
+  // Cảnh báo NVL có tồn khả dụng dưới mức tối thiểu
+  @Get('inventory/alerts')
+  getInventoryAlerts(@Query('branchCode') branchCode?: string) {
+    return this.warehouseService.getInventoryAlerts(branchCode);
   }
 
   // API 2: Lấy chi tiết NVL theo mã
   @Get('inventory/:code')
-  getInventoryByCode(@Param('code') code: string) {
-    return this.warehouseService.getInventoryByCode(code);
+  getInventoryByCode(
+    @Param('code') code: string,
+    @Query('branchCode') branchCode?: string,
+  ) {
+    return this.warehouseService.getInventoryByCode(code, branchCode);
   }
 
   // API 3: Tạo phiếu nhập kho
@@ -57,8 +68,18 @@ export class WarehouseController {
   }
   // API 4: Lấy danh sách phiếu nhập kho
   @Get('receipts')
-  getReceipts() {
-    return this.warehouseService.getReceipts();
+  getReceipts(
+    @Query('supplierCode') supplierCode?: string,
+    @Query('branchCode') branchCode?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    return this.warehouseService.getReceipts(
+      supplierCode,
+      branchCode,
+      from,
+      to,
+    );
   }
 
   // GET /warehouse/receipts/PN003
@@ -355,7 +376,6 @@ export class WarehouseController {
     return this.warehouseService.createMaterial(dto);
   }
 
-  
   @Get('materials/:code')
   getMaterialByCode(@Param('code') code: string) {
     return this.warehouseService.getMaterialByCode(code);
@@ -370,5 +390,25 @@ export class WarehouseController {
   @Get('categories')
   getCategories() {
     return this.warehouseService.getCategories();
+  }
+
+  // 1. Thêm danh mục
+  @Post('categories')
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  createCategory(@Body() dto: CreateCategoryDto) {
+    return this.warehouseService.createCategory(dto);
+  }
+
+  // 2. Cập nhật danh mục
+  @Patch('categories/:code')
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  updateCategory(@Param('code') code: string, @Body() dto: UpdateCategoryDto) {
+    return this.warehouseService.updateCategory(code, dto);
+  }
+
+  // 3. Danh sách đơn vị tính
+  @Get('units')
+  getUnits() {
+    return this.warehouseService.getUnits();
   }
 }

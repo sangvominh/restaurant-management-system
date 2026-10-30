@@ -1,4 +1,3 @@
-
 import {
   IsString,
   IsNotEmpty,
@@ -8,6 +7,7 @@ import {
   ValidateNested,
   MaxLength,
   Matches,
+  IsDateString,
 } from 'class-validator';
 
 import { Type } from 'class-transformer';
@@ -20,6 +20,11 @@ export class CreateReceiptDetailDto {
   @IsString()
   @IsNotEmpty()
   lotCode: string;
+
+  @IsOptional()
+  @IsDateString()
+  @Matches(/^\d{4}-\d{2}-\d{2}$/)
+  expiryDate?: string;
 
   @IsString()
   @IsNotEmpty()
