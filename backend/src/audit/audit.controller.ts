@@ -1,7 +1,7 @@
 import { Controller, Get, Query } from '@nestjs/common';
-import { RequirePermissions } from '../common/auth.decorators';
-import { LogQueryDto } from './audit.dto';
-import { AuditService } from './audit.service';
+import { RequirePermissions } from '../common/auth.decorators.js';
+import { LogQueryDto } from './audit.dto.js';
+import { AuditService } from './audit.service.js';
 
 @Controller('api/admin')
 export class AuditController {

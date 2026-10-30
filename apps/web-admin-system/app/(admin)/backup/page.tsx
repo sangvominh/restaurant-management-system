@@ -1,8 +1,8 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Alert, Button, Descriptions, Input, Modal, Tag, Upload, message } from 'antd';
 import { CloudDownloadOutlined, InboxOutlined, WarningOutlined } from '@ant-design/icons';
-import { apiFetch, clearSession, readError } from '../../lib/api';
+import { apiFetch, clearSession, getUser, hasPermission, readError } from '../../lib/api';
 
 const C = { ink: '#1c1612', gold: '#b8893b', card: '#ffffff', line: '#ece5d8', text: '#3b3129', muted: '#8a7d70', danger: '#b5483a' };
 const serif = "'Playfair Display', Georgia, 'Times New Roman', serif";
@@ -33,6 +33,8 @@ async function fetchBackup() {
 }
 
 export default function BackupPage() {
+  const [canRestore, setCanRestore] = useState(false);
+  useEffect(() => { setCanRestore(hasPermission(getUser(), '*')); }, []);
   const [exporting, setExporting] = useState(false);
   const [parsed, setParsed] = useState<unknown>(null);
   const [fileName, setFileName] = useState('');
@@ -86,7 +88,7 @@ export default function BackupPage() {
       setOpen(false);
       Modal.success({
         title: 'Phục hồi thành công',
-        content: 'Dữ liệu đã được thay bằng bản sao lưu. Bạn cần đăng nhập lại.',
+        content: 'Đã phục hồi cấu hình và tài khoản. Mọi phiên đăng nhập đã kết thúc; bạn cần đăng nhập lại.',
         okText: 'Đăng nhập lại',
         onOk: () => {
           clearSession();
@@ -129,7 +131,8 @@ export default function BackupPage() {
           <p style={{ color: C.text }}>
             Chọn tệp sao lưu. Hệ thống kiểm tra tệp trước và cho xem nội dung, chưa thay đổi gì cho đến khi bạn xác nhận.
           </p>
-          <Upload.Dragger accept=".json,application/json" maxCount={1} showUploadList={false} beforeUpload={onFile} disabled={checking}>
+          {!canRestore && <Alert type="info" showIcon message="Chỉ Admin hệ thống được phục hồi tài khoản và quyền." style={{ marginBottom: 12 }} />}
+          <Upload.Dragger accept=".json,application/json" maxCount={1} showUploadList={false} beforeUpload={onFile} disabled={checking || !canRestore}>
             <p className="ant-upload-drag-icon"><InboxOutlined /></p>
             <p className="ant-upload-text">{checking ? 'Đang kiểm tra...' : 'Bấm hoặc kéo tệp .json vào đây'}</p>
           </Upload.Dragger>
@@ -170,7 +173,8 @@ export default function BackupPage() {
         destroyOnHidden
       >
         <p>
-          Toàn bộ tài khoản, vai trò, danh mục và cấu hình hiện tại sẽ bị <b style={{ color: C.danger }}>thay thế</b> bằng nội dung tệp.
+          Tài khoản, vai trò, danh mục và cấu hình sẽ được <b style={{ color: C.danger }}>phục hồi</b> từ tệp.
+          Tài khoản không có trong tệp sẽ bị khóa. Nhật ký được giữ lại và mọi phiên đăng nhập bị thu hồi.
           Hệ thống sẽ tự tải về một bản sao lưu của dữ liệu hiện tại trước khi ghi đè.
         </p>
         <p>Gõ <b>{CONFIRM_WORD}</b> để xác nhận:</p>

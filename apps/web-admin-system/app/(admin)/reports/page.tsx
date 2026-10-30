@@ -25,7 +25,7 @@ interface StockRes {
   rows: StockRow[];
   totals: { opening: number; imported: number; exported: number; wasted: number; closing: number } | null;
 }
-interface MaterialRow { materialId: number; name: string; unit: string; opening: number; imported: number; exported: number; wasted: number; closing: number }
+interface MaterialRow { materialId: string; name: string; unit: string; opening: number; imported: number; exported: number; wasted: number; closing: number }
 
 const vnd = (n: number) => `${Math.round(n).toLocaleString('vi-VN')} ₫`;
 const num = (n: number) => n.toLocaleString('vi-VN', { maximumFractionDigits: 1 });
@@ -270,7 +270,7 @@ export default function ReportsPage() {
               {
                 key: 'revenue',
                 label: 'Doanh thu',
-                children: rev && (
+                children: rev && (rev.ready ? (
                   <div>
                     <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 16 }}>
                       <Stat title="Tổng doanh thu" value={vnd(rev.totals?.total ?? 0)} />
@@ -294,12 +294,12 @@ export default function ReportsPage() {
                       Xuất CSV
                     </Button>
                   </div>
-                ),
+                ) : <Alert type="info" showIcon message="Chưa kết nối nguồn dữ liệu doanh thu" />),
               },
               {
                 key: 'stock',
                 label: 'Nhập - xuất - tồn NVL',
-                children: stock && (
+                children: stock && (stock.ready ? (
                   <div>
                     <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 16 }}>
                       <Stat title="Tồn đầu" value={vnd(stock.totals?.opening ?? 0)} />
@@ -357,7 +357,7 @@ export default function ReportsPage() {
                       Xuất CSV
                     </Button>
                   </div>
-                ),
+                ) : <Alert type="info" showIcon message="Chưa kết nối nguồn dữ liệu nhập - xuất - tồn" />),
               },
             ]}
           />

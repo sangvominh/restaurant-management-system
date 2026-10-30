@@ -1,7 +1,19 @@
-import { BadRequestException, Controller, Delete, Get, HttpCode, Post, Query } from '@nestjs/common';
-import { AuthUser, CurrentUser, RequirePermissions } from '../common/auth.decorators';
-import { ReportQueryDto } from './report.dto';
-import { Period, ReportService } from './report.service';
+import {
+  BadRequestException,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Post,
+  Query,
+} from '@nestjs/common';
+import {
+  AuthUser,
+  CurrentUser,
+  RequirePermissions,
+} from '../common/auth.decorators.js';
+import { ReportQueryDto } from './report.dto.js';
+import { Period, ReportService } from './report.service.js';
 
 const norm = (q: ReportQueryDto): { period: Period; year: number } => ({
   period: q.period ?? 'month',
@@ -36,9 +48,16 @@ export class ReportController {
   @RequirePermissions('report:view')
   stockMaterials(@Query() q: ReportQueryDto) {
     const { period, year } = norm(q);
-    if (!q.key) throw new BadRequestException('Thiếu tham số key (kỳ cần xem chi tiết)');
-    if (period === 'month' && q.key > 12) throw new BadRequestException('Tháng phải từ 1 đến 12');
-    if (period === 'quarter' && q.key > 4) throw new BadRequestException('Quý phải từ 1 đến 4');
+    if (!q.key)
+      throw new BadRequestException('Thiếu tham số key (kỳ cần xem chi tiết)');
+    if (period === 'month' && q.key > 12)
+      throw new BadRequestException('Tháng phải từ 1 đến 12');
+    if (period === 'quarter' && q.key > 4)
+      throw new BadRequestException('Quý phải từ 1 đến 4');
+    if (period === 'year' && (q.key < year - 4 || q.key > year))
+      throw new BadRequestException(
+        'Năm chi tiết phải nằm trong khoảng báo cáo',
+      );
     return this.reports.stockMaterials(period, year, q.key);
   }
 

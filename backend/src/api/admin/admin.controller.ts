@@ -1,6 +1,20 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Put } from '@nestjs/common';
-import { AuthUser, CurrentUser, RequirePermissions } from '../../common/auth.decorators';
-import { AdminService } from './admin.service';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Put,
+} from '@nestjs/common';
+import {
+  AuthUser,
+  CurrentUser,
+  RequirePermissions,
+} from '../../common/auth.decorators.js';
+import { AdminService } from './admin.service.js';
 import {
   CreateAccountDto,
   CreateCategoryDto,
@@ -9,7 +23,7 @@ import {
   UpdateCategoryDto,
   UpdateRoleDto,
   UpdateSettingsDto,
-} from './dto/admin.dto';
+} from './dto/admin.dto.js';
 
 /** Mọi route ở đây đều đã qua AuthGuard toàn cục (cần JWT); @RequirePermissions chặn theo quyền. */
 @Controller('api/admin')
@@ -31,19 +45,29 @@ export class AdminController {
 
   @Put('accounts/:id')
   @RequirePermissions('account:manage')
-  updateAccount(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateAccountDto, @CurrentUser() actor: AuthUser) {
+  updateAccount(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateAccountDto,
+    @CurrentUser() actor: AuthUser,
+  ) {
     return this.adminService.updateAccount(id, dto, actor);
   }
 
   @Patch('accounts/:id/toggle-status')
   @RequirePermissions('account:manage')
-  toggleStatus(@Param('id', ParseIntPipe) id: number, @CurrentUser() actor: AuthUser) {
+  toggleStatus(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() actor: AuthUser,
+  ) {
     return this.adminService.toggleLockStatus(id, actor);
   }
 
   @Delete('accounts/:id')
   @RequirePermissions('account:manage')
-  deleteAccount(@Param('id', ParseIntPipe) id: number, @CurrentUser() actor: AuthUser) {
+  deleteAccount(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() actor: AuthUser,
+  ) {
     return this.adminService.deleteAccount(id, actor);
   }
 
@@ -69,13 +93,20 @@ export class AdminController {
 
   @Put('roles/:id')
   @RequirePermissions('role:manage')
-  updateRole(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateRoleDto, @CurrentUser() actor: AuthUser) {
+  updateRole(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateRoleDto,
+    @CurrentUser() actor: AuthUser,
+  ) {
     return this.adminService.updateRole(id, dto, actor);
   }
 
   @Delete('roles/:id')
   @RequirePermissions('role:manage')
-  deleteRole(@Param('id', ParseIntPipe) id: number, @CurrentUser() actor: AuthUser) {
+  deleteRole(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() actor: AuthUser,
+  ) {
     return this.adminService.deleteRole(id, actor);
   }
 
@@ -88,19 +119,29 @@ export class AdminController {
 
   @Post('categories')
   @RequirePermissions('category:manage')
-  createCategory(@Body() dto: CreateCategoryDto, @CurrentUser() actor: AuthUser) {
+  createCategory(
+    @Body() dto: CreateCategoryDto,
+    @CurrentUser() actor: AuthUser,
+  ) {
     return this.adminService.createCategory(dto, actor);
   }
 
   @Put('categories/:id')
   @RequirePermissions('category:manage')
-  updateCategory(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateCategoryDto, @CurrentUser() actor: AuthUser) {
+  updateCategory(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateCategoryDto,
+    @CurrentUser() actor: AuthUser,
+  ) {
     return this.adminService.updateCategory(id, dto, actor);
   }
 
   @Delete('categories/:id')
   @RequirePermissions('category:manage')
-  deleteCategory(@Param('id', ParseIntPipe) id: number, @CurrentUser() actor: AuthUser) {
+  deleteCategory(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() actor: AuthUser,
+  ) {
     return this.adminService.deleteCategory(id, actor);
   }
 
@@ -113,7 +154,10 @@ export class AdminController {
 
   @Put('settings')
   @RequirePermissions('setting:manage')
-  updateSettings(@Body() dto: UpdateSettingsDto, @CurrentUser() actor: AuthUser) {
+  updateSettings(
+    @Body() dto: UpdateSettingsDto,
+    @CurrentUser() actor: AuthUser,
+  ) {
     return this.adminService.updateSettings(dto, actor);
   }
 

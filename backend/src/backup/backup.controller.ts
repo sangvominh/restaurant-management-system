@@ -1,6 +1,10 @@
 import { Body, Controller, Get, HttpCode, Post, Query } from '@nestjs/common';
-import { AuthUser, CurrentUser, RequirePermissions } from '../common/auth.decorators';
-import { BackupService } from './backup.service';
+import {
+  AuthUser,
+  CurrentUser,
+  RequirePermissions,
+} from '../common/auth.decorators.js';
+import { BackupService } from './backup.service.js';
 
 @Controller('api/admin/backup')
 export class BackupController {
@@ -17,7 +21,11 @@ export class BackupController {
   @Post('restore')
   @HttpCode(200)
   @RequirePermissions('backup:manage')
-  restore(@Body() body: unknown, @Query('dryRun') dryRun: string | undefined, @CurrentUser() actor: AuthUser) {
+  restore(
+    @Body() body: unknown,
+    @Query('dryRun') dryRun: string | undefined,
+    @CurrentUser() actor: AuthUser,
+  ) {
     return this.backup.restore(body, dryRun === 'true', actor);
   }
 }

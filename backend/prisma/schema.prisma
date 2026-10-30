@@ -1,0 +1,145 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Hai model nền giữ nguyên từ develop (7c70254).
+model Branch {
+  id        String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code      String            @unique @db.VarChar(30)
+  name      String            @db.VarChar(200)
+  address   String?
+  isActive  Boolean           @default(true) @map("is_active")
+  createdAt DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  tables    RestaurantTable[]
+
+  @@map("branches")
+}
+
+model RestaurantTable {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  branchId  String   @map("branch_id") @db.Uuid
+  code      String   @db.VarChar(30)
+  name      String   @db.VarChar(100)
+  capacity  Int
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  branch    Branch   @relation(fields: [branchId], references: [id], onDelete: Restrict)
+
+  @@unique([branchId, code])
+  @@map("restaurant_tables")
+}
+
+enum AccountStatus {
+  active
+  locked
+}
+
+enum CategoryStatus {
+  active
+  inactive
+}
+
+enum LoginStatus {
+  success
+  failed
+  locked
+}
+
+model Role {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique @db.VarChar(100)
+  description String    @default("")
+  isSystem    Boolean   @default(false) @map("is_system")
+  permissions String[]  @default([])
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  accounts    Account[]
+
+  @@map("roles")
+}
+
+// ID số giữ tương thích API/JSON cũ; roleId là FK, không lưu tên vai trò tự do.
+model Account {
+  id             Int           @id @default(autoincrement())
+  name           String        @db.VarChar(100)
+  email          String        @unique @db.VarChar(150)
+  username       String?       @unique @db.VarChar(100)
+  phone          String?       @db.VarChar(20)
+  roleId         Int           @map("role_id")
+  role           Role          @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  status         AccountStatus @default(active)
+  passwordHash   String?       @map("password_hash") @db.VarChar(100)
+  sessionVersion Int           @default(0) @map("session_version")
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  loginLogs      LoginLog[]
+  auditLogs      AuditLog[]
+
+  @@index([roleId])
+  @@map("accounts")
+}
+
+model LoginLog {
+  id        Int         @id @default(autoincrement())
+  accountId Int?        @map("account_id")
+  account   Account?    @relation(fields: [accountId], references: [id], onDelete: SetNull)
+  email     String      @db.VarChar(150)
+  ipAddress String?     @map("ip_address") @db.VarChar(60)
+  status    LoginStatus
+  loginAt   DateTime    @default(now()) @map("login_at") @db.Timestamptz(3)
+  logoutAt  DateTime?   @map("logout_at") @db.Timestamptz(3)
+  auditLogs AuditLog[]
+
+  @@index([accountId])
+  @@index([loginAt])
+  @@map("login_logs")
+}
+
+model AuditLog {
+  id          Int       @id @default(autoincrement())
+  loginLogId  Int?      @map("login_log_id")
+  session     LoginLog? @relation(fields: [loginLogId], references: [id], onDelete: SetNull)
+  accountId   Int?      @map("account_id")
+  account     Account?  @relation(fields: [accountId], references: [id], onDelete: SetNull)
+  actorName   String    @map("actor_name") @db.VarChar(150)
+  action      String    @db.VarChar(50)
+  entityName  String    @map("entity_name") @db.VarChar(50)
+  entityId    String?   @map("entity_id") @db.VarChar(50)
+  description String    @default("")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([loginLogId])
+  @@index([action])
+  @@index([entityName])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model Category {
+  id        Int            @id @default(autoincrement())
+  type      String         @db.VarChar(100)
+  name      String         @db.VarChar(150)
+  status    CategoryStatus @default(active)
+  createdAt DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@unique([type, name])
+  @@map("categories")
+}
+
+model SystemSetting {
+  id             Int      @id @default(autoincrement())
+  restaurantName String   @map("restaurant_name") @db.VarChar(150)
+  email          String   @db.VarChar(150)
+  phone          String?  @db.VarChar(20)
+  currency       String   @default("VND") @db.VarChar(10)
+  tax            Float    @default(8)
+  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@map("system_settings")
+}
