@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
   Param,
   Body,
   Query,
@@ -14,6 +15,9 @@ import { WarehouseService } from './warehouse.service.js';
 import { CreateReceiptDto } from './dto/create-receipt.dto.js';
 import { RejectMaterialIssueDto } from './dto/reject-material-issue.dto.js';
 import { CreateBomDto } from './dto/create-bom.dto.js';
+import { UpdateBomDto } from './dto/update-bom.dto.js';
+import { CreateBomVersionDto } from './dto/create-bom-version.dto.js';
+import { UpdateBomStatusDto } from './dto/update-bom-status.dto.js';
 import { CheckBomStockDto } from './dto/check-bom-stock.dto.js';
 import { CreateProductionOrderDto } from './dto/create-production-order.dto.js';
 import { AssignProductionOrderDto } from './dto/assign-production-order.dto.js';
@@ -97,6 +101,7 @@ export class WarehouseController {
     return this.warehouseService.rejectMaterialIssue(code, dto.reason);
   }
 
+  // Tạo công thức BOM
   @Post('boms')
   @UsePipes(
     new ValidationPipe({
@@ -105,20 +110,74 @@ export class WarehouseController {
       transform: true,
     }),
   )
-  // tạo công thức BOM
   createBom(@Body() dto: CreateBomDto) {
     return this.warehouseService.createBom(dto);
   }
-  // GET /warehouse/boms
+
+  // GET /warehouse/boms (hỗ trợ lọc theo productCode & status)
   @Get('boms')
-  getBoms() {
-    return this.warehouseService.getBoms();
+  getBoms(
+    @Query('productCode') productCode?: string,
+    @Query('status') status?: string,
+  ) {
+    return this.warehouseService.getBoms(productCode, status);
   }
 
-  // GET /warehouse/boms/BOM001
+  // GET /warehouse/boms/product/TP001 (Tra cứu tất cả phiên bản công thức theo mã món ăn)
+  @Get('boms/product/:productCode')
+  getBomsByProduct(@Param('productCode') productCode: string) {
+    return this.warehouseService.getBomsByProduct(productCode);
+  }
+
+  // GET /warehouse/boms/BOM001 (Xem chi tiết công thức)
   @Get('boms/:code')
   getBomByCode(@Param('code') code: string) {
     return this.warehouseService.getBomByCode(code);
+  }
+
+  // PATCH /warehouse/boms/BOM001 (Chỉnh sửa công thức BOM)
+  @Patch('boms/:code')
+  @UsePipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  )
+  updateBom(@Param('code') code: string, @Body() dto: UpdateBomDto) {
+    return this.warehouseService.updateBom(code, dto);
+  }
+
+  // POST /warehouse/boms/BOM001/version (Tạo phiên bản mới cho BOM)
+  @Post('boms/:code/version')
+  @UsePipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  )
+  createBomNextVersion(
+    @Param('code') code: string,
+    @Body() dto: CreateBomVersionDto,
+  ) {
+    return this.warehouseService.createBomNextVersion(code, dto);
+  }
+
+  // PATCH /warehouse/boms/BOM001/status (Ngừng áp dụng hoặc kích hoạt lại công thức)
+  @Patch('boms/:code/status')
+  @UsePipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  )
+  updateBomStatus(
+    @Param('code') code: string,
+    @Body() dto: UpdateBomStatusDto,
+  ) {
+    return this.warehouseService.updateBomStatus(code, dto.status);
   }
 
   // POST /warehouse/boms/check-stock

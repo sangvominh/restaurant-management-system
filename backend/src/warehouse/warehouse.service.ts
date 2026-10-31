@@ -6,6 +6,8 @@ import { CreateReceiptDto } from './dto/create-receipt.dto.js';
 import { MaterialIssueApi } from './api/material-issue.api.js';
 import { BomApi } from './api/bom.api.js';
 import { CreateBomDto } from './dto/create-bom.dto.js';
+import { UpdateBomDto } from './dto/update-bom.dto.js';
+import { CreateBomVersionDto } from './dto/create-bom-version.dto.js';
 import { CheckBomStockDto } from './dto/check-bom-stock.dto.js';
 import { ProductionOrderApi } from './api/production-order.api.js';
 import { CreateProductionOrderDto } from './dto/create-production-order.dto.js';
@@ -74,14 +76,34 @@ export class WarehouseService {
     return this.bomApi.createBom(dto);
   }
 
-  // Lấy danh sách công thức BOM
-  getBoms() {
-    return this.bomApi.getBoms();
+  // Lấy danh sách công thức BOM (có lọc theo món ăn & trạng thái)
+  getBoms(productCode?: string, status?: string) {
+    return this.bomApi.getBoms(productCode, status);
+  }
+
+  // Xem danh sách các phiên bản công thức theo mã món ăn (productCode)
+  getBomsByProduct(productCode: string) {
+    return this.bomApi.getBomsByProduct(productCode);
   }
 
   // Xem chi tiết công thức BOM
   getBomByCode(code: string) {
     return this.bomApi.getBomByCode(code);
+  }
+
+  // Sửa / cập nhật công thức BOM
+  updateBom(code: string, dto: UpdateBomDto) {
+    return this.bomApi.updateBom(code, dto);
+  }
+
+  // Tạo phiên bản mới (Version mới) cho công thức BOM
+  createBomNextVersion(code: string, dto: CreateBomVersionDto) {
+    return this.bomApi.createNextVersion(code, dto);
+  }
+
+  // Ngừng áp dụng / Đổi trạng thái BOM (ACTIVE <-> INACTIVE / ARCHIVED)
+  updateBomStatus(code: string, status: string) {
+    return this.bomApi.updateStatus(code, status);
   }
 
   // Kiểm tra nguyên vật liệu theo BOM
