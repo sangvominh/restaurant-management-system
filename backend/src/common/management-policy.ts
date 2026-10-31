@@ -1,50 +1,28 @@
-import { ForbiddenException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import type { AuthUser } from './auth.decorators.js';
+import { ALL_PERMISSION_KEYS, WILDCARD } from './permissions.js';
 
-type ManagedRole = { isSystem: boolean; permissions: string[] };
-const MANAGEMENT = [
-  'account:manage',
-  'role:manage',
-  'backup:manage',
-  'setting:manage',
-];
+export const isSystemRole = (role: {
+  isSystem: boolean;
+  permissions: string[];
+}) => role.isSystem && role.permissions.includes(WILDCARD);
+
 export const isSystemAdmin = (actor: AuthUser) =>
-  actor.permissions.includes('*');
-export const protectedRole = (role: ManagedRole) =>
-  role.isSystem ||
-  role.permissions.some((p) => p === '*' || MANAGEMENT.includes(p));
+  actor.isSystemAdmin === true && actor.permissions.includes(WILDCARD);
 
-export function assertManageAccount(actor: AuthUser, role: ManagedRole) {
-  if (!isSystemAdmin(actor) && protectedRole(role)) {
+export function assertSystemAdmin(actor: AuthUser) {
+  if (!isSystemAdmin(actor))
     throw new ForbiddenException(
-      'Chỉ Admin hệ thống được quản lý tài khoản có quyền quản trị',
+      'Chỉ System Admin được truy cập quản trị hệ thống',
     );
-  }
-}
-
-export function assertAssignRole(actor: AuthUser, role: ManagedRole) {
-  if (isSystemAdmin(actor)) return;
-  assertManageAccount(actor, role);
-  if (
-    !actor.permissions.includes('role:manage') ||
-    role.permissions.some((p) => !actor.permissions.includes(p))
-  ) {
-    throw new ForbiddenException(
-      'Bạn không được gán vai trò vượt quá quyền được ủy quyền',
-    );
-  }
 }
 
 export function assertGrantPermissions(actor: AuthUser, permissions: string[]) {
+  assertSystemAdmin(actor);
   if (
-    !isSystemAdmin(actor) &&
-    permissions.some(
-      (p) =>
-        p === '*' || MANAGEMENT.includes(p) || !actor.permissions.includes(p),
-    )
-  ) {
-    throw new ForbiddenException(
-      'Bạn không được cấp quyền quản trị hoặc quyền mà mình không có',
+    permissions.some((permission) => !ALL_PERMISSION_KEYS.includes(permission))
+  )
+    throw new BadRequestException(
+      'Vai trò thường chỉ được cấp quyền nghiệp vụ trong danh mục',
     );
-  }
 }

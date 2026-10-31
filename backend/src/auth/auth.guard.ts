@@ -11,7 +11,13 @@ import {
   AuthUser,
   IS_PUBLIC_KEY,
   PERMISSIONS_KEY,
+  SYSTEM_ADMIN_ONLY_KEY,
 } from '../common/auth.decorators.js';
+import {
+  isSystemRole,
+  assertSystemAdmin,
+} from '../common/management-policy.js';
+import { WILDCARD } from '../common/permissions.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 
 @Injectable()
@@ -70,17 +76,22 @@ export class AuthGuard implements CanActivate {
       email: account.email,
       role: account.role.name,
       permissions: account.role.permissions,
+      isSystemAdmin: isSystemRole(account.role),
       sessionId: session.id,
     };
     req.user = user;
+    if (
+      this.reflector.getAllAndOverride<boolean>(SYSTEM_ADMIN_ONLY_KEY, targets)
+    )
+      assertSystemAdmin(user);
     const required = this.reflector.getAllAndOverride<string[] | undefined>(
       PERMISSIONS_KEY,
       targets,
     );
     if (
       required?.length &&
-      !user.permissions.includes('*') &&
-      !required.some((p) => user.permissions.includes(p))
+      !user.isSystemAdmin &&
+      !required.some((p) => p !== WILDCARD && user.permissions.includes(p))
     )
       throw new ForbiddenException('Bạn không có quyền thực hiện thao tác này');
     return true;

@@ -24,6 +24,7 @@ Frontend: `npm run dev --workspace web-admin-system`. API giữ `/api/admin/*`, 
 
 - `20261030000000_develop_baseline` tạo đúng hai bảng chi nhánh/bàn của develop.
 - `20261030000100_system_admin` chỉ bổ sung bảng tài khoản, vai trò, nhật ký, danh mục chung, cấu hình và khóa ngoại. Không tạo bảng nghiệp vụ kho/hóa đơn.
+- `20261031000000_role_permission_policy` chuyển quyền theo phân công mới. Chỉ các vai trò có đúng tên và toàn bộ tập quyền mặc định cũ được đổi sang mặc định mới. Vai trò đã tùy chỉnh giữ quyền nghiệp vụ; khóa quyền cũ được chuyển và mọi quyền quản trị bị loại khỏi vai trò thường. Migration bổ sung vai trò mặc định còn thiếu, giữ ID/mật khẩu và thu hồi các phiên cũ.
 - Mọi thao tác migration phải trỏ đúng `DATABASE_URL`. Không chạy các migration này trực tiếp lên database TypeORM cũ có bảng cùng tên nhưng khác cấu trúc.
 - Nếu database của nhóm đã có đúng hai bảng nền và dữ liệu: sao lưu, kiểm tra schema khớp baseline trước; sau đó đánh dấu baseline đã áp dụng bằng lệnh sau, rồi `npm run db:migrate`:
 
@@ -37,17 +38,41 @@ Với dữ liệu TypeORM cần giữ: xuất JSON quản trị v1 từ phiên b
 
 - `Account.roleId` tham chiếu `Role.id`, không lưu tên vai trò tự do trong database. API vẫn trả `role: string` cho frontend cũ.
 - `username` và `phone` là tùy chọn; email được chuẩn hóa chữ thường. Mật khẩu băm không được đưa vào response tài khoản, đăng nhập hay `/me`.
-- Admin hệ thống có `*`. Vai trò thường không được tự cấp `*` qua API.
-- Người được ủy quyền `account:manage` chỉ quản lý tài khoản thường. Gán/đổi vai trò còn yêu cầu `role:manage`; chỉ được gán tập quyền thường trong phạm vi quyền của người thực hiện.
-- Chỉ Admin hệ thống quản lý tài khoản có quyền quản trị và phục hồi dữ liệu tài khoản/quyền. `backup:manage` được ủy quyền cho phép xuất bản sao lưu, không cho phép nâng quyền bằng phục hồi JSON.
-- Không tự đổi phân công BOM/kho/nhà hàng. Nhóm nghiệp vụ dùng lại khóa quyền đã thống nhất và gắn `@RequirePermissions(...)` trên API của họ.
+- System Admin được server xác định bằng cả `Role.isSystem = true` và quyền `*`; tên vai trò hay cờ giả trong JWT/client không tạo đặc quyền. API login và `/me` trả `isSystemAdmin` để giao diện sử dụng.
+- Toàn bộ controller `/api/admin/*` khai báo `@RequireSystemAdmin()`. Chỉ System Admin được quản lý tài khoản, vai trò, phân quyền, báo cáo, cấu hình, danh mục chung, nhật ký và sao lưu/phục hồi. Quyền quản trị không được ủy quyền; kể cả dữ liệu cũ còn chứa `account:manage`, `role:manage`, `report:view` hoặc `backup:manage`, vai trò thường vẫn nhận 403.
+- Danh mục checkbox chỉ có 15 quyền nghiệp vụ theo bảng phân công. System Admin được tick/bỏ tick mọi quyền nghiệp vụ cho vai trò thường, không khóa theo tên vai trò. Backend từ chối wildcard, quyền quản trị, khóa cũ và khóa không tồn tại trong request tạo/sửa vai trò.
+- Quyền mặc định chỉ dùng cho vai trò mới hoặc khi người dùng chủ động chọn mẫu trên giao diện. Seed và khởi động không ghi đè checkbox đã lưu. `GET /api/admin/roles/defaults` cung cấp mẫu; chọn mẫu chỉ đổi checkbox của form, chưa lưu cho tới khi bấm lưu.
+- Nhóm nghiệp vụ sử dụng các khóa bên dưới và gắn `@RequirePermissions(...)` trên API của họ khi tích hợp. Thay đổi hiện tại chỉ khai báo quyền, không xây API kho, BOM, thành phẩm, ca làm, khách hàng hay nối dữ liệu thật.
 - Guard JWT áp dụng toàn cục. Route công khai của module mới phải khai báo `@Public()`. Token phải thuộc phiên đăng nhập tồn tại, đúng tài khoản và đúng phiên bản phiên.
 - Đổi/đặt lại mật khẩu, khóa/mở khóa, đổi vai trò/email/quyền hoặc phục hồi thu hồi các phiên liên quan. Token cũ không sống lại sau mở khóa. Token phiên bản cũ trước chuyển đổi phải đăng nhập lại.
 - Các thay đổi tài khoản/vai trò/phục hồi dùng khóa transaction chung để bảo vệ Admin cuối cùng khi có nhiều request đồng thời. Khóa này chỉ áp dụng các đường ghi quản trị đi qua `PrismaService.adminTransaction`.
 
+| Vai trò mặc định | Quyền nghiệp vụ |
+| --- | --- |
+| Quản lý kho | `supplier:manage`, `material:manage`, `inventory:import`, `inventory:approve-export`, `inventory:view` |
+| Quản lý nhà hàng | `product:view`, `bom:manage`, `finished-goods:approve-export` |
+| Nhân viên (bếp / pha chế / thu ngân) | `shift:view`, `inventory:view`, `inventory:request-export`, `production:create`, `finished-goods:request-export` |
+| Khách hàng | `menu:view`, `order:create`, `order:view` |
+
+`inventory:approve-export` chỉ duyệt nguyên vật liệu, không bao gồm xuất thành phẩm. `product:view` chỉ xem/tìm kiếm/lọc/sắp xếp; không có quyền CRUD sản phẩm trong đặc tả. `order:view` là xem đơn của chính khách đó; nhóm đơn hàng phải kiểm tra chủ sở hữu khi tích hợp. `order:create` bao gồm chọn món, giỏ hàng và thanh toán. Các quyền này không thay thế điều kiện nghiệp vụ (phiếu đã duyệt, ca hiện tại, số lượng tồn, v.v.).
+
+Portal này chỉ cho System Admin đăng nhập vào giao diện. Layout chờ xác nhận `/api/auth/me` trước khi render các trang; không tin quyền trong localStorage và không hiển thị trang quản trị khi xác nhận thất bại. Tài khoản thường vẫn có thể xác thực bằng API login chung để các app nghiệp vụ sử dụng sau này, nhưng không có quyền truy cập portal hay API quản trị.
+
+### Cập nhật bản đã chạy và kiểm tra checkbox
+
+1. Dừng backend/frontend đang chạy, kiểm tra `DATABASE_URL` trỏ đúng database Prisma phát triển.
+2. Từ thư mục gốc chạy `npm.cmd run db:migrate --workspace backend` rồi khởi động lại backend/frontend. Không cần seed lại để chuyển các vai trò cũ; migration đã bổ sung vai trò nghiệp vụ còn thiếu. Tất cả tài khoản phải đăng nhập lại.
+3. Đăng nhập System Admin, mở Phân quyền & Vai trò, sửa một vai trò thường. Có thể chọn mẫu, tick thêm/bỏ tick và lưu; tải lại trang để kiểm tra lựa chọn được giữ.
+4. Tạo tài khoản mang vai trò đó. Thử đăng nhập tại `/login`: portal báo chỉ dành cho System Admin. Không tự chuyển đến app khác khi các module chưa tích hợp.
+5. Quyền nghiệp vụ đã lưu có thể kiểm tra bằng API login chung và `/api/auth/me`; các API `/api/admin/*` luôn trả 403 cho tài khoản thường. Khi đổi checkbox, các phiên cũ bị thu hồi.
+
+Migration không được tự chạy mỗi lần khởi động. Vai trò `Thu ngân` đã tồn tại được giữ để không mất liên kết tài khoản; nếu vẫn dùng đúng quyền mặc định cũ thì được chuyển sang nhóm quyền Nhân viên. Seed database mới tạo đúng năm vai trò: System Admin, Quản lý kho, Quản lý nhà hàng, Nhân viên, Khách hàng.
+
 ## Sao lưu quản trị
 
 Giữ định dạng JSON v1 để đọc bản sao lưu cũ. Xuất sử dụng snapshot nhất quán; tệp có mật khẩu băm nên cần cất giữ riêng.
+
+Khi đọc backup cũ, `product:manage` được chuyển thành `product:view`; `production:request` được tách thành đề nghị nguyên vật liệu, tạo thành phẩm và đề nghị thành phẩm. Quyền quản trị trên vai trò thường bị loại bỏ; bản xem trước hiển thị cảnh báo cho những vai trò được chuyển. Quyền không tồn tại và wildcard trên vai trò thường vẫn bị từ chối.
 
 Phục hồi cập nhật/chèn tài khoản theo ID, khóa tài khoản không có trong tệp, giữ nhật ký và thu hồi mọi phiên đăng nhập. Không xóa toàn bộ tài khoản để tránh làm mất liên kết với nghiệp vụ. Bảng chi nhánh, bàn, kho, hóa đơn không nằm trong JSON và không bị phục hồi. Khóa ngoại nghiệp vụ khi nhóm bổ sung cần sử dụng `Restrict` nếu không cho phép xóa tài khoản đã phát sinh giao dịch; API trả 409 để chuyển sang khóa tài khoản.
 

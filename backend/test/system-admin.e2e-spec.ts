@@ -36,6 +36,7 @@ beforeAll(async () => {
   for (const migration of [
     '20261030000000_develop_baseline',
     '20261030000100_system_admin',
+    '20261031000000_role_permission_policy',
   ]) {
     await pg.exec(
       await readFile(
@@ -133,6 +134,128 @@ afterAll(async () => {
   if (pg) await pg.close();
 });
 
+describe('migration quyền từ dữ liệu phiên bản trước', () => {
+  const migrate = async () =>
+    pg.exec(
+      await readFile(
+        new URL(
+          '../prisma/migrations/20261031000000_role_permission_policy/migration.sql',
+          import.meta.url,
+        ),
+        'utf8',
+      ),
+    );
+
+  it('chuyển mặc định cũ đúng phân công, giữ ID/mật khẩu và đóng phiên cũ', async () => {
+    await db.role.create({
+      data: {
+        name: 'Quản lý kho',
+        permissions: [
+          'inventory:view',
+          'inventory:import',
+          'inventory:approve-export',
+          'bom:manage',
+          'supplier:manage',
+          'product:manage',
+          'report:view',
+        ],
+      },
+    });
+    await db.role.create({
+      data: {
+        name: 'Quản lý nhà hàng',
+        permissions: ['dashboard:view', 'inventory:view', 'report:view'],
+      },
+    });
+    await db.role.update({
+      where: { name: 'Nhân viên' },
+      data: { permissions: ['production:request', 'inventory:view'] },
+    });
+    const admin = await login();
+    await migrate();
+    const roles = await db.role.findMany();
+    expect(
+      roles.find((role) => role.name === 'Quản lý kho')!.permissions.sort(),
+    ).toEqual(
+      [
+        'supplier:manage',
+        'material:manage',
+        'inventory:import',
+        'inventory:approve-export',
+        'inventory:view',
+      ].sort(),
+    );
+    expect(
+      roles
+        .find((role) => role.name === 'Quản lý nhà hàng')!
+        .permissions.sort(),
+    ).toEqual(
+      ['product:view', 'bom:manage', 'finished-goods:approve-export'].sort(),
+    );
+    expect(
+      roles.find((role) => role.name === 'Nhân viên')!.permissions.sort(),
+    ).toEqual(
+      [
+        'shift:view',
+        'inventory:view',
+        'inventory:request-export',
+        'production:create',
+        'finished-goods:request-export',
+      ].sort(),
+    );
+    expect(
+      roles.find((role) => role.name === 'Khách hàng')!.permissions,
+    ).toEqual(['menu:view', 'order:create', 'order:view']);
+    const account = await db.account.findUniqueOrThrow({
+      where: { id: adminId },
+    });
+    expect(account.passwordHash).toBe(passwordHash);
+    await api().get('/api/auth/me').auth(admin, { type: 'bearer' }).expect(401);
+    await login();
+  });
+
+  it('không reset vai trò đã tùy chỉnh, chuyển khóa cũ và loại đặc quyền quản trị của vai trò thường', async () => {
+    const role = await db.role.create({
+      data: {
+        name: 'Quản lý kho',
+        permissions: ['supplier:manage', 'product:manage', 'account:manage'],
+      },
+    });
+    const custom = await db.role.create({
+      data: {
+        name: 'Tùy chỉnh',
+        permissions: [
+          'production:request',
+          'role:manage',
+          'backup:manage',
+          'report:view',
+          '*',
+        ],
+      },
+    });
+    await migrate();
+    expect(
+      (await db.role.findUniqueOrThrow({ where: { id: role.id } })).permissions,
+    ).toEqual(['product:view', 'supplier:manage']);
+    expect(
+      (await db.role.findUniqueOrThrow({ where: { id: custom.id } }))
+        .permissions,
+    ).toEqual([
+      'finished-goods:request-export',
+      'inventory:request-export',
+      'production:create',
+    ]);
+    await db.role.update({
+      where: { id: role.id },
+      data: { permissions: ['supplier:manage'] },
+    });
+    await migrate();
+    expect(
+      (await db.role.findUniqueOrThrow({ where: { id: role.id } })).permissions,
+    ).toEqual(['supplier:manage']);
+  });
+});
+
 describe('tài khoản và phân quyền qua HTTP + Prisma/PostgreSQL', () => {
   it('seed tạo Admin đầu tiên và chạy lại không đổi mật khẩu đã có', async () => {
     const { seedSystemAdmin } = await import('../dist/prisma/seed-admin.js');
@@ -146,9 +269,34 @@ describe('tài khoản và phân quyền qua HTTP + Prisma/PostgreSQL', () => {
       include: { role: true },
     });
     expect(initial.role.permissions).toContain('*');
+    const defaults = await db.role.findMany({ where: { isSystem: false } });
+    expect(defaults.map((role) => role.name).sort()).toEqual(
+      ['Quản lý kho', 'Quản lý nhà hàng', 'Nhân viên', 'Khách hàng'].sort(),
+    );
+    expect(
+      defaults.find((role) => role.name === 'Quản lý kho')?.permissions,
+    ).toEqual([
+      'supplier:manage',
+      'material:manage',
+      'inventory:import',
+      'inventory:approve-export',
+      'inventory:view',
+    ]);
+    expect(
+      defaults.find((role) => role.name === 'Quản lý nhà hàng')?.permissions,
+    ).toEqual(['product:view', 'bom:manage', 'finished-goods:approve-export']);
+    const custom = defaults.find((role) => role.name === 'Quản lý kho')!;
+    await db.role.update({
+      where: { id: custom.id },
+      data: { permissions: ['supplier:manage'] },
+    });
     await seedSystemAdmin(db, { email, password: 'Different@123' });
     const after = await db.account.findUniqueOrThrow({ where: { email } });
     expect(after.passwordHash).toBe(initial.passwordHash);
+    expect(
+      (await db.role.findUniqueOrThrow({ where: { id: custom.id } }))
+        .permissions,
+    ).toEqual(['supplier:manage']);
   });
 
   it('giữ health check công khai, chặn API quản trị khi chưa đăng nhập', async () => {
@@ -266,24 +414,56 @@ describe('tài khoản và phân quyền qua HTTP + Prisma/PostgreSQL', () => {
       .expect(403);
   });
 
-  it('cho phép ủy quyền quản lý tài khoản thường nhưng không cấp vượt quyền', async () => {
+  it('không cho vai trò thường vào bất kỳ API System Admin dù dữ liệu cũ chứa quyền quản trị', async () => {
     await db.role.update({
       where: { name: 'Ủy quyền' },
       data: {
-        permissions: ['account:manage', 'role:manage', 'inventory:view'],
+        permissions: [
+          'dashboard:view',
+          'account:manage',
+          'role:manage',
+          'category:manage',
+          'setting:manage',
+          'audit:view',
+          'backup:manage',
+          'report:view',
+        ],
       },
     });
     const token = await login('manager@example.com');
-    await api()
-      .post('/api/admin/accounts')
-      .auth(token, { type: 'bearer' })
-      .send({
-        name: 'Allowed',
-        email: 'ok@example.com',
-        role: 'Nhân viên',
-        password,
-      })
-      .expect(201);
+    for (const path of [
+      'accounts',
+      'roles',
+      'roles/defaults',
+      'permissions',
+      'categories',
+      'settings',
+      'dashboard',
+      'audit-logs',
+      'login-logs',
+      'backup/export',
+      'reports/status',
+      'reports/revenue',
+      'reports/stock',
+      'reports/stock/materials?key=1',
+    ])
+      await api()
+        .get(`/api/admin/${path}`)
+        .auth(token, { type: 'bearer' })
+        .expect(403);
+    for (const path of [
+      'accounts',
+      'roles',
+      'categories',
+      'backup/restore',
+      'reports/demo-data',
+    ])
+      await api()
+        .post(`/api/admin/${path}`)
+        .auth(token, { type: 'bearer' })
+        .send({})
+        .expect(403);
+    await api().get('/api/auth/me').auth(token, { type: 'bearer' }).expect(200);
     await api()
       .post('/api/admin/roles')
       .auth(token, { type: 'bearer' })
@@ -296,8 +476,192 @@ describe('tài khoản và phân quyền qua HTTP + Prisma/PostgreSQL', () => {
       .expect(403);
   });
 
+  it('wildcard trong vai trò thường hoặc cờ Admin giả trong JWT không mở được khu vực System Admin', async () => {
+    await db.role.update({
+      where: { name: 'Ủy quyền' },
+      data: { permissions: ['*'] },
+    });
+    const token = await login('manager@example.com');
+    const me = await api()
+      .get('/api/auth/me')
+      .auth(token, { type: 'bearer' })
+      .expect(200);
+    expect(me.body.isSystemAdmin).toBe(false);
+    await api()
+      .get('/api/admin/accounts')
+      .auth(token, { type: 'bearer' })
+      .expect(403);
+    const forged = await app.get(JwtService).signAsync({
+      sub: managerId,
+      sid: me.body.sessionId,
+      ver: 0,
+      isSystemAdmin: true,
+      permissions: ['*'],
+    });
+    await api()
+      .get('/api/admin/roles')
+      .auth(forged, { type: 'bearer' })
+      .expect(403);
+  });
+
+  it('checkbox chỉ chứa quyền nghiệp vụ, không có quản trị, quyền sản phẩm CRUD hay quyền xuất gộp', async () => {
+    const token = await login();
+    const catalog = await api()
+      .get('/api/admin/permissions')
+      .auth(token, { type: 'bearer' })
+      .expect(200);
+    const keys = catalog.body.map((item: { key: string }) => item.key);
+    expect(keys).toHaveLength(15);
+    for (const required of [
+      'material:manage',
+      'product:view',
+      'inventory:approve-export',
+      'finished-goods:approve-export',
+      'shift:view',
+      'inventory:request-export',
+      'production:create',
+      'finished-goods:request-export',
+      'menu:view',
+      'order:create',
+      'order:view',
+    ])
+      expect(keys).toContain(required);
+    for (const forbidden of [
+      '*',
+      'account:manage',
+      'role:manage',
+      'report:view',
+      'backup:manage',
+      'setting:manage',
+      'dashboard:view',
+      'audit:view',
+      'category:manage',
+      'product:manage',
+      'production:request',
+    ])
+      expect(keys).not.toContain(forbidden);
+    const presets = await api()
+      .get('/api/admin/roles/defaults')
+      .auth(token, { type: 'bearer' })
+      .expect(200);
+    expect(
+      presets.body.find(
+        (role: { name: string }) => role.name === 'Quản lý nhà hàng',
+      ).permissions,
+    ).toEqual(['product:view', 'bom:manage', 'finished-goods:approve-export']);
+  });
+
+  it('Admin không thể cấp quyền quản trị, wildcard hay cờ hệ thống bằng request tạo/sửa vai trò', async () => {
+    const token = await login();
+    const staff = await db.role.findUniqueOrThrow({
+      where: { name: 'Nhân viên' },
+    });
+    for (const permissions of [
+      ['*'],
+      ['account:manage'],
+      ['role:manage'],
+      ['report:view'],
+      ['backup:manage'],
+      ['category:manage'],
+      ['setting:manage'],
+      ['dashboard:view'],
+      ['audit:view'],
+      ['product:manage'],
+      ['production:request'],
+      ['unknown:permission'],
+    ]) {
+      await api()
+        .post('/api/admin/roles')
+        .auth(token, { type: 'bearer' })
+        .send({ name: 'Invalid', permissions })
+        .expect(400);
+      await api()
+        .put(`/api/admin/roles/${staff.id}`)
+        .auth(token, { type: 'bearer' })
+        .send({ permissions })
+        .expect(400);
+    }
+    await api()
+      .post('/api/admin/roles')
+      .auth(token, { type: 'bearer' })
+      .send({ name: 'Fake system', permissions: [], isSystem: true })
+      .expect(400);
+  });
+
+  it('tick/bỏ tick lưu đúng quyền, gán tài khoản và thu hồi mọi phiên cũ khi quyền đổi', async () => {
+    const admin = await login();
+    const role = await api()
+      .post('/api/admin/roles')
+      .auth(admin, { type: 'bearer' })
+      .send({
+        name: 'Kho tùy chỉnh',
+        permissions: ['supplier:manage', 'inventory:view'],
+      })
+      .expect(201);
+    await api()
+      .put(`/api/admin/accounts/${staffId}`)
+      .auth(admin, { type: 'bearer' })
+      .send({ role: role.body.name })
+      .expect(200);
+    const first = await login('staff@example.com');
+    const second = await login('staff@example.com');
+    const initial = await api()
+      .get('/api/auth/me')
+      .auth(first, { type: 'bearer' })
+      .expect(200);
+    expect(initial.body).toMatchObject({
+      isSystemAdmin: false,
+      permissions: ['supplier:manage', 'inventory:view'],
+    });
+    // Không khóa quyền theo tên vai trò: Admin có thể thêm BOM, bỏ nhà cung cấp theo lựa chọn.
+    await api()
+      .put(`/api/admin/roles/${role.body.id}`)
+      .auth(admin, { type: 'bearer' })
+      .send({ permissions: ['bom:manage', 'inventory:view'] })
+      .expect(200);
+    for (const old of [first, second])
+      await api().get('/api/auth/me').auth(old, { type: 'bearer' }).expect(401);
+    const fresh = await login('staff@example.com');
+    const me = await api()
+      .get('/api/auth/me')
+      .auth(fresh, { type: 'bearer' })
+      .expect(200);
+    expect(me.body.permissions).toEqual(['bom:manage', 'inventory:view']);
+    const saved = await api()
+      .get('/api/admin/roles')
+      .auth(admin, { type: 'bearer' })
+      .expect(200);
+    expect(
+      saved.body.find((item: { id: number }) => item.id === role.body.id)
+        .permissions,
+    ).toEqual(['bom:manage', 'inventory:view']);
+    await api()
+      .get('/api/admin/accounts')
+      .auth(fresh, { type: 'bearer' })
+      .expect(403);
+    await api()
+      .put(`/api/admin/roles/${role.body.id}`)
+      .auth(admin, { type: 'bearer' })
+      .send({ permissions: [] })
+      .expect(200);
+    const empty = await login('staff@example.com');
+    const emptyMe = await api()
+      .get('/api/auth/me')
+      .auth(empty, { type: 'bearer' })
+      .expect(200);
+    expect(emptyMe.body.permissions).toEqual([]);
+  });
+
   it('bảo vệ Admin cuối cùng và vai trò hệ thống', async () => {
     const token = await login();
+    const fake = await db.role.create({
+      data: { name: 'Wildcard không phải Admin', permissions: ['*'] },
+    });
+    await api()
+      .put(`/api/admin/accounts/${adminId}`)
+      .auth(token, { type: 'bearer' })
+      .send({ role: fake.name })
+      .expect(400);
     await api()
       .put(`/api/admin/accounts/${adminId}`)
       .auth(token, { type: 'bearer' })
@@ -420,6 +784,57 @@ describe('tài khoản và phân quyền qua HTTP + Prisma/PostgreSQL', () => {
 });
 
 describe('sao lưu/phục hồi quản trị', () => {
+  it('backup v1 cũ được chuyển quyền nghiệp vụ và không đưa quyền quản trị trở lại vai trò thường', async () => {
+    const token = await login();
+    const exported = await api()
+      .get('/api/admin/backup/export')
+      .auth(token, { type: 'bearer' })
+      .expect(200);
+    const manager = exported.body.data.roles.find(
+      (role: { name: string }) => role.name === 'Ủy quyền',
+    );
+    manager.permissions = [
+      'account:manage',
+      'role:manage',
+      'backup:manage',
+      'report:view',
+      'product:manage',
+      'production:request',
+    ];
+    const preview = await api()
+      .post('/api/admin/backup/restore?dryRun=true')
+      .auth(token, { type: 'bearer' })
+      .send(exported.body)
+      .expect(200);
+    expect(
+      preview.body.warnings.some((warning: string) =>
+        warning.includes('quyền quản trị'),
+      ),
+    ).toBe(true);
+    await api()
+      .post('/api/admin/backup/restore')
+      .auth(token, { type: 'bearer' })
+      .send(exported.body)
+      .expect(200);
+    const managerToken = await login('manager@example.com');
+    const me = await api()
+      .get('/api/auth/me')
+      .auth(managerToken, { type: 'bearer' })
+      .expect(200);
+    expect(me.body.permissions.sort()).toEqual(
+      [
+        'product:view',
+        'inventory:request-export',
+        'production:create',
+        'finished-goods:request-export',
+      ].sort(),
+    );
+    await api()
+      .get('/api/admin/accounts')
+      .auth(managerToken, { type: 'bearer' })
+      .expect(403);
+    await login();
+  });
   it('giữ nguyên chi nhánh và khóa tài khoản tạo sau bản sao lưu', async () => {
     const token = await login();
     const backup = await api()
@@ -488,10 +903,15 @@ describe('sao lưu/phục hồi quản trị', () => {
       data: { permissions: ['backup:manage'] },
     });
     const token = await login('manager@example.com');
+    const admin = await login();
     const backup = await api()
       .get('/api/admin/backup/export')
-      .auth(token, { type: 'bearer' })
+      .auth(admin, { type: 'bearer' })
       .expect(200);
+    await api()
+      .get('/api/admin/backup/export')
+      .auth(token, { type: 'bearer' })
+      .expect(403);
     await api()
       .post('/api/admin/backup/restore')
       .auth(token, { type: 'bearer' })

@@ -1,68 +1,59 @@
-import { ForbiddenException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import {
-  assertAssignRole,
   assertGrantPermissions,
-  assertManageAccount,
+  assertSystemAdmin,
+  isSystemRole,
 } from './management-policy.js';
+import { ALL_PERMISSION_KEYS, SYSTEM_PERMISSION_KEYS } from './permissions.js';
 import type { AuthUser } from './auth.decorators.js';
 
-const actor = (permissions: string[]): AuthUser => ({
+const actor = (permissions: string[], isSystemAdmin = false): AuthUser => ({
   id: 1,
   name: 'A',
   email: 'a@test.vn',
   role: 'Delegated',
   permissions,
-});
-const role = (permissions: string[], isSystem = false) => ({
-  permissions,
-  isSystem,
+  isSystemAdmin,
 });
 
-describe('ủy quyền quản trị', () => {
-  it('không cho account:manage tự gán Admin', () => {
-    expect(() =>
-      assertAssignRole(actor(['account:manage']), role(['*'], true)),
-    ).toThrow(ForbiddenException);
-  });
-  it('không cho quản lý tài khoản đặt lại mật khẩu của người có quyền quản trị', () => {
-    for (const permission of [
-      '*',
-      'account:manage',
-      'role:manage',
-      'backup:manage',
-    ]) {
-      expect(() =>
-        assertManageAccount(actor(['account:manage']), role([permission])),
-      ).toThrow(ForbiddenException);
+describe('System Admin độc quyền quản trị', () => {
+  it('quyền quản trị cũ và tên vai trò không tạo đặc quyền System Admin', () => {
+    for (const permissions of [[...SYSTEM_PERMISSION_KEYS], ['*'], []]) {
+      const user = actor(permissions);
+      user.role = 'Quản trị viên (Admin)';
+      expect(() => assertSystemAdmin(user)).toThrow(ForbiddenException);
     }
   });
-  it('yêu cầu role:manage khi gán vai trò thường', () => {
+  it('cờ System Admin thiếu wildcard cũng bị từ chối', () => {
+    expect(() => assertSystemAdmin(actor([], true))).toThrow(
+      ForbiddenException,
+    );
+  });
+  it('server chỉ xác định Admin từ vai trò hệ thống có wildcard', () => {
+    expect(isSystemRole({ isSystem: false, permissions: ['*'] })).toBe(false);
+    expect(isSystemRole({ isSystem: true, permissions: [] })).toBe(false);
+    expect(isSystemRole({ isSystem: true, permissions: ['*'] })).toBe(true);
+  });
+  it('vai trò thường không được cấp quyền, kể cả quyền họ đã có', () => {
     expect(() =>
-      assertAssignRole(
-        actor(['account:manage', 'inventory:view']),
-        role(['inventory:view']),
-      ),
+      assertGrantPermissions(actor(['supplier:manage']), ['supplier:manage']),
     ).toThrow(ForbiddenException);
   });
-  it('cho phép gán quyền thường trong phạm vi ủy quyền', () => {
+  it('Admin được cấp mọi quyền nghiệp vụ hoặc bỏ hết quyền', () => {
     expect(() =>
-      assertAssignRole(
-        actor(['role:manage', 'inventory:view']),
-        role(['inventory:view']),
-      ),
+      assertGrantPermissions(actor(['*'], true), ALL_PERMISSION_KEYS),
     ).not.toThrow();
+    expect(() => assertGrantPermissions(actor(['*'], true), [])).not.toThrow();
   });
-  it('chặn role manager cấp quyền mới vượt quyền của mình', () => {
-    expect(() =>
-      assertGrantPermissions(actor(['role:manage']), ['inventory:import']),
-    ).toThrow(ForbiddenException);
-    expect(() =>
-      assertGrantPermissions(actor(['role:manage']), ['backup:manage']),
-    ).toThrow(ForbiddenException);
-  });
-  it('Admin hệ thống được gán mọi vai trò', () => {
-    expect(() =>
-      assertAssignRole(actor(['*']), role(['*'], true)),
-    ).not.toThrow();
+  it('Admin cũng không cấp wildcard, quyền quản trị hoặc quyền ngoài danh mục cho vai trò con', () => {
+    for (const permission of [
+      '*',
+      ...SYSTEM_PERMISSION_KEYS,
+      'product:manage',
+      'invented:permission',
+    ])
+      expect(() =>
+        assertGrantPermissions(actor(['*'], true), [permission]),
+      ).toThrow(BadRequestException);
   });
 });

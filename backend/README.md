@@ -26,6 +26,10 @@ npm run start:dev
 
 Backend cổng 3001; frontend cổng 3000. Trong PowerShell dùng `npm.cmd` nếu execution policy chặn `npm.ps1`.
 
+Portal và mọi API `/api/admin/*` chỉ dành cho System Admin. Vai trò thường chỉ được cấp các quyền nghiệp vụ qua checkbox; mặc định theo phân công kho, nhà hàng, nhân viên và khách hàng. API login chung vẫn xác thực các tài khoản khác để các app nghiệp vụ dùng sau khi tích hợp.
+
+Nếu đã chạy bản Prisma trước đó, dừng server, chạy `npm run db:migrate`, rồi khởi động lại và đăng nhập lại. Migration mới chuyển các mặc định cũ, bảo toàn quyền nghiệp vụ đã tùy chỉnh và thu hồi phiên cũ. Xem tài liệu để biết chi tiết chuyển khóa quyền.
+
 Không chạy migration mới trực tiếp lên database TypeORM cũ; xem hướng dẫn chuyển đổi trước. Database develop đã có bảng chi nhánh/bàn cần kiểm tra và đánh dấu baseline theo tài liệu.
 
 ## Kiểm tra

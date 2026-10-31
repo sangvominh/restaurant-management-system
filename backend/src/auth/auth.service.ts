@@ -7,6 +7,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { AuditService } from '../audit/audit.service.js';
 import type { AuthUser } from '../common/auth.decorators.js';
+import { isSystemRole } from '../common/management-policy.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 
 const DUMMY_HASH = bcrypt.hashSync('khong-ton-tai', 10);
@@ -65,6 +66,7 @@ export class AuthService {
       email: account.email,
       role: account.role.name,
       permissions: account.role.permissions,
+      isSystemAdmin: isSystemRole(account.role),
     };
     return { accessToken, user };
   }

@@ -15,7 +15,7 @@ import {
   RightOutlined,
 } from '@ant-design/icons';
 import { usePathname, useRouter } from 'next/navigation';
-import { AuthUser, apiFetch, clearSession, getToken, getUser, hasPermission, saveSession } from '../lib/api';
+import { AuthUser, apiFetch, clearSession, getToken, hasPermission, isSystemAdmin, saveSession } from '../lib/api';
 
 const { Header, Sider, Content } = Layout;
 
@@ -35,28 +35,25 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
   const [collapsed, setCollapsed] = useState(false);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [ready, setReady] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [retry, setRetry] = useState(0);
   const router = useRouter();
   const pathname = usePathname();
   const { token: { colorBgContainer } } = theme.useToken();
 
-  // Chặn truy cập khi chưa đăng nhập. (Quyền thật sự vẫn do backend kiểm tra ở mọi API.)
+  // Chỉ render trang quản trị sau khi server xác nhận vai trò; không tin quyền trong localStorage.
   useEffect(() => {
-    if (!getToken() || !getUser()) {
+    if (!getToken()) {
       router.replace('/login');
       return;
     }
-    setUser(getUser());
-    setReady(true);
-  }, [router]);
-
-  // Đồng bộ quyền với server mỗi lần chuyển trang: nếu vai trò bị đổi giữa phiên thì menu/trang cập nhật ngay.
-  useEffect(() => {
-    if (!ready) return;
+    setReady(false);
+    setError(null);
     let cancelled = false;
     (async () => {
       try {
         const res = await apiFetch('/api/auth/me');
-        if (!res.ok) return; // 401 đã được apiFetch xử lý (về /login)
+        if (!res.ok) throw new Error('Không xác nhận được phiên đăng nhập. Vui lòng đăng nhập lại.');
         const fresh: AuthUser = await res.json();
         const token = getToken();
         if (!cancelled && token) {
@@ -64,13 +61,15 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
           setUser(fresh);
         }
       } catch {
-        /* mất mạng: giữ quyền cũ, backend vẫn chặn ở mọi API */
+        if (!cancelled) setError('Không xác nhận được quyền truy cập. Kiểm tra kết nối và thử lại.');
+      } finally {
+        if (!cancelled) setReady(true);
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [pathname, ready]);
+  }, [pathname, router, retry]);
 
   const allowedNav = useMemo(
     () => NAV.filter((n) => hasPermission(user, ...n.perms)),
@@ -100,6 +99,17 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
         <Spin size="large" />
       </div>
     );
+  }
+
+  if (error) {
+    return <Result status="error" title="Chưa xác nhận được quyền truy cập" subTitle={error}
+      extra={<Button onClick={() => setRetry((value) => value + 1)}>Thử lại</Button>} />;
+  }
+
+  if (!isSystemAdmin(user)) {
+    return <Result status="403" title="Khu vực dành riêng cho System Admin"
+      subTitle="Tài khoản của bạn sử dụng ứng dụng theo vai trò được cấp và không được truy cập trang quản trị hệ thống."
+      extra={<Button onClick={handleLogout}>Đăng xuất</Button>} />;
   }
 
   return (

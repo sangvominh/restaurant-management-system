@@ -8,11 +8,15 @@ import { AuditService } from '../../audit/audit.service.js';
 import type { AuthUser } from '../../common/auth.decorators.js';
 import { accountResponse } from '../../common/account-response.js';
 import {
-  assertAssignRole,
   assertGrantPermissions,
-  assertManageAccount,
+  assertSystemAdmin,
+  isSystemRole,
 } from '../../common/management-policy.js';
-import { PERMISSIONS, WILDCARD } from '../../common/permissions.js';
+import {
+  DEFAULT_ROLE_PERMISSIONS,
+  PERMISSIONS,
+  WILDCARD,
+} from '../../common/permissions.js';
 import type { Account, Prisma, Role } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import type {
@@ -62,12 +66,16 @@ export class AdminService {
   ) {
     if (
       account.status !== 'active' ||
+      !account.role.isSystem ||
       !account.role.permissions.includes(WILDCARD)
     )
       return false;
     return (
       (await tx.account.count({
-        where: { status: 'active', role: { permissions: { has: WILDCARD } } },
+        where: {
+          status: 'active',
+          role: { isSystem: true, permissions: { has: WILDCARD } },
+        },
       })) <= 1
     );
   }
@@ -89,10 +97,10 @@ export class AdminService {
   }
 
   async createAccount(dto: CreateAccountDto, actor: AuthUser) {
+    assertSystemAdmin(actor);
     const passwordHash = await bcrypt.hash(dto.password, 10);
     const saved = await this.db.adminTransaction(async (tx) => {
       const role = await this.roleByName(tx, dto.role);
-      assertAssignRole(actor, role);
       return tx.account.create({
         data: {
           name: dto.name,
@@ -115,20 +123,16 @@ export class AdminService {
   }
 
   async updateAccount(id: number, dto: UpdateAccountDto, actor: AuthUser) {
+    assertSystemAdmin(actor);
     const passwordHash = dto.password
       ? await bcrypt.hash(dto.password, 10)
       : undefined;
     const saved = await this.db.adminTransaction(async (tx) => {
       const current = await this.account(tx, id);
-      assertManageAccount(actor, current.role);
       let roleId = current.roleId;
       if (dto.role !== undefined && dto.role !== current.role.name) {
         const role = await this.roleByName(tx, dto.role);
-        assertAssignRole(actor, role);
-        if (
-          !role.permissions.includes(WILDCARD) &&
-          (await this.isLastAdmin(tx, current))
-        )
+        if (!isSystemRole(role) && (await this.isLastAdmin(tx, current)))
           throw new BadRequestException(
             'Không thể hạ quyền quản trị viên đang hoạt động cuối cùng',
           );
@@ -165,9 +169,9 @@ export class AdminService {
   }
 
   async toggleLockStatus(id: number, actor: AuthUser) {
+    assertSystemAdmin(actor);
     const saved = await this.db.adminTransaction(async (tx) => {
       const current = await this.account(tx, id);
-      assertManageAccount(actor, current.role);
       if (current.status === 'active') {
         if (id === actor.id)
           throw new BadRequestException(
@@ -198,9 +202,9 @@ export class AdminService {
   }
 
   async deleteAccount(id: number, actor: AuthUser) {
+    assertSystemAdmin(actor);
     const deleted = await this.db.adminTransaction(async (tx) => {
       const current = await this.account(tx, id);
-      assertManageAccount(actor, current.role);
       if (id === actor.id)
         throw new BadRequestException(
           'Không thể tự xóa tài khoản của chính mình',
@@ -223,6 +227,12 @@ export class AdminService {
 
   getPermissionCatalog() {
     return PERMISSIONS;
+  }
+
+  getRoleDefaults() {
+    return Object.entries(DEFAULT_ROLE_PERMISSIONS)
+      .filter(([, permissions]) => !permissions.includes(WILDCARD))
+      .map(([name, permissions]) => ({ name, permissions }));
   }
 
   async getAllRoles() {
@@ -256,10 +266,10 @@ export class AdminService {
   }
 
   async updateRole(id: number, dto: UpdateRoleDto, actor: AuthUser) {
+    assertSystemAdmin(actor);
     const saved = await this.db.adminTransaction(async (tx) => {
       const current = await tx.role.findUnique({ where: { id } });
       if (!current) throw new NotFoundException('Không tìm thấy vai trò');
-      assertManageAccount(actor, current);
       if (
         current.isSystem &&
         ((dto.name !== undefined && dto.name !== current.name) ||
@@ -301,13 +311,13 @@ export class AdminService {
   }
 
   async deleteRole(id: number, actor: AuthUser) {
+    assertSystemAdmin(actor);
     const deleted = await this.db.adminTransaction(async (tx) => {
       const current = await tx.role.findUnique({
         where: { id },
         include: { _count: { select: { accounts: true } } },
       });
       if (!current) throw new NotFoundException('Không tìm thấy vai trò');
-      assertManageAccount(actor, current);
       if (current.isSystem)
         throw new BadRequestException('Vai trò hệ thống, không thể xóa');
       if (current._count.accounts)

@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Alert, Button, Descriptions, Input, Modal, Tag, Upload, message } from 'antd';
 import { CloudDownloadOutlined, InboxOutlined, WarningOutlined } from '@ant-design/icons';
-import { apiFetch, clearSession, getUser, hasPermission, readError } from '../../lib/api';
+import { apiFetch, clearSession, getUser, isSystemAdmin, readError } from '../../lib/api';
 
 const C = { ink: '#1c1612', gold: '#b8893b', card: '#ffffff', line: '#ece5d8', text: '#3b3129', muted: '#8a7d70', danger: '#b5483a' };
 const serif = "'Playfair Display', Georgia, 'Times New Roman', serif";
@@ -34,7 +34,7 @@ async function fetchBackup() {
 
 export default function BackupPage() {
   const [canRestore, setCanRestore] = useState(false);
-  useEffect(() => { setCanRestore(hasPermission(getUser(), '*')); }, []);
+  useEffect(() => { setCanRestore(isSystemAdmin(getUser())); }, []);
   const [exporting, setExporting] = useState(false);
   const [parsed, setParsed] = useState<unknown>(null);
   const [fileName, setFileName] = useState('');

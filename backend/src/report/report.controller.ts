@@ -11,6 +11,7 @@ import {
   AuthUser,
   CurrentUser,
   RequirePermissions,
+  RequireSystemAdmin,
 } from '../common/auth.decorators.js';
 import { ReportQueryDto } from './report.dto.js';
 import { Period, ReportService } from './report.service.js';
@@ -21,6 +22,7 @@ const norm = (q: ReportQueryDto): { period: Period; year: number } => ({
 });
 
 @Controller('api/admin/reports')
+@RequireSystemAdmin()
 export class ReportController {
   constructor(private readonly reports: ReportService) {}
 

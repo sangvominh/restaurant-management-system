@@ -3,10 +3,12 @@ import {
   AuthUser,
   CurrentUser,
   RequirePermissions,
+  RequireSystemAdmin,
 } from '../common/auth.decorators.js';
 import { BackupService } from './backup.service.js';
 
 @Controller('api/admin/backup')
+@RequireSystemAdmin()
 export class BackupController {
   constructor(private readonly backup: BackupService) {}
 

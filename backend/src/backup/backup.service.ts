@@ -9,7 +9,12 @@ import { accountResponse } from '../common/account-response.js';
 import { isSystemAdmin } from '../common/management-policy.js';
 import { AuditService } from '../audit/audit.service.js';
 import { AuthUser } from '../common/auth.decorators.js';
-import { ALL_PERMISSION_KEYS, WILDCARD } from '../common/permissions.js';
+import {
+  ALL_PERMISSION_KEYS,
+  SYSTEM_PERMISSION_KEYS,
+  normalizeBusinessPermissions,
+  WILDCARD,
+} from '../common/permissions.js';
 
 export const BACKUP_APP = 'mrp-admin-backup';
 export const BACKUP_VERSION = 1;
@@ -55,6 +60,7 @@ interface ParsedBackup {
   categories: CategoryRow[];
   settings: SettingRow[];
   meta: { exportedAt: string | null; exportedBy: string | null };
+  permissionWarnings: string[];
 }
 
 const isObj = (v: unknown): v is Record<string, unknown> =>
@@ -123,6 +129,7 @@ export class BackupService {
 
     const warnings: string[] = [
       'Mọi phiên đăng nhập sẽ bị thu hồi. Tài khoản không có trong bản sao lưu sẽ bị khóa; nhật ký và dữ liệu nghiệp vụ được giữ lại.',
+      ...backup.permissionWarnings,
     ];
     const me = backup.accounts.find(
       (a) => a.email.toLowerCase() === actor.email.toLowerCase(),
@@ -230,6 +237,7 @@ export class BackupService {
   /** Kiểm tra kỹ tệp trước khi đụng tới DB. Gom hết lỗi để người dùng sửa một lượt. */
   private parse(body: unknown): ParsedBackup {
     const errors: string[] = [];
+    const permissionWarnings: string[] = [];
     const fail = () => {
       throw new BadRequestException(
         errors.slice(0, 8).join('; ') +
@@ -296,7 +304,10 @@ export class BackupService {
       for (const p of perms) {
         if (
           typeof p !== 'string' ||
-          (p !== WILDCARD && !ALL_PERMISSION_KEYS.includes(p))
+          (p !== WILDCARD &&
+            !ALL_PERMISSION_KEYS.includes(p) &&
+            !(SYSTEM_PERMISSION_KEYS as readonly string[]).includes(p) &&
+            !['product:manage', 'production:request'].includes(p))
         ) {
           errors.push(`${w}: quyền không tồn tại "${String(p)}"`);
         }
@@ -305,12 +316,23 @@ export class BackupService {
         errors.push(
           `${w}: vai trò hệ thống phải có toàn quyền, vai trò thường không được chứa '*'`,
         );
+      const permissions =
+        r.isSystem === true
+          ? [WILDCARD]
+          : normalizeBusinessPermissions(perms as string[]);
+      if (
+        perms.length !== permissions.length ||
+        perms.some((permission) => !permissions.includes(permission as string))
+      )
+        permissionWarnings.push(
+          `${w} (${name}): quyền cũ được chuyển sang danh mục mới; quyền quản trị của vai trò thường bị loại bỏ.`,
+        );
       return {
         id: r.id as number,
         name,
         description: typeof r.description === 'string' ? r.description : '',
         isSystem: r.isSystem === true,
-        permissions: perms as string[],
+        permissions,
         createdAt: toDate(r.createdAt, w),
       };
     });
@@ -438,6 +460,7 @@ export class BackupService {
 
     return {
       roles,
+      permissionWarnings,
       accounts,
       categories,
       settings,

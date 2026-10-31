@@ -8,6 +8,7 @@ import {
   Input,
   Modal,
   Popconfirm,
+  Select,
   Space,
   Table,
   Tag,
@@ -59,6 +60,8 @@ interface PermissionItem {
   group: string;
 }
 
+interface RoleDefault { name: string; permissions: string[]; }
+
 
 const css = `
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&display=swap');
@@ -76,6 +79,7 @@ const css = `
 export default function RolesPage() {
   const [roles, setRoles] = useState<RoleRow[]>([]);
   const [catalog, setCatalog] = useState<PermissionItem[]>([]);
+  const [defaults, setDefaults] = useState<RoleDefault[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [keyword, setKeyword] = useState('');
 
@@ -104,9 +108,13 @@ export default function RolesPage() {
   // Danh mục quyền do backend định nghĩa (common/permissions.ts) để hai phía luôn khớp nhau.
   const fetchCatalog = async () => {
     try {
-      const res = await apiFetch('/api/admin/permissions');
+      const [res, presets] = await Promise.all([
+        apiFetch('/api/admin/permissions'), apiFetch('/api/admin/roles/defaults'),
+      ]);
       if (!res.ok) throw new Error(await readError(res, 'Không tải được danh mục quyền'));
+      if (!presets.ok) throw new Error(await readError(presets, 'Không tải được mẫu vai trò'));
       setCatalog(await res.json());
+      setDefaults(await presets.json());
     } catch (error: any) {
       message.error(error.message);
     }
@@ -434,10 +442,24 @@ export default function RolesPage() {
               />
             </Form.Item>
 
+            {!editingRole?.isSystem && (
+              <Form.Item label="Mẫu quyền theo vai trò (tùy chọn)"
+                extra="Chọn mẫu để thay các ô đang tick, sau đó bạn có thể tick thêm hoặc bỏ tick bất kỳ quyền nghiệp vụ nào.">
+                <Select placeholder="Chọn mẫu quyền ban đầu" value={undefined}
+                  options={defaults.map((item) => ({ label: item.name, value: item.name }))}
+                  onChange={(name) => {
+                    const preset = defaults.find((item) => item.name === name);
+                    if (preset) form.setFieldsValue({ permissions: [...preset.permissions] });
+                  }} />
+              </Form.Item>
+            )}
+
             <Form.Item
               label="Quyền của vai trò"
               name="permissions"
-              extra={editingRole?.isSystem ? 'Vai trò hệ thống luôn có toàn quyền, không thể thay đổi.' : undefined}
+              extra={editingRole?.isSystem
+                ? 'System Admin luôn có toàn quyền. Quyền quản trị hệ thống không thể cấp cho vai trò khác.'
+                : 'Chỉ các quyền nghiệp vụ được cấp ở đây. Tài khoản, phân quyền, báo cáo và khu vực System Admin luôn dành riêng cho System Admin.'}
             >
               <Checkbox.Group disabled={!!editingRole?.isSystem} style={{ display: 'block' }}>
                 {Array.from(new Set(catalog.map((p) => p.group))).map((group) => (

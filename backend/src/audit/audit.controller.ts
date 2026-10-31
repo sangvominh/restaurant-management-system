@@ -1,9 +1,13 @@
 import { Controller, Get, Query } from '@nestjs/common';
-import { RequirePermissions } from '../common/auth.decorators.js';
+import {
+  RequirePermissions,
+  RequireSystemAdmin,
+} from '../common/auth.decorators.js';
 import { LogQueryDto } from './audit.dto.js';
 import { AuditService } from './audit.service.js';
 
 @Controller('api/admin')
+@RequireSystemAdmin()
 export class AuditController {
   constructor(private readonly audit: AuditService) {}
 

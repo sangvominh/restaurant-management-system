@@ -13,6 +13,7 @@ import {
   AuthUser,
   CurrentUser,
   RequirePermissions,
+  RequireSystemAdmin,
 } from '../../common/auth.decorators.js';
 import { AdminService } from './admin.service.js';
 import {
@@ -27,6 +28,7 @@ import {
 
 /** Mọi route ở đây đều đã qua AuthGuard toàn cục (cần JWT); @RequirePermissions chặn theo quyền. */
 @Controller('api/admin')
+@RequireSystemAdmin()
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
@@ -76,6 +78,12 @@ export class AdminController {
   @RequirePermissions('role:manage')
   getPermissions() {
     return this.adminService.getPermissionCatalog();
+  }
+
+  @Get('roles/defaults')
+  @RequirePermissions('role:manage')
+  getRoleDefaults() {
+    return this.adminService.getRoleDefaults();
   }
 
   // Form tạo/sửa tài khoản cũng cần danh sách vai trò.

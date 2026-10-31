@@ -16,6 +16,11 @@ export interface AuthUser {
   email: string;
   role: string;
   permissions: string[];
+  isSystemAdmin: boolean;
+}
+
+export function isSystemAdmin(user: AuthUser | null): boolean {
+  return user?.isSystemAdmin === true && user.permissions.includes('*');
 }
 
 export function getToken(): string | null {
@@ -57,7 +62,7 @@ export function clearSession() {
 /** Admin có '*' (toàn quyền); người khác cần ít nhất một quyền trong danh sách. */
 export function hasPermission(user: AuthUser | null, ...required: string[]): boolean {
   if (!user) return false;
-  if (user.permissions.includes('*')) return true;
+  if (isSystemAdmin(user)) return true;
   return required.some((p) => user.permissions.includes(p));
 }
 

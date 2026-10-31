@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Alert, Button, ConfigProvider, Form, Input } from 'antd';
 import { LockOutlined, MailOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
-import { apiFetch, getToken, getUser, hasPermission, readError, saveSession, type AuthUser } from '../lib/api';
+import { apiFetch, clearSession, getToken, isSystemAdmin, readError, saveSession, type AuthUser } from '../lib/api';
 
 /* ---------- Màu (đồng bộ với các trang quản trị) ---------- */
 const C = {
@@ -16,21 +16,6 @@ const C = {
   muted: '#6f6355', // chữ phụ, đạt tương phản AA trên nền ngà
   line: '#c4b184', // gạch chân ô nhập, đậm hơn một chút để nổi trên nền ngả vàng
 };
-
-// Sau khi đăng nhập, đưa người dùng tới trang đầu tiên họ được phép xem.
-function landingFor(user: AuthUser): string {
-  const pages: [string, string][] = [
-    ['/', 'dashboard:view'],
-    ['/accounts', 'account:manage'],
-    ['/roles', 'role:manage'],
-    ['/categories', 'category:manage'],
-    ['/settings', 'setting:manage'],
-    ['/logs', 'audit:view'],
-    ['/backup', 'backup:manage'],
-    ['/reports', 'report:view'],
-  ];
-  return pages.find(([, perm]) => hasPermission(user, perm))?.[0] ?? '/';
-}
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -173,8 +158,28 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const u = getUser();
-    if (getToken() && u) router.replace(landingFor(u));
+    if (!getToken()) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await apiFetch('/api/auth/me');
+        if (!res.ok || cancelled) return;
+        const user: AuthUser = await res.json();
+        const token = getToken();
+        if (!cancelled && token) {
+          if (isSystemAdmin(user)) {
+            saveSession(token, user);
+            router.replace('/');
+          } else {
+            clearSession();
+            setError('Trang này chỉ dành cho System Admin. Vui lòng sử dụng ứng dụng theo vai trò của bạn.');
+          }
+        }
+      } catch {
+        // Vẫn cho phép đăng nhập lại khi phiên cũ không xác nhận được.
+      }
+    })();
+    return () => { cancelled = true; };
   }, [router]);
 
   const onFinish = async (values: { email: string; password: string }) => {
@@ -188,12 +193,19 @@ export default function LoginPage() {
       });
       if (!res.ok) throw new Error(await readError(res, 'Đăng nhập thất bại'));
       const data: { accessToken: string; user: AuthUser } = await res.json();
+      if (!isSystemAdmin(data.user)) {
+        clearSession();
+        await apiFetch('/api/auth/logout', {
+          method: 'POST', headers: { Authorization: `Bearer ${data.accessToken}` },
+        }).catch(() => undefined);
+        throw new Error('Trang này chỉ dành cho System Admin. Vui lòng sử dụng ứng dụng theo vai trò của bạn.');
+      }
       saveSession(data.accessToken, data.user);
       success = true;
       setOpened(true);
       // Cho nắp cloche kịp nhấc lên; bỏ qua nếu người dùng chọn giảm chuyển động.
       if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) await wait(550);
-      router.replace(landingFor(data.user));
+      router.replace('/');
     } catch (e: any) {
       // Lỗi mạng của fetch có message tiếng Anh khó hiểu -> thay bằng câu dễ hiểu.
       setError(e instanceof TypeError ? 'Không kết nối được máy chủ. Hãy kiểm tra backend đang chạy.' : e.message);
@@ -258,7 +270,7 @@ export default function LoginPage() {
         <section className="lg-panel">
           <div className="lg-card">
             <h1 className="lg-title">Đăng nhập</h1>
-            <p className="lg-sub">Dùng email và mật khẩu do quản trị viên cấp để vào khu vực quản trị.</p>
+            <p className="lg-sub">Đăng nhập bằng tài khoản System Admin để quản trị hệ thống.</p>
 
             {error && <Alert type="error" showIcon message={error} style={{ marginBottom: 20 }} />}
 
