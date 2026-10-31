@@ -2446,3 +2446,8 @@ textarea {
 .food-art > .badge {
   z-index: 1;
 }
+
+.staff-account { position: relative; }
+.staff-account summary { cursor: pointer; list-style: none; }
+.staff-account summary::-webkit-details-marker { display: none; }
+.staff-account-menu { position: absolute; z-index: 30; right: 0; top: calc(100% + 8px); display: grid; gap: 12px; min-width: 190px; padding: 14px; border-radius: 14px; background: white; box-shadow: 0 8px 28px #142e4930; }

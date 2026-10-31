@@ -23,6 +23,10 @@ model Branch {
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   tables RestaurantTable[]
+  staff StaffUser[]
+  menu MenuItem[]
+  invoices Invoice[]
+  stock StockBatch[]
 
   @@map("branches")
 }
@@ -37,8 +41,211 @@ model RestaurantTable {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
 
+  invoices Invoice[]
+
   branch Branch @relation(fields: [branchId], references: [id], onDelete: Restrict)
 
   @@unique([branchId, code])
   @@map("restaurant_tables")
+}
+
+enum StaffRole {
+  SERVICE
+  KITCHEN
+  CASHIER
+  SUPERVISOR
+}
+
+enum InvoiceStatus {
+  OPEN
+  PAID
+}
+
+enum TicketStatus {
+  QUEUED
+  COOKING
+  READY
+  SERVED
+  CANCELLED
+}
+
+model StaffUser {
+  id String @id @default(uuid()) @db.Uuid
+  code String @unique
+  name String
+  passwordHash String @map("password_hash")
+  role StaffRole
+  branchId String @db.Uuid @map("branch_id")
+  isActive Boolean @default(true) @map("is_active")
+  branch Branch @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  sessions StaffSession[]
+  shifts StaffShift[]
+  orders StaffOrder[]
+  payments Payment[]
+  audits StaffAudit[]
+  @@map("staff_users")
+}
+
+model StaffSession {
+  tokenHash String @id @map("token_hash")
+  userId String @db.Uuid @map("user_id")
+  expiresAt DateTime @db.Timestamptz(3) @map("expires_at")
+  user StaffUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([expiresAt])
+  @@map("staff_sessions")
+}
+
+model MenuItem {
+  id String @id @default(uuid()) @db.Uuid
+  branchId String @db.Uuid @map("branch_id")
+  name String
+  category String
+  description String @default("")
+  price Int
+  isAvailable Boolean @default(true) @map("is_available")
+  // Cooking is blocked until the branch explicitly configures a recipe.
+  recipeConfigured Boolean @default(false) @map("recipe_configured")
+  branch Branch @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  lines OrderLine[]
+  recipe RecipeIngredient[]
+  @@index([branchId])
+  @@map("menu_items")
+}
+
+model Invoice {
+  id String @id @default(uuid()) @db.Uuid
+  branchId String @db.Uuid @map("branch_id")
+  tableId String @db.Uuid @map("table_id")
+  // Guest identity is a per-invoice label; no customer account is required.
+  guestName String @map("guest_name")
+  status InvoiceStatus @default(OPEN)
+  createdAt DateTime @default(now()) @db.Timestamptz(3) @map("created_at")
+  branch Branch @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  table RestaurantTable @relation(fields: [tableId], references: [id], onDelete: Restrict)
+  orders StaffOrder[]
+  payment Payment?
+  @@index([branchId, status])
+  @@index([tableId])
+  @@map("invoices")
+}
+
+model StaffOrder {
+  id String @id @default(uuid()) @db.Uuid
+  invoiceId String @db.Uuid @map("invoice_id")
+  createdById String @db.Uuid @map("created_by_id")
+  requestKey String @unique @map("request_key")
+  createdAt DateTime @default(now()) @db.Timestamptz(3) @map("created_at")
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+  createdBy StaffUser @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  lines OrderLine[]
+  @@index([invoiceId])
+  @@map("staff_orders")
+}
+
+model OrderLine {
+  id String @id @default(uuid()) @db.Uuid
+  orderId String @db.Uuid @map("order_id")
+  menuItemId String @db.Uuid @map("menu_item_id")
+  name String
+  unitPrice Int @map("unit_price")
+  quantity Int
+  note String @default("")
+  status TicketStatus @default(QUEUED)
+  cookingAt DateTime? @db.Timestamptz(3) @map("cooking_at")
+  readyAt DateTime? @db.Timestamptz(3) @map("ready_at")
+  servedAt DateTime? @db.Timestamptz(3) @map("served_at")
+  order StaffOrder @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  menuItem MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Restrict)
+  consumption CookingConsumption?
+  @@index([orderId])
+  @@map("order_lines")
+}
+
+model Payment {
+  id String @id @default(uuid()) @db.Uuid
+  invoiceId String @unique @db.Uuid @map("invoice_id")
+  cashierId String @db.Uuid @map("cashier_id")
+  amount Int
+  cashReceived Int @map("cash_received")
+  createdAt DateTime @default(now()) @db.Timestamptz(3) @map("created_at")
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+  cashier StaffUser @relation(fields: [cashierId], references: [id], onDelete: Restrict)
+  @@map("payments")
+}
+
+model StaffShift {
+  id String @id @default(uuid()) @db.Uuid
+  userId String @db.Uuid @map("user_id")
+  startedAt DateTime @default(now()) @db.Timestamptz(3) @map("started_at")
+  endedAt DateTime? @db.Timestamptz(3) @map("ended_at")
+  handoverNote String? @map("handover_note")
+  user StaffUser @relation(fields: [userId], references: [id], onDelete: Restrict)
+  @@index([userId, startedAt])
+  @@map("staff_shifts")
+}
+
+model StaffAudit {
+  id String @id @default(uuid()) @db.Uuid
+  actorId String @db.Uuid @map("actor_id")
+  action String
+  targetId String @map("target_id")
+  detail String
+  createdAt DateTime @default(now()) @db.Timestamptz(3) @map("created_at")
+  actor StaffUser @relation(fields: [actorId], references: [id], onDelete: Restrict)
+  @@map("staff_audits")
+}
+
+// Minimal recipe/batch ledger for Staff cooking, not an MRP or warehouse module.
+model Ingredient {
+  id String @id @default(uuid()) @db.Uuid
+  name String
+  unit String
+  recipe RecipeIngredient[]
+  batches StockBatch[]
+  @@map("ingredients")
+}
+
+model RecipeIngredient {
+  menuItemId String @db.Uuid @map("menu_item_id")
+  ingredientId String @db.Uuid @map("ingredient_id")
+  quantity Decimal @db.Decimal(14, 3)
+  menuItem MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Restrict)
+  ingredient Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Restrict)
+  @@id([menuItemId, ingredientId])
+  @@map("recipe_ingredients")
+}
+
+model StockBatch {
+  id String @id @default(uuid()) @db.Uuid
+  branchId String @db.Uuid @map("branch_id")
+  ingredientId String @db.Uuid @map("ingredient_id")
+  code String
+  remaining Decimal @db.Decimal(14, 3)
+  expiresAt DateTime @db.Timestamptz(3) @map("expires_at")
+  branch Branch @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  ingredient Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Restrict)
+  movements StockConsumptionLine[]
+  @@unique([branchId, code])
+  @@index([branchId, ingredientId, expiresAt])
+  @@map("stock_batches")
+}
+
+model CookingConsumption {
+  // Shared idempotency point for cooking: integrations must reuse this ledger.
+  id String @id @default(uuid()) @db.Uuid
+  orderLineId String @unique @db.Uuid @map("order_line_id")
+  createdAt DateTime @default(now()) @db.Timestamptz(3) @map("created_at")
+  orderLine OrderLine @relation(fields: [orderLineId], references: [id], onDelete: Restrict)
+  batches StockConsumptionLine[]
+  @@map("cooking_consumptions")
+}
+
+model StockConsumptionLine {
+  consumptionId String @db.Uuid @map("consumption_id")
+  batchId String @db.Uuid @map("batch_id")
+  quantity Decimal @db.Decimal(14, 3)
+  consumption CookingConsumption @relation(fields: [consumptionId], references: [id], onDelete: Restrict)
+  batch StockBatch @relation(fields: [batchId], references: [id], onDelete: Restrict)
+  @@id([consumptionId, batchId])
+  @@map("stock_consumption_lines")
 }
