@@ -5,8 +5,8 @@ Nền tương thích `develop` tại commit `7c70254`: NestJS, PostgreSQL, Prism
 ## Chạy với database phát triển mới
 
 1. Từ thư mục gốc, chạy `npm ci`. Trong PowerShell có thể dùng `npm.cmd`.
-2. Chạy `docker compose -f docker-compose.system-admin.yml up -d`. File này dùng PostgreSQL 17, cổng 5433 và volume riêng. Không thay đổi volume/database TypeORM cũ. Nếu đã có PostgreSQL của nhóm, dùng database đó theo kế hoạch migration bên dưới; không cần chạy thêm container trùng cổng.
-3. Sao chép `backend/.env.example` thành `backend/.env`; đặt `DATABASE_URL`, `JWT_SECRET` ngẫu nhiên và mật khẩu seed riêng. Backend mặc định cổng 3001 để frontend cổng 3000 tiếp tục hoạt động.
+2. Chạy `docker compose up -d --wait`. File `docker-compose.yml` giữ nguyên cấu hình nhóm: PostgreSQL 17.11, service `db`, cổng 5433, volume `postgres_data`. Nếu máy đã có dữ liệu từ bản cũ, đọc mục Docker bên dưới trước khi chạy. Nếu đã có PostgreSQL của nhóm đang chạy đúng cổng, dùng database đó theo kế hoạch migration; không chạy thêm container trùng cổng.
+3. Nếu chưa có `.env`, sao chép `backend/.env.example` thành `backend/.env`; đặt `DATABASE_URL`, `JWT_SECRET` ngẫu nhiên và mật khẩu seed riêng. Nếu đã có `.env`, giữ cấu hình riêng, chỉ kiểm tra kết nối. Backend mặc định cổng 3001 để frontend cổng 3000 tiếp tục hoạt động.
 4. Từ `backend/`, chạy:
 
 ```sh
@@ -19,6 +19,51 @@ npm run start:dev
 Seed chỉ tạo vai trò mặc định, một tài khoản Admin theo `SEED_ADMIN_EMAIL`, và cấu hình mặc định. Seed không đổi mật khẩu/quyền đã tồn tại, không in mật khẩu ra log. Khởi động server không tự tạo tài khoản demo.
 
 Frontend: `npm run dev --workspace web-admin-system`. API giữ `/api/admin/*`, `/api/auth/*`, tên vai trò dạng chuỗi trong response và ID số cho dữ liệu Admin.
+
+## Docker dùng chung với nhóm
+
+File chính `docker-compose.yml` là cấu hình nhóm cung cấp và chỉ chạy database. Với máy chưa có dữ liệu cũ, `docker compose up -d --wait` tạo database mới theo cấu hình chung. Muốn chạy cả backend/frontend, dùng `npm.cmd run docker:up`; script ghép thêm `docker-compose.apps.yml` và tự đọc override riêng nếu có. Xem [hướng dẫn Docker đầy đủ](docker.md).
+
+```env
+DATABASE_URL=postgresql://restaurant:local_dev_only@127.0.0.1:5433/restaurant_dev?schema=public
+```
+
+Đây là URL cho backend chạy trên máy. Bản Docker đầy đủ ghi đè URL thành hostname `db`, cổng `5432` trong container; `.env` trên máy được giữ nguyên.
+
+### Giữ dữ liệu từ bản System Admin trước
+
+Hai volume cũ có mục đích khác nhau:
+
+- `restaurant-management-system_postgres_data`: từng dùng PostgreSQL 16 của TypeORM; không dùng để khởi động PostgreSQL 17.
+- `restaurant-management-system_system_admin_prisma_data`: dữ liệu System Admin PostgreSQL 17 đã chạy thử.
+
+Trước khi chuyển, xác nhận volume thực tế bằng `docker inspect restaurant-management-system-db-1 --format '{{json .Mounts}}'` và sao lưu database bằng `pg_dump`. Tên volume có thể khác nếu tên project/thư mục khác.
+
+Để giữ volume PostgreSQL 17 đã có, tạo file `docker-compose.override.yml` tại thư mục gốc:
+
+```yaml
+volumes:
+  postgres_data:
+    external: true
+    name: restaurant-management-system_system_admin_prisma_data
+```
+
+Đổi `name` thành tên volume PostgreSQL 17 đã xác nhận nếu máy dùng tên khác. `external: true` khiến Compose yêu cầu volume đó phải tồn tại, tránh vô tình tạo database rỗng khi nhập sai tên. Docker Compose tự đọc file override khi chạy lệnh mặc định. File này được Git bỏ qua: mỗi máy giữ cấu hình dữ liệu riêng, còn file chính giống nhóm.
+
+Nếu máy chỉ có dữ liệu PostgreSQL 16, cần chuẩn bị volume PostgreSQL 17 mới và chuyển dữ liệu theo kế hoạch migration, không gắn volume 16 vào image 17. Không cần xóa volume cũ để chuyển cấu hình. Container PostgreSQL 16 cũ có thể được Compose báo là orphan; không dùng `--remove-orphans` hay `down -v` trong quá trình giữ dữ liệu.
+
+Compose cũng có thể báo volume `restaurant-management-system_postgres_data` cũ không khớp cấu hình và được giữ nguyên (`left untouched`). Khi override đã trỏ đúng volume PostgreSQL 17, cảnh báo này chỉ phản ánh volume PostgreSQL 16 cũ còn tồn tại; không cần xóa nó để chạy bản mới.
+
+Kiểm tra và chạy bằng cấu hình chung:
+
+```sh
+docker compose config --quiet
+docker compose up -d --wait db
+docker compose ps
+docker compose exec -T db pg_isready -U restaurant -d restaurant_dev
+```
+
+Với database Prisma đã có, chạy `npm.cmd run db:migrate --workspace backend` nếu còn migration chưa áp dụng; không cần seed lại chỉ vì đổi file Docker. Với database mới, thực hiện migrate và seed như hướng dẫn bắt đầu. Cùng file Compose không có nghĩa các máy cùng dữ liệu: tài khoản và dữ liệu thử nằm trong volume của từng máy. File `.env`, override và thư mục `backups/` không được đưa lên GitHub.
 
 ## Migration
 

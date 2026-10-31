@@ -4,16 +4,36 @@ NestJS + Prisma 7.10.1 + PostgreSQL, ESM/NodeNext và Vitest; tương thích n�
 
 Hướng dẫn migration, phân quyền và hợp đồng báo cáo: [System Admin Prisma](../docs/system-admin-prisma.md).
 
-## Bắt đầu
+## Chạy cả backend, frontend và database bằng Docker
+
+Mở Docker Desktop, chuẩn bị `backend/.env` nếu chưa có (xem [hướng dẫn Docker](../docs/docker.md)), dừng backend/frontend npm cũ rồi chạy tại thư mục gốc:
+
+```powershell
+npm.cmd run docker:up
+```
+
+Mở http://localhost:3000/login. Lệnh tự dùng override giữ dữ liệu trên máy nếu có, áp dụng migration và chỉ seed khi chưa có Admin dùng được. Không cần mở hai terminal chạy backend/frontend nữa. Xem trạng thái bằng `npm.cmd run docker:ps`, dừng bằng `npm.cmd run docker:stop`.
+
+## Chạy phát triển bằng npm trên máy
+
+`docker-compose.yml` dùng nguyên cấu hình nhóm: PostgreSQL 17.11, service `db`, cổng `127.0.0.1:5433`, database `restaurant_dev`. File chính này chỉ chạy database; cách dưới đây chạy backend/frontend bằng npm. Bản Docker đầy đủ dùng thêm `docker-compose.apps.yml` qua các script ở trên.
+
+Nếu đã có volume PostgreSQL 16 từ bản cũ hoặc dữ liệu System Admin PostgreSQL 17 cần giữ, xem mục Docker trong [hướng dẫn](../docs/system-admin-prisma.md#docker-dùng-chung-với-nhóm) trước khi chạy. Không dùng dữ liệu PostgreSQL 16 để khởi động PostgreSQL 17. Máy đã có dữ liệu 17 có thể dùng `docker-compose.override.yml` riêng để giữ đúng volume; file này không được commit.
 
 Tại thư mục gốc:
 
 ```sh
 npm ci
-docker compose -f docker-compose.system-admin.yml up -d
+docker compose up -d --wait
 ```
 
-Sao chép `backend/.env.example` thành `backend/.env`, đặt `DATABASE_URL`, `JWT_SECRET`, `SEED_ADMIN_EMAIL` và `SEED_DEFAULT_PASSWORD` riêng.
+Nếu chưa có `backend/.env`, sao chép từ `backend/.env.example`, đặt `JWT_SECRET`, `SEED_ADMIN_EMAIL` và `SEED_DEFAULT_PASSWORD` riêng. Kết nối database từ backend chạy trên máy:
+
+```env
+DATABASE_URL=postgresql://restaurant:local_dev_only@127.0.0.1:5433/restaurant_dev?schema=public
+```
+
+Nếu đã có `.env`, giữ các thiết lập riêng và chỉ kiểm tra kết nối; không chép đè file đang dùng.
 
 Trong `backend/`, với database Prisma mới:
 

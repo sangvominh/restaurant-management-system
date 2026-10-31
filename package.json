@@ -1,6 +1,13 @@
 {
   "name": "restaurant-management-system",
   "private": true,
+  "scripts": {
+    "docker:up": "node scripts/docker-apps.mjs up",
+    "docker:stop": "node scripts/docker-apps.mjs stop",
+    "docker:down": "node scripts/docker-apps.mjs down",
+    "docker:ps": "node scripts/docker-apps.mjs ps",
+    "docker:logs": "node scripts/docker-apps.mjs logs"
+  },
   "workspaces": [
     "apps/*",
     "packages/*",

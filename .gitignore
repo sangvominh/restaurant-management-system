@@ -9,3 +9,6 @@ tu-dong-truoc-khi-phuc-hoi-*.json
 .npm-cache/
 backend/src/generated/prisma/
 coverage/
+# Chỉ định volume/cấu hình riêng của từng máy; file Docker chính dùng chung với nhóm.
+docker-compose.override.yml
+docker-compose.override.yaml

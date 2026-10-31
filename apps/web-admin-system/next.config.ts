@@ -1,7 +1,13 @@
-const nextConfig: any = {
-  // Đưa thẳng turbopack ra ngoài, không dùng chữ experimental nữa
+import type { NextConfig } from 'next';
+import path from 'node:path';
+
+const repositoryRoot = path.resolve(__dirname, '../..');
+
+const nextConfig: NextConfig = {
+  output: 'standalone',
+  outputFileTracingRoot: repositoryRoot,
   turbopack: {
-    root: "../../", 
+    root: repositoryRoot,
   },
 };
 
