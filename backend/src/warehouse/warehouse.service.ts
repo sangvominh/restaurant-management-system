@@ -17,6 +17,11 @@ import { ApproveFinishedGoodsDto } from './dto/approve-finished-goods.dto.js';
 import { RejectFinishedGoodsDto } from './dto/reject-finished-goods.dto.js';
 import { WasteApi } from './api/waste.api.js';
 import { RejectWasteDto } from './dto/reject-waste.dto.js';
+import { FinishedGoodsIssueApi } from './api/finished-goods-issue.api.js';
+import { CreateFinishedGoodsIssueDto } from './dto/create-finished-goods-issue.dto.js';
+import { ReportFinishedGoodsDto } from './dto/report-finished-goods.dto.js';
+import { FinishedGoodsDefectApi } from './api/finished-goods-defect.api.js';
+import { CreateFinishedGoodsDefectDto } from './dto/create-finished-goods-defect.dto.js';
 @Injectable()
 export class WarehouseService {
   constructor(
@@ -27,6 +32,8 @@ export class WarehouseService {
     private readonly productionOrderApi: ProductionOrderApi,
     private readonly finishedGoodsApi: FinishedGoodsApi,
     private readonly wasteApi: WasteApi,
+    private readonly finishedGoodsIssueApi: FinishedGoodsIssueApi,
+    private readonly finishedGoodsDefectApi: FinishedGoodsDefectApi,
   ) {}
 
   //Danh sách tồn kho
@@ -166,6 +173,8 @@ export class WarehouseService {
     return this.productionOrderApi.startProductionOrder(code);
   }
 
+  reportFinishedGoods(code: string, dto: ReportFinishedGoodsDto) { return this.finishedGoodsApi.reportOutput(code, dto); }
+
   // Lấy phiếu thành phẩm
   getFinishedGoodsReceipts(status?: string) {
     return this.finishedGoodsApi.getReceipts(status);
@@ -195,6 +204,16 @@ export class WarehouseService {
   getFinishedGoodsMovements() {
     return this.finishedGoodsApi.getFinishedGoodsMovements();
   }
+
+  createFinishedGoodsIssue(dto: CreateFinishedGoodsIssueDto) { return this.finishedGoodsIssueApi.create(dto); }
+  getFinishedGoodsIssueBranches() { return this.finishedGoodsIssueApi.listBranches(); }
+  getFinishedGoodsIssues(status?: string, shiftCode?: string) { return this.finishedGoodsIssueApi.list(status, shiftCode); }
+  approveFinishedGoodsIssue(code: string, quantities?: Record<string, string>) { return this.finishedGoodsIssueApi.approve(code, quantities); }
+  rejectFinishedGoodsIssue(code: string, reason: string) { return this.finishedGoodsIssueApi.reject(code, reason); }
+  createFinishedGoodsDefect(dto: CreateFinishedGoodsDefectDto) { return this.finishedGoodsDefectApi.create(dto); }
+  getFinishedGoodsDefects(status?: string) { return this.finishedGoodsDefectApi.list(status); }
+  approveFinishedGoodsDefect(code: string) { return this.finishedGoodsDefectApi.approve(code); }
+  rejectFinishedGoodsDefect(code: string, reason: string) { return this.finishedGoodsDefectApi.reject(code, reason); }
 
   // Lấy danh sách tồn kho
   getInventoryMovements() {

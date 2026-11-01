@@ -9,10 +9,29 @@ import { PrismaService } from '../../prisma/prisma.service.js';
 import { Prisma } from '../../generated/prisma/client.js';
 import { ApproveFinishedGoodsDto } from '../dto/approve-finished-goods.dto.js';
 import { RejectFinishedGoodsDto } from '../dto/reject-finished-goods.dto.js';
+import { ReportFinishedGoodsDto } from '../dto/report-finished-goods.dto.js';
 
 @Injectable()
 export class FinishedGoodsApi {
   constructor(private readonly prisma: PrismaService) {}
+
+  async reportOutput(orderCode: string, dto: ReportFinishedGoodsDto) {
+    const reportedQuantity = new Prisma.Decimal(dto.reportedQuantity);
+    if (reportedQuantity.lte(0)) throw new BadRequestException('Số lượng hoàn thành phải lớn hơn 0');
+    return this.prisma.$transaction(async (tx) => {
+      const order = await tx.productionOrder.findUnique({ where: { code: orderCode.trim() }, include: { finishedGoodsReceipt: true } });
+      if (!order) throw new NotFoundException('Không tìm thấy lệnh sản xuất');
+      if (order.status !== 'IN_PROGRESS' || order.materialStatus !== 'ISSUED') throw new ConflictException('Lệnh chưa ở trạng thái đang sản xuất');
+      if (reportedQuantity.gt(order.quantity)) throw new BadRequestException('Số lượng hoàn thành không được vượt số lượng kế hoạch');
+      const now = new Date();
+      const receipt = order.finishedGoodsReceipt
+        ? await tx.finishedGoodsReceipt.update({ where: { id: order.finishedGoodsReceipt.id }, data: { reportedQuantity, acceptedQuantity: null, rejectedQuantity: null, status: 'PENDING', note: dto.note?.trim() ?? null, inspectionNote: null, inspectedAt: null, approvedAt: null } })
+        : await tx.finishedGoodsReceipt.create({ data: { code: `NTP-${Date.now()}`, productionOrderId: order.id, reportedQuantity, note: dto.note?.trim() ?? null } });
+      const changed = await tx.productionOrder.updateMany({ where: { id: order.id, status: 'IN_PROGRESS' }, data: { status: 'WAITING_APPROVAL' } });
+      if (changed.count !== 1) throw new ConflictException('Trạng thái lệnh đã thay đổi');
+      return { message: 'Đã gửi số lượng thành phẩm chờ quản lý duyệt', data: { receiptCode: receipt.code, orderCode: order.code, reportedQuantity: reportedQuantity.toString(), status: 'PENDING', productionStatus: 'WAITING_APPROVAL', submittedAt: now } };
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+  }
 
   // Lấy danh sách phiếu thành phẩm theo trạng thái
   async getReceipts(status = 'PENDING') {
@@ -437,6 +456,7 @@ export class FinishedGoodsApi {
             productionOrder: true,
           },
         },
+        issueDetail: { include: { issue: true } },
         location: true,
       },
       orderBy: { createdAt: 'desc' },
@@ -446,8 +466,10 @@ export class FinishedGoodsApi {
     return {
       message: 'Lấy lịch sử nhập thành phẩm thành công',
       data: movements.map((item) => ({
-        receiptCode: item.receipt.code,
-        orderCode: item.receipt.productionOrder.code,
+        receiptCode: item.receipt?.code ?? null,
+        orderCode: item.receipt?.productionOrder.code ?? null,
+        issueCode: item.issueDetail?.issue.code ?? null,
+        shiftCode: item.issueDetail?.issue.shiftCode ?? null,
         productCode: item.productCode,
         locationName: item.location.name,
         quantityBefore: item.quantityBefore.toString(),

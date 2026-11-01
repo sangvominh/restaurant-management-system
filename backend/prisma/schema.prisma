@@ -22,12 +22,14 @@ model Branch {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  tables             RestaurantTable[]
-  warehouseLocations WarehouseLocation[]
-  goodsReceipts      GoodsReceipt[]
-  materialIssues     MaterialIssue[]
-  bomDetails         BomDetail[]
-  productionOrders   ProductionOrder[]
+  tables               RestaurantTable[]
+  warehouseLocations   WarehouseLocation[]
+  goodsReceipts        GoodsReceipt[]
+  materialIssues       MaterialIssue[]
+  bomDetails           BomDetail[]
+  productionOrders     ProductionOrder[]
+  finishedGoodsIssues  FinishedGoodsIssue[]
+  finishedGoodsDefects FinishedGoodsDefect[]
 
   @@map("branches")
 }
@@ -357,6 +359,41 @@ model FinishedGoodsBalance {
   @@map("finished_goods_balances")
 }
 
+model FinishedGoodsIssue {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code       String    @unique @db.VarChar(50)
+  branchId   String    @map("branch_id") @db.Uuid
+  shiftCode  String    @map("shift_code") @db.VarChar(50)
+  status     String    @default("PENDING") @db.VarChar(20)
+  note       String?   @db.Text
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  approvedAt DateTime? @map("approved_at") @db.Timestamptz(3)
+  rejectedAt DateTime? @map("rejected_at") @db.Timestamptz(3)
+
+  branch  Branch                     @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  details FinishedGoodsIssueDetail[]
+
+  @@index([branchId, shiftCode, status])
+  @@index([status, createdAt])
+  @@map("finished_goods_issues")
+}
+
+model FinishedGoodsIssueDetail {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  issueId           String   @map("issue_id") @db.Uuid
+  productCode       String   @map("product_code") @db.VarChar(50)
+  requestedQuantity Decimal  @map("requested_quantity") @db.Decimal(18, 3)
+  approvedQuantity  Decimal? @map("approved_quantity") @db.Decimal(18, 3)
+
+  issue     FinishedGoodsIssue      @relation(fields: [issueId], references: [id], onDelete: Restrict)
+  product   Product                 @relation(fields: [productCode], references: [code], onDelete: Restrict)
+  movements FinishedGoodsMovement[]
+
+  @@unique([issueId, productCode])
+  @@index([productCode])
+  @@map("finished_goods_issue_details")
+}
+
 model Product {
   id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   code        String   @unique @db.VarChar(50)
@@ -370,8 +407,10 @@ model Product {
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  boms                  Bom[]
-  finishedGoodsBalances FinishedGoodsBalance[]
+  boms                      Bom[]
+  finishedGoodsBalances     FinishedGoodsBalance[]
+  finishedGoodsIssueDetails FinishedGoodsIssueDetail[]
+  finishedGoodsDefects      FinishedGoodsDefect[]
 
   @@index([category, status])
   @@map("products")
@@ -379,7 +418,9 @@ model Product {
 
 model FinishedGoodsMovement {
   id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  receiptId      String   @unique @map("receipt_id") @db.Uuid
+  receiptId      String?  @unique @map("receipt_id") @db.Uuid
+  issueDetailId  String?  @map("issue_detail_id") @db.Uuid
+  defectId       String?  @map("defect_id") @db.Uuid
   productCode    String   @map("product_code") @db.VarChar(50)
   locationId     String   @map("location_id") @db.Uuid
   quantityBefore Decimal  @map("quantity_before") @db.Decimal(18, 3)
@@ -387,11 +428,35 @@ model FinishedGoodsMovement {
   quantityAfter  Decimal  @map("quantity_after") @db.Decimal(18, 3)
   createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
 
-  receipt FinishedGoodsReceipt @relation(fields: [receiptId], references: [id], onDelete: Restrict)
+  receipt     FinishedGoodsReceipt?     @relation(fields: [receiptId], references: [id], onDelete: Restrict)
+  issueDetail FinishedGoodsIssueDetail? @relation(fields: [issueDetailId], references: [id], onDelete: Restrict)
+  defect      FinishedGoodsDefect?      @relation(fields: [defectId], references: [id], onDelete: Restrict)
 
   location WarehouseLocation @relation(fields: [locationId], references: [id], onDelete: Restrict)
 
   @@map("finished_goods_movements")
+}
+
+model FinishedGoodsDefect {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code            String    @unique @db.VarChar(60)
+  branchId        String    @map("branch_id") @db.Uuid
+  productCode     String    @map("product_code") @db.VarChar(50)
+  quantity        Decimal   @db.Decimal(18, 3)
+  reason          String    @db.Text
+  deductFromStock Boolean   @default(false) @map("deduct_from_stock")
+  status          String    @default("PENDING") @db.VarChar(20)
+  decisionNote    String?   @map("decision_note") @db.Text
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  processedAt     DateTime? @map("processed_at") @db.Timestamptz(3)
+
+  branch    Branch                  @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  product   Product                 @relation(fields: [productCode], references: [code], onDelete: Restrict)
+  movements FinishedGoodsMovement[]
+
+  @@index([status, createdAt])
+  @@index([branchId, productCode])
+  @@map("finished_goods_defects")
 }
 
 model WasteRequest {

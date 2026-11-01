@@ -24,6 +24,9 @@ import { AssignProductionOrderDto } from './dto/assign-production-order.dto.js';
 import { ApproveFinishedGoodsDto } from './dto/approve-finished-goods.dto.js';
 import { RejectFinishedGoodsDto } from './dto/reject-finished-goods.dto.js';
 import { RejectWasteDto } from './dto/reject-waste.dto.js';
+import { CreateFinishedGoodsIssueDto } from './dto/create-finished-goods-issue.dto.js';
+import { ReportFinishedGoodsDto } from './dto/report-finished-goods.dto.js';
+import { CreateFinishedGoodsDefectDto } from './dto/create-finished-goods-defect.dto.js';
 
 @Controller('warehouse')
 export class WarehouseController {
@@ -285,6 +288,13 @@ export class WarehouseController {
     return this.warehouseService.startProductionOrder(code);
   }
 
+  @Post('production-orders/:code/finished-goods')
+  @HttpCode(200)
+  @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
+  reportFinishedGoods(@Param('code') code: string, @Body() dto: ReportFinishedGoodsDto) {
+    return this.warehouseService.reportFinishedGoods(code, dto);
+  }
+
   // GET /warehouse/finished-goods-receipts
   @Get('finished-goods-receipts')
   getFinishedGoodsReceipts(@Query('status') status?: string) {
@@ -334,6 +344,57 @@ export class WarehouseController {
   @Get('finished-goods-movements')
   getFinishedGoodsMovements() {
     return this.warehouseService.getFinishedGoodsMovements();
+  }
+
+  @Get('finished-goods-issues')
+  getFinishedGoodsIssues(@Query('status') status?: string, @Query('shiftCode') shiftCode?: string) {
+    return this.warehouseService.getFinishedGoodsIssues(status, shiftCode);
+  }
+
+  @Get('finished-goods-issue-branches')
+  getFinishedGoodsIssueBranches() {
+    return this.warehouseService.getFinishedGoodsIssueBranches();
+  }
+
+  @Post('finished-goods-issues')
+  @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
+  createFinishedGoodsIssue(@Body() dto: CreateFinishedGoodsIssueDto) {
+    return this.warehouseService.createFinishedGoodsIssue(dto);
+  }
+
+  @Post('finished-goods-issues/:code/approve')
+  @HttpCode(200)
+  approveFinishedGoodsIssue(@Param('code') code: string, @Body() body: { quantities?: Record<string, string> }) {
+    return this.warehouseService.approveFinishedGoodsIssue(code, body?.quantities);
+  }
+
+  @Post('finished-goods-issues/:code/reject')
+  @HttpCode(200)
+  rejectFinishedGoodsIssue(@Param('code') code: string, @Body() body: { reason: string }) {
+    return this.warehouseService.rejectFinishedGoodsIssue(code, body?.reason ?? '');
+  }
+
+  @Get('finished-goods-defects')
+  getFinishedGoodsDefects(@Query('status') status?: string) {
+    return this.warehouseService.getFinishedGoodsDefects(status);
+  }
+
+  @Post('finished-goods-defects')
+  @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
+  createFinishedGoodsDefect(@Body() dto: CreateFinishedGoodsDefectDto) {
+    return this.warehouseService.createFinishedGoodsDefect(dto);
+  }
+
+  @Post('finished-goods-defects/:code/approve')
+  @HttpCode(200)
+  approveFinishedGoodsDefect(@Param('code') code: string) {
+    return this.warehouseService.approveFinishedGoodsDefect(code);
+  }
+
+  @Post('finished-goods-defects/:code/reject')
+  @HttpCode(200)
+  rejectFinishedGoodsDefect(@Param('code') code: string, @Body() body: { reason: string }) {
+    return this.warehouseService.rejectFinishedGoodsDefect(code, body?.reason ?? '');
   }
 
   // GET /warehouse/inventory-movements
