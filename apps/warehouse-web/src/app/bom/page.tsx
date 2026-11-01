@@ -37,70 +37,13 @@ import {
   type BomMaterialDetail,
 } from "@/services/bom.service";
 import { fetchProducts, type ProductItem } from "@/services/product.service";
-import { materials } from "@/mock/data";
-
-// Fallback data khi chưa kết nối backend
-const fallbackBoms: BomItem[] = [
-  {
-    code: "BOM-001",
-    productCode: "TP001",
-    productName: "Pizza Margherita",
-    productCategory: "Pizza",
-    productPrice: 185000,
-    productImage: "https://images.unsplash.com/photo-1604382355076-af4b0eb60143?w=500&auto=format&fit=crop",
-    productUnit: "phần",
-    version: 1,
-    outputQuantity: "1",
-    status: "ACTIVE",
-    createdAt: new Date().toISOString(),
-    totalMaterials: 3,
-    details: [
-      { materialCode: "TEST-NVL001", materialName: "Thịt bò Mỹ", unitName: "kg", quantity: "0.15" },
-      { materialCode: "NVL002", materialName: "Phô mai Mozzarella", unitName: "kg", quantity: "0.1" },
-      { materialCode: "NVL003", materialName: "Sốt cà chua", unitName: "kg", quantity: "0.08" },
-    ],
-  },
-  {
-    code: "BOM-002",
-    productCode: "TP002",
-    productName: "Sốt bò bằm",
-    productCategory: "Sốt & nước dùng",
-    productPrice: 120000,
-    productImage: "https://images.unsplash.com/photo-1572441713132-c542fc4fe282?w=500&auto=format&fit=crop",
-    productUnit: "kg",
-    version: 1,
-    outputQuantity: "5",
-    status: "ACTIVE",
-    createdAt: new Date().toISOString(),
-    totalMaterials: 2,
-    details: [
-      { materialCode: "TEST-NVL001", materialName: "Thịt bò Mỹ", unitName: "kg", quantity: "3.5" },
-      { materialCode: "NVL003", materialName: "Sốt cà chua", unitName: "kg", quantity: "1.2" },
-    ],
-  },
-  {
-    code: "BOM-004",
-    productCode: "TP004",
-    productName: "Tiramisu",
-    productCategory: "Tráng miệng",
-    productPrice: 65000,
-    productImage: "https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=500&auto=format&fit=crop",
-    productUnit: "phần",
-    version: 1,
-    outputQuantity: "1",
-    status: "ACTIVE",
-    createdAt: new Date().toISOString(),
-    totalMaterials: 2,
-    details: [
-      { materialCode: "NVL002", materialName: "Phô mai Mozzarella", unitName: "kg", quantity: "0.05" },
-      { materialCode: "NVL004", materialName: "Bột cacao", unitName: "kg", quantity: "0.02" },
-    ],
-  },
-];
+import { getInventory } from "@/services/inventory.service";
+import type { InventoryItem } from "@/types/inventory";
 
 export default function BomManagementPage() {
-  const [boms, setBoms] = useState<BomItem[]>(fallbackBoms);
+  const [boms, setBoms] = useState<BomItem[]>([]);
   const [products, setProducts] = useState<ProductItem[]>([]);
+  const [materials, setMaterials] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(false);
 
   // Bộ lọc & Tìm kiếm
@@ -127,7 +70,7 @@ export default function BomManagementPage() {
     code: "",
     productCode: "TP001",
     outputQuantity: "1",
-    details: [{ materialCode: "TEST-NVL001", unitName: "kg", quantity: "0.5" }],
+    details: [{ materialCode: "", unitName: "", quantity: "0.5" }],
   });
 
   // Form State cho Sửa BOM
@@ -149,22 +92,27 @@ export default function BomManagementPage() {
   async function loadData() {
     try {
       setLoading(true);
-      const [bomData, productRes] = await Promise.allSettled([
+      setErrorMessage("");
+      const [bomData, productRes, materialRes] = await Promise.allSettled([
         fetchBoms(
           filterProductCode !== "Tất cả" ? filterProductCode : undefined,
           filterStatus !== "Tất cả" ? filterStatus : undefined,
         ),
         fetchProducts({ limit: 100 }),
+        getInventory(),
       ]);
 
-      if (bomData.status === "fulfilled" && bomData.value?.length) {
-        setBoms(bomData.value);
-      }
-      if (productRes.status === "fulfilled" && productRes.value?.data?.length) {
-        setProducts(productRes.value.data);
-      }
-    } catch {
-      // Giữ fallback
+      if (bomData.status === "fulfilled") setBoms(bomData.value ?? []);
+      else { setBoms([]); setErrorMessage(bomData.reason instanceof Error ? bomData.reason.message : "Không tải được công thức"); }
+      if (productRes.status === "fulfilled") setProducts(productRes.value?.data ?? []);
+      else setProducts([]);
+      if (materialRes.status === "fulfilled") setMaterials(materialRes.value ?? []);
+      else { setMaterials([]); setErrorMessage(materialRes.reason instanceof Error ? materialRes.reason.message : "Không tải được nguyên vật liệu"); }
+    } catch (error) {
+      setBoms([]);
+      setProducts([]);
+      setMaterials([]);
+      setErrorMessage(error instanceof Error ? error.message : "Không tải được dữ liệu BOM");
     } finally {
       setLoading(false);
     }
@@ -173,6 +121,15 @@ export default function BomManagementPage() {
   useEffect(() => {
     loadData();
   }, [filterProductCode, filterStatus]);
+
+  useEffect(() => {
+    if (!newBomForm.productCode && products.length) {
+      setNewBomForm((current) => ({ ...current, productCode: products[0].code }));
+    }
+    if (!newBomForm.details[0]?.materialCode && materials.length) {
+      setNewBomForm((current) => ({ ...current, details: current.details.map((line, index) => index === 0 ? { ...line, materialCode: materials[0].code, unitName: materials[0].unit } : line) }));
+    }
+  }, [products, materials, newBomForm.productCode, newBomForm.details]);
 
   // Lọc và tìm kiếm
   const filteredBoms = useMemo(() => {
@@ -805,9 +762,6 @@ export default function BomManagementPage() {
                       {materials.map((m) => (
                         <option key={m.code} value={m.code}>{m.code} — {m.name}</option>
                       ))}
-                      {!materials.some((m) => m.code === "TEST-NVL001") && (
-                        <option value="TEST-NVL001">TEST-NVL001 — Thịt bò Mỹ</option>
-                      )}
                     </select>
 
                     <input

@@ -34,109 +34,9 @@ import {
   type ProductDetail,
 } from "@/services/product.service";
 
-// Dữ liệu mẫu dự phòng khi chưa kết nối backend
-const fallbackProducts: ProductItem[] = [
-  {
-    id: "p1",
-    code: "TP001",
-    name: "Pizza Margherita",
-    category: "Pizza",
-    price: 185000,
-    unit: "phần",
-    imageUrl: "https://images.unsplash.com/photo-1604382355076-af4b0eb60143?w=500&auto=format&fit=crop",
-    description: "Pizza truyền thống phong cách Ý với sốt cà chua, phô mai mozzarella tươi và lá quế tây tươi.",
-    status: "ACTIVE",
-    totalStock: 42,
-    bomCount: 1,
-    activeBom: { id: "b1", code: "BOM-001", version: 1, status: "ACTIVE" },
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "p2",
-    code: "TP002",
-    name: "Sốt bò bằm",
-    category: "Sốt & nước dùng",
-    price: 120000,
-    unit: "kg",
-    imageUrl: "https://images.unsplash.com/photo-1572441713132-c542fc4fe282?w=500&auto=format&fit=crop",
-    description: "Sốt bò bằm nấu chậm 4 tiếng theo công thức đặc biệt của bếp trưởng.",
-    status: "ACTIVE",
-    totalStock: 8,
-    bomCount: 1,
-    activeBom: { id: "b2", code: "BOM-002", version: 1, status: "ACTIVE" },
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "p3",
-    code: "TP003",
-    name: "Đế bánh pizza",
-    category: "Bán thành phẩm",
-    price: 35000,
-    unit: "cái",
-    imageUrl: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&auto=format&fit=crop",
-    description: "Đế bánh pizza ủ men chậm 24h, giòn xốp bên ngoài, mềm dai bên trong.",
-    status: "ACTIVE",
-    totalStock: 85,
-    bomCount: 0,
-    activeBom: null,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "p4",
-    code: "TP004",
-    name: "Tiramisu",
-    category: "Tráng miệng",
-    price: 65000,
-    unit: "phần",
-    imageUrl: "https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=500&auto=format&fit=crop",
-    description: "Bánh tiramisu hương vị cà phê espresso, rượu rum và phô mai mascarpone béo ngậy.",
-    status: "ACTIVE",
-    totalStock: 6,
-    bomCount: 1,
-    activeBom: { id: "b3", code: "BOM-004", version: 1, status: "ACTIVE" },
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "p5",
-    code: "TP005",
-    name: "Mì Ý sốt bò bằm (Bolognese)",
-    category: "Mì Ý",
-    price: 145000,
-    unit: "phần",
-    imageUrl: "https://images.unsplash.com/photo-1621996346565-e3d5d6281228?w=500&auto=format&fit=crop",
-    description: "Mì Ý sợi dài kết hợp sốt thịt bò bằm hầm cà chua và rắc phô mai Parmesan bột.",
-    status: "ACTIVE",
-    totalStock: 15,
-    bomCount: 1,
-    activeBom: null,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "p6",
-    code: "TP006",
-    name: "Salad cá hồi hun khói",
-    category: "Khai vị",
-    price: 165000,
-    unit: "phần",
-    imageUrl: "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=500&auto=format&fit=crop",
-    description: "Rau xà lách tươi hữu cơ, cá hồi hun khói Nauy, quả bơ và sốt giấm balsamic.",
-    status: "INACTIVE",
-    totalStock: 0,
-    bomCount: 0,
-    activeBom: null,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
-
 export default function ProductsPage() {
-  const [products, setProducts] = useState<ProductItem[]>(fallbackProducts);
-  const [categories, setCategories] = useState<string[]>(["Pizza", "Mì Ý", "Khai vị", "Tráng miệng", "Sốt & nước dùng", "Bán thành phẩm"]);
+  const [products, setProducts] = useState<ProductItem[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
 
@@ -173,6 +73,7 @@ export default function ProductsPage() {
   async function loadData() {
     try {
       setLoading(true);
+      setErrorMessage("");
       const [res, cats] = await Promise.allSettled([
         fetchProducts({
           search: search || undefined,
@@ -186,14 +87,12 @@ export default function ProductsPage() {
         fetchProductCategories(),
       ]);
 
-      if (res.status === "fulfilled" && res.value?.data?.length) {
-        setProducts(res.value.data);
-      }
-      if (cats.status === "fulfilled" && cats.value?.length) {
-        setCategories(Array.from(new Set([...cats.value, "Pizza", "Mì Ý", "Khai vị", "Tráng miệng"])));
-      }
-    } catch {
-      // Giữ fallback data
+      if (res.status === "fulfilled") setProducts(res.value.data ?? []);
+      else setErrorMessage(res.reason instanceof Error ? res.reason.message : "Không tải được danh sách món ăn");
+      if (cats.status === "fulfilled") setCategories(cats.value ?? []);
+      else setErrorMessage(cats.reason instanceof Error ? cats.reason.message : "Không tải được danh mục món ăn");
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Không tải được dữ liệu món ăn");
     } finally {
       setLoading(false);
     }

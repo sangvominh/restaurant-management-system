@@ -101,7 +101,7 @@ export async function fetchProductCategories(): Promise<string[]> {
   const res = await fetch(`${API_BASE}/products/categories`, {
     cache: 'no-store',
   });
-  if (!res.ok) return ['Pizza', 'Mì Ý', 'Khai vị', 'Tráng miệng', 'Sốt & nước dùng'];
+  if (!res.ok) throw new Error('Không thể tải danh mục món ăn từ máy chủ');
   return res.json();
 }
 
