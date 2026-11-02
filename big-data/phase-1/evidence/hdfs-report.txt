@@ -1,0 +1,43 @@
+WARNING: log4j.properties is not found. HADOOP_CONF_DIR may be incomplete.
+Configured Capacity: 1081100128256 (1006.85 GB)
+Present Capacity: 1019438903045 (949.43 GB)
+DFS Remaining: 1019390832640 (949.38 GB)
+DFS Used: 48070405 (45.84 MB)
+DFS Used%: 0.00%
+Replicated Blocks:
+	Under replicated blocks: 0
+	Blocks with corrupt replicas: 0
+	Missing blocks: 0
+	Missing blocks (with replication factor 1): 0
+	Low redundancy blocks with highest priority to recover: 0
+	Pending deletion blocks: 0
+Erasure Coded Block Groups: 
+	Low redundancy block groups: 0
+	Block groups with corrupt internal blocks: 0
+	Missing block groups: 0
+	Low redundancy blocks with highest priority to recover: 0
+	Pending deletion blocks: 0
+
+-------------------------------------------------
+Live datanodes (1):
+
+Name: 172.19.0.5:9866 (bigdata-phase1-datanode-1.bigdata-phase1_default)
+Hostname: datanode
+Decommission Status : Normal
+Configured Capacity: 1081100128256 (1006.85 GB)
+DFS Used: 48070405 (45.84 MB)
+Non DFS Used: 6668919035 (6.21 GB)
+DFS Remaining: 1019390832640 (949.38 GB)
+DFS Used%: 0.00%
+DFS Remaining%: 94.29%
+Configured Cache Capacity: 0 (0 B)
+Cache Used: 0 (0 B)
+Cache Remaining: 0 (0 B)
+Cache Used%: 100.00%
+Cache Remaining%: 0.00%
+Xceivers: 0
+Last contact: Sat Oct 31 21:41:31 UTC 2026
+Last Block Report: Sat Oct 31 21:40:21 UTC 2026
+Num of Blocks: 1
+
+
