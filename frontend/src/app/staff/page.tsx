@@ -11,6 +11,6 @@ export default function Staff() {
     <Card className="welcome-card"><div className="flex justify-between gap-4"><div><p className="muted text-xs mb-2">{user.branch.name}</p><h1>Xin chào, {user.name}</h1><p className="muted mt-2">Chúc bạn một ca làm việc hiệu quả.</p></div><Badge tone={data?.shift ? "green" : "gray"}>{data?.shift ? "Đang trong ca" : "Chưa vào ca"}</Badge></div></Card>
     <ResourceState error={error} loading={!data && !error} retry={reload} />
     {data && <div className="stats-grid">{[["table_restaurant", `${occupied} / ${data.tables.length}`, "Bàn đang phục vụ"], ["receipt_long", `${data.invoices.length}`, "Hóa đơn đang mở"], ["skillet", `${pending}`, "Món chờ bếp"], ...(data.revenue === null ? [] : [["payments", money(data.revenue), "Doanh thu hôm nay"]])].map(([icon, value, label]) => <Card key={label} className="stat-card"><span className="stat-icon stat-blue"><Icon name={icon} /></span><div className="mt-4"><strong className="metric">{value}</strong></div><p className="muted text-xs mt-1">{label}</p></Card>)}</div>}
-    <div className="section-title"><h2>Thao tác nhanh</h2></div><div className="quick-actions"><ActionLink href="/staff/production"><Icon name="inventory_2" /> Lệnh sản xuất</ActionLink></div>
+    <div className="section-title"><h2>Thao tác nhanh</h2></div><div className="quick-actions">{user.role === "CASHIER" ? <ActionLink href="/staff/invoices"><Icon name="receipt_long" /> Xem hóa đơn</ActionLink> : <ActionLink href="/staff/finished-issues"><Icon name="inventory_2" /> Thành phẩm</ActionLink>}</div>
   </div>;
 }

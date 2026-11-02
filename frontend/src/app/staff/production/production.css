@@ -2,3 +2,20 @@
 
 .mrp-history-button{border-radius:10px;padding:12px;font-weight:700}
 .mrp-status-pending{background:#fff1cf;color:#875300}.mrp-status-approved{background:#dff6e9;color:#087044}.mrp-status-rejected{background:#fde5e3;color:#a32119}
+.mrp-page .mrp-primary { border-radius:10px; padding:10px 16px; font-weight:700; margin-top:12px; cursor:pointer; transition:background .15s,transform .15s; }
+.mrp-page .mrp-primary:hover:not(:disabled) { background:#005f99; transform:translateY(-1px); }
+.mrp-page .mrp-primary:disabled { background:#dbe4eb; color:#718293; cursor:not-allowed; }
+.mrp-page .mrp-card { border:1px solid #e1eaf2; }
+.mrp-page .mrp-tag { font-weight:700; }
+.mrp-order-status-waiting_approval,.mrp-order-status-pending { background:#fff1cf; color:#875300; }
+.mrp-order-status-completed { background:#dff6e9; color:#087044; }
+.mrp-order-status-in_progress { background:#e0f2ff; color:#075f98; }
+.mrp-order-status-cancelled { background:#fde5e3; color:#a32119; }
+
+.mrp-page .staff-back { justify-self: start; width: auto; }
+.production-create summary { cursor:pointer; color:#006fae; font-weight:700; padding:4px; }
+.production-create summary:hover { color:#003f68; }
+.production-create[open] { display:grid; gap:12px; }
+.production-create[open] > * { margin-top:12px; }
+.production-filters { display:grid; grid-template-columns:minmax(0,1fr) minmax(130px,200px); gap:12px; }
+@media(max-width:480px) { .production-filters { grid-template-columns:1fr; } }

@@ -1,6 +1,3 @@
--- CreateSchema
-CREATE SCHEMA IF NOT EXISTS "public";
-
 -- CreateTable
 CREATE TABLE "branches" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
@@ -36,4 +33,3 @@ CREATE UNIQUE INDEX "restaurant_tables_branch_id_code_key" ON "restaurant_tables
 
 -- AddForeignKey
 ALTER TABLE "restaurant_tables" ADD CONSTRAINT "restaurant_tables_branch_id_fkey" FOREIGN KEY ("branch_id") REFERENCES "branches"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-

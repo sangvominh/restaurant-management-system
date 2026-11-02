@@ -1,5 +1,5 @@
 "use client";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { api } from "@/lib/api";
 import { brand } from "@/config/brand";
 import { Button, Card, Field, Icon, Notice } from "@/components/staff/ui";
@@ -7,6 +7,7 @@ export default function Login() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [show, setShow] = useState(false);
+  useEffect(() => { if (!error) return; const timer = setTimeout(() => setError(""), 5000); return () => clearTimeout(timer); }, [error]);
   async function login(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);

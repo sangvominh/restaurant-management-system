@@ -56,6 +56,7 @@ export function useAction() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const { refresh } = useStaff();
+  useEffect(() => { if (!message && !error) return; const timer = setTimeout(() => { setMessage(""); setError(""); }, 5000); return () => clearTimeout(timer); }, [message, error]);
   const run = async (work: () => Promise<unknown>, success: string) => {
     if (busy) return false;
     setBusy(true);
@@ -119,9 +120,18 @@ const nav = [
   ["grid_view", "Sơ đồ bàn", "/staff/tables"],
   ["restaurant_menu", "Gọi món", "/staff/orders/new"],
   ["skillet", "Bếp KDS", "/staff/kitchen"],
-  ["inventory_2", "Sản xuất", "/staff/production"],
+  ["warehouse", "Tồn kho", "/staff/inventory"],
+  ["outbox", "Thành phẩm", "/staff/finished-issues"],
+  ["report_problem", "Hao hụt", "/staff/material-waste"],
+  ["assignment_return", "Hoàn trả", "/staff/material-returns"],
   ["schedule", "Ca làm", "/staff/shifts"],
 ];
+function isStaffNavActive(path: string, href: string) {
+  if (href === "/staff") return path === href;
+  if (href === "/staff/finished-issues") return ["/staff/finished-issues", "/staff/finished-defects", "/staff/production", "/staff/finished-goods"].some(p => path === p || path.startsWith(`${p}/`));
+  if (href === "/staff/inventory") return path === "/staff/material-issues" || path.startsWith("/staff/material-issues/") || path === href || path.startsWith(`${href}/`);
+  return path === href || path.startsWith(`${href}/`);
+}
 export function StaffShell({ children }: { children: ReactNode }) {
   const path = usePathname();
   const router = useRouter();
@@ -145,6 +155,7 @@ export function StaffShell({ children }: { children: ReactNode }) {
       </main>
     );
   const user = session.data;
+  const visibleNav = user.role === "CASHIER" ? [["home", "Trang chủ", "/staff"], ["receipt_long", "Hóa đơn", "/staff/invoices"], ["schedule", "Ca làm", "/staff/shifts"]] : nav;
   return (
     <Context.Provider value={{ user, revision, refresh }}>
       <div className="staff-app">
@@ -174,14 +185,14 @@ export function StaffShell({ children }: { children: ReactNode }) {
             </div>
           </details>
         </header>
-        <main className="staff-main">{children}</main>
+        <aside className="staff-sidebar"><p className="staff-sidebar-title">ĐIỀU HƯỚNG</p>{visibleNav.map(([icon, label, href]) => <Link key={href} href={href} className={isStaffNavActive(path, href) ? "staff-side-link active" : "staff-side-link"}><Icon name={icon}/><span>{label}</span></Link>)}</aside><main className="staff-main">{children}</main>
         <nav className="bottom-nav" aria-label="Điều hướng nhân viên">
-          {nav.map(([icon, label, href]) => (
+          {visibleNav.map(([icon, label, href]) => (
             <Link
               key={href}
               href={href}
               className={
-                (href === "/staff" ? path === href : path.startsWith(href))
+                isStaffNavActive(path, href)
                   ? "nav-active"
                   : ""
               }

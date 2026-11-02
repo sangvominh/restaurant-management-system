@@ -11,8 +11,8 @@ try {
   await db.$transaction(async tx => {
     const branch = await tx.branch.upsert({ where: { code: 'STAFF-DEMO' }, update: {}, create: { id: id(1), code: 'STAFF-DEMO', name: 'Chi nhánh thực hành · Dữ liệu demo' } });
     for (let i = 1; i <= 12; i++) await tx.restaurantTable.upsert({ where: { branchId_code: { branchId: branch.id, code: `B${String(i).padStart(2, '0')}` } }, update: {}, create: { id: id(100 + i), branchId: branch.id, code: `B${String(i).padStart(2, '0')}`, name: `Bàn ${String(i).padStart(2, '0')}`, capacity: i <= 8 ? 4 : 6 } });
-    const roles = ['SERVICE', 'KITCHEN', 'CASHIER', 'SUPERVISOR'] as const;
-    for (const [i, role] of roles.entries()) await tx.staffUser.upsert({ where: { code: `DEMO-${role}` }, update: {}, create: { id: id(200 + i), code: `DEMO-${role}`, name: ['Nhân viên phục vụ', 'Nhân viên bếp', 'Nhân viên thu ngân', 'Quản lý ca'][i], role, branchId: branch.id, passwordHash: hashPassword(password!) } });
+    const roles = ['SERVICE', 'KITCHEN', 'CASHIER', 'SUPERVISOR', 'BARISTA'] as const;
+    for (const [i, role] of roles.entries()) await tx.staffUser.upsert({ where: { code: `DEMO-${role}` }, update: {}, create: { id: id(200 + i), code: `DEMO-${role}`, name: ['Nhân viên phục vụ', 'Nhân viên bếp', 'Nhân viên thu ngân', 'Quản lý ca', 'Nhân viên pha chế'][i], role, branchId: branch.id, passwordHash: hashPassword(password!) } });
     const ingredients = [ ['Bánh phở', 'g'], ['Thịt bò', 'g'], ['Trà', 'g'], ['Bột mì', 'g'] ];
     for (const [i, [name, unit]] of ingredients.entries()) {
       await tx.ingredient.upsert({ where: { id: id(300 + i) }, update: {}, create: { id: id(300 + i), name, unit } });
@@ -29,5 +29,5 @@ try {
       await tx.menuItem.upsert({ where: { id: id(500 + i) }, update: {}, create: { id: id(500 + i), branchId: branch.id, ...item, recipeConfigured: true, recipe: { create: recipe.map(([ingredient, quantity]) => ({ ingredientId: id(300 + ingredient), quantity })) } } });
     }
   });
-  console.log('Đã tạo dữ liệu demo (không ghi đè dữ liệu hiện có). Tài khoản: DEMO-SERVICE, DEMO-KITCHEN, DEMO-CASHIER, DEMO-SUPERVISOR.');
+  console.log('Đã tạo dữ liệu demo (không ghi đè dữ liệu hiện có). Tài khoản: DEMO-SERVICE, DEMO-KITCHEN, DEMO-CASHIER, DEMO-SUPERVISOR, DEMO-BARISTA.');
 } finally { await db.$disconnect(); }

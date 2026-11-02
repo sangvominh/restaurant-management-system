@@ -4,7 +4,7 @@ import { PrismaService } from '../prisma/prisma.service.js';
 import { object, text } from '../staff/input.js';
 import { hashPassword, tokenHash, verifyPassword } from './password.js';
 export const staffSelect = { id: true, code: true, name: true, role: true, branchId: true, branch: { select: { name: true, code: true } } } as const;
-export type StaffIdentity = { id: string; code: string; name: string; role: 'SERVICE' | 'KITCHEN' | 'CASHIER' | 'SUPERVISOR'; branchId: string };
+export type StaffIdentity = { id: string; code: string; name: string; role: 'SERVICE' | 'KITCHEN' | 'BARISTA' | 'CASHIER' | 'SUPERVISOR'; branchId: string };
 @Injectable()
 export class AuthService {
   private attempts = new Map<string, { count: number; until: number }>();

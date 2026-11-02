@@ -43,6 +43,7 @@ export const dateTime = (value: string) =>
 export const roles = {
   SERVICE: "Phục vụ",
   KITCHEN: "Bếp",
+  BARISTA: "Pha chế",
   CASHIER: "Thu ngân",
   SUPERVISOR: "Quản lý ca",
 };

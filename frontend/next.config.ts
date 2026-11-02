@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 const config: NextConfig = {
   output: "standalone",
+  devIndicators: false,
   async rewrites() {
     return [
       ...(process.env.MRP_DEMO_URL ? [{ source: "/api/mrp/:path*", destination: `${process.env.MRP_DEMO_URL}/warehouse/:path*` }] : []),

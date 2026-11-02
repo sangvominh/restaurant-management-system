@@ -87,21 +87,7 @@ export class StaffService {
       const previous = { COOKING: 'QUEUED', READY: 'COOKING', SERVED: 'READY' }[status];
       if (line.status !== previous) throw new ConflictException('Món đã đổi trạng thái. Hãy tải lại.');
       if (status === 'COOKING') {
-        if (!line.menuItem.recipeConfigured || line.menuItem.recipe.length === 0) throw new ConflictException('Chưa cấu hình công thức. Không thể ghi nhận chế biến và xuất kho.');
-        const consumption = await tx.cookingConsumption.create({ data: { orderLineId: line.id } });
-        for (const recipe of line.menuItem.recipe) {
-          let needed = recipe.quantity.mul(line.quantity);
-          const batches = await tx.stockBatch.findMany({ where: { branchId: user.branchId, ingredientId: recipe.ingredientId, expiresAt: { gt: new Date() }, remaining: { gt: 0 } }, orderBy: [{ expiresAt: 'asc' }, { id: 'asc' }] });
-          for (const batch of batches) {
-            if (needed.lte(0)) break;
-            const quantity = Prisma.Decimal.min(needed, batch.remaining);
-            const changed = await tx.stockBatch.updateMany({ where: { id: batch.id, remaining: { gte: quantity } }, data: { remaining: { decrement: quantity } } });
-            if (changed.count !== 1) throw new ConflictException('Tồn kho vừa thay đổi. Hãy thử lại.');
-            await tx.stockConsumptionLine.create({ data: { consumptionId: consumption.id, batchId: batch.id, quantity } });
-            needed = needed.sub(quantity);
-          }
-          if (needed.gt(0)) throw new ConflictException('Không đủ nguyên liệu còn hạn. Toàn bộ thao tác đã được hoàn tác.');
-        }
+        throw new NotImplementedException('Chế biến từ đơn món chưa kết nối với kho chung. Vui lòng dùng luồng sản xuất của kho.');
       }
       const result = await tx.orderLine.update({ where: { id: line.id }, data: { status: status as 'COOKING' | 'READY' | 'SERVED', ...(status === 'COOKING' ? { cookingAt: new Date() } : status === 'READY' ? { readyAt: new Date() } : { servedAt: new Date() }) } });
       await this.audit(tx, user, `LINE_${status}`, id, status === 'COOKING' ? 'Xuất kho FEFO theo sổ chế biến duy nhất' : 'Không thay đổi tồn kho');
