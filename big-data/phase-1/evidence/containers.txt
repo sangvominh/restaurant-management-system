@@ -1,5 +1,0 @@
-NAME                            IMAGE                 COMMAND                  SERVICE        CREATED              STATUS              PORTS
-bigdata-phase1-datanode-1       apache/hadoop:3.4.1   "/bin/bash -c 'exec …"   datanode       About a minute ago   Up About a minute   
-bigdata-phase1-namenode-1       apache/hadoop:3.4.1   "/bin/bash -c 'set -…"   namenode       About a minute ago   Up About a minute   127.0.0.1:9870->9870/tcp
-bigdata-phase1-spark-master-1   apache/spark:3.5.3    "/opt/spark/bin/spar…"   spark-master   2 minutes ago        Up 2 minutes        127.0.0.1:18080->8080/tcp
-bigdata-phase1-spark-worker-1   apache/spark:3.5.3    "/opt/spark/bin/spar…"   spark-worker   2 minutes ago        Up 2 minutes        
