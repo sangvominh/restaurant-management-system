@@ -261,6 +261,7 @@ model Bom {
   id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   code           String   @unique @db.VarChar(50)
   productCode    String   @map("product_code") @db.VarChar(50)
+  productName    String?  @map("product_name") @db.VarChar(150)
   version        Int      @default(1)
   outputQuantity Decimal  @default(1) @map("output_quantity") @db.Decimal(18, 3)
   status         String   @default("ACTIVE") @db.VarChar(20)

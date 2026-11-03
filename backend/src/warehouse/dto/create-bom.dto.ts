@@ -7,6 +7,7 @@ import {
   IsArray,
   ArrayMinSize,
   ValidateNested,
+  IsOptional,
 } from 'class-validator';
 
 import { Type } from 'class-transformer';
@@ -35,6 +36,11 @@ export class CreateBomDto {
   @IsNotEmpty()
   @MaxLength(50)
   productCode: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(150)
+  productName?: string;
 
   @IsString()
   @Matches(/^\d{1,15}(\.\d{1,3})?$/)

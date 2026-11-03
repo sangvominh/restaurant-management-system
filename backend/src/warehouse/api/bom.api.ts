@@ -18,6 +18,7 @@ export class BomApi {
     // 1. Kiểm tra thông tin BOM
     const code = dto.code.trim();
     const productCode = dto.productCode.trim();
+    const productName = dto.productName?.trim() || null;
 
     if (!code || !productCode) {
       throw new BadRequestException('Mã BOM hoặc sản phẩm không hợp lệ');
@@ -86,6 +87,7 @@ export class BomApi {
         data: {
           code,
           productCode,
+          productName,
           outputQuantity: new Prisma.Decimal(dto.outputQuantity),
           details: {
             create: details,
@@ -107,6 +109,7 @@ export class BomApi {
         data: {
           code: bom.code,
           productCode: bom.productCode,
+          productName: bom.productName,
           version: bom.version,
           outputQuantity: bom.outputQuantity.toString(),
           status: bom.status,
@@ -153,6 +156,7 @@ export class BomApi {
       data: boms.map((bom) => ({
         code: bom.code,
         productCode: bom.productCode,
+        productName: bom.productName,
         version: bom.version,
         outputQuantity: bom.outputQuantity.toString(),
         status: bom.status,
@@ -195,6 +199,7 @@ export class BomApi {
       data: {
         code: bom.code,
         productCode: bom.productCode,
+        productName: bom.productName,
         version: bom.version,
         outputQuantity: bom.outputQuantity.toString(),
         status: bom.status,
