@@ -28,10 +28,33 @@ import { CreateMaterialDto } from './dto/create-material.dto.js';
 import { UpdateMaterialDto } from './dto/update-material.dto.js';
 import { CreateCategoryDto } from './dto/create-category.dto.js';
 import { UpdateCategoryDto } from './dto/update-category.dto.js';
+import { ApproveMaterialAdjustmentDto, RejectMaterialAdjustmentDto } from './dto/process-material-adjustment.dto.js';
 
 @Controller('warehouse')
 export class WarehouseController {
   constructor(private readonly warehouseService: WarehouseService) {}
+
+  @Get('branches')
+  getBranches() { return this.warehouseService.getBranches(); }
+
+  @Get('locations')
+  getLocations(@Query('branchId') branchId: string) { return this.warehouseService.getLocations(branchId); }
+
+  @Get('material-adjustments')
+  getMaterialAdjustments(@Query('type') type?: string, @Query('status') status?: string) { return this.warehouseService.getMaterialAdjustments(type, status); }
+
+  @Get('material-adjustments/:code')
+  getMaterialAdjustment(@Param('code') code: string) { return this.warehouseService.getMaterialAdjustment(code); }
+
+  @Post('material-adjustments/:code/approve')
+  @HttpCode(200)
+  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
+  approveMaterialAdjustment(@Param('code') code: string, @Body() dto: ApproveMaterialAdjustmentDto) { return this.warehouseService.approveMaterialAdjustment(code, dto); }
+
+  @Post('material-adjustments/:code/reject')
+  @HttpCode(200)
+  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
+  rejectMaterialAdjustment(@Param('code') code: string, @Body() dto: RejectMaterialAdjustmentDto) { return this.warehouseService.rejectMaterialAdjustment(code, dto.reason); }
 
   // API 1: Lấy danh sách tồn kho
   @Get('inventory')
@@ -306,8 +329,8 @@ export class WarehouseController {
 
   // GET /warehouse/inventory-movements
   @Get('inventory-movements')
-  getInventoryMovements() {
-    return this.warehouseService.getInventoryMovements();
+  getInventoryMovements(@Query('branchCode') branchCode?: string) {
+    return this.warehouseService.getInventoryMovements(branchCode);
   }
 
   // GET /warehouse/waste-requests?status=PENDING

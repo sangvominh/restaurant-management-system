@@ -151,7 +151,7 @@ export default function InventoryList({
           </div>
           <h2>Không thể tải dữ liệu tồn kho.</h2>
           <p>
-            Kiểm tra Backend đang chạy tại địa chỉ đã cấu hình rồi thử tải lại.
+            {initialError}
           </p>
           <button
             className="button button-primary"
@@ -239,7 +239,7 @@ export default function InventoryList({
                           <td>{item.materialCode}</td>
                           <td>{item.lotCode}</td>
                           <td>{item.locationName}</td>
-                          <td>{item.movementType}</td>
+                          <td>{({ RECEIPT: "Nhập kho", ISSUE: "Xuất kho", WASTE: "Hao hụt", RETURN: "Hoàn trả" } as Record<string, string>)[item.movementType] ?? item.movementType}</td>
                           <td>{item.quantityChange}</td>
                           <td>{item.quantityAfter}</td>
                           <td>

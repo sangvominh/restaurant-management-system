@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState, type FormEvent } from "react";
-import { Pencil, Plus, RefreshCw, Search, X } from "lucide-react";
+import { Eye, Pencil, Plus, RefreshCw, Search, X } from "lucide-react";
 import { WarehouseApiError } from "@/services/api";
 import {
   warehouseService,
@@ -47,6 +47,9 @@ function errorMessage(error: unknown) {
 }
 
 export default function MaterialManagement() {
+  const [tab, setTab] = useState<"materials" | "categories">("materials");
+  const [detail, setDetail] = useState<MaterialRecord | null>(null);
+  const [statusFilter, setStatusFilter] = useState("");
   const [materials, setMaterials] = useState<MaterialRecord[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [units, setUnits] = useState<Unit[]>([]);
@@ -162,7 +165,7 @@ export default function MaterialManagement() {
       setMaterialForm({
         ...blankMaterial,
         categoryCode: category?.code ?? "",
-        unitName: units[0]?.name ?? "",
+        unitName: units.find(unit => unit.baseUnitId === null)?.name ?? "",
       });
     } else {
       const category = categories.find(
@@ -180,6 +183,7 @@ export default function MaterialManagement() {
     }
   }
 
+  const visibleMaterials = materials.filter(item => !statusFilter || item.status === statusFilter);
   return (
     <>
       <div className="page-heading workspace-heading">
@@ -228,7 +232,11 @@ export default function MaterialManagement() {
           {error}
         </div>
       )}
-      <section className="panel workspace-table-panel">
+      <div className="tabs-row" role="tablist" aria-label="Quản lý NVL">
+        <button role="tab" aria-selected={tab === "materials"} className={`tab-button ${tab === "materials" ? "tab-active" : ""}`} onClick={() => setTab("materials")}>Nguyên vật liệu</button>
+        <button role="tab" aria-selected={tab === "categories"} className={`tab-button ${tab === "categories" ? "tab-active" : ""}`} onClick={() => setTab("categories")}>Danh mục NVL</button>
+      </div>
+      <section hidden={tab !== "categories"} className="panel workspace-table-panel">
         <div className="panel-header">
           <div>
             <h2>Danh mục NVL</h2>
@@ -285,6 +293,7 @@ export default function MaterialManagement() {
         )}
       </section>
       <section
+        hidden={tab !== "materials"}
         className="panel workspace-table-panel"
         style={{ marginTop: 14 }}
       >
@@ -312,11 +321,12 @@ export default function MaterialManagement() {
               }}
               placeholder="Tìm mã hoặc tên nguyên vật liệu"
             />
+            <select aria-label="Trạng thái NVL" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}><option value="">Tất cả trạng thái</option><option value="ACTIVE">Hoạt động</option><option value="INACTIVE">Ngừng hoạt động</option></select>
           </div>
         </div>
         {loading ? (
           <div className="inventory-empty">Đang tải nguyên vật liệu…</div>
-        ) : materials.length === 0 ? (
+        ) : visibleMaterials.length === 0 ? (
           <div className="inventory-empty">
             <strong>Chưa có nguyên vật liệu phù hợp.</strong>
             <span>Dữ liệu được tải từ Backend.</span>
@@ -336,7 +346,7 @@ export default function MaterialManagement() {
                 </tr>
               </thead>
               <tbody>
-                {materials.map((item) => (
+                {visibleMaterials.map((item) => (
                   <tr key={item.code}>
                     <td>{item.code}</td>
                     <td>{item.name}</td>
@@ -347,6 +357,10 @@ export default function MaterialManagement() {
                     <td>
                       <button
                         className="row-action"
+                        aria-label={`Xem ${item.code}`}
+                        onClick={() => { setError(""); warehouseService.getMaterial(item.code).then(setDetail).catch(cause => setError(errorMessage(cause))); }}
+                      ><Eye size={14} /></button>
+                      <button className="row-action"
                         aria-label={`Sửa ${item.code}`}
                         onClick={() => openMaterial(item)}
                       >
@@ -361,6 +375,7 @@ export default function MaterialManagement() {
         )}
       </section>
 
+      {detail && <div className="modal-backdrop"><div className="modal-card" role="dialog" aria-label="Chi tiết nguyên vật liệu"><div className="modal-top"><h3>Chi tiết nguyên vật liệu · {detail.code}</h3><button className="icon-button" aria-label="Đóng chi tiết" onClick={() => setDetail(null)}><X size={17} /></button></div><div className="modal-items"><div><span>Tên</span><strong>{detail.name}</strong></div><div><span>Danh mục</span><strong>{detail.categoryName}</strong></div><div><span>Đơn vị</span><strong>{detail.unitName}</strong></div><div><span>Tồn tối thiểu</span><strong>{detail.minStock}</strong></div><div><span>Trạng thái</span><strong>{detail.status === "ACTIVE" ? "Hoạt động" : "Ngừng hoạt động"}</strong></div></div></div></div>}
       {materialForm && (
         <div className="modal-backdrop">
           <form className="modal-card" onSubmit={saveMaterial}>
@@ -446,7 +461,7 @@ export default function MaterialManagement() {
                     }
                   >
                     <option value="">Chọn đơn vị</option>
-                    {units.map((item) => (
+                    {units.filter(item => item.baseUnitId === null).map((item) => (
                       <option key={item.id} value={item.name}>
                         {item.name}
                       </option>

@@ -48,7 +48,9 @@ export async function warehouseRequest<T>(
     const apiMessage =
       payload && "message" in payload && typeof payload.message === "string"
         ? payload.message
-        : `Yêu cầu thất bại (HTTP ${response.status}).`;
+        : payload && "message" in payload && Array.isArray(payload.message)
+          ? payload.message.join("; ")
+          : `Yêu cầu thất bại (HTTP ${response.status}).`;
     throw new WarehouseApiError(apiMessage, response.status);
   }
   if (

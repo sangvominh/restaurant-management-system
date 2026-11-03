@@ -76,13 +76,15 @@ export class InventoryApi {
     };
   }
 
-  async getInventoryMovements() {
+  async getInventoryMovements(branchCode?: string) {
+    const branchId = await this.getBranchId(branchCode);
     const movements = await this.prisma.inventoryMovement.findMany({
+      where: branchId ? { location: { branchId } } : undefined,
       include: {
         materialLot: {
           include: { material: true },
         },
-        location: true,
+        location: { include: { branch: true } },
         productionOrder: true,
       },
       orderBy: { createdAt: 'desc' },
@@ -95,6 +97,8 @@ export class InventoryApi {
         materialCode: item.materialLot.material.code,
         lotCode: item.materialLot.lotCode,
         locationName: item.location.name,
+        branchCode: item.location.branch.code,
+        branchName: item.location.branch.name,
         orderCode: item.productionOrder?.code ?? null,
         movementType: item.movementType,
         quantityBefore: item.quantityBefore.toString(),
@@ -161,6 +165,7 @@ export class InventoryApi {
                 .filter(
                   (balance) =>
                     (!branchId || balance.location.branchId === branchId) &&
+                    balance.location.branch.isActive &&
                     balance.quantity.gt(0),
                 )
                 .reduce(
@@ -201,10 +206,11 @@ export class InventoryApi {
         new Prisma.Decimal(0),
       );
       const lotAvailable =
-        material.status === 'ACTIVE' && this.isLotAvailable(lot, today);
+        material.status === 'ACTIVE' && this.isLotAvailable(lot, today) &&
+        balances.some((balance) => balance.location.branch.isActive);
       const availableStock = lotAvailable
         ? balances
-            .filter((balance) => balance.quantity.gt(0))
+            .filter((balance) => balance.location.branch.isActive && balance.quantity.gt(0))
             .reduce(
               (sum, balance) => sum.plus(balance.quantity),
               new Prisma.Decimal(0),
@@ -224,7 +230,7 @@ export class InventoryApi {
           locationName: balance.location.name,
           quantity: Number(balance.quantity),
           availableQuantity:
-            lotAvailable && balance.quantity.gt(0)
+            lotAvailable && balance.location.branch.isActive && balance.quantity.gt(0)
               ? Number(balance.quantity)
               : 0,
         })),

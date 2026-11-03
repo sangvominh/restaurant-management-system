@@ -6,17 +6,19 @@ import { randomUUID } from 'node:crypto';
 import { Prisma } from '../src/generated/prisma/client.js';
 import { AppModule } from '../src/app.module.js';
 import { PrismaService } from '../src/prisma/prisma.service.js';
+import { createWarehouseTestDatabase } from './warehouse-test-database.js';
 
-// Database writes run only when explicitly enabled against restaurant_dev.
+// Writes require an explicit existing test database and run inside a private schema.
 const runDatabaseE2e =
   process.env.RUN_WAREHOUSE_DB_E2E === '1' &&
-  process.env.DATABASE_URL?.includes('/restaurant_dev');
+  Boolean(process.env.WAREHOUSE_TEST_DATABASE_URL);
 
 (runDatabaseE2e ? describe : describe.skip)(
   'Warehouse Admin API with PostgreSQL',
   () => {
     let app: INestApplication<App>;
     let prisma: PrismaService;
+    let database: Awaited<ReturnType<typeof createWarehouseTestDatabase>>;
     let branch: { id: string; code: string };
     let unit: { id: string; name: string };
     let location: { id: string; name: string };
@@ -43,15 +45,10 @@ const runDatabaseE2e =
     const lotIds: string[] = [];
 
     beforeAll(async () => {
-      if (!process.env.DATABASE_URL?.includes('/restaurant_dev')) {
-        throw new Error(
-          'Warehouse DB e2e tests may run only against restaurant_dev',
-        );
-      }
-
+      database = await createWarehouseTestDatabase();
       const module = await Test.createTestingModule({
         imports: [AppModule],
-      }).compile();
+      }).overrideProvider(PrismaService).useValue(database.prisma).compile();
       app = module.createNestApplication();
       await app.init();
       prisma = app.get(PrismaService);
@@ -67,7 +64,7 @@ const runDatabaseE2e =
       });
 
       if (!existingBranch || !existingUnit) {
-        throw new Error('restaurant_dev needs an active branch and base unit');
+        throw new Error('Test fixtures need an active branch and base unit');
       }
 
       branch = existingBranch;
@@ -79,7 +76,7 @@ const runDatabaseE2e =
       });
 
       if (!existingLocation) {
-        throw new Error('restaurant_dev needs a warehouse location');
+        throw new Error('Test fixtures need a warehouse location');
       }
 
       location = existingLocation;
@@ -134,6 +131,7 @@ const runDatabaseE2e =
       }
 
       await app?.close();
+      await database?.close();
     });
 
     it('covers supplier, material catalog, receipt, issue approval and stock alerts', async () => {

@@ -44,6 +44,7 @@ export default function MaterialIssueManagement() {
   const [status, setStatus] = useState<IssueStatus>("PENDING");
   const [issues, setIssues] = useState<MaterialIssue[]>([]);
   const [detail, setDetail] = useState<MaterialIssueDetail | null>(null);
+  const [approving, setApproving] = useState<string | null>(null);
   const [rejecting, setRejecting] = useState<string | null>(null);
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(true);
@@ -77,16 +78,13 @@ export default function MaterialIssueManagement() {
   }
 
   async function approve(code: string) {
-    if (
-      processingCode ||
-      !window.confirm(`Xác nhận duyệt phiếu ${code}? Tồn kho sẽ được cập nhật.`)
-    )
-      return;
+    if (processingCode) return;
     setProcessingCode(code);
     setError("");
     try {
       await warehouseService.approveMaterialIssue(code);
       setNotice(`Đã duyệt ${code}; tồn kho đã được trừ theo phiếu.`);
+      setApproving(null);
       setDetail(null);
       await load();
     } catch (cause) {
@@ -284,7 +282,7 @@ export default function MaterialIssueManagement() {
                 <button
                   className="button button-primary"
                   disabled={Boolean(processingCode)}
-                  onClick={() => void approve(detail.issueCode)}
+                  onClick={() => { setError(""); setApproving(detail.issueCode); }}
                 >
                   <Check size={15} />
                   {processingCode === detail.issueCode
@@ -296,6 +294,7 @@ export default function MaterialIssueManagement() {
           </div>
         </div>
       )}
+      {approving && <div className="modal-backdrop"><div className="modal-card" role="dialog" aria-label="Xác nhận duyệt xuất NVL"><h3>Duyệt {approving}?</h3><p>Tồn kho sẽ được trừ theo phiếu đúng một lần.</p>{error && <p className="form-error" role="alert">{error}</p>}<div className="modal-actions"><button className="button button-secondary" disabled={!!processingCode} onClick={() => setApproving(null)}>Hủy</button><button className="button button-primary" disabled={!!processingCode} onClick={() => void approve(approving)}>Xác nhận duyệt</button></div></div></div>}
       {rejecting && (
         <div className="modal-backdrop">
           <form className="modal-card" onSubmit={submitReject}>

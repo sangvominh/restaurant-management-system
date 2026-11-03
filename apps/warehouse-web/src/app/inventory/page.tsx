@@ -17,7 +17,7 @@ export default async function InventoryPage({
     const [inventory, alerts, movements] = await Promise.all([
       getInventory(branchCode),
       getInventoryAlerts(branchCode),
-      getInventoryMovements(),
+      getInventoryMovements(branchCode),
     ]);
     return (
       <InventoryList
@@ -27,14 +27,14 @@ export default async function InventoryPage({
         movements={movements}
       />
     );
-  } catch {
+  } catch (cause) {
     return (
       <InventoryList
         branchCode={branchCode ?? ""}
         initialItems={[]}
         alerts={[]}
         movements={[]}
-        initialError="Không thể tải dữ liệu tồn kho."
+        initialError={cause instanceof Error ? cause.message : "Không thể tải dữ liệu tồn kho."}
       />
     );
   }

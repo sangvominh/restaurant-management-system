@@ -104,6 +104,7 @@ export class MaterialIssueApi {
           const issue = await tx.materialIssue.findUnique({
             where: { issueCode: code },
             include: {
+              branch: true,
               details: {
                 include: {
                   material: true,
@@ -122,6 +123,10 @@ export class MaterialIssueApi {
           // 2. Kiểm tra trạng thái
           if (issue.status !== 'PENDING') {
             throw new ConflictException('Phiếu đã được xử lý');
+          }
+
+          if (!issue.branch.isActive) {
+            throw new BadRequestException('Không thể xuất NVL từ chi nhánh ngừng hoạt động');
           }
 
           if (issue.details.length === 0) {

@@ -9,6 +9,8 @@ import { WasteApi } from './api/waste.api.js';
 import { SupplierApi } from './api/supplier.api.js';
 import { MaterialApi } from './api/material.api.js';
 import { CategoryApi } from './api/category.api.js';
+import type { WarehouseReferenceApi } from './api/warehouse-reference.api.js';
+import type { MaterialAdjustmentApi } from './api/material-adjustment.api.js';
 
 describe('WarehouseService', () => {
   it('passes supplier search to SupplierApi', async () => {
@@ -26,6 +28,8 @@ describe('WarehouseService', () => {
       supplierApi,
       {} as MaterialApi,
       {} as CategoryApi,
+      {} as WarehouseReferenceApi,
+      {} as MaterialAdjustmentApi,
     );
 
     await service.getSuppliers('rau củ');

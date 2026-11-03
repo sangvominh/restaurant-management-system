@@ -1,4 +1,5 @@
-import Workspace from "@/components/workspace";
+import WarehouseHistory from "@/components/warehouse/warehouse-history";
+import MaterialAdjustmentManagement from "@/components/warehouse/material-adjustment-management";
 import { notFound } from "next/navigation";
 import SupplierManagement from "@/components/warehouse/supplier-management";
 import MaterialManagement from "@/components/warehouse/material-management";
@@ -7,16 +8,18 @@ import MaterialIssueManagement from "@/components/warehouse/material-issue-manag
 
 export default async function SectionPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ section: string }>;
+  searchParams: Promise<{ branchCode?: string }>;
 }) {
   const { section } = await params;
   if (section === "suppliers") return <SupplierManagement />;
   if (section === "materials") return <MaterialManagement />;
   if (section === "receipts") return <ReceiptManagement />;
   if (section === "material-issues") return <MaterialIssueManagement />;
-  if (["losses", "reports", "transactions"].includes(section)) {
-    return <Workspace key={section} section={section} />;
-  }
+  if (section === "losses") return <MaterialAdjustmentManagement key="WASTE" type="WASTE" />;
+  if (section === "returns") return <MaterialAdjustmentManagement key="RETURN" type="RETURN" />;
+  if (section === "reports" || section === "transactions") return <WarehouseHistory report={section === "reports"} branchCode={(await searchParams).branchCode} />;
   notFound();
 }

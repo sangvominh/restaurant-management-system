@@ -44,6 +44,8 @@ export type InventoryListItem = Omit<InventoryItem, "id">;
 export type InventoryDisplayDetail = Omit<InventoryDetail, "id">;
 
 export interface InventoryMovement {
+  branchCode?: string;
+  branchName?: string;
   materialCode: string;
   lotCode: string;
   locationName: string;

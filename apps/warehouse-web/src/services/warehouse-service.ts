@@ -2,6 +2,18 @@ import { warehouseJson, warehouseRequest } from "@/services/api";
 
 export type CategoryType = "MATERIAL" | "RAW_MATERIAL";
 export type RecordStatus = "ACTIVE" | "INACTIVE";
+export interface WarehouseBranch { id: string; code: string; name: string }
+export interface WarehouseLocation { id: string; name: string; branchId: string }
+export interface MaterialAdjustment {
+  code: string; type: "WASTE" | "RETURN"; source: "STOCK" | "ISSUED"; status: IssueStatus;
+  materialCode: string; materialName: string; lotCode: string; unitName: string;
+  locationName: string; branchCode: string; expiryDate: string | null;
+  quantity: string; acceptedQuantity: string | null; qualityStatus: string | null;
+  issueCode: string | null; reason: string; decisionNote: string | null;
+  createdAt: string; processedAt: string | null; approvalBlockedReason: string | null;
+  consumedQuantity: string | null; remainingQuantity?: string | null;
+  movement: { movementType: string; quantityChange: string } | null;
+}
 
 export interface Supplier {
   id: string;
@@ -97,6 +109,12 @@ function query(values: Record<string, string | undefined>) {
 }
 
 export const warehouseService = {
+  getBranches: () => warehouseRequest<WarehouseBranch[]>("/branches"),
+  getLocations: (branchId: string) => warehouseRequest<WarehouseLocation[]>(`/locations?branchId=${encodeURIComponent(branchId)}`),
+  getAdjustments: (type: "WASTE" | "RETURN", status: IssueStatus) => warehouseRequest<MaterialAdjustment[]>(`/material-adjustments${query({ type, status })}`),
+  getAdjustment: (code: string) => warehouseRequest<MaterialAdjustment>(`/material-adjustments/${encodeURIComponent(code)}`),
+  approveAdjustment: (code: string, data: { acceptedQuantity: string; qualityStatus?: string; note?: string }) => warehouseRequest(`/material-adjustments/${encodeURIComponent(code)}/approve`, warehouseJson("POST", data)),
+  rejectAdjustment: (code: string, reason: string) => warehouseRequest(`/material-adjustments/${encodeURIComponent(code)}/reject`, warehouseJson("POST", { reason })),
   getSuppliers: (search?: string) =>
     warehouseRequest<Supplier[]>(`/suppliers${query({ search })}`),
   getSupplier: (code: string) =>
@@ -166,12 +184,14 @@ export const warehouseService = {
     receiptCode: string;
     supplierCode: string;
     branchCode: string;
+    branchId?: string;
     note?: string;
     details: Array<{
       materialCode: string;
       lotCode: string;
       expiryDate?: string;
       locationName: string;
+      locationId?: string;
       unitName: string;
       quantity: string;
       unitPrice: string;

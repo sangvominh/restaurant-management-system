@@ -24,6 +24,9 @@ import { CategoryApi } from './api/category.api.js';
 import { UpdateMaterialDto } from './dto/update-material.dto.js';
 import { CreateCategoryDto } from './dto/create-category.dto.js';
 import { UpdateCategoryDto } from './dto/update-category.dto.js';
+import { WarehouseReferenceApi } from './api/warehouse-reference.api.js';
+import { MaterialAdjustmentApi } from './api/material-adjustment.api.js';
+import { ApproveMaterialAdjustmentDto } from './dto/process-material-adjustment.dto.js';
 
 @Injectable()
 export class WarehouseService {
@@ -38,7 +41,16 @@ export class WarehouseService {
     private readonly supplierApi: SupplierApi,
     private readonly materialApi: MaterialApi,
     private readonly categoryApi: CategoryApi,
+    private readonly referenceApi: WarehouseReferenceApi,
+    private readonly adjustmentApi: MaterialAdjustmentApi,
   ) {}
+
+  getBranches() { return this.referenceApi.getBranches(); }
+  getLocations(branchId: string) { return this.referenceApi.getLocations(branchId); }
+  getMaterialAdjustments(type?: string, status?: string) { return this.adjustmentApi.getRequests(type, status); }
+  getMaterialAdjustment(code: string) { return this.adjustmentApi.getRequest(code); }
+  approveMaterialAdjustment(code: string, dto: ApproveMaterialAdjustmentDto) { return this.adjustmentApi.approve(code, dto); }
+  rejectMaterialAdjustment(code: string, reason: string) { return this.adjustmentApi.reject(code, reason); }
 
   //Danh sách tồn kho
   getInventory(branchCode?: string) {
@@ -197,8 +209,8 @@ export class WarehouseService {
   }
 
   // Lấy danh sách tồn kho
-  getInventoryMovements() {
-    return this.inventoryApi.getInventoryMovements();
+  getInventoryMovements(branchCode?: string) {
+    return this.inventoryApi.getInventoryMovements(branchCode);
   }
 
   // Lấy danh sách yêu cầu hao hụt

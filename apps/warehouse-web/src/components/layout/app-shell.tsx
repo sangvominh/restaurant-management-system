@@ -20,7 +20,6 @@ import {
   Menu,
   PanelLeftClose,
   Search,
-  Settings2,
   ShieldCheck,
   ShoppingBasket,
   Truck,
@@ -49,6 +48,7 @@ const groups = [
         icon: FileOutput,
       },
       { title: "Hao hụt / Hư hỏng NVL", href: "/losses", icon: AlertTriangle },
+      { title: "Hoàn trả NVL", href: "/returns", icon: FileInput },
       {
         title: "Báo cáo nhập – xuất – tồn",
         href: "/reports",
@@ -82,14 +82,6 @@ export default function AppShell({ children }: { children: ReactNode }) {
     (pathname.startsWith("/inventory/")
       ? "Chi tiết nguyên vật liệu"
       : "Dashboard");
-  const isLiveWarehousePage =
-    [
-      "/inventory",
-      "/suppliers",
-      "/materials",
-      "/receipts",
-      "/material-issues",
-    ].includes(pathname) || pathname.startsWith("/inventory/");
   return (
     <div className="app-frame">
       <aside
@@ -153,21 +145,17 @@ export default function AppShell({ children }: { children: ReactNode }) {
             </div>
             {!collapsed && (
               <div>
-                <strong>Kho trung tâm</strong>
-                <span>Quận 1, TP. Hồ Chí Minh</span>
+                <strong>Phân hệ Admin Kho</strong>
+                <span>Quản lý nguyên vật liệu</span>
               </div>
             )}
             <ChevronRight className="warehouse-arrow" size={15} />
           </div>
-          <button className="nav-item settings-item">
-            <Settings2 size={18} />
-            <span>Cài đặt hệ thống</span>
-          </button>
           <div className="sidebar-user">
-            <div className="avatar">HN</div>
+            <div className="avatar">AK</div>
             {!collapsed && (
               <div className="sidebar-user-copy">
-                <strong>Hoàng Nam</strong>
+                <strong>Admin Kho</strong>
                 <span>Quản lý kho</span>
               </div>
             )}
@@ -199,14 +187,13 @@ export default function AppShell({ children }: { children: ReactNode }) {
           <div className="topbar-actions">
             <label className="search-box">
               <Search size={16} />
-              <input placeholder="Tìm kiếm..." aria-label="Tìm kiếm" />
-              <kbd>⌘ K</kbd>
+              <Link href="/inventory">Tra cứu nguyên vật liệu</Link>
             </label>
             <div className="top-divider" />
-            <button className="branch-select">
-              <span className="branch-dot" /> Tất cả chi nhánh{" "}
+            <Link href="/inventory" className="branch-select">
+              <span className="branch-dot" /> Xem tồn kho{" "}
               <ChevronDown size={14} />
-            </button>
+            </Link>
             <div className="notification-wrap">
               <button
                 className="icon-button notification-button"
@@ -214,24 +201,16 @@ export default function AppShell({ children }: { children: ReactNode }) {
                 onClick={() => setNotificationsOpen(!notificationsOpen)}
               >
                 <Bell size={18} />
-                <i />
               </button>
               {notificationsOpen && (
                 <div className="notification-popover">
                   <strong>Thông báo</strong>
-                  <p>
-                    <span className="notice-dot red" /> 3 nguyên vật liệu sắp
-                    dưới định mức
-                  </p>
-                  <p>
-                    <span className="notice-dot amber" /> 2 phiếu xuất đang chờ
-                    duyệt
-                  </p>
-                  <small>Vừa cập nhật</small>
+                  <p><Link href="/inventory">Xem cảnh báo tồn kho</Link></p>
+                  <p><Link href="/material-issues">Xem phiếu xuất chờ duyệt</Link></p>
                 </div>
               )}
             </div>
-            <div className="top-avatar">HN</div>
+            <div className="top-avatar">AK</div>
           </div>
         </header>
         <main className="page-content">{children}</main>
@@ -239,9 +218,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
           <span>© 2026 Mộc Restaurant Group</span>
           <span>
             <i className="live-dot" />{" "}
-            {isLiveWarehousePage
-              ? "Dữ liệu kết nối Backend"
-              : "Dữ liệu mô phỏng"}{" "}
+            Nguồn dữ liệu: Backend{" "}
             <span className="footer-separator">·</span> Bản quyền nội bộ
           </span>
         </footer>

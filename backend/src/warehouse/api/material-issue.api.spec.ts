@@ -19,6 +19,7 @@ describe('MaterialIssueApi', () => {
     issueCode: 'XNVL001',
     status,
     branchId: 'branch-id',
+    branch: { isActive: true },
     note: null,
     details: [
       {

@@ -37,6 +37,7 @@ export default function SupplierManagement() {
   const [form, setForm] = useState<SupplierForm | null>(null);
   const [editingCode, setEditingCode] = useState<string | null>(null);
   const [detail, setDetail] = useState<Supplier | null>(null);
+  const [deleting, setDeleting] = useState<Supplier | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -92,15 +93,12 @@ export default function SupplierManagement() {
 
   async function remove(supplier: Supplier) {
     if (saving) return;
-    if (
-      !window.confirm(`Xóa nhà cung cấp ${supplier.code} — ${supplier.name}?`)
-    )
-      return;
     setSaving(true);
     setError("");
     try {
       await warehouseService.deleteSupplier(supplier.code);
       setNotice("Đã xóa nhà cung cấp.");
+      setDeleting(null);
       await load(search);
     } catch (cause) {
       setError(errorMessage(cause));
@@ -243,7 +241,7 @@ export default function SupplierManagement() {
                         className="row-action"
                         aria-label="Xóa"
                         title="Xóa"
-                        onClick={() => void remove(supplier)}
+                        onClick={() => { setError(""); setDeleting(supplier); }}
                       >
                         <Trash2 size={14} />
                       </button>
@@ -350,6 +348,7 @@ export default function SupplierManagement() {
           </form>
         </div>
       )}
+      {deleting && <div className="modal-backdrop"><div className="modal-card" role="dialog" aria-label="Xác nhận xóa nhà cung cấp"><h3>Xóa {deleting.code}?</h3><p>{deleting.name}</p>{error && <p className="form-error" role="alert">{error}</p>}<div className="modal-actions"><button className="button button-secondary" disabled={saving} onClick={() => setDeleting(null)}>Hủy</button><button className="button button-primary" disabled={saving} onClick={() => void remove(deleting)}>Xác nhận xóa</button></div></div></div>}
       {detail && (
         <div
           className="modal-backdrop"

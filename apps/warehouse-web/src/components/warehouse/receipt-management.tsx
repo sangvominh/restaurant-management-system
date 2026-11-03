@@ -10,6 +10,8 @@ import {
   type ReceiptDetail,
   type Supplier,
   type Unit,
+  type WarehouseBranch,
+  type WarehouseLocation,
 } from "@/services/warehouse-service";
 
 type ReceiptLine = {
@@ -17,6 +19,7 @@ type ReceiptLine = {
   lotCode: string;
   expiryDate: string;
   locationName: string;
+  locationId: string;
   unitName: string;
   quantity: string;
   unitPrice: string;
@@ -26,6 +29,7 @@ const emptyLine: ReceiptLine = {
   lotCode: "",
   expiryDate: "",
   locationName: "",
+  locationId: "",
   unitName: "",
   quantity: "1",
   unitPrice: "",
@@ -53,6 +57,9 @@ export default function ReceiptManagement() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [materials, setMaterials] = useState<MaterialRecord[]>([]);
   const [units, setUnits] = useState<Unit[]>([]);
+  const [branches, setBranches] = useState<WarehouseBranch[]>([]);
+  const [locations, setLocations] = useState<WarehouseLocation[]>([]);
+  const [locationsLoading, setLocationsLoading] = useState(false);
   const [supplierCode, setSupplierCode] = useState("");
   const [branchCode, setBranchCode] = useState("");
   const [from, setFrom] = useState("");
@@ -69,16 +76,11 @@ export default function ReceiptManagement() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
 
-  async function load() {
+  async function load(filters = { supplierCode, branchCode, from, to }) {
     setLoading(true);
     setError("");
     try {
-      const data = await warehouseService.getReceipts({
-        supplierCode,
-        branchCode,
-        from,
-        to,
-      });
+      const data = await warehouseService.getReceipts(filters);
       setReceipts(data);
     } catch (cause) {
       setError(errorMessage(cause));
@@ -93,17 +95,31 @@ export default function ReceiptManagement() {
       warehouseService.getSuppliers(),
       warehouseService.getMaterials(),
       warehouseService.getUnits(),
+      warehouseService.getBranches(),
     ])
-      .then(([supplierRows, materialRows, unitRows]) => {
+      .then(([supplierRows, materialRows, unitRows, branchRows]) => {
         setSuppliers(supplierRows);
         setMaterials(materialRows.filter((item) => item.status === "ACTIVE"));
         setUnits(unitRows);
+        setBranches(branchRows);
       })
       .catch((cause: unknown) => setError(errorMessage(cause)));
     void load();
     // Load dropdown data once; list filters are applied explicitly.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    let current = true;
+    setLocations([]);
+    setLines(rows => rows.map(row => ({ ...row, locationId: "", locationName: "" })));
+    if (!formBranch || !formOpen) { setLocationsLoading(false); return; }
+    setLocationsLoading(true);
+    warehouseService.getLocations(formBranch).then(rows => { if (current) setLocations(rows); })
+      .catch(cause => { if (current) setError(errorMessage(cause)); })
+      .finally(() => { if (current) setLocationsLoading(false); });
+    return () => { current = false; };
+  }, [formBranch, formOpen]);
 
   function openForm() {
     setError("");
@@ -132,6 +148,10 @@ export default function ReceiptManagement() {
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (saving) return;
+    const selectedBranch = branches.find(branch => branch.id === formBranch);
+    if (!selectedBranch || locationsLoading || lines.some(line => !locations.some(location => location.id === line.locationId))) {
+      setError("Vui lòng chọn chi nhánh và vị trí kho hợp lệ."); return;
+    }
     if (
       lines.some(
         (line) =>
@@ -154,13 +174,15 @@ export default function ReceiptManagement() {
       await warehouseService.createReceipt({
         receiptCode: receiptCode.trim().toUpperCase(),
         supplierCode: formSupplier,
-        branchCode: formBranch.trim(),
+        branchCode: selectedBranch.code,
+        branchId: selectedBranch.id,
         note: note.trim() || undefined,
         details: lines.map((line) => ({
           materialCode: line.materialCode,
           lotCode: line.lotCode.trim(),
           ...(line.expiryDate ? { expiryDate: line.expiryDate } : {}),
           locationName: line.locationName.trim(),
+          locationId: line.locationId,
           unitName: line.unitName,
           quantity: line.quantity,
           unitPrice: line.unitPrice,
@@ -257,6 +279,7 @@ export default function ReceiptManagement() {
                 setBranchCode("");
                 setFrom("");
                 setTo("");
+                void load({ supplierCode: "", branchCode: "", from: "", to: "" });
               }}
               aria-label="Xóa bộ lọc"
             >
@@ -389,14 +412,11 @@ export default function ReceiptManagement() {
             </label>
             <label className="form-field">
               <span>Mã chi nhánh</span>
-              <input
+              <select
                 required
                 value={formBranch}
-                onChange={(event) =>
-                  setFormBranch(event.target.value.toUpperCase())
-                }
-                placeholder="Nhập mã chi nhánh đã cấu hình"
-              />
+                onChange={(event) => setFormBranch(event.target.value)}
+              ><option value="">{branches.length ? "Chọn chi nhánh" : "Chưa có chi nhánh hoạt động"}</option>{branches.map(branch => <option key={branch.id} value={branch.id}>{branch.code} · {branch.name}</option>)}</select>
             </label>
             {lines.map((line, index) => (
               <fieldset
@@ -461,14 +481,12 @@ export default function ReceiptManagement() {
                   </label>
                   <label className="form-field">
                     <span>Vị trí kho</span>
-                    <input
+                    <select
                       required
-                      value={line.locationName}
-                      onChange={(event) =>
-                        updateLine(index, { locationName: event.target.value })
-                      }
-                      placeholder="Tên vị trí thuộc chi nhánh"
-                    />
+                      disabled={!formBranch || locationsLoading}
+                      value={line.locationId}
+                      onChange={(event) => { const location = locations.find(row => row.id === event.target.value); updateLine(index, { locationId: location?.id ?? "", locationName: location?.name ?? "" }); }}
+                    ><option value="">{locationsLoading ? "Đang tải vị trí…" : locations.length ? "Chọn vị trí kho" : "Chưa có vị trí hợp lệ"}</option>{locations.map(location => <option key={location.id} value={location.id}>{location.name}</option>)}</select>
                   </label>
                   <label className="form-field">
                     <span>Đơn vị</span>

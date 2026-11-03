@@ -32,7 +32,7 @@ describe('InventoryApi', () => {
             quantity: new Prisma.Decimal('5'),
             location: {
               branchId: 'branch-id',
-              branch: { code: 'CN001', name: 'Chi nhánh 1' },
+              branch: { code: 'CN001', name: 'Chi nhánh 1', isActive: true },
               name: 'Kho mát',
             },
           },
@@ -47,7 +47,7 @@ describe('InventoryApi', () => {
             quantity: new Prisma.Decimal('10'),
             location: {
               branchId: 'branch-id',
-              branch: { code: 'CN001', name: 'Chi nhánh 1' },
+              branch: { code: 'CN001', name: 'Chi nhánh 1', isActive: true },
               name: 'Kho mát',
             },
           },
@@ -62,7 +62,7 @@ describe('InventoryApi', () => {
             quantity: new Prisma.Decimal('7'),
             location: {
               branchId: 'branch-id',
-              branch: { code: 'CN001', name: 'Chi nhánh 1' },
+              branch: { code: 'CN001', name: 'Chi nhánh 1', isActive: true },
               name: 'Kho khô',
             },
           },

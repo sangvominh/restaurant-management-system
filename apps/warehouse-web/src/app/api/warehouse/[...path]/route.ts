@@ -7,6 +7,10 @@ const allowedMethods = ["GET", "POST", "PATCH", "DELETE"] as const;
 const adminWarehouseRoutes: Record<(typeof allowedMethods)[number], RegExp[]> =
   {
     GET: [
+      /^branches$/,
+      /^locations$/,
+      /^material-adjustments$/,
+      /^material-adjustments\/[^/]+$/,
       /^suppliers$/,
       /^suppliers\/[^/]+$/,
       /^categories$/,
@@ -23,6 +27,7 @@ const adminWarehouseRoutes: Record<(typeof allowedMethods)[number], RegExp[]> =
       /^inventory-movements$/,
     ],
     POST: [
+      /^material-adjustments\/[^/]+\/(approve|reject)$/,
       /^suppliers$/,
       /^categories$/,
       /^materials$/,

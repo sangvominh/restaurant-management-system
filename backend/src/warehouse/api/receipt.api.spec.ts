@@ -117,7 +117,7 @@ describe('ReceiptApi', () => {
       data: {
         materialId: 'material-id',
         lotCode: 'LOT001',
-        expiryDate: new Date('2099-12-31T00:00:00.000+07:00'),
+        expiryDate: new Date('2099-12-31T00:00:00.000Z'),
       },
     });
     expect(tx.materialBalance.upsert).toHaveBeenCalledOnce();

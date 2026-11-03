@@ -8,11 +8,16 @@ import {
   MaxLength,
   Matches,
   IsDateString,
+  IsUUID,
 } from 'class-validator';
 
 import { Type } from 'class-transformer';
 
 export class CreateReceiptDetailDto {
+  @IsOptional()
+  @IsUUID()
+  locationId?: string;
+
   @IsString()
   @IsNotEmpty()
   materialCode: string;
@@ -44,6 +49,10 @@ export class CreateReceiptDetailDto {
 }
 
 export class CreateReceiptDto {
+  @IsOptional()
+  @IsUUID()
+  branchId?: string;
+
   @IsString()
   @Matches(/^[A-Z0-9_-]{3,50}$/)
   receiptCode: string;

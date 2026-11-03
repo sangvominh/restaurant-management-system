@@ -157,7 +157,7 @@ export class ReceiptApi {
     };
   }
 
-  private parseDate(value: string, field: string) {
+  private parseDate(value: string, field: string, dateOnly = false) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
       throw new BadRequestException(
         `Ngày ${field} phải theo định dạng YYYY-MM-DD`,
@@ -175,7 +175,8 @@ export class ReceiptApi {
       throw new BadRequestException(`Ngày ${field} không hợp lệ`);
     }
 
-    return new Date(`${value}T00:00:00.000+07:00`);
+    // PostgreSQL DATE stores a calendar day; timestamp filters use local midnight.
+    return new Date(`${value}T00:00:00.000${dateOnly ? 'Z' : '+07:00'}`);
   }
 
   //Kiểm tra nhà cung cấp và chi nhánh
@@ -197,6 +198,9 @@ export class ReceiptApi {
 
     if (!branch || !branch.isActive) {
       throw new BadRequestException('Chi nhánh không hợp lệ');
+    }
+    if (dto.branchId && dto.branchId !== branch.id) {
+      throw new BadRequestException('Mã và định danh chi nhánh không khớp');
     }
 
     return { supplier, branch };
@@ -230,7 +234,7 @@ export class ReceiptApi {
     });
 
     const expiryDate = item.expiryDate
-      ? this.parseDate(item.expiryDate, 'hạn sử dụng')
+      ? this.parseDate(item.expiryDate, 'hạn sử dụng', true)
       : null;
     const today = new Intl.DateTimeFormat('sv-SE', {
       timeZone: 'Asia/Ho_Chi_Minh',
@@ -253,13 +257,10 @@ export class ReceiptApi {
       });
     } else if (lot.status !== 'ACTIVE') {
       throw new BadRequestException('Lô NVL không hoạt động');
+    } else if (lot.expiryDate && lot.expiryDate.toISOString().slice(0, 10) < today) {
+      throw new BadRequestException('Không thể nhập lô đã hết hạn');
     } else if (expiryDate && lot.expiryDate) {
-      const existingExpiry = new Intl.DateTimeFormat('sv-SE', {
-        timeZone: 'Asia/Ho_Chi_Minh',
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-      }).format(lot.expiryDate);
+      const existingExpiry = lot.expiryDate.toISOString().slice(0, 10);
 
       if (existingExpiry !== item.expiryDate) {
         throw new ConflictException('Hạn sử dụng không khớp với mã lô đã có');
@@ -281,7 +282,7 @@ export class ReceiptApi {
       },
     });
 
-    if (!location) {
+    if (!location || (item.locationId && item.locationId !== location.id)) {
       throw new BadRequestException('Vị trí kho không hợp lệ');
     }
 

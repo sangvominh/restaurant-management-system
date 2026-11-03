@@ -36,6 +36,6 @@ export function getInventoryAlerts(
   );
 }
 
-export function getInventoryMovements(): Promise<InventoryMovement[]> {
-  return warehouseRequest<InventoryMovement[]>("/inventory-movements");
+export function getInventoryMovements(branchCode?: string): Promise<InventoryMovement[]> {
+  return warehouseRequest<InventoryMovement[]>(`/inventory-movements${branchQuery(branchCode)}`);
 }

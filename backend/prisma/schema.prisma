@@ -114,6 +114,7 @@ model WarehouseLocation {
   materialIssueDetails   MaterialIssueDetail[]
   finishedGoodsBalances  FinishedGoodsBalance[]
   finishedGoodsMovements FinishedGoodsMovement[]
+  materialAdjustments    MaterialAdjustment[]
 
   @@unique([branchId, name])
   @@map("warehouse_locations")
@@ -131,6 +132,7 @@ model MaterialLot {
   goodsReceiptDetails  GoodsReceiptDetail[]
   inventoryMovements   InventoryMovement[]
   materialIssueDetails MaterialIssueDetail[]
+  adjustments          MaterialAdjustment[]
 
   @@unique([materialId, lotCode])
   @@map("material_lots")
@@ -219,6 +221,7 @@ model InventoryMovement {
   productionOrder ProductionOrder?    @relation(fields: [productionOrderId], references: [id], onDelete: Restrict)
   materialLot     MaterialLot         @relation(fields: [materialLotId], references: [id], onDelete: Restrict)
   location        WarehouseLocation   @relation(fields: [locationId], references: [id], onDelete: Restrict)
+  adjustmentLink  MaterialAdjustmentMovement?
 
   @@index([materialLotId, locationId])
   @@index([productionOrderId])
@@ -253,8 +256,59 @@ model MaterialIssueDetail {
   materialLot MaterialLot       @relation(fields: [materialLotId], references: [id])
   location    WarehouseLocation @relation(fields: [locationId], references: [id])
   unit        Unit              @relation(fields: [unitId], references: [id])
+  adjustments MaterialAdjustment[]
+  settlement  MaterialUsageSettlement?
 
   @@map("material_issue_details")
+}
+
+model MaterialAdjustment {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code             String   @unique @db.VarChar(50)
+  type             String   @db.VarChar(10)
+  source           String   @db.VarChar(10)
+  status           String   @default("PENDING") @db.VarChar(20)
+  materialLotId    String   @map("material_lot_id") @db.Uuid
+  locationId       String   @map("location_id") @db.Uuid
+  issueDetailId    String?  @map("issue_detail_id") @db.Uuid
+  quantity         Decimal  @db.Decimal(18, 3)
+  acceptedQuantity Decimal? @map("accepted_quantity") @db.Decimal(18, 3)
+  qualityStatus    String?  @map("quality_status") @db.VarChar(20)
+  reason           String   @db.VarChar(500)
+  decisionNote     String?  @map("decision_note") @db.VarChar(500)
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  processedAt      DateTime? @map("processed_at") @db.Timestamptz(3)
+
+  materialLot MaterialLot @relation(fields: [materialLotId], references: [id], onDelete: Restrict)
+  location    WarehouseLocation @relation(fields: [locationId], references: [id], onDelete: Restrict)
+  issueDetail MaterialIssueDetail? @relation(fields: [issueDetailId], references: [id], onDelete: Restrict)
+  movementLink MaterialAdjustmentMovement?
+
+  @@index([type, status, createdAt])
+  @@index([issueDetailId, status])
+  @@map("material_adjustments")
+}
+
+// App Nhân viên ghi sau khi đã chốt tiêu hao của dòng lĩnh; số lượng theo đơn vị cơ sở.
+model MaterialUsageSettlement {
+  issueDetailId    String @id @map("issue_detail_id") @db.Uuid
+  consumedQuantity Decimal @map("consumed_quantity") @db.Decimal(18, 3)
+  finalizedAt     DateTime @map("finalized_at") @db.Timestamptz(3)
+  referenceCode   String @map("reference_code") @db.VarChar(100)
+  recordedBy      String @map("recorded_by") @db.VarChar(100)
+  issueDetail     MaterialIssueDetail @relation(fields: [issueDetailId], references: [id], onDelete: Restrict)
+
+  @@map("material_usage_settlements")
+}
+
+// Bảng liên kết mới giữ nguyên cấu trúc movement cũ và truy vết phiếu điều chỉnh.
+model MaterialAdjustmentMovement {
+  adjustmentId String @id @map("adjustment_id") @db.Uuid
+  movementId   String @unique @map("movement_id") @db.Uuid
+  adjustment MaterialAdjustment @relation(fields: [adjustmentId], references: [id], onDelete: Restrict)
+  movement InventoryMovement @relation(fields: [movementId], references: [id], onDelete: Restrict)
+
+  @@map("material_adjustment_movements")
 }
 
 model Bom {
