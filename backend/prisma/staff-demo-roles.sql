@@ -14,7 +14,10 @@ BEGIN
  END LOOP;
 END $$;
 INSERT INTO materials (code,name,min_stock,unit_id,category_id)
-SELECT v.code,v.name,2,m.unit_id,m.category_id FROM (VALUES ('DEMO-TRA','Trà lài'),('DEMO-SUA','Sữa tươi'),('DEMO-DUONG','Đường')) v(code,name) CROSS JOIN materials m WHERE m.code='TEST-NVL001' ON CONFLICT (code) DO NOTHING;
+SELECT v.code,v.name,2,u.id,c.id FROM (VALUES ('DEMO-TRA','Trà lài','kg','Trà'),('DEMO-SUA','Sữa tươi','lít','Sữa'),('DEMO-DUONG','Đường','kg','Gia vị')) v(code,name,unit,category) JOIN units u ON u.name=v.unit JOIN categories c ON c.name=v.category AND c.category_type='MATERIAL' ON CONFLICT (code) DO NOTHING;
+-- Chỉ sửa cách gán cũ của dữ liệu demo; phiếu lịch sử giữ đơn vị đã ghi.
+UPDATE materials m SET unit_id=u.id, category_id=c.id FROM (VALUES ('DEMO-TRA','kg','Trà'),('DEMO-SUA','lít','Sữa'),('DEMO-DUONG','kg','Gia vị')) v(code,unit,category) JOIN units u ON u.name=v.unit JOIN categories c ON c.name=v.category AND c.category_type='MATERIAL' WHERE m.code=v.code AND m.category_id=(SELECT id FROM categories WHERE name='Thịt' AND category_type='MATERIAL');
+UPDATE bom_details d SET unit_id=m.unit_id FROM boms b, materials m WHERE d.bom_id=b.id AND d.material_id=m.id AND b.code='DEMO-BOM-DRINK01' AND m.code='DEMO-SUA' AND d.unit_id=(SELECT id FROM units WHERE name='kg');
 INSERT INTO material_lots (material_id,lot_code,expiry_date) SELECT m.id,'LO-'||m.code,'2027-12-31' FROM materials m WHERE m.code IN ('DEMO-TRA','DEMO-SUA','DEMO-DUONG') ON CONFLICT (material_id,lot_code) DO NOTHING;
 INSERT INTO material_balances (location_id,material_lot_id,quantity) SELECT w.id,l.id,20 FROM material_lots l JOIN materials m ON m.id=l.material_id CROSS JOIN warehouse_locations w JOIN branches b ON b.id=w.branch_id WHERE b.code='TEST-CN01' AND w.name='Kho lạnh' AND m.code IN ('DEMO-TRA','DEMO-SUA','DEMO-DUONG') ON CONFLICT (location_id,material_lot_id) DO NOTHING;
 INSERT INTO products (code,name,category,price,unit,updated_at) VALUES ('DEMO-DRINK01','Trà sữa lài','Đồ uống',35000,'ly',now()),('DEMO-DRINK02','Trà lài','Đồ uống',25000,'ly',now()) ON CONFLICT (code) DO NOTHING;

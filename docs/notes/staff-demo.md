@@ -18,3 +18,5 @@ Các tài khoản có ca đang mở lúc khởi tạo. Mỗi tài khoản Bếp/
 Các trạng thái lịch sử và việc cấp nguyên liệu của lệnh mẫu là giả lập, không phải lịch sử giao dịch kho đầy đủ. Duyệt phiếu hoàn trả và hao hụt NVL của nhân viên chưa được nối với Admin Kho. Dữ liệu nguyên liệu vẫn là tồn chung theo chi nhánh; lọc món tạm thời dùng danh mục `Đồ uống`, cần thống nhất danh mục và phân quyền với nhóm. Các API kho chưa có phân quyền đầy đủ.
 
 Chạy setup nhiều lần không đặt lại trạng thái đã thao tác. Dữ liệu container được giữ giữa các lần chạy; nếu kết thúc ca mẫu, hãy bắt đầu ca mới trên app. Để có lại toàn bộ trạng thái ban đầu cần tạo database demo mới sau khi tự lưu dữ liệu cần giữ.
+
+Dữ liệu kho mẫu dùng kg cho thịt bò, rau củ, trà khô và đường; sữa tươi dùng lít. Chạy lại setup sẽ sửa cách gán đơn vị và phân loại cũ của các mã demo trên, giữ nguyên con số tồn và đơn vị đã ghi trong phiếu lịch sử. Công thức trà sữa mẫu dùng 0,1 lít sữa cho mỗi ly. Đây là dữ liệu giả lập, không dùng để chuyển đổi số liệu kho thực tế.
