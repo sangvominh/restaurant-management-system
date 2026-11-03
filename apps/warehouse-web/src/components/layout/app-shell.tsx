@@ -37,7 +37,7 @@ const groups = [
     items: [{ title: "Dashboard", href: "/", icon: LayoutDashboard }],
   },
   {
-    label: "QUẢN LÝ KHO",
+    label: "ADMIN KHO",
     items: [
       { title: "Tồn kho nguyên vật liệu", href: "/inventory", icon: Boxes },
       { title: "Nhà cung cấp", href: "/suppliers", icon: Truck },
@@ -46,40 +46,13 @@ const groups = [
         href: "/materials",
         icon: Archive,
       },
-      {
-        title: "Tồn kho thành phẩm",
-        href: "/finished-goods",
-        icon: PackageCheck,
-      },
-      { title: "Nhập kho", href: "/receipts", icon: FileInput },
+      { title: "Nhập kho NVL", href: "/receipts", icon: FileInput },
       {
         title: "Duyệt xuất nguyên vật liệu",
         href: "/material-issues",
         icon: FileOutput,
       },
-      {
-        title: "Duyệt xuất thành phẩm",
-        href: "/finished-issues",
-        icon: PackageOpen,
-      },
-      { title: "Hao hụt / Hư hỏng", href: "/losses", icon: AlertTriangle },
-    ],
-  },
-  {
-    label: "SẢN XUẤT MRP",
-    items: [
-      { title: "Công thức BOM", href: "/bom", icon: Soup },
-      { title: "Lệnh sản xuất", href: "/production", icon: Factory },
-      {
-        title: "Theo dõi sản xuất",
-        href: "/production-tracking",
-        icon: ChartNoAxesCombined,
-      },
-    ],
-  },
-  {
-    label: "BÁO CÁO",
-    items: [
+      { title: "Hao hụt / Hư hỏng NVL", href: "/losses", icon: AlertTriangle },
       {
         title: "Báo cáo nhập – xuất – tồn",
         href: "/reports",
@@ -92,6 +65,28 @@ const groups = [
       },
     ],
   },
+  {
+    label: "ADMIN NHÀ HÀNG",
+    items: [
+      {
+        title: "Tồn kho thành phẩm",
+        href: "/finished-goods",
+        icon: PackageCheck,
+      },
+      {
+        title: "Duyệt xuất thành phẩm",
+        href: "/finished-issues",
+        icon: PackageOpen,
+      },
+      { title: "Công thức BOM", href: "/bom", icon: Soup },
+      { title: "Yêu cầu chế biến", href: "/production", icon: Factory },
+      {
+        title: "Tiến độ chế biến",
+        href: "/production-tracking",
+        icon: ChartNoAxesCombined,
+      },
+    ],
+  },
 ];
 
 const pageTitles: Record<string, string> = Object.fromEntries(
@@ -100,6 +95,11 @@ const pageTitles: Record<string, string> = Object.fromEntries(
 
 export default function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const activeGroup = groups.find((group) =>
+    group.items.some(
+      (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),
+    ),
+  );
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -148,8 +148,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
         </div>
         {!collapsed && (
           <div className="module-label">
-            <span className="module-dot" /> QUẢN LÝ KHO{" "}
-            <ChevronDown size={14} />
+            <span className="module-dot" /> ADMIN KHO &amp; NHÀ HÀNG
           </div>
         )}
         <nav className="side-nav">
@@ -162,7 +161,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
                 <Link
                   key={href}
                   href={href}
-                  title={collapsed ? itemTitle : undefined}
+                  title={collapsed ? `${group.label} · ${itemTitle}` : undefined}
                   onClick={() => setMobileOpen(false)}
                   className={`nav-item ${pathname === href ? "nav-item-active" : ""}`}
                 >
@@ -219,7 +218,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
             <Menu size={20} />
           </button>
           <div className="breadcrumbs">
-            <span>Kho vận</span>
+            <span>{activeGroup?.label ?? "TỔNG QUAN"}</span>
             <ChevronRight size={14} />
             <strong>{title}</strong>
           </div>
