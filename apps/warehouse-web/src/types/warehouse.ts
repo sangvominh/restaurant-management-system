@@ -21,13 +21,3 @@ export interface IssueRequest {
   status: RequestStatus;
   items: { name: string; quantity: number; unit: string }[];
 }
-
-export interface ProductionOrder {
-  code: string;
-  product: string;
-  quantity: number;
-  assignee: string;
-  materialStatus: string;
-  status: string;
-  progress: number;
-}

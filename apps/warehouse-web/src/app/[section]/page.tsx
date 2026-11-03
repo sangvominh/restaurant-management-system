@@ -1,4 +1,5 @@
 import Workspace from "@/components/workspace";
+import { notFound } from "next/navigation";
 import SupplierManagement from "@/components/warehouse/supplier-management";
 import MaterialManagement from "@/components/warehouse/material-management";
 import ReceiptManagement from "@/components/warehouse/receipt-management";
@@ -14,5 +15,8 @@ export default async function SectionPage({
   if (section === "materials") return <MaterialManagement />;
   if (section === "receipts") return <ReceiptManagement />;
   if (section === "material-issues") return <MaterialIssueManagement />;
-  return <Workspace key={section} section={section} />;
+  if (["losses", "reports", "transactions"].includes(section)) {
+    return <Workspace key={section} section={section} />;
+  }
+  notFound();
 }

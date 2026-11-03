@@ -13,20 +13,16 @@ import {
   ChevronLeft,
   ChevronRight,
   ClipboardList,
-  Factory,
   FileClock,
   FileInput,
   FileOutput,
   LayoutDashboard,
   Menu,
-  PackageCheck,
-  PackageOpen,
   PanelLeftClose,
   Search,
   Settings2,
   ShieldCheck,
   ShoppingBasket,
-  Soup,
   Truck,
   X,
 } from "lucide-react";
@@ -62,28 +58,6 @@ const groups = [
         title: "Lịch sử giao dịch kho",
         href: "/transactions",
         icon: FileClock,
-      },
-    ],
-  },
-  {
-    label: "ADMIN NHÀ HÀNG",
-    items: [
-      {
-        title: "Tồn kho thành phẩm",
-        href: "/finished-goods",
-        icon: PackageCheck,
-      },
-      {
-        title: "Duyệt xuất thành phẩm",
-        href: "/finished-issues",
-        icon: PackageOpen,
-      },
-      { title: "Công thức BOM", href: "/bom", icon: Soup },
-      { title: "Yêu cầu chế biến", href: "/production", icon: Factory },
-      {
-        title: "Tiến độ chế biến",
-        href: "/production-tracking",
-        icon: ChartNoAxesCombined,
       },
     ],
   },
@@ -148,7 +122,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
         </div>
         {!collapsed && (
           <div className="module-label">
-            <span className="module-dot" /> ADMIN KHO &amp; NHÀ HÀNG
+            <span className="module-dot" /> ADMIN KHO
           </div>
         )}
         <nav className="side-nav">

@@ -1,4 +1,4 @@
-import type { IssueRequest, Material, ProductionOrder } from "@/types/warehouse";
+import type { IssueRequest, Material } from "@/types/warehouse";
 
 export const materials: Material[] = [
   { code: "NVL001", name: "Thịt bò Mỹ", category: "Thịt & hải sản", unit: "kg", quantity: 8.5, minimum: 15, location: "Kho lạnh A · Kệ 02", expiry: "28/10/2026", branch: "Chi nhánh Quận 1" },
@@ -17,12 +17,6 @@ export const issueRequests: IssueRequest[] = [
   { code: "PX-NVL-0246", branch: "Chi nhánh Quận 3", date: "25/10/2026 · 16:28", requester: "Lê Hoàng Nam", status: "Đã duyệt", items: [{ name: "Bột mì số 13", quantity: 5, unit: "kg" }] },
   { code: "PX-NVL-0245", branch: "Chi nhánh Quận 1", date: "25/10/2026 · 14:05", requester: "Phạm Thuỳ Linh", status: "Từ chối", items: [{ name: "Thịt bò Mỹ", quantity: 20, unit: "kg" }] },
   { code: "PX-NVL-0244", branch: "Chi nhánh Bình Thạnh", date: "25/10/2026 · 11:32", requester: "Đỗ Minh Khang", status: "Đã duyệt", items: [{ name: "Dầu ô liu extra virgin", quantity: 4, unit: "lít" }] },
-];
-
-export const productionOrders: ProductionOrder[] = [
-  { code: "LSX-0084", product: "Pizza Margherita", quantity: 24, assignee: "Lê Hoàng Nam", materialStatus: "Đủ nguyên liệu", status: "Đang sản xuất", progress: 68 },
-  { code: "LSX-0083", product: "Mì Ý sốt bò bằm", quantity: 18, assignee: "Phạm Thuỳ Linh", materialStatus: "Đủ nguyên liệu", status: "Đang sản xuất", progress: 42 },
-  { code: "LSX-0082", product: "Salad tôm Địa Trung Hải", quantity: 12, assignee: "Đỗ Minh Khang", materialStatus: "Chờ bổ sung", status: "Chờ nguyên liệu", progress: 0 },
 ];
 
 export const chartData = [

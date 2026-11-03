@@ -3,8 +3,8 @@ import "./globals.css";
 import AppShell from "@/components/layout/app-shell";
 
 export const metadata: Metadata = {
-  title: "Kho vận | Mộc Nhà hàng",
-  description: "Hệ thống quản lý kho và sản xuất MRP",
+  title: "Admin Kho | Mộc Nhà hàng",
+  description: "Hệ thống quản lý kho nguyên vật liệu",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
