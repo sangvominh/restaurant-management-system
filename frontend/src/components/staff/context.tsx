@@ -11,7 +11,7 @@ import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { api, ApiError, roles, type User } from "@/lib/api";
 import { brand } from "@/config/brand";
-import { Button, Icon, Notice } from "./ui";
+import { Button, Icon, Notice, Toast } from "./ui";
 const Context = createContext<{
   user: User;
   revision: number;
@@ -79,8 +79,8 @@ export function useAction() {
     run,
     feedback: (
       <>
-        {error && <Notice error>{error}</Notice>}
-        {message && <Notice>{message}</Notice>}
+        {error && <Toast key={error} error>{error}</Toast>}
+        {message && <Toast key={message}>{message}</Toast>}
       </>
     ),
   };
@@ -120,16 +120,15 @@ const nav = [
   ["grid_view", "Sơ đồ bàn", "/staff/tables"],
   ["restaurant_menu", "Gọi món", "/staff/orders/new"],
   ["skillet", "Bếp KDS", "/staff/kitchen"],
-  ["warehouse", "Tồn kho", "/staff/inventory"],
+  ["warehouse", "Nguyên vật liệu", "/staff/materials"],
   ["outbox", "Thành phẩm", "/staff/finished-issues"],
-  ["report_problem", "Hao hụt", "/staff/material-waste"],
-  ["assignment_return", "Hoàn trả", "/staff/material-returns"],
   ["schedule", "Ca làm", "/staff/shifts"],
 ];
 function isStaffNavActive(path: string, href: string) {
   if (href === "/staff") return path === href;
-  if (href === "/staff/finished-issues") return ["/staff/finished-issues", "/staff/finished-defects", "/staff/production", "/staff/finished-goods"].some(p => path === p || path.startsWith(`${p}/`));
-  if (href === "/staff/inventory") return path === "/staff/material-issues" || path.startsWith("/staff/material-issues/") || path === href || path.startsWith(`${href}/`);
+  if (href === "/staff/finished-issues") return ["/staff/finished-issues", "/staff/finished-defects", "/staff/finished-goods"].some(p => path === p || path.startsWith(`${p}/`));
+  if (href === "/staff/kitchen") return path === "/staff/kitchen" || path.startsWith("/staff/kitchen/") || path === "/staff/production";
+  if (href === "/staff/materials") return ["/staff/materials", "/staff/inventory", "/staff/kitchen-inventory", "/staff/material-issues", "/staff/material-waste", "/staff/material-returns"].some(p => path === p || path.startsWith(`${p}/`));
   return path === href || path.startsWith(`${href}/`);
 }
 export function StaffShell({ children }: { children: ReactNode }) {

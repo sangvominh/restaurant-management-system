@@ -17,5 +17,3 @@
 .production-create summary:hover { color:#003f68; }
 .production-create[open] { display:grid; gap:12px; }
 .production-create[open] > * { margin-top:12px; }
-.production-filters { display:grid; grid-template-columns:minmax(0,1fr) minmax(130px,200px); gap:12px; }
-@media(max-width:480px) { .production-filters { grid-template-columns:1fr; } }

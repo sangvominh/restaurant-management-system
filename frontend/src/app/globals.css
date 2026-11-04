@@ -2584,3 +2584,19 @@ textarea {
 .stock-unavailable { margin-top: 10px; color: #9a5121; font-size: .88rem; }
 .stock-field-error { color: #b3261e; font-size: .85rem; font-weight: 500; }
 .stock-input-unit input[aria-invalid="true"] { border-color: #b3261e; }
+
+.staff-toast { position: fixed; z-index: 1000; top: 20px; right: 20px; display: flex; align-items: flex-start; gap: 10px; max-width: min(420px, calc(100vw - 32px)); padding: 14px 16px; border: 1px solid #a7dfbd; border-radius: 12px; background: #e7f8ee; color: #137043; box-shadow: 0 8px 28px #142e4930; font-weight: 600; }
+.staff-toast-error { color: #9b251f; background: #fff1f0; border-color: #efb6b2; }
+.staff-toast .stock-success-link { color: inherit; }
+@media (max-width: 600px) { .staff-toast { top: 12px; left: 16px; right: 16px; max-width: none; } }
+.staff-form-panel > summary { cursor: pointer; color: #075f98; font-size: 1.05rem; font-weight: 700; }
+.staff-form-panel > summary::marker { color: #0077b6; }
+.production-order-card { position: relative; }
+.production-card-action { position: relative; z-index: 2; }
+
+/* Keep search controls compact and leave breathing room around collapsed forms. */
+.staff-app .inventory-search { height: 44px; box-sizing: border-box; align-self: start; }
+.staff-app .inventory-search input { height: 42px; min-height: 0; }
+.staff-app .staff-form-panel { margin-top: 20px; margin-bottom: 20px; }
+.staff-search-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-width: 0; }
+.staff-search-toolbar .inventory-search { max-width: calc(100% - 56px); }

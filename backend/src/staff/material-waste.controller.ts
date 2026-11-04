@@ -12,7 +12,20 @@ export class StaffMaterialWasteController {
  @Get() async list(@Req() req: StaffRequest) {
   const rows = await this.db.staffMaterialWaste.findMany({ where: { actorId: req.staff.id, branchId: req.staff.branchId }, orderBy: { createdAt: 'desc' }, take: 100 });
   const balances = await this.db.materialBalance.findMany({ where: { id: { in: rows.map(r => r.balanceId) }, location: { branchId: req.staff.branchId } }, include: { materialLot: { include: { material: { include: { unit: true } } } }, location: true } });
-  return rows.map(r => { const b = balances.find(x => x.id === r.balanceId); return { ...r, quantity: r.quantity.toString(), name: b?.materialLot.material.name ?? 'Không còn dữ liệu', unit: b?.materialLot.material.unit.name ?? '', lot: b?.materialLot.lotCode ?? '', location: b?.location.name ?? '' }; });
+  const kitchenRows = await this.db.$queryRaw<{ id:string; code:string; status:string; name:string; unit:string; lot:string; location:string; quantity:string; reason:string; createdAt:Date; orderLineId:string }[]>`SELECT w.id, w.code, 'RECORDED' AS status, m.name, u.name AS unit, l.lot_code AS lot, 'Bếp' AS location, w.quantity::text AS quantity, w.reason, w.created_at AS "createdAt", w.order_line_id AS "orderLineId" FROM staff_kitchen_waste w JOIN material_lots l ON l.id=w.material_lot_id JOIN materials m ON m.id=l.material_id JOIN units u ON u.id=m.unit_id WHERE w.actor_id=${req.staff.id}::uuid AND w.branch_id=${req.staff.branchId}::uuid ORDER BY w.created_at DESC LIMIT 100`;
+  return [...rows.map(r => { const b = balances.find(x => x.id === r.balanceId); return { ...r, quantity: r.quantity.toString(), name: b?.materialLot.material.name ?? 'Không còn dữ liệu', unit: b?.materialLot.material.unit.name ?? '', lot: b?.materialLot.lotCode ?? '', location: b?.location.name ?? '' }; }), ...kitchenRows].sort((a,b) => b.createdAt.getTime()-a.createdAt.getTime()).slice(0,100);
+ }
+ @Post('kitchen') async createKitchen(@Req() req: StaffRequest, @Body() body: unknown) {
+  const input = object(body); const lotId = uuid(input.lotId); const reason = text(input.reason, 'Lý do', 1000);
+  if (typeof input.quantity !== 'string' || !/^(?:0|[1-9]\d{0,8})(?:\.\d{1,3})?$/.test(input.quantity)) throw new BadRequestException('Số lượng không hợp lệ.');
+  const quantity = new Prisma.Decimal(input.quantity); if (quantity.lte(0)) throw new BadRequestException('Số lượng phải lớn hơn 0.');
+  return this.db.$transaction(async tx => {
+   const count = await tx.$executeRaw`UPDATE staff_kitchen_balances SET quantity=quantity-${quantity} WHERE branch_id=${req.staff.branchId}::uuid AND material_lot_id=${lotId}::uuid AND quantity >= ${quantity}`;
+   if (count !== 1) throw new BadRequestException('Số lượng vượt tồn bếp hoặc lô không hợp lệ.');
+   const code = `HH-${randomUUID().replaceAll('-', '').slice(0,12).toUpperCase()}`;
+   await tx.$executeRaw`INSERT INTO staff_kitchen_waste(code,actor_id,branch_id,material_lot_id,quantity,reason) VALUES (${code},${req.staff.id}::uuid,${req.staff.branchId}::uuid,${lotId}::uuid,${quantity},${reason})`;
+   return { code, status: 'RECORDED' };
+  }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
  }
  @Post() async create(@Req() req: StaffRequest, @Body() body: unknown) {
   const input = object(body); const balanceId = uuid(input.balanceId); const reason = text(input.reason, 'Lý do', 1000); const unit = text(input.unit, 'Đơn vị', 50);

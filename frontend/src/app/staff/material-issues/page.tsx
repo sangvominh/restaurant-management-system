@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { Badge, Icon } from "@/components/staff/ui";
+import { Badge, Icon, SearchInput } from "@/components/staff/ui";
 import { ResourceState, useResource } from "@/components/staff/context";
 import { dateTime } from "@/lib/api";
 
@@ -10,6 +10,7 @@ const labels: Record<string, string> = { PENDING: "Chờ duyệt", APPROVED: "Đ
 export default function MaterialIssues() {
  const [detail, setDetail] = useState<Issue | null>(null);
  const [filter, setFilter] = useState("ALL");
+ const [search, setSearch] = useState("");
  const [sort, setSort] = useState("newest");
  const dialog = useRef<HTMLDialogElement>(null);
  const openedLink = useRef(false);
@@ -25,10 +26,11 @@ export default function MaterialIssues() {
  return <div className="space-y-5">
   <Link className="staff-back" href="/staff/inventory">← Tồn nguyên vật liệu</Link>
   <div className="stock-title-row"><h1>Phiếu đề nghị của tôi</h1><button className="stock-icon-button stock-refresh" type="button" aria-label="Tải lại danh sách phiếu" title="Tải lại" onClick={reload}><Icon name="refresh" /></button></div>
+  <SearchInput value={search} onChange={setSearch} label="Tìm phiếu" hint="Mã phiếu hoặc nguyên liệu"/>
   <div className="issue-toolbar"><div className="status-filters">{[["ALL","Tất cả"],["PENDING","Chờ duyệt"],["APPROVED","Đã duyệt"],["REJECTED","Từ chối"]].map(([key,label]) => <button key={key} className={filter === key ? "active" : ""} aria-pressed={filter === key} onClick={() => setFilter(key)}>{label}</button>)}</div><label className="inventory-sort" title="Sắp xếp phiếu"><Icon name="sort"/><select aria-label="Sắp xếp phiếu" value={sort} onChange={e => setSort(e.target.value)}><option value="newest">Mới nhất</option><option value="oldest">Cũ nhất</option><option value="code-asc">Mã phiếu A–Z</option><option value="code-desc">Mã phiếu Z–A</option></select></label></div>
   <ResourceState error={error} loading={!data && !error} retry={reload}/>
   {data?.length === 0 && <p>Chưa có phiếu đề nghị.</p>}
-  {data?.filter(issue => filter === "ALL" || issue.status === filter).sort((a, b) => { const code = a.code.localeCompare(b.code, "vi"); if (sort === "code-asc") return code; if (sort === "code-desc") return -code; const time = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(); return (sort === "oldest" ? time : -time) || code; }).map(issue => <button type="button" className="card issue-card" key={issue.code} onClick={() => setDetail(issue)} aria-label={`Xem chi tiết phiếu ${issue.code}`}>
+  {data?.filter(issue => (filter === "ALL" || issue.status === filter) && `${issue.code} ${issue.details.map(item => `${item.name} ${item.lot}`).join(" ")}`.toLocaleLowerCase("vi").includes(search.trim().toLocaleLowerCase("vi"))).sort((a, b) => { const code = a.code.localeCompare(b.code, "vi"); if (sort === "code-asc") return code; if (sort === "code-desc") return -code; const time = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(); return (sort === "oldest" ? time : -time) || code; }).map(issue => <button type="button" className="card issue-card" key={issue.code} onClick={() => setDetail(issue)} aria-label={`Xem chi tiết phiếu ${issue.code}`}>
    <span className="issue-card-top"><strong>{issue.code}</strong></span>
    <span className="issue-meta"><Badge tone={issue.status === "APPROVED" ? "green" : issue.status === "REJECTED" ? "red" : "amber"}>{labels[issue.status] ?? issue.status}</Badge><span>{dateTime(issue.createdAt)}</span></span>
    <span className="issue-preview-label">NGUYÊN LIỆU ĐỀ NGHỊ</span>

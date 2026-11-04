@@ -13,7 +13,8 @@ export class StaffController {
   @Post('invoices') @Roles('SERVICE', 'CASHIER', 'SUPERVISOR') create(@Req() r: StaffRequest, @Body() b: unknown) { return this.service.createInvoice(r.staff, b); }
   @Post('orders') @Roles('SERVICE', 'SUPERVISOR') order(@Req() r: StaffRequest, @Body() b: unknown) { return this.service.addOrder(r.staff, b); }
   @Get('kitchen') kitchen(@Req() r: StaffRequest) { return this.service.kitchen(r.staff); }
-  @Patch('lines/:id') @Roles('SERVICE', 'KITCHEN', 'SUPERVISOR') line(@Req() r: StaffRequest, @Param('id') id: string, @Body() b: unknown) { return this.service.updateLine(r.staff, id, b); }
+  @Get('lines/:id/material-requirements') @Roles('KITCHEN', 'BARISTA', 'SUPERVISOR') requirements(@Req() r: StaffRequest, @Param('id') id: string) { return this.service.lineRequirements(r.staff, id); }
+  @Patch('lines/:id') @Roles('SERVICE', 'KITCHEN', 'BARISTA', 'SUPERVISOR') line(@Req() r: StaffRequest, @Param('id') id: string, @Body() b: unknown) { return this.service.updateLine(r.staff, id, b); }
   @Post('lines/:id/cancel') @Roles('SERVICE', 'SUPERVISOR') cancel(@Req() r: StaffRequest, @Param('id') id: string, @Body() b: unknown) { return this.service.cancelLine(r.staff, id, b); }
   @Post('transfer') @Roles('SERVICE', 'SUPERVISOR') transfer(@Req() r: StaffRequest, @Body() b: unknown) { return this.service.transfer(r.staff, b); }
   @Post('merge') @Roles('SUPERVISOR') merge() { throw new NotImplementedException('Gộp bàn chưa hỗ trợ. Hóa đơn từng khách được giữ nguyên.'); }

@@ -15,4 +15,5 @@ docker exec -i restaurant-staff-demo psql -v ON_ERROR_STOP=1 -U postgres -d staf
 docker exec -i restaurant-staff-demo psql -v ON_ERROR_STOP=1 -U postgres -d staff_demo < backend/prisma/staff-demo-cases.sql
 docker exec -i restaurant-staff-demo psql -v ON_ERROR_STOP=1 -U postgres -d staff_demo < backend/prisma/staff-demo-menu.sql
 docker exec -i restaurant-staff-demo psql -v ON_ERROR_STOP=1 -U postgres -d staff_demo < backend/prisma/staff-demo-roles.sql
+docker exec -i restaurant-staff-demo psql -v ON_ERROR_STOP=1 -U postgres -d staff_demo < backend/prisma/staff-demo-kitchen.sql
 printf '\nDatabase demo sẵn sàng. Xem docs/notes/staff-demo.md để chạy ứng dụng.\n'

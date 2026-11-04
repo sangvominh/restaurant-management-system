@@ -167,7 +167,7 @@ export function Dashboard() {
         <div>
           <SectionHeading title="Tình trạng nhanh">
             <PreviewLink screen="tables" secondary>
-              Sơ đồ đầy đủ <Icon name="chevron_right" />
+              Sơ đồ đầy đủ
             </PreviewLink>
           </SectionHeading>
           <Card>
@@ -734,7 +734,7 @@ export function Payment({ inform }: Props) {
             disabled={method !== "cash" || received < billTotal}
           >
             <Icon name="receipt_long" />
-            Thanh toán & In hóa đơn <Icon name="arrow_forward" />
+            Thanh toán & In hóa đơn
           </Button>
           <p className="muted text-xs text-center">
             Bản xem trước không ghi nhận thu tiền hoặc gửi lệnh in.
@@ -964,7 +964,6 @@ export function Shift({ inform }: Props) {
                   <strong>{title}</strong>
                   <small className="muted block mt-1">{sub}</small>
                 </span>
-                <Icon name="chevron_right" />
               </button>
             ))}
           </Card>
@@ -989,7 +988,6 @@ export function Shift({ inform }: Props) {
             <button className="settings-row" onClick={inform}>
               <Icon name="pin" />
               <span className="flex-1 text-left">Đổi mã PIN</span>
-              <Icon name="chevron_right" />
             </button>
             <PreviewLink screen="login" secondary className="w-full mt-4">
               <Icon name="power_settings_new" />
@@ -1151,7 +1149,7 @@ export function Login({ inform }: Props) {
         </form>
       </Card>
       <PreviewLink screen="dashboard" secondary className="w-full mt-4">
-        Xem trước ứng dụng <Icon name="arrow_forward" />
+        Xem trước ứng dụng
       </PreviewLink>
     </div>
   );

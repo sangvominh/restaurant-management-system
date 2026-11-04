@@ -50,3 +50,14 @@ INSERT INTO invoices (id,branch_id,table_id,guest_name,status) SELECT v.id::uuid
 INSERT INTO staff_orders (id,invoice_id,created_by_id,request_key) SELECT v.id::uuid,v.invoice::uuid,u.id,v.id FROM (VALUES ('30000000-0000-4000-8000-000000000031','30000000-0000-4000-8000-000000000021'),('30000000-0000-4000-8000-000000000032','30000000-0000-4000-8000-000000000022')) v(id,invoice) JOIN staff_users u ON u.code='DEMO-CASHIER' ON CONFLICT (id) DO NOTHING;
 INSERT INTO order_lines (id,order_id,menu_item_id,name,unit_price,quantity,status) SELECT v.id::uuid,v.order_id::uuid,m.id,m.name,m.price,v.quantity,v.status::"TicketStatus" FROM (VALUES ('30000000-0000-4000-8000-000000000041','30000000-0000-4000-8000-000000000031','30000000-0000-4000-8000-000000000011',2,'QUEUED'),('30000000-0000-4000-8000-000000000042','30000000-0000-4000-8000-000000000031','30000000-0000-4000-8000-000000000012',1,'READY'),('30000000-0000-4000-8000-000000000043','30000000-0000-4000-8000-000000000032','30000000-0000-4000-8000-000000000012',2,'SERVED')) v(id,order_id,menu,quantity,status) JOIN menu_items m ON m.id=v.menu::uuid ON CONFLICT (id) DO NOTHING;
 INSERT INTO payments (id,invoice_id,cashier_id,amount,cash_received) SELECT '30000000-0000-4000-8000-000000000051', '30000000-0000-4000-8000-000000000022',id,70000,100000 FROM staff_users WHERE code='DEMO-CASHIER' ON CONFLICT (invoice_id) DO NOTHING;
+-- Công thức giả lập cho order demo; số lượng theo đơn vị kho của từng NVL.
+INSERT INTO staff_demo_order_recipes (menu_item_id, material_id, quantity)
+SELECT v.menu_id::uuid, m.id, v.quantity FROM (VALUES
+ ('30000000-0000-4000-8000-000000000011','TEST-NVL001',0.2::numeric),
+ ('30000000-0000-4000-8000-000000000011','DEMO-NVL02',0.1::numeric),
+ ('30000000-0000-4000-8000-000000000011','DEMO-NVL03',0.05::numeric),
+ ('30000000-0000-4000-8000-000000000012','DEMO-TRA',0.02::numeric),
+ ('30000000-0000-4000-8000-000000000012','DEMO-SUA',0.1::numeric),
+ ('30000000-0000-4000-8000-000000000012','DEMO-DUONG',0.02::numeric)
+) v(menu_id,material_code,quantity) JOIN menu_items mi ON mi.id=v.menu_id::uuid JOIN materials m ON m.code=v.material_code
+ON CONFLICT (menu_item_id,material_id) DO NOTHING;

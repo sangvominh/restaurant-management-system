@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import { useEffect, useState, type ButtonHTMLAttributes, type ReactNode } from "react";
 export function Icon({
   name,
   className = "",
@@ -138,4 +138,18 @@ export function Field({
       {children}
     </label>
   );
+}
+
+export function Toast({ children, error = false }: { children: ReactNode; error?: boolean }) {
+  const [visible, setVisible] = useState(true);
+  useEffect(() => { const timer = window.setTimeout(() => setVisible(false), 5000); return () => window.clearTimeout(timer); }, []);
+  if (!visible) return null;
+  return <div className={`staff-toast ${error ? "staff-toast-error" : ""}`} role={error ? "alert" : "status"}><Icon name={error ? "error" : "check_circle"}/><div>{children}</div></div>;
+}
+export function SearchInput({ value, onChange, label, hint }: { value: string; onChange: (value: string) => void; label: string; hint: string }) {
+ const [focused, setFocused] = useState(false);
+ return <div className={`inventory-search ${focused || value ? "expanded" : ""}`}><Icon name="search"/><input type="search" aria-label={label} placeholder={focused || value ? hint : label} value={value} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} onChange={e => onChange(e.target.value)}/></div>;
+}
+export function SortSelect({ value, onChange, label, options }: { value: string; onChange: (value: string) => void; label: string; options: [string, string][] }) {
+ return <label className="inventory-sort" title={label}><Icon name="sort"/><select aria-label={label} value={value} onChange={e => onChange(e.target.value)}>{options.map(([key, text]) => <option key={key} value={key}>{text}</option>)}</select></label>;
 }

@@ -1,10 +1,17 @@
+"use client";
 import Link from "next/link";
-import { Icon } from "@/components/staff/ui";
-const choices = [
- { href: "/staff/production", icon: "skillet", title: "Tạo thành phẩm", description: "Chọn món, xem công thức và báo hoàn thành" },
- { href: "/staff/finished-issues/export", icon: "outbox", title: "Đề nghị xuất thành phẩm", description: "Xem tổng hợp ca và gửi đề nghị xuất bán" },
- { href: "/staff/finished-defects", icon: "report_problem", title: "Báo thành phẩm lỗi", description: "Gửi phiếu thành phẩm lỗi chờ quản lý duyệt" },
-];
+import { useEffect, useRef, useState } from "react";
+import { ResourceState, useResource } from "@/components/staff/context";
+import { Badge, Card, Icon, SearchInput, SortSelect } from "@/components/staff/ui";
+import Issues from "@/components/staff/finished-issue-section";
+import Defects from "@/components/staff/finished-defect-section";
+type Stock = { code: string; name: string; unit: string; quantity: string };
 export default function FinishedGoodsHub() {
- return <div className="finished-hub"><Link className="staff-back" href="/staff">← Trang chủ</Link><h1>Thành phẩm</h1><p className="muted">Chọn công việc bạn muốn thực hiện.</p>{choices.map(choice => <Link key={choice.href} href={choice.href} className="finished-choice"><span className="finished-choice-icon"><Icon name={choice.icon}/></span><span className="finished-choice-text"><strong>{choice.title}</strong><small>{choice.description}</small></span><span aria-hidden="true">→</span></Link>)}</div>;
+ const stock = useResource<Stock[]>("staff/finished-issues/stock");
+ const [detail, setDetail] = useState<Stock | null>(null); const dialog = useRef<HTMLDialogElement>(null);
+ useEffect(() => { if (detail && !dialog.current?.open) dialog.current?.showModal(); }, [detail]);
+ const [panel, setPanel] = useState<"issue" | "defect" | null>(null);
+ const [search,setSearch] = useState(""); const [sort,setSort] = useState("name");
+ const items = (stock.data ?? []).filter(x => `${x.name} ${x.code}`.toLocaleLowerCase("vi").includes(search.trim().toLocaleLowerCase("vi"))).sort((a,b) => sort === "quantity" ? Number(b.quantity)-Number(a.quantity) : a.name.localeCompare(b.name,"vi"));
+ return <div className="space-y-5"><Link className="staff-back" href="/staff">← Trang chủ</Link><div className="stock-title-row"><h1>Kho thành phẩm {stock.data && <Badge tone="blue">{stock.data.length} loại</Badge>}</h1><button type="button" className="stock-icon-button stock-refresh" aria-label="Tải lại tồn thành phẩm" onClick={stock.reload}><Icon name="refresh"/></button></div><div className="stock-actions"><button type="button" className="btn btn-secondary" aria-expanded={panel === "issue"} onClick={() => setPanel(panel === "issue" ? null : "issue")}>Đề nghị xuất thành phẩm</button><button type="button" className="btn btn-secondary" aria-expanded={panel === "defect"} onClick={() => setPanel(panel === "defect" ? null : "defect")}>Báo thành phẩm lỗi</button></div>{panel && <div className="card">{panel === "issue" ? <Issues embedded /> : <Defects embedded />}</div>}<div className="staff-search-toolbar"><SearchInput value={search} onChange={setSearch} label="Tìm thành phẩm" hint="Tên hoặc mã thành phẩm"/><SortSelect value={sort} onChange={setSort} label="Sắp xếp thành phẩm" options={[["name","Tên A–Z"],["quantity","Tồn nhiều nhất"]]}/></div><ResourceState error={stock.error} loading={!stock.data && !stock.error} retry={stock.reload}/>{stock.data && !items.length && <p className="muted">Không có thành phẩm phù hợp.</p>}{items.map(x => <Card className="stock-card" key={x.code}><button type="button" className="stock-card-open" aria-label={`Xem chi tiết ${x.name}`} onClick={() => setDetail(x)}/><div className="stock-card-head"><strong className="stock-detail-link">{x.name}</strong></div><p className="stock-quantity">Tồn: {x.quantity} {x.unit} <span>· {x.code}</span></p></Card>)}<dialog ref={dialog} className="stock-dialog" onClose={() => setDetail(null)} aria-labelledby="finished-stock-detail"><button className="stock-close" type="button" aria-label="Đóng" onClick={() => dialog.current?.close()}>×</button>{detail && <><div className="detail-heading"><span>THÀNH PHẨM</span><h2 id="finished-stock-detail">Chi tiết thành phẩm</h2><p>{detail.name}</p></div><div className="detail-highlight"><span>Tồn hiện tại</span><strong>{detail.quantity} {detail.unit}</strong></div><dl className="detail-grid"><div><dt>Mã thành phẩm</dt><dd>{detail.code}</dd></div><div><dt>Đơn vị</dt><dd>{detail.unit}</dd></div></dl></>}</dialog></div>;
 }

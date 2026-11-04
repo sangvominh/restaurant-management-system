@@ -3,6 +3,7 @@ import { Prisma } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import type { StaffIdentity } from '../auth/auth.service.js';
 import { integer, object, text, uuid } from './input.js';
+import { randomUUID } from 'node:crypto';
 const invoiceInclude = { table: true, orders: { orderBy: { createdAt: 'asc' as const }, include: { lines: true } }, payment: true };
 export function invoiceTotal(orders: { lines: { status: string; quantity: number; unitPrice: number }[] }[]) {
   return orders.flatMap(o => o.lines).filter(l => l.status !== 'CANCELLED').reduce((sum, l) => sum + l.quantity * l.unitPrice, 0);
@@ -76,10 +77,25 @@ export class StaffService {
   kitchen(user: StaffIdentity) {
     return this.db.staffOrder.findMany({ where: { invoice: { branchId: user.branchId }, lines: { some: { status: { in: ['QUEUED', 'COOKING', 'READY'] } } } }, include: { invoice: { include: { table: true } }, lines: true }, orderBy: { createdAt: 'asc' } });
   }
+  private async requirements(tx: Prisma.TransactionClient, user: StaffIdentity, id: string) {
+    const line = await tx.orderLine.findFirst({ where: { id: uuid(id), order: { invoice: { branchId: user.branchId } } } });
+    if (!line) throw new NotFoundException('Không tìm thấy món.');
+    const recipes = await tx.$queryRaw<{code:string; name:string; unit:string; quantity:Prisma.Decimal; available:Prisma.Decimal}[]>`
+      SELECT m.code, m.name, u.name AS unit, r.quantity,
+        COALESCE((SELECT SUM(b.quantity) FROM staff_kitchen_balances b JOIN material_lots l ON l.id=b.material_lot_id WHERE b.branch_id=${user.branchId}::uuid AND l.material_id=m.id AND l.status='ACTIVE'),0) AS available
+      FROM staff_demo_order_recipes r JOIN materials m ON m.id=r.material_id JOIN units u ON u.id=m.unit_id
+      WHERE r.menu_item_id=${line.menuItemId}::uuid ORDER BY m.name`;
+    if (!recipes.length) throw new BadRequestException('Món chưa có công thức giả lập.');
+    return recipes.map(r => { const required = r.quantity.mul(line.quantity); return { code:r.code, name:r.name, unit:r.unit, required:required.toString(), available:r.available.toString(), shortage:Prisma.Decimal.max(required.minus(r.available),0).toString() }; });
+  }
+  lineRequirements(user: StaffIdentity, id: string) { return this.tx(tx => this.requirements(tx, user, id)); }
   updateLine(user: StaffIdentity, id: string, body: unknown) {
     const input = object(body); const status = text(input.status, 'Trạng thái');
+    const wastes = input.wastes == null ? (input.waste == null ? [] : [object(input.waste)]) : Array.isArray(input.wastes) ? input.wastes.map(object) : (() => { throw new BadRequestException('Danh sách hao hụt không hợp lệ.'); })();
+    if (wastes.length > 50) throw new BadRequestException('Tối đa 50 dòng hao hụt.');
+    if (wastes.length && status !== 'READY') throw new BadRequestException('Chỉ ghi hao hụt khi báo hoàn thành.');
     if (!['COOKING', 'READY', 'SERVED'].includes(status)) throw new BadRequestException('Trạng thái không hỗ trợ.');
-    if (status === 'SERVED' ? !['SERVICE', 'SUPERVISOR'].includes(user.role) : !['KITCHEN', 'SUPERVISOR'].includes(user.role)) throw new ForbiddenException('Không có quyền xử lý trạng thái này.');
+    if (status === 'SERVED' ? !['SERVICE', 'SUPERVISOR'].includes(user.role) : !['KITCHEN', 'BARISTA', 'SUPERVISOR'].includes(user.role)) throw new ForbiddenException('Không có quyền xử lý trạng thái này.');
     return this.tx(async tx => {
       const line = await tx.orderLine.findFirst({ where: { id: uuid(id), order: { invoice: { branchId: user.branchId } } }, include: { menuItem: { include: { recipe: true } } } });
       if (!line) throw new NotFoundException('Không tìm thấy món.');
@@ -87,10 +103,44 @@ export class StaffService {
       const previous = { COOKING: 'QUEUED', READY: 'COOKING', SERVED: 'READY' }[status];
       if (line.status !== previous) throw new ConflictException('Món đã đổi trạng thái. Hãy tải lại.');
       if (status === 'COOKING') {
-        throw new NotImplementedException('Chế biến từ đơn món chưa kết nối với kho chung. Vui lòng dùng luồng sản xuất của kho.');
+        const missing = (await this.requirements(tx, user, line.id)).filter(item => new Prisma.Decimal(item.shortage).gt(0));
+        if (missing.length) throw new BadRequestException(`Không đủ nguyên liệu tại bếp: ${missing.map(item => `${item.name} thiếu ${item.shortage} ${item.unit}`).join(', ')}.`);
+      }
+      if (status === 'READY') {
+        // Demo recipe quantities use the material's inventory unit. Missing mappings never consume stock.
+        const recipes = await tx.$queryRaw<{ material_id: string; quantity: Prisma.Decimal; name: string }[]>`
+          SELECT r.material_id, r.quantity, m.name FROM staff_demo_order_recipes r
+          JOIN materials m ON m.id=r.material_id WHERE r.menu_item_id=${line.menuItemId}::uuid ORDER BY r.material_id`;
+        if (!recipes.length) throw new BadRequestException('Món chưa có công thức giả lập; chưa thể báo hoàn thành.');
+        for (const recipe of recipes) {
+          let remaining = recipe.quantity.mul(line.quantity);
+          const lots = await tx.$queryRaw<{ material_lot_id: string; quantity: Prisma.Decimal }[]>`
+            SELECT b.material_lot_id, b.quantity FROM staff_kitchen_balances b
+            JOIN material_lots l ON l.id=b.material_lot_id
+            WHERE b.branch_id=${user.branchId}::uuid AND l.material_id=${recipe.material_id}::uuid AND l.status='ACTIVE' AND b.quantity > 0
+            ORDER BY l.expiry_date NULLS LAST, l.lot_code, l.id FOR UPDATE OF b`;
+          for (const lot of lots) {
+            if (remaining.lte(0)) break;
+            const used = Prisma.Decimal.min(remaining, lot.quantity);
+            await tx.$executeRaw`UPDATE staff_kitchen_balances SET quantity=quantity-${used} WHERE branch_id=${user.branchId}::uuid AND material_lot_id=${lot.material_lot_id}::uuid`;
+            await tx.$executeRaw`INSERT INTO staff_kitchen_order_consumptions(order_line_id,material_lot_id,quantity) VALUES (${line.id}::uuid,${lot.material_lot_id}::uuid,${used})`;
+            remaining = remaining.minus(used);
+          }
+          if (remaining.gt(0)) throw new BadRequestException(`Không đủ ${recipe.name} trong tồn bếp; chưa báo hoàn thành.`);
+        }
+      }
+      for (const waste of wastes) {
+        const lotId = uuid(waste.lotId); const reason = text(waste.reason, 'Lý do hao hụt', 1000);
+        if (typeof waste.quantity !== 'string' || !/^(?:0|[1-9]\d{0,8})(?:\.\d{1,3})?$/.test(waste.quantity)) throw new BadRequestException('Số lượng hao hụt không hợp lệ.');
+        const quantity = new Prisma.Decimal(waste.quantity);
+        if (quantity.lte(0)) throw new BadRequestException('Số lượng hao hụt phải lớn hơn 0.');
+        const updated = await tx.$executeRaw`UPDATE staff_kitchen_balances SET quantity=quantity-${quantity} WHERE branch_id=${user.branchId}::uuid AND material_lot_id=${lotId}::uuid AND quantity >= ${quantity}`;
+        if (updated !== 1) throw new BadRequestException('Hao hụt vượt tồn bếp còn lại sau khi chế biến.');
+        const code = `HH-${randomUUID().replaceAll('-', '').slice(0,12).toUpperCase()}`;
+        await tx.$executeRaw`INSERT INTO staff_kitchen_waste(code,actor_id,branch_id,material_lot_id,order_line_id,quantity,reason) VALUES (${code},${user.id}::uuid,${user.branchId}::uuid,${lotId}::uuid,${line.id}::uuid,${quantity},${reason})`;
       }
       const result = await tx.orderLine.update({ where: { id: line.id }, data: { status: status as 'COOKING' | 'READY' | 'SERVED', ...(status === 'COOKING' ? { cookingAt: new Date() } : status === 'READY' ? { readyAt: new Date() } : { servedAt: new Date() }) } });
-      await this.audit(tx, user, `LINE_${status}`, id, status === 'COOKING' ? 'Xuất kho FEFO theo sổ chế biến duy nhất' : 'Không thay đổi tồn kho');
+      await this.audit(tx, user, `LINE_${status}`, id, status === 'READY' ? 'Trừ tồn bếp theo công thức giả lập' : 'Không thay đổi tồn kho');
       return result;
     });
   }

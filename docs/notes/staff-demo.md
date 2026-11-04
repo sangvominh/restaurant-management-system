@@ -20,3 +20,11 @@ Các trạng thái lịch sử và việc cấp nguyên liệu của lệnh mẫ
 Chạy setup nhiều lần không đặt lại trạng thái đã thao tác. Dữ liệu container được giữ giữa các lần chạy; nếu kết thúc ca mẫu, hãy bắt đầu ca mới trên app. Để có lại toàn bộ trạng thái ban đầu cần tạo database demo mới sau khi tự lưu dữ liệu cần giữ.
 
 Dữ liệu kho mẫu dùng kg cho thịt bò, rau củ, trà khô và đường; sữa tươi dùng lít. Chạy lại setup sẽ sửa cách gán đơn vị và phân loại cũ của các mã demo trên, giữ nguyên con số tồn và đơn vị đã ghi trong phiếu lịch sử. Công thức trà sữa mẫu dùng 0,1 lít sữa cho mỗi ly. Đây là dữ liệu giả lập, không dùng để chuyển đổi số liệu kho thực tế.
+
+Bộ mẫu bếp bổ sung phiếu cấp `DEMO-CAP-BEP-001` và một order tại Bàn 01 gồm hai phần bò sốt cà chua, một trà sữa lài. Phiếu này trừ kho nguồn và ghi nhận mỗi nguyên liệu vào tồn bếp một lần. Công thức order là dữ liệu giả lập. Lệnh chưa được kho cấp trực tiếp sử dụng tồn bếp; lệnh đã được kho cấp trước đó tiếp tục dùng lượng cấp cũ. Thông báo hao hụt cho Admin chưa được nối. Chạy lại setup giữ nguyên số lượng đã thao tác, không tạo lại phiếu hoặc order mẫu.
+
+Các tình huống thử trên dữ liệu mới:
+
+- Order Bàn 01 có hai dòng bò sốt cà chua, mỗi dòng 6 phần. Ban đầu tồn bếp có 2 kg thịt bò; hoàn thành dòng đầu dùng 1,2 kg, dòng còn lại cần 1,2 kg và thiếu 0,4 kg. Chọn “Yêu cầu xuất NVL” để thử phiếu gợi ý.
+- Lệnh `DEMO-BEP-LSX-DU` đủ nguyên liệu theo tồn bếp ban đầu; `DEMO-BEP-LSX-THIEU` cần 3 kg thịt bò trong khi bếp có 2 kg, nên thiếu 1 kg. Kiểm thử riêng từng tình huống vì thao tác trên một case sẽ thay đổi tồn dùng chung.
+- Tại popup hoàn thành order, phải chọn “Không có hao hụt” hoặc chọn lô bị hao hụt và nhập số lượng, lý do.
