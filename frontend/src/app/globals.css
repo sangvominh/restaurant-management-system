@@ -2455,11 +2455,19 @@ textarea {
 /* Staff navigation and inventory controls */
 .staff-sidebar { display: none; }
 @media (min-width: 901px) {
-  .staff-sidebar { display: flex; position: fixed; top: 92px; bottom: 0; left: 0; width: 220px; flex-direction: column; gap: 4px; padding: 24px 14px; background: #fff; border-right: 1px solid #e2eaf3; overflow-y: auto; }
+  .staff-sidebar { display: flex; position: fixed; top: 0; bottom: 0; left: 0; width: 260px; flex-direction: column; gap: 4px; padding: 24px 18px; background: #fff; border-right: 1px solid #e2eaf3; overflow-y: auto; }
+  .staff-sidebar-brand { display: flex; align-items: center; gap: 10px; padding: 0 6px 24px; }
+  .staff-sidebar-brand-copy { display: flex; min-width: 0; flex-direction: column; align-items: flex-start; gap: 4px; }
+  .staff-sidebar-brand-heading { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+  .staff-sidebar-brand .brand-icon { width: 52px; height: 52px; }
+  .staff-sidebar-brand .brand-icon > .material-symbols-outlined { font-size: 26px; }
+  .staff-sidebar-brand-copy small { color: #718096; overflow-wrap: anywhere; }
+  .staff-header { margin-left: 260px; justify-content: flex-end; }
+  .staff-header-brand { display: none; }
   .staff-sidebar-title { padding: 0 12px 10px; color: #718096; font-size: 11px; font-weight: 700; letter-spacing: .08em; }
   .staff-side-link { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 10px; color: #51627a; font-weight: 600; }
   .staff-side-link:hover, .staff-side-link.active { background: #e5f4ff; color: #006fae; }
-  .staff-main { margin-left: 220px; max-width: 1400px; }
+  .staff-main { margin-left: 260px; max-width: 1400px; }
 }
 .staff-app input:focus-visible, .staff-app select:focus-visible { outline: none; border-color: #0077b6; box-shadow: 0 0 0 2px #0077b633; }
 .stock-form { display: grid; gap: 16px; margin-top: 18px; max-width: 420px; }

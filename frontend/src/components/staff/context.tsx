@@ -159,10 +159,10 @@ export function StaffShell({ children }: { children: ReactNode }) {
     <Context.Provider value={{ user, revision, refresh }}>
       <div className="staff-app">
         <header className="staff-header">
-          <Link href="/staff" aria-label="Trang chủ" className="brand-icon">
+          <Link href="/staff" aria-label="Trang chủ" className="brand-icon staff-header-brand">
             <Icon name="restaurant" />
           </Link>
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-1 staff-header-brand">
             <div className="flex flex-wrap items-center gap-2">
               <strong>{brand.name}</strong>
               <BadgeRole role={user.role} />
@@ -184,7 +184,12 @@ export function StaffShell({ children }: { children: ReactNode }) {
             </div>
           </details>
         </header>
-        <aside className="staff-sidebar"><p className="staff-sidebar-title">ĐIỀU HƯỚNG</p>{visibleNav.map(([icon, label, href]) => <Link key={href} href={href} className={isStaffNavActive(path, href) ? "staff-side-link active" : "staff-side-link"}><Icon name={icon}/><span>{label}</span></Link>)}</aside><main className="staff-main">{children}</main>
+        <aside className="staff-sidebar">
+          <Link href="/staff" className="staff-sidebar-brand">
+            <span className="brand-icon"><Icon name="restaurant" /></span>
+            <span className="staff-sidebar-brand-copy"><span className="staff-sidebar-brand-heading"><strong>{brand.name}</strong><BadgeRole role={user.role} /></span><small>{user.branch.name}</small></span>
+          </Link>
+          <p className="staff-sidebar-title">ĐIỀU HƯỚNG</p>{visibleNav.map(([icon, label, href]) => <Link key={href} href={href} className={isStaffNavActive(path, href) ? "staff-side-link active" : "staff-side-link"}><Icon name={icon}/><span>{label}</span></Link>)}</aside><main className="staff-main">{children}</main>
         <nav className="bottom-nav" aria-label="Điều hướng nhân viên">
           {visibleNav.map(([icon, label, href]) => (
             <Link
