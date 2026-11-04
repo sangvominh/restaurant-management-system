@@ -1,5 +1,37 @@
 # Web Admin Nhà hàng Mộc — Hướng dẫn bàn giao phân quyền
 
+## Chạy app nhân viên bằng Docker
+
+Cần Docker Desktop và Docker Compose. Tại thư mục gốc:
+
+```bash
+docker compose up -d --build
+```
+
+Lần đầu Docker tải dependencies, build ứng dụng, chạy migration và tạo dữ liệu demo; có thể mất vài phút. Xem tiến trình bằng `docker compose logs -f init backend frontend`. Mở [app nhân viên](http://localhost:3000/staff/login) sau khi các dịch vụ sẵn sàng.
+
+| Dịch vụ       | Địa chỉ trên máy                                                                |
+| ------------- | ------------------------------------------------------------------------------- |
+| App nhân viên | http://localhost:3000/staff/login                                               |
+| Backend       | http://localhost:3001                                                           |
+| PostgreSQL    | 127.0.0.1:5434 (`restaurant_dev`, user `restaurant`, mật khẩu `local_dev_only`) |
+
+Các cổng host có thể đổi bằng biến `FRONTEND_PORT`, `BACKEND_PORT`, `DB_PORT` khi chạy Compose. Frontend liên lạc với backend qua mạng Docker, không cần cấu hình thủ công.
+
+Tài khoản demo dùng mật khẩu **`demo-password-2026`**:
+
+| Mã nhân viên   | Vai trò  |
+| -------------- | -------- |
+| `DEMO-KITCHEN` | Bếp      |
+| `DEMO-BARISTA` | Pha chế  |
+| `DEMO-CASHIER` | Thu ngân |
+
+Dữ liệu được lưu trong Docker volume và được giữ khi chạy `docker compose down`. Seed không đặt lại mật khẩu hoặc toàn bộ trạng thái đã thao tác. `docker compose down -v` sẽ xóa volume và toàn bộ dữ liệu của Compose; chỉ dùng khi muốn tạo lại từ đầu. Tài khoản và mật khẩu này chỉ dành cho demo local. Xem [chi tiết dữ liệu và tình huống thử](docs/notes/staff-demo.md).
+
+`apps/warehouse-web/` là ứng dụng Admin/kho riêng, chưa nằm trong cấu hình Docker này. Một số chức năng kho vẫn dùng dữ liệu giả lập hoặc chưa được phân quyền đầy đủ; không dùng cấu hình demo cho dữ liệu thật.
+
+> Phần hướng dẫn cũ bên dưới được giữ nguyên để tham khảo; các địa chỉ và mô tả cũ có thể không còn khớp với cấu hình Docker ở trên.
+
 Tài liệu này dành cho người tiếp tục triển khai đăng nhập và phân quyền cho repo Admin/kho. **Authentication và authorization hiện chưa được triển khai**: các API đang mở, frontend hiển thị người dùng tĩnh và chưa có bảng tài khoản/nhân viên. Không đưa hệ thống lên môi trường có dữ liệu thật trước khi bổ sung bảo vệ API.
 
 App nhân viên do nhóm phát triển ở repo khác. Repo này chỉ cung cấp API để app đó tích hợp; không chứa mã nguồn app nhân viên.
@@ -55,15 +87,15 @@ Test hiện có khá mỏng: unit tests chủ yếu kiểm tra dependency wiring
 
 ## Luồng Admin hiện có
 
-| Nghiệp vụ | API chính | Lưu trữ |
-|---|---|---|
-| Quản lý món/thành phẩm | `/products` GET/POST/PATCH/DELETE | `Product` |
-| Công thức món | `/warehouse/boms` và `/warehouse/boms/:code` | `Bom`, `BomDetail` |
-| Lệnh sản xuất và ghi nhận thành phẩm làm xong | `/warehouse/production-orders` và `/:code/finished-goods` | `ProductionOrder`, `FinishedGoodsReceipt` |
-| Duyệt nhập sau sản xuất | `/warehouse/finished-goods-receipts` | `FinishedGoodsReceipt`, `FinishedGoodsBalance`, `FinishedGoodsMovement` |
-| Duyệt phiếu xuất món theo ca | `/warehouse/finished-goods-issues` | `FinishedGoodsIssue`, `FinishedGoodsIssueDetail`, `FinishedGoodsMovement` |
-| Duyệt báo thành phẩm lỗi | `/warehouse/finished-goods-defects` | `FinishedGoodsDefect`, có thể ghi `FinishedGoodsMovement` âm |
-| Tồn nguyên liệu/lịch sử | `/warehouse/inventory`, `/warehouse/inventory-movements` | `MaterialBalance`, `InventoryMovement` |
+| Nghiệp vụ                                     | API chính                                                 | Lưu trữ                                                                   |
+| --------------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------- |
+| Quản lý món/thành phẩm                        | `/products` GET/POST/PATCH/DELETE                         | `Product`                                                                 |
+| Công thức món                                 | `/warehouse/boms` và `/warehouse/boms/:code`              | `Bom`, `BomDetail`                                                        |
+| Lệnh sản xuất và ghi nhận thành phẩm làm xong | `/warehouse/production-orders` và `/:code/finished-goods` | `ProductionOrder`, `FinishedGoodsReceipt`                                 |
+| Duyệt nhập sau sản xuất                       | `/warehouse/finished-goods-receipts`                      | `FinishedGoodsReceipt`, `FinishedGoodsBalance`, `FinishedGoodsMovement`   |
+| Duyệt phiếu xuất món theo ca                  | `/warehouse/finished-goods-issues`                        | `FinishedGoodsIssue`, `FinishedGoodsIssueDetail`, `FinishedGoodsMovement` |
+| Duyệt báo thành phẩm lỗi                      | `/warehouse/finished-goods-defects`                       | `FinishedGoodsDefect`, có thể ghi `FinishedGoodsMovement` âm              |
+| Tồn nguyên liệu/lịch sử                       | `/warehouse/inventory`, `/warehouse/inventory-movements`  | `MaterialBalance`, `InventoryMovement`                                    |
 
 Phiếu xuất thành phẩm do app nhân viên gửi bằng `POST /warehouse/finished-goods-issues`; Admin chỉ xem và duyệt/từ chối. Ca hiện lưu bằng `shiftCode` dạng chuỗi, chưa có bảng `Shift` hay hệ thống mở/đóng ca.
 
@@ -99,16 +131,16 @@ Khuyến nghị NestJS `JwtAuthGuard` + `RolesGuard`/permission guard, gắn tr�
 
 Quyền nghiệp vụ cần tối thiểu:
 
-| Quyền | Admin nhà hàng/kho | Nhân viên |
-|---|---:|---:|
-| Đọc món và BOM | Có | Đọc món cần thiết |
-| Tạo/sửa món và BOM | Có | Không |
-| Gửi báo hoàn thành sản xuất | Không/giám sát | Có, theo lệnh được giao |
-| Tạo phiếu xuất thành phẩm theo ca | Không | Có, trong chi nhánh được cấp |
-| Duyệt/từ chối phiếu xuất thành phẩm | Có | Không |
-| Gửi báo thành phẩm lỗi | Không | Có |
-| Duyệt/từ chối thành phẩm lỗi | Có | Không |
-| Xem tồn kho | Có theo phạm vi | Chỉ phần cần cho công việc |
+| Quyền                               | Admin nhà hàng/kho |                    Nhân viên |
+| ----------------------------------- | -----------------: | ---------------------------: |
+| Đọc món và BOM                      |                 Có |            Đọc món cần thiết |
+| Tạo/sửa món và BOM                  |                 Có |                        Không |
+| Gửi báo hoàn thành sản xuất         |     Không/giám sát |      Có, theo lệnh được giao |
+| Tạo phiếu xuất thành phẩm theo ca   |              Không | Có, trong chi nhánh được cấp |
+| Duyệt/từ chối phiếu xuất thành phẩm |                 Có |                        Không |
+| Gửi báo thành phẩm lỗi              |              Không |                           Có |
+| Duyệt/từ chối thành phẩm lỗi        |                 Có |                        Không |
+| Xem tồn kho                         |    Có theo phạm vi |   Chỉ phần cần cho công việc |
 
 Đây là đề xuất theo luồng nghiệp vụ, chưa phải cấu hình quyền đã code. Chốt tên role/permission với nhóm trước khi migration.
 

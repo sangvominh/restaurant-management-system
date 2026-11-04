@@ -6,14 +6,47 @@ services:
       POSTGRES_PASSWORD: local_dev_only
       POSTGRES_DB: restaurant_dev
     ports:
-      - "127.0.0.1:5433:5432"
+      - "127.0.0.1:${DB_PORT:-5434}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U restaurant -d restaurant_dev"]
       interval: 5s
       timeout: 3s
-      retries: 10
+      retries: 20
+
+  init:
+    build: ./backend
+    environment: &backend-env
+      DATABASE_URL: postgresql://restaurant:local_dev_only@db:5432/restaurant_dev?schema=public
+      DEMO_SEED: "true"
+      DEMO_STAFF_PASSWORD: demo-password-2026
+    command: ["sh", "docker-init.sh"]
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  backend:
+    build: ./backend
+    environment:
+      <<: *backend-env
+      PORT: 3001
+    ports:
+      - "127.0.0.1:${BACKEND_PORT:-3001}:3001"
+    depends_on:
+      init:
+        condition: service_completed_successfully
+
+  frontend:
+    build: ./frontend
+    environment:
+      API_INTERNAL_URL: http://backend:3001
+    ports:
+      - "127.0.0.1:${FRONTEND_PORT:-3000}:3000"
+    depends_on:
+      backend:
+        condition: service_started
 
 volumes:
   postgres_data:
