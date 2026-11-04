@@ -1,72 +1,64 @@
 # Web Admin Nhà hàng Mộc — Hướng dẫn bàn giao phân quyền
 
-## Chạy app nhân viên bằng Docker
+## Chạy local
 
-Cần Docker Desktop và Docker Compose. Tại thư mục gốc:
+Cách chạy giống cấu hình của nhóm: PostgreSQL chạy bằng Docker Compose; backend và frontend chạy trực tiếp trên máy. Cần Docker Desktop, Docker Compose, Node.js từ 24.15.0 trong dòng 24 và npm.
+
+Tại thư mục gốc, khởi động database:
 
 ```bash
-docker compose up -d --build
+docker compose up -d db
 ```
 
-Lần đầu Docker tải dependencies, build ứng dụng, chạy migration và tạo dữ liệu demo; có thể mất vài phút. Xem tiến trình bằng `docker compose logs -f init backend frontend`. Mở [app nhân viên](http://localhost:3000/staff/login) sau khi các dịch vụ sẵn sàng.
+PostgreSQL mặc định ở `127.0.0.1:5433`, database `restaurant_dev`, user `restaurant`, mật khẩu `local_dev_only`. Dữ liệu nằm trong volume và được giữ khi chạy `docker compose down`; `docker compose down -v` sẽ xóa dữ liệu.
 
-| Dịch vụ       | Địa chỉ trên máy                                                                |
-| ------------- | ------------------------------------------------------------------------------- |
-| App nhân viên | http://localhost:3000/staff/login                                               |
-| Backend       | http://localhost:3001                                                           |
-| PostgreSQL    | 127.0.0.1:5434 (`restaurant_dev`, user `restaurant`, mật khẩu `local_dev_only`) |
-
-Các cổng host có thể đổi bằng biến `FRONTEND_PORT`, `BACKEND_PORT`, `DB_PORT` khi chạy Compose. Frontend liên lạc với backend qua mạng Docker, không cần cấu hình thủ công.
-
-Tài khoản demo dùng mật khẩu **`demo-password-2026`**:
-
-| Mã nhân viên   | Vai trò  |
-| -------------- | -------- |
-| `DEMO-KITCHEN` | Bếp      |
-| `DEMO-BARISTA` | Pha chế  |
-| `DEMO-CASHIER` | Thu ngân |
-
-Dữ liệu được lưu trong Docker volume và được giữ khi chạy `docker compose down`. Seed không đặt lại mật khẩu hoặc toàn bộ trạng thái đã thao tác. `docker compose down -v` sẽ xóa volume và toàn bộ dữ liệu của Compose; chỉ dùng khi muốn tạo lại từ đầu. Tài khoản và mật khẩu này chỉ dành cho demo local. Xem [chi tiết dữ liệu và tình huống thử](docs/notes/staff-demo.md).
-
-`apps/warehouse-web/` là ứng dụng Admin/kho riêng, chưa nằm trong cấu hình Docker này. Một số chức năng kho vẫn dùng dữ liệu giả lập hoặc chưa được phân quyền đầy đủ; không dùng cấu hình demo cho dữ liệu thật.
-
-> Phần hướng dẫn cũ bên dưới được giữ nguyên để tham khảo; các địa chỉ và mô tả cũ có thể không còn khớp với cấu hình Docker ở trên.
-
-Tài liệu này dành cho người tiếp tục triển khai đăng nhập và phân quyền cho repo Admin/kho. **Authentication và authorization hiện chưa được triển khai**: các API đang mở, frontend hiển thị người dùng tĩnh và chưa có bảng tài khoản/nhân viên. Không đưa hệ thống lên môi trường có dữ liệu thật trước khi bổ sung bảo vệ API.
-
-App nhân viên do nhóm phát triển ở repo khác. Repo này chỉ cung cấp API để app đó tích hợp; không chứa mã nguồn app nhân viên.
-
-## Thành phần và chạy local
-
-- `backend/`: NestJS API, Prisma 7 và PostgreSQL.
-- `apps/warehouse-web/`: Next.js 16 Admin/kho.
-- `docs/`: tài liệu nghiệp vụ của dự án.
-- `frontend/`: hiện không có mã nguồn ứng dụng.
-
-Yêu cầu: Node.js tương thích với các package trong lockfile, npm, Docker Desktop và Docker Compose.
+Nếu cổng `5433` đã được ứng dụng khác dùng, chọn cổng trống, ví dụ:
 
 ```bash
-# Từ thư mục gốc repo
-docker compose up -d db
+DB_PORT=5434 docker compose up -d db
+```
 
+Sau đó đổi cổng trong `DATABASE_URL` ở `backend/.env` cho khớp. Cổng này chỉ thay đổi cách kết nối từ máy, không đổi cổng PostgreSQL bên trong container.
+
+Cài và cấu hình backend:
+
+```bash
 cd backend
-npm install
-# Tạo .env từ .env.example nếu chưa có
-npx prisma generate
-npx prisma migrate deploy
+npm ci
+cp -n .env.example .env
+# Nếu dùng DB_PORT=5434, sửa localhost:5433 thành localhost:5434 trong .env
+npm run prisma:generate
+npm run db:migrate
 npm run start:dev
 ```
 
-Mở terminal khác để chạy Admin:
+Backend chạy ở `http://localhost:3001`. Để tạo dữ liệu demo nhân viên, dừng ở bước trước `npm run start:dev`, sau đó chạy từ thư mục gốc:
+
+```bash
+./scripts/staff-compose-seed.sh
+```
+
+Script tự xác định cổng của database Compose đang chạy, rồi chạy migration và nạp dữ liệu mẫu vào database đó; chỉ dùng với dữ liệu local/demo. Chạy lại không đặt lại toàn bộ trạng thái đã thao tác.
+
+Mở terminal khác để chạy app nhân viên:
+
+```bash
+cd frontend
+npm ci
+npm run dev -- --port 3002
+```
+
+Mở [app nhân viên](http://localhost:3002/staff/login). Các tài khoản `DEMO-KITCHEN`, `DEMO-BARISTA` và `DEMO-CASHIER` dùng mật khẩu demo `demo-password-2026`. Xem [chi tiết dữ liệu demo](docs/notes/staff-demo.md).
+
+Admin/kho là ứng dụng riêng ở `apps/warehouse-web/`. Để chạy cùng backend trên cổng 3001, cấu hình `API_BASE_URL=http://localhost:3001` trong `apps/warehouse-web/.env.local`, rồi chạy:
 
 ```bash
 cd apps/warehouse-web
-npm install
-# Tạo .env.local từ .env.example; cấu hình NEXT_PUBLIC_API_BASE_URL và API_BASE_URL
-npm run dev
+npm ci
+npm run dev -- --port 3003
 ```
 
-Mặc định API ở `http://localhost:3000`, Admin ở `http://localhost:3001`, PostgreSQL ở `localhost:5433`. Cấu hình database local nằm trong `.env.example` và `docker-compose.yml`; không commit `.env` chứa thông tin bí mật.
+Mở `http://localhost:3003`. Một số chức năng kho vẫn dùng dữ liệu giả lập hoặc chưa được phân quyền đầy đủ; không dùng cấu hình demo cho dữ liệu thật.
 
 ## Kiểm tra trước khi làm tiếp
 

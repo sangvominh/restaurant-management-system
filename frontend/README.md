@@ -28,7 +28,7 @@ npm run typecheck
 npm run build
 ```
 
-`/staff` là phần tích hợp API đang triển khai, chưa phải bản dùng thử nghiệp vụ hoàn chỉnh. Backend đã tạm dừng theo yêu cầu ưu tiên duyệt giao diện. Docker và kiểm thử nghiệp vụ sẽ hoàn thiện ở bước tích hợp tiếp theo.
+`/staff` kết nối backend local. Xem hướng dẫn chạy PostgreSQL, backend, dữ liệu demo và frontend trong [README gốc](../README.md).
 
 ## Trạng thái kiểm tra bản preview
 
