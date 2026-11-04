@@ -28,3 +28,7 @@ Các tình huống thử trên dữ liệu mới:
 - Order Bàn 01 có hai dòng bò sốt cà chua, mỗi dòng 6 phần. Ban đầu tồn bếp có 2 kg thịt bò; hoàn thành dòng đầu dùng 1,2 kg, dòng còn lại cần 1,2 kg và thiếu 0,4 kg. Chọn “Yêu cầu xuất NVL” để thử phiếu gợi ý.
 - Lệnh `DEMO-BEP-LSX-DU` đủ nguyên liệu theo tồn bếp ban đầu; `DEMO-BEP-LSX-THIEU` cần 3 kg thịt bò trong khi bếp có 2 kg, nên thiếu 1 kg. Kiểm thử riêng từng tình huống vì thao tác trên một case sẽ thay đổi tồn dùng chung.
 - Tại popup hoàn thành order, phải chọn “Không có hao hụt” hoặc chọn lô bị hao hụt và nhập số lượng, lý do.
+
+Để đưa database demo về trạng thái ban đầu, chạy `./scripts/staff-demo-reset.sh`. Script lưu một bản sao database demo vào thư mục tạm trước khi xóa và tạo lại; các thao tác test hiện tại sẽ không còn trong database đang dùng. Script chỉ tác động container `restaurant-staff-demo` và database `staff_demo`.
+
+Lưu ý khi test: báo hoàn thành nhiều đợt trong lúc phiếu trước chờ duyệt và hao hụt khi hoàn thành lệnh sản xuất chưa được hỗ trợ. Phiếu hao hụt tại bếp chưa được kết nối với màn hình Admin Kho.
