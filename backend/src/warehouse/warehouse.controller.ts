@@ -16,6 +16,7 @@ import { WarehouseService } from './warehouse.service.js';
 import { CreateReceiptDto } from './dto/create-receipt.dto.js';
 import { RejectMaterialIssueDto } from './dto/reject-material-issue.dto.js';
 import { CreateBomDto } from './dto/create-bom.dto.js';
+import { NewVersionBomDto, UpdateBomDto } from './dto/update-bom.dto.js';
 import { CheckBomStockDto } from './dto/check-bom-stock.dto.js';
 import { CreateProductionOrderDto } from './dto/create-production-order.dto.js';
 import { AssignProductionOrderDto } from './dto/assign-production-order.dto.js';
@@ -135,6 +136,41 @@ export class WarehouseController {
   // tạo công thức BOM
   createBom(@Body() dto: CreateBomDto) {
     return this.warehouseService.createBom(dto);
+  }
+
+  @Post('boms/:code/update')
+  @HttpCode(200)
+  @UsePipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  )
+  updateBom(@Param('code') code: string, @Body() dto: UpdateBomDto) {
+    return this.warehouseService.updateBom(code, dto);
+  }
+
+  @Post('boms/:code/new-version')
+  @HttpCode(200)
+  @UsePipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  )
+  createBomVersion(
+    @Param('code') code: string,
+    @Body() dto: NewVersionBomDto,
+  ) {
+    return this.warehouseService.createBomVersion(code, dto);
+  }
+
+  @Post('boms/:code/deactivate')
+  @HttpCode(200)
+  deactivateBom(@Param('code') code: string) {
+    return this.warehouseService.deactivateBom(code);
   }
   // GET /warehouse/boms
   @Get('boms')

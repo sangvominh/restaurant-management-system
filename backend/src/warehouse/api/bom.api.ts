@@ -9,6 +9,7 @@ import { PrismaService } from '../../prisma/prisma.service.js';
 import { Prisma } from '../../generated/prisma/client.js';
 import { CreateBomDto } from '../dto/create-bom.dto.js';
 import { CheckBomStockDto } from '../dto/check-bom-stock.dto.js';
+import { NewVersionBomDto, UpdateBomDto } from '../dto/update-bom.dto.js';
 
 @Injectable()
 export class BomApi {
@@ -83,24 +84,34 @@ export class BomApi {
 
     // 3. Lưu BOM và các nguyên vật liệu
     try {
-      const bom = await this.prisma.bom.create({
-        data: {
-          code,
-          productCode,
-          productName,
-          outputQuantity: new Prisma.Decimal(dto.outputQuantity),
-          details: {
-            create: details,
-          },
-        },
-        include: {
-          details: {
-            include: {
-              material: true,
-              unit: true,
+      const bom = await this.prisma.$transaction(async (tx) => {
+        await this.syncProduct(tx, productCode, {
+          productName: productName || productCode,
+          category: dto.category,
+          description: dto.description,
+          price: dto.price,
+        });
+
+        return tx.bom.create({
+          data: {
+            code,
+            productCode,
+            productName,
+            outputQuantity: new Prisma.Decimal(dto.outputQuantity),
+            details: {
+              create: details,
             },
           },
-        },
+          include: {
+            product: true,
+            details: {
+              include: {
+                material: true,
+                unit: true,
+              },
+            },
+          },
+        });
       });
 
       // 4. Trả kết quả
@@ -109,7 +120,7 @@ export class BomApi {
         data: {
           code: bom.code,
           productCode: bom.productCode,
-          productName: bom.productName,
+          productName: bom.productName || bom.product.name,
           version: bom.version,
           outputQuantity: bom.outputQuantity.toString(),
           status: bom.status,
@@ -137,6 +148,7 @@ export class BomApi {
     // 1. Lấy danh sách công thức BOM
     const boms = await this.prisma.bom.findMany({
       include: {
+        product: true,
         details: {
           include: {
             material: true,
@@ -147,7 +159,7 @@ export class BomApi {
       orderBy: {
         createdAt: 'desc',
       },
-      take: 50,
+      take: 200,
     });
 
     // 2. Trả kết quả
@@ -156,11 +168,14 @@ export class BomApi {
       data: boms.map((bom) => ({
         code: bom.code,
         productCode: bom.productCode,
-        productName: bom.productName,
+        productName: bom.productName || bom.product.name,
         version: bom.version,
         outputQuantity: bom.outputQuantity.toString(),
         status: bom.status,
         createdAt: bom.createdAt,
+        category: bom.product.category,
+        description: bom.product.description,
+        price: bom.product.price.toString(),
 
         totalMaterials: bom.details.length,
 
@@ -179,6 +194,7 @@ export class BomApi {
     const bom = await this.prisma.bom.findUnique({
       where: { code },
       include: {
+        product: true,
         details: {
           include: {
             material: true,
@@ -199,11 +215,24 @@ export class BomApi {
       data: {
         code: bom.code,
         productCode: bom.productCode,
-        productName: bom.productName,
+        productName: bom.productName || bom.product.name,
         version: bom.version,
         outputQuantity: bom.outputQuantity.toString(),
         status: bom.status,
         createdAt: bom.createdAt,
+        category: bom.product.category,
+        description: bom.product.description,
+        price: bom.product.price.toString(),
+        versions: await this.prisma.bom.findMany({
+          where: { productCode: bom.productCode },
+          orderBy: { version: 'desc' },
+          select: {
+            code: true,
+            version: true,
+            status: true,
+            createdAt: true,
+          },
+        }),
 
         totalMaterials: bom.details.length,
 
@@ -214,6 +243,199 @@ export class BomApi {
           quantity: item.quantity.toString(),
         })),
       },
+    };
+  }
+
+  async updateBom(code: string, dto: UpdateBomDto) {
+    const bom = await this.prisma.bom.findUnique({
+      where: { code: code.trim() },
+      include: { details: true },
+    });
+
+    if (!bom) {
+      throw new NotFoundException('Không tìm thấy công thức BOM');
+    }
+
+    if (bom.status !== 'ACTIVE') {
+      throw new ConflictException(
+        'Công thức đã ngừng áp dụng. Hãy tạo version mới.',
+      );
+    }
+
+    const outputQuantity = new Prisma.Decimal(dto.outputQuantity);
+    if (outputQuantity.lte(0)) {
+      throw new BadRequestException('Sản lượng phải lớn hơn 0');
+    }
+
+    const details = await this.resolveDetails(dto.details);
+    const openOrders = await this.prisma.productionOrder.count({
+      where: {
+        bomId: bom.id,
+        status: { notIn: ['COMPLETED', 'CANCELLED'] },
+      },
+    });
+
+    if (openOrders > 0 && !this.sameRecipe(bom, outputQuantity, details)) {
+      throw new BadRequestException(
+        'Công thức đang có lệnh sản xuất chưa xong. Hãy tạo version mới thay vì sửa định mức.',
+      );
+    }
+
+    let updated;
+    try {
+      updated = await this.prisma.$transaction(async (tx) => {
+        await this.syncProduct(tx, bom.productCode, dto);
+
+        if (!this.sameRecipe(bom, outputQuantity, details)) {
+          await tx.bomDetail.deleteMany({ where: { bomId: bom.id } });
+          await tx.bomDetail.createMany({
+            data: details.map((item) => ({
+              bomId: bom.id,
+              materialId: item.materialId,
+              unitId: item.unitId,
+              quantity: item.quantity,
+            })),
+          });
+        }
+
+        return tx.bom.update({
+          where: { id: bom.id },
+          data: {
+            productName: dto.productName.trim(),
+            outputQuantity,
+          },
+          include: {
+            product: true,
+            details: { include: { material: true, unit: true } },
+          },
+        });
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2003'
+      ) {
+        throw new BadRequestException(
+          'Định mức đã gắn với lệnh sản xuất. Hãy tạo version mới.',
+        );
+      }
+
+      throw error;
+    }
+
+    return {
+      message: 'Cập nhật món và BOM thành công',
+      data: this.presentBom(updated),
+    };
+  }
+
+  async createNewVersion(code: string, dto: NewVersionBomDto) {
+    const source = await this.prisma.bom.findUnique({
+      where: { code: code.trim() },
+    });
+
+    if (!source) {
+      throw new NotFoundException('Không tìm thấy công thức BOM');
+    }
+
+    const outputQuantity = new Prisma.Decimal(dto.outputQuantity);
+    if (outputQuantity.lte(0)) {
+      throw new BadRequestException('Sản lượng phải lớn hơn 0');
+    }
+
+    const details = await this.resolveDetails(dto.details);
+    const latest = await this.prisma.bom.aggregate({
+      where: { productCode: source.productCode },
+      _max: { version: true },
+    });
+    const version = (latest._max.version ?? source.version) + 1;
+    const nextCode = await this.nextBomCode(
+      dto.code?.trim(),
+      source.productCode,
+      version,
+    );
+
+    try {
+      const bom = await this.prisma.$transaction(async (tx) => {
+        await this.syncProduct(tx, source.productCode, dto);
+
+        return tx.bom.create({
+          data: {
+            code: nextCode,
+            productCode: source.productCode,
+            productName: dto.productName.trim(),
+            version,
+            outputQuantity,
+            status: 'ACTIVE',
+            details: {
+              create: details.map((item) => ({
+                material: { connect: { id: item.materialId } },
+                unit: { connect: { id: item.unitId } },
+                quantity: item.quantity,
+              })),
+            },
+          },
+          include: {
+            product: true,
+            details: { include: { material: true, unit: true } },
+          },
+        });
+      });
+
+      return {
+        message: 'Đã tạo version mới của món',
+        data: this.presentBom(bom),
+      };
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new ConflictException('Mã BOM hoặc phiên bản đã tồn tại');
+      }
+
+      throw error;
+    }
+  }
+
+  async deactivateBom(code: string) {
+    const bom = await this.prisma.bom.findUnique({
+      where: { code: code.trim() },
+    });
+
+    if (!bom) {
+      throw new NotFoundException('Không tìm thấy công thức BOM');
+    }
+
+    if (bom.status !== 'ACTIVE') {
+      throw new ConflictException('Công thức đã ngừng áp dụng');
+    }
+
+    const openOrders = await this.prisma.productionOrder.count({
+      where: {
+        bomId: bom.id,
+        status: { notIn: ['COMPLETED', 'CANCELLED'] },
+      },
+    });
+
+    if (openOrders > 0) {
+      throw new ConflictException(
+        'Còn lệnh sản xuất chưa hoàn thành. Hãy xử lý lệnh trước khi ngừng áp dụng.',
+      );
+    }
+
+    const updated = await this.prisma.bom.updateMany({
+      where: { id: bom.id, status: 'ACTIVE' },
+      data: { status: 'INACTIVE' },
+    });
+
+    if (updated.count !== 1) {
+      throw new ConflictException('Công thức đã được xử lý');
+    }
+
+    return {
+      message: 'Đã ngừng áp dụng công thức',
+      data: { code: bom.code, status: 'INACTIVE' },
     };
   }
 // Kiểm tra nguyên vật liệu theo BOM
@@ -373,6 +595,183 @@ export class BomApi {
         canProduce,
         materials,
       },
+    };
+  }
+
+  private async resolveDetails(items: UpdateBomDto['details']) {
+    const details: {
+      materialId: string;
+      unitId: string;
+      quantity: Prisma.Decimal;
+    }[] = [];
+    const usedMaterials = new Set<string>();
+
+    for (const item of items) {
+      const materialCode = item.materialCode.trim();
+
+      if (usedMaterials.has(materialCode)) {
+        throw new BadRequestException('Nguyên vật liệu bị trùng');
+      }
+
+      usedMaterials.add(materialCode);
+
+      const material = await this.prisma.material.findUnique({
+        where: { code: materialCode },
+      });
+      const unit = await this.prisma.unit.findUnique({
+        where: { name: item.unitName.trim() },
+      });
+
+      if (!material || material.status !== 'ACTIVE') {
+        throw new BadRequestException(
+          `Nguyên vật liệu không hợp lệ: ${materialCode}`,
+        );
+      }
+
+      if (!unit || unit.status !== 'ACTIVE') {
+        throw new BadRequestException('Đơn vị tính không hợp lệ');
+      }
+
+      if (unit.id !== material.unitId && unit.baseUnitId !== material.unitId) {
+        throw new BadRequestException('Đơn vị tính không phù hợp');
+      }
+
+      const quantity = new Prisma.Decimal(item.quantity);
+
+      if (quantity.lte(0)) {
+        throw new BadRequestException('Số lượng NVL phải lớn hơn 0');
+      }
+
+      details.push({ materialId: material.id, unitId: unit.id, quantity });
+    }
+
+    return details;
+  }
+
+  private sameRecipe(
+    bom: {
+      outputQuantity: Prisma.Decimal;
+      details: {
+        materialId: string;
+        unitId: string;
+        quantity: Prisma.Decimal;
+      }[];
+    },
+    outputQuantity: Prisma.Decimal,
+    details: {
+      materialId: string;
+      unitId: string;
+      quantity: Prisma.Decimal;
+    }[],
+  ) {
+    if (
+      !bom.outputQuantity.equals(outputQuantity) ||
+      bom.details.length !== details.length
+    ) {
+      return false;
+    }
+
+    const current = [...bom.details].sort((a, b) =>
+      a.materialId.localeCompare(b.materialId),
+    );
+    const next = [...details].sort((a, b) =>
+      a.materialId.localeCompare(b.materialId),
+    );
+
+    return current.every(
+      (item, index) =>
+        item.materialId === next[index].materialId &&
+        item.unitId === next[index].unitId &&
+        item.quantity.equals(next[index].quantity),
+    );
+  }
+
+  private async syncProduct(
+    tx: Prisma.TransactionClient,
+    productCode: string,
+    dto: {
+      productName?: string | null;
+      category?: string;
+      description?: string;
+      price?: string;
+    },
+  ) {
+    const name = dto.productName?.trim() || productCode;
+    const existing = await tx.product.findUnique({
+      where: { code: productCode },
+    });
+
+    if (!existing) {
+      await tx.product.create({
+        data: {
+          code: productCode,
+          name,
+          category: dto.category?.trim() || 'Món ăn',
+          price: new Prisma.Decimal(dto.price || 0),
+          unit: 'phần',
+          description: dto.description?.trim() || null,
+        },
+      });
+      return;
+    }
+
+    await tx.product.update({
+      where: { code: productCode },
+      data: {
+        name,
+        ...(dto.category?.trim() ? { category: dto.category.trim() } : {}),
+        ...(dto.description !== undefined
+          ? { description: dto.description.trim() || null }
+          : {}),
+        ...(dto.price ? { price: new Prisma.Decimal(dto.price) } : {}),
+      },
+    });
+  }
+
+  private async nextBomCode(
+    requested: string | undefined,
+    productCode: string,
+    version: number,
+  ) {
+    const fallback = `${productCode}-V${version}`.slice(0, 50);
+    const code = requested || fallback;
+    const taken = await this.prisma.bom.findUnique({ where: { code } });
+
+    if (!taken) {
+      return code;
+    }
+
+    const generated = `${productCode}-V${version}-${Date.now()}`.slice(0, 50);
+    return generated;
+  }
+
+  private presentBom(bom: {
+    code: string;
+    productCode: string;
+    productName: string | null;
+    version: number;
+    outputQuantity: Prisma.Decimal;
+    status: string;
+    product: { name: string };
+    details: {
+      quantity: Prisma.Decimal;
+      material: { code: string; name: string };
+      unit: { name: string };
+    }[];
+  }) {
+    return {
+      code: bom.code,
+      productCode: bom.productCode,
+      productName: bom.productName || bom.product.name,
+      version: bom.version,
+      outputQuantity: bom.outputQuantity.toString(),
+      status: bom.status,
+      details: bom.details.map((item) => ({
+        materialCode: item.material.code,
+        materialName: item.material.name,
+        unitName: item.unit.name,
+        quantity: item.quantity.toString(),
+      })),
     };
   }
 }

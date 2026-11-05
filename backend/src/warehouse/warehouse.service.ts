@@ -6,6 +6,7 @@ import { CreateReceiptDto } from './dto/create-receipt.dto.js';
 import { MaterialIssueApi } from './api/material-issue.api.js';
 import { BomApi } from './api/bom.api.js';
 import { CreateBomDto } from './dto/create-bom.dto.js';
+import { NewVersionBomDto, UpdateBomDto } from './dto/update-bom.dto.js';
 import { CheckBomStockDto } from './dto/check-bom-stock.dto.js';
 import { ProductionOrderApi } from './api/production-order.api.js';
 import { CreateProductionOrderDto } from './dto/create-production-order.dto.js';
@@ -104,6 +105,18 @@ export class WarehouseService {
   // Xem chi tiết công thức BOM
   getBomByCode(code: string) {
     return this.bomApi.getBomByCode(code);
+  }
+
+  updateBom(code: string, dto: UpdateBomDto) {
+    return this.bomApi.updateBom(code, dto);
+  }
+
+  createBomVersion(code: string, dto: NewVersionBomDto) {
+    return this.bomApi.createNewVersion(code, dto);
+  }
+
+  deactivateBom(code: string) {
+    return this.bomApi.deactivateBom(code);
   }
 
   // Kiểm tra nguyên vật liệu theo BOM

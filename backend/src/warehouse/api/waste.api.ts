@@ -14,20 +14,20 @@ export class WasteApi {
 
   //Danh sách yêu cầu hao hụt
   async getRequests(status = 'PENDING') {
-    const valid = ['PENDING', 'APPROVED', 'REJECTED'];
+    const valid = ['PENDING', 'APPROVED', 'REJECTED', 'ALL'];
 
     if (!valid.includes(status)) {
       throw new BadRequestException('Trạng thái không hợp lệ');
     }
 
     const requests = await this.prisma.wasteRequest.findMany({
-      where: { status },
+      where: status === 'ALL' ? {} : { status },
       include: {
         receipt: {
           include: {
             productionOrder: {
               include: {
-                bom: true,
+                bom: { include: { product: true } },
                 branch: true,
               },
             },
@@ -35,7 +35,7 @@ export class WasteApi {
         },
       },
       orderBy: { createdAt: 'desc' },
-      take: 50,
+      take: 200,
     });
 
     return {
@@ -45,12 +45,17 @@ export class WasteApi {
         receiptCode: item.receipt.code,
         orderCode: item.receipt.productionOrder.code,
         productCode: item.receipt.productionOrder.bom.productCode,
+        productName:
+          item.receipt.productionOrder.bom.product.name ||
+          item.receipt.productionOrder.bom.productName ||
+          item.receipt.productionOrder.bom.productCode,
         branchCode: item.receipt.productionOrder.branch.code,
         quantity: item.quantity.toString(),
         reason: item.reason,
         status: item.status,
         decisionNote: item.decisionNote,
         createdAt: item.createdAt,
+        processedAt: item.processedAt,
       })),
     };
   }

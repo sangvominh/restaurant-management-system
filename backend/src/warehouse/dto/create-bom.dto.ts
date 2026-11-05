@@ -42,6 +42,20 @@ export class CreateBomDto {
   @MaxLength(150)
   productName?: string;
 
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  category?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000)
+  description?: string;
+
+  @IsOptional()
+  @Matches(/^\d{1,15}(\.\d{1,2})?$/)
+  price?: string;
+
   @IsString()
   @Matches(/^\d{1,15}(\.\d{1,3})?$/)
   outputQuantity: string;

@@ -350,8 +350,16 @@ export class FinishedGoodsApi {
       },
       include: { location: true },
       orderBy: { productCode: 'asc' },
-      take: 100,
+      take: 200,
     });
+
+    const products = await this.prisma.product.findMany({
+      where: { code: { in: balances.map((item) => item.productCode) } },
+      select: { code: true, name: true },
+    });
+    const productNames = new Map(
+      products.map((item) => [item.code, item.name]),
+    );
 
     // 3. Trả kết quả
     return {
@@ -361,6 +369,7 @@ export class FinishedGoodsApi {
         totalItems: balances.length,
         items: balances.map((item) => ({
           productCode: item.productCode,
+          productName: productNames.get(item.productCode) ?? item.productCode,
           locationName: item.location.name,
           quantity: item.quantity.toString(),
         })),
@@ -434,13 +443,17 @@ export class FinishedGoodsApi {
       include: {
         receipt: {
           include: {
-            productionOrder: true,
+            productionOrder: {
+              include: {
+                bom: { include: { product: true } },
+              },
+            },
           },
         },
-        location: true,
+        location: { include: { branch: true } },
       },
       orderBy: { createdAt: 'desc' },
-      take: 100,
+      take: 200,
     });
 
     return {
@@ -449,10 +462,18 @@ export class FinishedGoodsApi {
         receiptCode: item.receipt.code,
         orderCode: item.receipt.productionOrder.code,
         productCode: item.productCode,
+        productName:
+          item.receipt.productionOrder.bom.product.name ||
+          item.receipt.productionOrder.bom.productName ||
+          item.productCode,
+        branchCode: item.location.branch.code,
         locationName: item.location.name,
         quantityBefore: item.quantityBefore.toString(),
         quantityChange: item.quantityChange.toString(),
         quantityAfter: item.quantityAfter.toString(),
+        receiptStatus: item.receipt.status,
+        inspectionNote: item.receipt.inspectionNote,
+        approvedAt: item.receipt.approvedAt,
         createdAt: item.createdAt,
       })),
     };

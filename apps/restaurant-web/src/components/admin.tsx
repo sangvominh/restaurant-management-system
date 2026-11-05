@@ -1,13 +1,12 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import { Bell, Boxes, ChefHat, ClipboardCheck, FileWarning, PackageCheck, Utensils, ChevronRight, CookingPot } from "lucide-react";
+import { Bell, Boxes, ChefHat, ClipboardCheck, FileWarning, PackageCheck, ChevronRight, CookingPot } from "lucide-react";
 
 const sections = [
   { id: "dishes", label: "Quản lý món", icon: CookingPot },
   { id: "products", label: "Tồn kho thành phẩm", icon: Boxes },
   { id: "exports", label: "Duyệt xuất thành phẩm", icon: ClipboardCheck },
-  { id: "recipes", label: "Danh sách công thức BOM", icon: Utensils },
   { id: "waste", label: "Hủy thành phẩm", icon: FileWarning },
 ];
 
