@@ -1,5 +1,7 @@
 # Bàn giao App Nhân viên: hao hụt và hoàn trả NVL
 
+**Cập nhật:** phiếu Staff hiện được Admin Kho đọc/xử lý trực tiếp tại bản ghi gốc; xem [contract dùng chung hiện tại](README_SHARED_MATERIAL_ADJUSTMENTS.md). Nội dung dưới mô tả cơ chế MaterialAdjustment cũ, vẫn giữ cho các phiếu cũ.
+
 Admin Kho đã có bốn API `/warehouse/material-adjustments`: GET danh sách, GET `/:code`, POST `/:code/approve`, POST `/:code/reject`. **Chưa có API nhân viên tạo phiếu hoặc chốt tiêu hao**. Staff cần triển khai riêng; không ghi DB từ frontend.
 
 Một phiếu hiện lưu **một NVL/lô/vị trí**, không phải nhiều dòng.

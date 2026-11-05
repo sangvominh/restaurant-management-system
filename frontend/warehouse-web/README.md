@@ -5,7 +5,7 @@ Frontend Next.js App Router độc lập. Trang tồn kho nguyên vật liệu v
 ## Chạy ứng dụng
 
 ```bash
-cd apps/warehouse-web
+cd frontend/warehouse-web
 npm install
 npm run dev
 ```

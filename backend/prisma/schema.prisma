@@ -232,6 +232,9 @@ model InventoryMovement {
 
   @@index([materialLotId, locationId])
   @@index([productionOrderId])
+  staffStockWaste StaffMaterialWaste?
+  staffReturn StaffMaterialReturn?
+
   @@map("inventory_movements")
 }
 
@@ -751,6 +754,10 @@ model StaffMaterialWaste {
   reason String @db.Text
   status String @default("PENDING")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  decisionNote String? @map("decision_note") @db.Text
+  processedAt DateTime? @map("processed_at") @db.Timestamptz(3)
+  movementId String? @unique @map("movement_id") @db.Uuid
+  movement InventoryMovement? @relation(fields: [movementId], references: [id], onDelete: Restrict)
   @@index([actorId, branchId])
   @@map("staff_material_waste")
 }
@@ -771,6 +778,8 @@ model StaffMaterialReturn {
   processedAt DateTime? @map("processed_at") @db.Timestamptz(3)
   status String @default("PENDING")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  movementId String? @unique @map("movement_id") @db.Uuid
+  movement InventoryMovement? @relation(fields: [movementId], references: [id], onDelete: Restrict)
   @@index([issueDetailId, status])
   @@map("staff_material_returns")
 }

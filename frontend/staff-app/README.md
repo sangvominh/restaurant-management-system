@@ -7,7 +7,7 @@ Next.js + React + TypeScript + Tailwind CSS. Thiết kế Ocean Blue Ops, tên t
 Yêu cầu Node.js 24 LTS (khuyến nghị), npm.
 
 ```sh
-cd frontend
+cd frontend/staff-app
 npm ci
 npm run dev -- --port 3003
 ```
@@ -28,11 +28,11 @@ npm run typecheck
 npm run build
 ```
 
-`/staff` kết nối backend local. Xem hướng dẫn chạy PostgreSQL, backend, dữ liệu demo và frontend trong [README gốc](../README.md).
+`/staff` kết nối backend local. Xem hướng dẫn chạy PostgreSQL, backend, dữ liệu demo và frontend trong [README gốc](../../README.md).
 
 ## Trạng thái kiểm tra bản preview
 
 - 11 route preview trả HTTP 200 và có nhãn dữ liệu mẫu.
 - Đã xem giao diện trên trình duyệt, thử khung 390px và kiểm tra tăng số lượng món / thông báo chưa kết nối.
 - ESLint đạt, không còn cảnh báo sau khi sửa cấu hình font trong root layout.
-- Bản tích hợp feat/restaurant_v2: đã cài lại dependency theo lockfile; typecheck và production build PASS. Xem ../README_INTEGRATION.md về điều kiện DB và các luồng chưa liên thông.
+- Bản tích hợp feat/restaurant_v2: đã cài lại dependency theo lockfile; typecheck và production build PASS. Xem ../../README_INTEGRATION.md về điều kiện DB và các luồng chưa liên thông.

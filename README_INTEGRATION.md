@@ -4,13 +4,13 @@
 
 Đã lấy code từ `feat/restaurant_v1` (4a8d524) và `feat/staff-app` (64cc8eb), xử lý xung đột trên worktree riêng. Bản gộp được lưu trên `feat/restaurant_v2` bằng merge commit để giữ lịch sử hai nhánh nguồn. Hai nhánh nguồn và thay đổi CSS đang staged ở workspace Staff gốc được giữ nguyên.
 
-Worktree: `C:/Users/nhanh/.codex/worktrees/restaurant-v2/restaurant-management-system`.
+Các ứng dụng giao diện nằm trong `frontend/` tại thư mục gốc dự án.
 
 | Giao diện | Thư mục | Cổng mặc định |
 | --- | --- | --- |
-| Admin Kho | `apps/warehouse-web` | 3001 |
-| Admin Nhà hàng | `apps/restaurant-web` | 3002 |
-| Nhân viên | `frontend` | 3003 |
+| Admin Kho | `frontend/warehouse-web` | 3001 |
+| Admin Nhà hàng | `frontend/restaurant-web` | 3002 |
+| Nhân viên | `frontend/staff-app` | 3003 |
 | Backend chung | `backend` | 3000 |
 
 Hai giao diện Admin giữ nguyên code của Restaurant. Staff giữ code của Staff và bổ sung bản sửa header sticky chưa commit từ workspace gốc. Không thay logic duyệt hao hụt/hoàn trả của Admin Kho.
@@ -41,13 +41,13 @@ Hai giao diện Admin giữ nguyên code của Restaurant. Staff giữ code củ
 
 Unit Test chạy với DATABASE_URL giả ở cổng 1, bỏ TEST_KITCHEN_DATABASE, không kết nối DB thật. Các suite PostgreSQL không được bật. Không dùng kết quả build để kết luận luồng nghiệp vụ đã PASS.
 
-## Chưa liên thông — cần thống nhất contract
+## Tình trạng luồng và phần cần thống nhất
 
 | Luồng | Hiện trạng / hướng xử lý tiếp |
 | --- | --- |
 | Staff gửi đề nghị lĩnh NVL → Kho | Dùng chung MaterialIssue; trigger Staff nhận tồn bếp nằm trong migration. Chưa kiểm thử giao dịch PostgreSQL của bản gộp. |
 | Staff báo chế biến → duyệt nhập thành phẩm | Dùng chung ProductionOrder/FinishedGoodsReceipt; cần test đủ nhiều đợt, duyệt/từ chối và tiêu hao theo lô. |
-| Hao hụt / hoàn trả NVL | Staff dùng StaffMaterialWaste, staff_kitchen_waste, StaffMaterialReturn; Kho đọc MaterialAdjustment và settlement. Cần chọn một hợp đồng xử lý, khóa và quyết toán dùng chung; chưa tự sao chép phiếu hoặc cộng/trừ tồn ở lượt này. |
+| Hao hụt / hoàn trả NVL | Đã nối Staff → Admin trên bản ghi nguồn, không tạo bản sao; giữ phiếu Warehouse cũ. Đã kiểm thử trên DB test; xem [báo cáo hiện tại](README_SHARED_MATERIAL_ADJUSTMENTS.md). |
 | Xuất / báo lỗi thành phẩm | Staff gửi FinishedGoodsIssue/FinishedGoodsDefect/staff_processing_defects; UI Restaurant đang đọc FinishedGoodsReceipt/WasteRequest. Cần nối đúng danh sách và API duyệt, tránh hiểu nhầm duyệt nhập là duyệt xuất. |
 | Tạo món và BOM | Restaurant hiện tạo món bằng POST /warehouse/boms với productName. Schema Staff bổ sung FK productCode → Product.code: tạo mã món mới chưa có trong Product sẽ bị chặn. Cần thống nhất form tạo Product + BOM hoặc contract tạo đồng thời, không tự gán giá/nhóm món giả. |
 | Tiêu hao MRP | ProductionOrder cấp từ kho tổng và Staff cấp vào bếp là hai đường khác nhau. Chưa tự ghép/cấp cả hai cho cùng nhu cầu; cần đối chiếu để tránh trừ hai lần. |
@@ -58,13 +58,13 @@ Chưa chạy migration, seed, reset hay thay đổi dữ liệu DB dùng chung. 
 
 ## Chạy local sau khi nhóm xác nhận DB tương thích
 
-Chạy trong **worktree mới**, mỗi tiến trình một terminal. Không chạy script setup/reset/seed tự động của Staff vào DB dùng chung.
+Chạy từ **thư mục gốc dự án**, mỗi tiến trình một terminal. Không chạy script setup/reset/seed tự động của Staff vào DB dùng chung.
 
 1. Backend: cấu hình backend/.env với DATABASE_URL đã được nhóm duyệt và PORT=3000, rồi:
    `cd backend` → `npm ci` → `npm run prisma:generate` → `npm run start:dev`.
-2. Admin Kho: `cd apps/warehouse-web` → `npm ci` → `npm run dev`.
-3. Admin Nhà hàng: `cd apps/restaurant-web` → `npm ci` → `npm run dev`.
-4. Staff: `cd frontend` → `npm ci` → `npm run dev`; mở http://localhost:3003/staff/login.
+2. Admin Kho: `cd frontend/warehouse-web` → `npm ci` → `npm run dev`.
+3. Admin Nhà hàng: `cd frontend/restaurant-web` → `npm ci` → `npm run dev`.
+4. Staff: `cd frontend/staff-app` → `npm ci` → `npm run dev`; mở http://localhost:3003/staff/login.
 
 Admin dùng API_BASE_URL, Staff dùng API_INTERNAL_URL; mặc định đều về Backend 3000. Nếu backend/.env cũ còn PORT=3001, cần đổi sang 3000 hoặc override cổng và proxy đồng bộ.
 

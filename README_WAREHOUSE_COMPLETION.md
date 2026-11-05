@@ -109,11 +109,11 @@ File sửa (đường dẫn từ gốc repo):
 - `backend/src/warehouse/warehouse.service.spec.ts`: bổ sung mock hai dependency mới để typecheck test đầy đủ.
 - `backend/prisma/schema.prisma`: ba model mới và backrelations.
 - `backend/test/warehouse-admin.e2e-spec.ts`: chạy DB test cô lập.
-- `apps/warehouse-web/src/app/{page.tsx,[section]/page.tsx,inventory/page.tsx,api/warehouse/[...path]/route.ts}`: route dữ liệu thật, proxy allowlist, thông báo lỗi.
-- `apps/warehouse-web/src/components/layout/app-shell.tsx`: menu hoàn trả, bỏ thông tin giả và nút không có chức năng.
-- `apps/warehouse-web/src/components/inventory/inventory-list.tsx`: nhãn lịch sử rõ ràng.
-- `apps/warehouse-web/src/components/warehouse/{supplier,material,receipt,material-issue}-management.tsx`: các sửa UI nêu trên.
-- `apps/warehouse-web/src/services/{api.ts,inventory.service.ts,warehouse-service.ts}`, `src/types/inventory.ts`: contract và lỗi API.
+- `frontend/warehouse-web/src/app/{page.tsx,[section]/page.tsx,inventory/page.tsx,api/warehouse/[...path]/route.ts}`: route dữ liệu thật, proxy allowlist, thông báo lỗi.
+- `frontend/warehouse-web/src/components/layout/app-shell.tsx`: menu hoàn trả, bỏ thông tin giả và nút không có chức năng.
+- `frontend/warehouse-web/src/components/inventory/inventory-list.tsx`: nhãn lịch sử rõ ràng.
+- `frontend/warehouse-web/src/components/warehouse/{supplier,material,receipt,material-issue}-management.tsx`: các sửa UI nêu trên.
+- `frontend/warehouse-web/src/services/{api.ts,inventory.service.ts,warehouse-service.ts}`, `src/types/inventory.ts`: contract và lỗi API.
 
 File mới:
 
@@ -123,10 +123,10 @@ File mới:
 - `backend/test/warehouse-{receipt,inventory,issue,reference,movements,adjustment-read,adjustment-process}.spec.ts`.
 - `backend/test/warehouse-test-database.ts`.
 - `backend/test/warehouse-adjustment.e2e-spec.ts`: hồi quy hai API approve/reject trên PostgreSQL test.
-- `apps/warehouse-web/src/components/dashboard/warehouse-dashboard.tsx`.
-- `apps/warehouse-web/src/components/warehouse/{material-adjustment-management,warehouse-history}.tsx`.
+- `frontend/warehouse-web/src/components/dashboard/warehouse-dashboard.tsx`.
+- `frontend/warehouse-web/src/components/warehouse/{material-adjustment-management,warehouse-history}.tsx`.
 - `README_WAREHOUSE_COMPLETION.md`, `README_WAREHOUSE_STAFF_CONTRACT.md`.
 
-Xóa các file mock không còn được dùng: `apps/warehouse-web/src/components/dashboard/dashboard.tsx`, `src/components/workspace.tsx`, `src/mock/data.ts`, `src/types/warehouse.ts`.
+Xóa các file mock không còn được dùng: `frontend/warehouse-web/src/components/dashboard/dashboard.tsx`, `src/components/workspace.tsx`, `src/mock/data.ts`, `src/types/warehouse.ts`.
 
-Tất cả thay đổi còn ở working tree để review. Không chỉnh `apps/restaurant-web`, ProductionOrder, BOM hoặc các app/phân hệ khác. Không commit/push/merge/rebase, không đổi nhánh.
+Tất cả thay đổi còn ở working tree để review. Không chỉnh `frontend/restaurant-web`, ProductionOrder, BOM hoặc các app/phân hệ khác. Không commit/push/merge/rebase, không đổi nhánh.

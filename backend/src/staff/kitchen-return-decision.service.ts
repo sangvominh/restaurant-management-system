@@ -26,11 +26,13 @@ export class KitchenReturnDecisionService {
     ? await tx.$executeRaw`UPDATE staff_kitchen_balances SET quantity=quantity-${r.quantity},reserved_return=reserved_return-${r.quantity} WHERE branch_id=${input.branchId}::uuid AND material_lot_id=${detail.materialLotId}::uuid AND reserved_return>=${r.quantity} AND quantity>=${r.quantity}`
     : await tx.$executeRaw`UPDATE staff_kitchen_balances SET reserved_return=reserved_return-${r.quantity} WHERE branch_id=${input.branchId}::uuid AND material_lot_id=${detail.materialLotId}::uuid AND reserved_return>=${r.quantity}`;
    if (changed !== 1) throw new ConflictException('Lượng giữ của phiếu không còn hợp lệ.');
+   let movementId: string | null = null;
    if (input.decision === 'APPROVED') {
     const b=await tx.materialBalance.upsert({where:{locationId_materialLotId:{locationId:detail.locationId,materialLotId:detail.materialLotId}},create:{locationId:detail.locationId,materialLotId:detail.materialLotId,quantity:r.quantity},update:{quantity:{increment:r.quantity}}});
-    await tx.inventoryMovement.create({data:{materialLotId:detail.materialLotId,locationId:detail.locationId,movementType:'RETURN',quantityBefore:b.quantity.minus(r.quantity),quantityChange:r.quantity,quantityAfter:b.quantity}});
+    const movement=await tx.inventoryMovement.create({data:{materialLotId:detail.materialLotId,locationId:detail.locationId,movementType:'RETURN',quantityBefore:b.quantity.minus(r.quantity),quantityChange:r.quantity,quantityAfter:b.quantity}});
+    movementId=movement.id;
    }
-   await tx.staffMaterialReturn.update({where:{id:r.id},data:{status:input.decision,decisionNote:note,decidedBy,processedAt:new Date(),stockReserved:false}});
+   await tx.staffMaterialReturn.update({where:{id:r.id},data:{movementId,status:input.decision,decisionNote:note,decidedBy,processedAt:new Date(),stockReserved:false}});
    return {code:r.code,status:input.decision};
   },{isolationLevel:Prisma.TransactionIsolationLevel.Serializable});
  }

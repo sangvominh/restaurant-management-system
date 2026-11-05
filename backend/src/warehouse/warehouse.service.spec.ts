@@ -12,7 +12,7 @@ import { CategoryApi } from './api/category.api.js';
 import type { WarehouseReferenceApi } from './api/warehouse-reference.api.js';
 import type { FinishedGoodsIssueApi } from './api/finished-goods-issue.api.js';
 import type { FinishedGoodsDefectApi } from './api/finished-goods-defect.api.js';
-import type { MaterialAdjustmentApi } from './api/material-adjustment.api.js';
+import type { SharedMaterialAdjustmentApi } from './api/shared-material-adjustment.api.js';
 
 describe('WarehouseService', () => {
   it('passes supplier search to SupplierApi', async () => {
@@ -31,7 +31,7 @@ describe('WarehouseService', () => {
       {} as MaterialApi,
       {} as CategoryApi,
       {} as WarehouseReferenceApi,
-      {} as MaterialAdjustmentApi,
+      {} as SharedMaterialAdjustmentApi,
       {} as FinishedGoodsIssueApi,
       {} as FinishedGoodsDefectApi,
     );

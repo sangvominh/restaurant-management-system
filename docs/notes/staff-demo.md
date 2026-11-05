@@ -4,7 +4,7 @@ Dữ liệu chỉ dùng để trình diễn trong container PostgreSQL riêng `r
 
 1. Từ thư mục gốc chạy `./scripts/staff-demo-setup.sh`.
 2. Chạy backend: `cd backend` rồi `DATABASE_URL='postgresql://postgres:staff_demo_only@127.0.0.1:55439/staff_demo' PORT=3001 npm run start`.
-3. Chạy frontend: `cd frontend` rồi `npm run dev -- --port 3002`.
+3. Chạy frontend: `cd frontend/staff-app` rồi `npm run dev -- --port 3002`.
 4. Mở `http://localhost:3002/staff/login`. Cả ba tài khoản dùng mật khẩu demo `demo-password-2026`:
 
 | Mã nhân viên | Vai trò | Nội dung |

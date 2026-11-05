@@ -27,7 +27,7 @@ import { UpdateMaterialDto } from './dto/update-material.dto.js';
 import { CreateCategoryDto } from './dto/create-category.dto.js';
 import { UpdateCategoryDto } from './dto/update-category.dto.js';
 import { WarehouseReferenceApi } from './api/warehouse-reference.api.js';
-import { MaterialAdjustmentApi } from './api/material-adjustment.api.js';
+import { SharedMaterialAdjustmentApi } from './api/shared-material-adjustment.api.js';
 import { ApproveMaterialAdjustmentDto } from './dto/process-material-adjustment.dto.js';
 
 import { FinishedGoodsIssueApi } from './api/finished-goods-issue.api.js';
@@ -49,7 +49,7 @@ export class WarehouseService {
     private readonly materialApi: MaterialApi,
     private readonly categoryApi: CategoryApi,
     private readonly referenceApi: WarehouseReferenceApi,
-    private readonly adjustmentApi: MaterialAdjustmentApi,
+    private readonly adjustmentApi: SharedMaterialAdjustmentApi,
     private readonly finishedGoodsIssueApi: FinishedGoodsIssueApi,
     private readonly finishedGoodsDefectApi: FinishedGoodsDefectApi,
   ) {}
