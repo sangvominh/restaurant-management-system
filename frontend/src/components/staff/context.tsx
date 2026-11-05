@@ -4,6 +4,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -16,6 +17,7 @@ const Context = createContext<{
   user: User;
   revision: number;
   refresh: () => void;
+  previousPath: string | null;
 } | null>(null);
 export function useStaff() {
   const context = useContext(Context);
@@ -128,12 +130,15 @@ function isStaffNavActive(path: string, href: string) {
   if (href === "/staff") return path === href;
   if (href === "/staff/finished-issues") return ["/staff/finished-issues", "/staff/finished-defects", "/staff/finished-goods"].some(p => path === p || path.startsWith(`${p}/`));
   if (href === "/staff/kitchen") return path === "/staff/kitchen" || path.startsWith("/staff/kitchen/") || path === "/staff/production";
-  if (href === "/staff/materials") return ["/staff/materials", "/staff/inventory", "/staff/kitchen-inventory", "/staff/material-issues", "/staff/material-waste", "/staff/material-returns"].some(p => path === p || path.startsWith(`${p}/`));
+  if (href === "/staff/materials") return ["/staff/materials", "/staff/inventory", "/staff/kitchen-inventory", "/staff/material-issues", "/staff/material-waste", "/staff/material-returns", "/staff/reports", "/staff/processing-defects"].some(p => path === p || path.startsWith(`${p}/`));
   return path === href || path.startsWith(`${href}/`);
 }
 export function StaffShell({ children }: { children: ReactNode }) {
   const path = usePathname();
   const router = useRouter();
+  const lastPath = useRef<string | null>(null);
+  const [previousPath, setPreviousPath] = useState<string | null>(null);
+  useEffect(() => { if (lastPath.current !== path) { setPreviousPath(lastPath.current); lastPath.current = path; } }, [path]);
   const isLogin = path === "/staff/login";
   const session = useResource<User>("auth/me");
   const [revision, setRevision] = useState(0);
@@ -156,7 +161,7 @@ export function StaffShell({ children }: { children: ReactNode }) {
   const user = session.data;
   const visibleNav = user.role === "CASHIER" ? [["home", "Trang chủ", "/staff"], ["receipt_long", "Hóa đơn", "/staff/invoices"], ["schedule", "Ca làm", "/staff/shifts"]] : nav;
   return (
-    <Context.Provider value={{ user, revision, refresh }}>
+    <Context.Provider value={{ user, revision, refresh, previousPath }}>
       <div className="staff-app">
         <header className="staff-header">
           <Link href="/staff" aria-label="Trang chủ" className="brand-icon staff-header-brand">
@@ -209,6 +214,12 @@ export function StaffShell({ children }: { children: ReactNode }) {
       </div>
     </Context.Provider>
   );
+}
+
+export function BackLink({ href }: { href: string }) {
+  const context = useContext(Context);
+  const router = useRouter();
+  return <button type="button" className="staff-back" onClick={() => context?.previousPath?.startsWith('/staff') && context.previousPath !== '/staff/login' ? router.back() : router.push(href)}>← Quay lại</button>;
 }
 function BadgeRole({ role }: { role: User["role"] }) {
   return <span className="role-badge">{roles[role]}</span>;

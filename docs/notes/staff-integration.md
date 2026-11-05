@@ -10,10 +10,24 @@ Tài liệu này mô tả dữ liệu hiện có và những điểm nhóm cần
 
 ## Hao hụt nguyên vật liệu
 
-- App staff tạo hao hụt tồn bếp bằng `POST /api/staff/material-waste/kitchen` với `{ lotId, quantity, reason }`. Khi hoàn thành món theo order, thao tác tương đương được ghi trong cùng giao dịch báo hoàn thành. Cả hai ghi `staff_kitchen_waste`: mã phiếu, nhân viên, chi nhánh, lô, số lượng, lý do, thời gian và `order_line_id` nếu phát sinh từ order.
-- Hiện tại việc tạo `staff_kitchen_waste` **đã trừ tồn bếp ngay**. Trang nhân viên hiển thị `RECORDED` như nhãn suy ra từ loại bản ghi; bảng này chưa có cột trạng thái gửi/đã xem. **Chưa có API Admin, thông báo hoặc cơ chế giao nhận đến Admin**. Nhóm trưởng cần tạo đầu đọc hoặc sự kiện có xác thực, giới hạn theo chi nhánh, và thống nhất cách theo dõi đã nhận/đã xem. Không trừ tồn lần thứ hai khi đọc hoặc xử lý bản ghi đã ghi nhận.
-- Bảng cũ `staff_material_waste` chứa phiếu theo `balance_id` và trạng thái `PENDING`/`APPROVED`/`REJECTED`; không đồng nhất với hao hụt bếp đã trừ ở trên. Cần phân biệt nguồn khi tích hợp. `GET /api/staff/material-waste` chỉ trả phiếu của chính nhân viên trong chi nhánh, bao gồm cả hai nguồn.
-- Bản ghi hao hụt từ **lệnh sản xuất** chưa được tạo khi báo hoàn thành; hiện chỉ ghi kèm được từ order hoặc tạo thủ công. Cần bổ sung liên kết lệnh và thao tác ghi trong cùng giao dịch trước khi tuyên bố hỗ trợ luồng đó.
+- App staff tạo phiếu từ tồn bếp qua `POST /api/staff/material-waste/kitchen` hoặc lúc hoàn thành món. Phiếu `staff_kitchen_waste` mới có trạng thái `PENDING`; lượng được giữ ở `staff_kitchen_balances.reserved_waste`, chưa giảm `quantity`. Tồn khả dụng để chế biến và đề nghị trả không bao gồm lượng giữ.
+- Phần Admin cần tự xây dựng API, xác thực và kiểm tra quyền chi nhánh. Sau đó import `StaffModule` và gọi `KitchenWasteDecisionService.pending(branchId)` để lấy phiếu, hoặc `decide({ branchId, code, decision, decidedBy, reason })` với `decision` là `APPROVED`/`REJECTED`; từ chối bắt buộc có lý do. Service khóa phiếu, cập nhật tồn và trạng thái trong cùng transaction, lưu người quyết định và thời gian, ngăn xử lý lại. Không cập nhật trạng thái trực tiếp hoặc tự trừ tồn lần hai.
+- `GET /api/staff/material-waste` cho nhân viên xem phiếu của mình và lý do từ chối. Bản ghi cũ có `RECORDED`, vì tồn đã được trừ trước migration; không duyệt hoặc trừ lại chúng. Phiếu trong `staff_material_waste` là nguồn cũ riêng, không xử lý bằng service này.
+- Phần báo hao hụt từ lệnh sản xuất chưa nằm trong phạm vi thay đổi này. Liên kết nguồn lĩnh và quyết toán dùng sổ phân bổ ở mục hoàn trả.
+
+## Hạn sử dụng và dữ liệu lô
+
+- Staff chỉ gửi đề nghị lĩnh đối với lô đang hoạt động, có hạn và chưa hết hạn; lúc duyệt phiếu nhân viên, kiểm tra lại hạn. Quy ước ngày Việt Nam: lô còn dùng được đến hết ngày ghi trên hạn. Lô sắp hết hạn hiển thị cảnh báo trong ba ngày tính cả ngày hết hạn.
+- Lô hết hạn hoặc không ghi hạn vẫn xuất hiện trong tồn bếp và có thể báo hao hụt, nhưng không được tính vào lượng dùng khi chế biến. Lệnh do kho cấp trực tiếp phải có lịch sử lô hợp lệ, còn hạn trước khi staff bắt đầu hoặc báo hoàn thành.
+- Phần Admin chịu trách nhiệm bổ sung hoặc xác nhận chức năng cập nhật hạn cho lô thiếu dữ liệu và kiểm tra hạn khi duyệt cấp. Trước đây API kho chưa thấy chức năng cập nhật hạn. Không thay đổi hạn thiếu bằng dữ liệu tự suy đoán.
+- Sau khi hoàn tất năm feedback, chuẩn bị dữ liệu mẫu tách biệt và hướng dẫn test đầu-cuối cho staff và điểm nối Admin: lô còn hạn/sắp hết hạn/hết hạn/không hạn, phiếu đang chờ/duyệt/từ chối, dùng và hoàn trả theo phiếu lĩnh, lỗi giữa chừng và cấp bổ sung.
+
+## Báo lỗi trong chế biến
+
+- Staff gửi `POST /api/staff/processing-defects` với loại `ORDER` (dòng món đang chế biến) hoặc `PRODUCTION` (lệnh dùng tồn bếp đang sản xuất), số lượng lỗi, lý do và các lô NVL đã sử dụng thực tế. Mỗi lô được giữ trong `reserved_waste`, gắn với phiếu lỗi thông qua `staff_kitchen_waste.processing_defect_id`.
+- Phần Admin tự xác thực và kiểm tra quyền chi nhánh trước khi gọi `ProcessingDefectDecisionService.pending(branchId)` hoặc `decide({branchId,code,decision,decidedBy,reason})`. Xử lý cả phiếu trong một transaction; không duyệt riêng các dòng hao hụt liên kết. Phiếu lỗi và dòng NVL đều cập nhật trạng thái một lần.
+- Với món theo order, khi phiếu sự cố chờ duyệt, món chưa thể hoàn thành. Khi duyệt, nếu toàn bộ dòng lỗi thì dòng quay về `QUEUED`; nếu chỉ một phần lỗi, hệ thống tách đúng số phần lỗi thành dòng `QUEUED` và giữ phần còn lại `COOKING`, không đổi tổng số lượng tính tiền. `retry_order_line_id` liên kết phiếu với dòng làm lại. Từ chối giữ trạng thái món hiện tại.
+- Phiếu đã gửi không đại diện NVL đã được trừ theo công thức; không báo lại cùng một lượng đã tiêu hao. Lệnh đã cấp trực tiếp từ kho chưa hỗ trợ báo lỗi giữa chừng vì không có sổ NVL bếp để giữ. Luồng kiểm kê thành phẩm đã nhập kho và duyệt xuất của Admin cần tính đến phiếu thành phẩm lỗi đang chờ trước khi trừ hoặc xuất tồn.
 
 ## Báo hoàn thành thành phẩm
 
@@ -23,7 +37,8 @@ Tài liệu này mô tả dữ liệu hiện có và những điểm nhóm cần
 
 ## Phiếu hoàn trả và thành phẩm lỗi
 
-- `staff_material_returns` lưu phiếu hoàn trả của nhân viên và ID chi tiết phiếu xuất gốc; hiện phía Admin chưa được nối để xử lý. Không suy ra tồn bếp thực tế chỉ từ số đã xuất trừ số đã trả: nguyên liệu có thể đã được dùng hoặc hao hụt.
+- Phiếu hoàn trả mới lưu tình trạng, xác nhận kiểm tra và giữ tồn bếp tại `reserved_return`. Admin tự xác thực và kiểm tra quyền chi nhánh, sau đó gọi `KitchenReturnDecisionService.pending(branchId)` và `decide({branchId, code, decision, decidedBy, reason})`. Duyệt giảm tồn bếp, tăng lại tồn tại vị trí xuất gốc và ghi `RETURN`; từ chối giải phóng lượng giữ. Phiếu cũ chưa có giữ tồn không được xử lý tự động, cần đối chiếu.
+- `staff_kitchen_sources` theo dõi lượng còn lại cho từng dòng lĩnh; `staff_kitchen_source_allocations` lưu phân bổ theo món, lệnh, hao hụt và hoàn trả. Các sự kiện mới phân bổ theo thứ tự nhận; từ chối giải phóng lượng của đúng nguồn. Lô cũ có lịch sử không đủ để xác định nguồn không tự được gán. Phần tồn cũ không xác định được được dùng trước nguồn mới và chưa thể hoàn trả theo phiếu cho đến khi đối chiếu. Không cập nhật các bảng phân bổ trực tiếp ngoài giao dịch kho.
 - Phiếu thành phẩm lỗi dùng `finished_goods_defects`, kèm audit `FINISHED_DEFECT_REQUEST`. Đối chiếu luồng duyệt kho hiện có và phân quyền khi tích hợp.
 
 ## Trước khi dùng chung

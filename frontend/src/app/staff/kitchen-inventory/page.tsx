@@ -1,10 +1,12 @@
 "use client";
+import { BackLink } from "@/components/staff/context";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Badge, Card, Icon } from "@/components/staff/ui";
 import { ResourceState, useResource } from "@/components/staff/context";
+import { expiryStatus } from "@/lib/expiry";
 
-type Stock = { id: string; name: string; code: string; lot: string; unit: string; quantity: string; expiry: string | null };
+type Stock = { id: string; name: string; code: string; lot: string; unit: string; quantity: string; totalQuantity: string; reservedWaste: string; reservedReturn: string; expiry: string | null };
 export default function KitchenInventory() {
  const { data, error, reload } = useResource<Stock[]>("staff/production-orders/kitchen-inventory");
  const [search, setSearch] = useState(""); const [focused, setFocused] = useState(false); const [sort, setSort] = useState("name-asc");
@@ -20,7 +22,7 @@ export default function KitchenInventory() {
   return name;
  });
  return <div className="space-y-5">
-  <Link href="/staff/materials" className="staff-back">← Nguyên vật liệu</Link>
+  <BackLink href="/staff/materials"/>
   <div className="stock-title-row"><h1>Tồn nguyên liệu tại bếp {data && <Badge tone="blue">{new Set(data.map(item => item.code)).size} loại</Badge>}</h1><button className="stock-icon-button stock-refresh" type="button" aria-label="Tải lại tồn bếp" title="Tải lại" onClick={reload}><Icon name="refresh"/></button></div>
   <div className="stock-actions"><Link href="/staff/inventory" className="btn btn-secondary">Xem tồn kho</Link></div>
   <p className="muted">Nguyên liệu đã được kho cấp cho bếp.</p>
@@ -28,7 +30,7 @@ export default function KitchenInventory() {
   <ResourceState error={error} loading={!data && !error} retry={reload}/>
   {data?.length === 0 && <p>Chưa có nguyên liệu được cấp vào bếp.</p>}
   {data && data.length > 0 && visible?.length === 0 && <p className="muted">Không tìm thấy nguyên vật liệu phù hợp.</p>}
-  {visible?.map(item => <Card className="stock-card" key={item.id}><button type="button" className="stock-card-open" aria-label={`Xem chi tiết ${item.name}, lô ${item.lot}`} onClick={() => setDetail(item)}/><div className="stock-card-head"><strong className="stock-detail-link">{item.name}</strong></div><p className="stock-quantity">Tồn: {item.quantity} {item.unit} <span>· {item.code}</span></p><p className="muted">Lô {item.lot} · Bếp</p><p className="muted">Hạn dùng: {item.expiry ? item.expiry.slice(0, 10) : "Chưa ghi"}</p></Card>)}
-  <dialog ref={dialog} className="stock-dialog" onClose={() => setDetail(null)} aria-labelledby="kitchen-stock-detail"><button className="stock-close" type="button" aria-label="Đóng" onClick={() => dialog.current?.close()}>×</button>{detail && <><div className="detail-heading"><span>NGUYÊN VẬT LIỆU</span><h2 id="kitchen-stock-detail">Chi tiết nguyên liệu</h2><p>{detail.name}</p></div><div className="detail-highlight"><span>Tồn tại bếp</span><strong>{detail.quantity} {detail.unit}</strong></div><dl className="detail-grid"><div><dt>Mã nguyên liệu</dt><dd>{detail.code}</dd></div><div><dt>Lô</dt><dd>{detail.lot}</dd></div><div><dt>Vị trí</dt><dd>Bếp</dd></div><div><dt>Hạn dùng</dt><dd>{detail.expiry ? detail.expiry.slice(0, 10) : "Chưa ghi"}</dd></div></dl></>}</dialog>
+  {visible?.map(item => <Card className="stock-card" key={item.id}><button type="button" className="stock-card-open" aria-label={`Xem chi tiết ${item.name}, lô ${item.lot}`} onClick={() => setDetail(item)}/><div className="stock-card-head"><strong className="stock-detail-link">{item.name}</strong></div><p className="stock-quantity">Có thể sử dụng: {expiryStatus(item.expiry).usable ? item.quantity : "0"} {item.unit}</p><p className="muted">Tổng tại bếp: {item.totalQuantity} {item.unit} · {item.code}</p>{(Number(item.reservedWaste) > 0 || Number(item.reservedReturn) > 0) && <p className="muted">Đang chờ duyệt: {Number(item.reservedWaste) > 0 && `hao hụt ${item.reservedWaste} ${item.unit}`}{Number(item.reservedWaste) > 0 && Number(item.reservedReturn) > 0 && " · "}{Number(item.reservedReturn) > 0 && `hoàn trả ${item.reservedReturn} ${item.unit}`}</p>}<p className="muted">Lô {item.lot} · Bếp</p><p className="muted">Hạn dùng: {item.expiry ? item.expiry.slice(0, 10) : "Chưa ghi"} · <Badge tone={expiryStatus(item.expiry).tone}>{expiryStatus(item.expiry).label}</Badge></p></Card>)}
+  <dialog ref={dialog} className="stock-dialog" onClose={() => setDetail(null)} aria-labelledby="kitchen-stock-detail"><button className="stock-close" type="button" aria-label="Đóng" onClick={() => dialog.current?.close()}>×</button>{detail && <><div className="detail-heading"><span>NGUYÊN VẬT LIỆU</span><h2 id="kitchen-stock-detail">Chi tiết nguyên liệu</h2><p>{detail.name}</p></div><div className="detail-highlight"><span>Có thể sử dụng</span><strong>{expiryStatus(detail.expiry).usable ? detail.quantity : "0"} {detail.unit}</strong></div><dl className="detail-grid"><div><dt>Tổng tồn</dt><dd>{detail.totalQuantity} {detail.unit}</dd></div><div><dt>Hao hụt chờ duyệt</dt><dd>{detail.reservedWaste} {detail.unit}</dd></div><div><dt>Hoàn trả chờ duyệt</dt><dd>{detail.reservedReturn} {detail.unit}</dd></div><div><dt>Mã nguyên liệu</dt><dd>{detail.code}</dd></div><div><dt>Lô</dt><dd>{detail.lot}</dd></div><div><dt>Vị trí</dt><dd>Bếp</dd></div><div><dt>Hạn dùng</dt><dd>{detail.expiry ? detail.expiry.slice(0, 10) : "Chưa ghi"} · <Badge tone={expiryStatus(detail.expiry).tone}>{expiryStatus(detail.expiry).label}</Badge></dd></div></dl></>}</dialog>
  </div>;
 }

@@ -20,10 +20,11 @@ export class StaffFinishedDefectController {
   const quantity = new Prisma.Decimal(b.quantity); if (quantity.lte(0)) throw new BadRequestException('Số lượng phải lớn hơn 0.');
   return this.db.$transaction(async tx => {
    const product = await tx.product.findFirst({ where: { code: productCode, status: 'ACTIVE', ...(req.staff.role === 'BARISTA' ? { category: 'Đồ uống' } : req.staff.role === 'KITCHEN' ? { category: { not: 'Đồ uống' } } : {}) } }); const stock = await tx.finishedGoodsBalance.aggregate({ where: { productCode, location: { branchId: req.staff.branchId } }, _sum: { quantity: true } });
-   if (!product || quantity.gt(stock._sum.quantity ?? 0)) throw new BadRequestException('Số lượng vượt tồn thành phẩm hiện tại.');
+   const held=await tx.finishedGoodsDefect.aggregate({where:{branchId:req.staff.branchId,productCode,status:'PENDING',deductFromStock:true},_sum:{quantity:true}});
+   if (!product || quantity.gt((stock._sum.quantity ?? new Prisma.Decimal(0)).minus(held._sum.quantity ?? 0))) throw new BadRequestException('Số lượng vượt tồn thành phẩm hiện tại.');
    const defect = await tx.finishedGoodsDefect.create({ data: { code: `TPLOI-${randomUUID().replaceAll('-', '').slice(0,12).toUpperCase()}`, branchId: req.staff.branchId, productCode, quantity, reason, deductFromStock: true } });
    await tx.staffAudit.create({ data: { actorId: req.staff.id, action: 'FINISHED_DEFECT_REQUEST', targetId: defect.id, detail: defect.code } });
    return { code: defect.code, status: defect.status };
-  });
+  }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
  }
 }

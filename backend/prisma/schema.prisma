@@ -706,6 +706,12 @@ model StaffMaterialReturn {
   issueDetailId String @map("issue_detail_id") @db.Uuid
   quantity Decimal @db.Decimal(18, 3)
   note String? @db.Text
+  condition String?
+  conditionConfirmed Boolean @default(false) @map("condition_confirmed")
+  stockReserved Boolean @default(false) @map("stock_reserved")
+  decisionNote String? @db.Text @map("decision_note")
+  decidedBy String? @map("decided_by")
+  processedAt DateTime? @map("processed_at") @db.Timestamptz(3)
   status String @default("PENDING")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   @@index([issueDetailId, status])

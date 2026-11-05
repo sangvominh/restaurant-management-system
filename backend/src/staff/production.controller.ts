@@ -5,6 +5,7 @@ import { Prisma } from '../generated/prisma/client.js';
 import { object, uuid } from './input.js';
 import { FinishedGoodsApi } from '../warehouse/api/finished-goods.api.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { isUsableLotExpiry } from '../warehouse/lot-expiry.js';
 @Controller('api/staff/production-orders')
 @UseGuards(AuthGuard)
 @Roles('KITCHEN', 'BARISTA', 'SUPERVISOR')
@@ -41,7 +42,7 @@ export class StaffProductionController {
   async kitchenInventory(@Req() req: StaffRequest) {
     return this.db.$queryRaw<{ id: string; name: string; code: string; lot: string; unit: string; quantity: string; expiry: Date | null }[]>`
       SELECT l.id, m.name, m.code, l.lot_code AS lot, u.name AS unit,
-        b.quantity::text AS quantity, l.expiry_date AS expiry
+        (GREATEST(b.quantity-b.reserved_waste-b.reserved_return-COALESCE((SELECT SUM(r.quantity) FROM staff_material_returns r JOIN material_issue_details d ON d.id=r.issue_detail_id WHERE r.branch_id=b.branch_id AND d.material_lot_id=b.material_lot_id AND r.status='PENDING' AND NOT r.stock_reserved),0),0))::text AS quantity, b.quantity::text AS "totalQuantity", b.reserved_waste::text AS "reservedWaste", b.reserved_return::text AS "reservedReturn", l.expiry_date AS expiry
       FROM staff_kitchen_balances b
       JOIN material_lots l ON l.id = b.material_lot_id
       JOIN materials m ON m.id = l.material_id
@@ -72,6 +73,7 @@ export class StaffProductionController {
       for (const row of parsed) {
         const balance = await tx.materialBalance.findFirst({ where: { id: row.balanceId, location: { branchId: req.staff.branchId } }, include: { materialLot: { include: { material: { include: { unit: true } } } } } });
         if (!balance || balance.materialLot.status !== 'ACTIVE' || balance.materialLot.material.status !== 'ACTIVE' || balance.materialLot.material.unit.status !== 'ACTIVE') throw new BadRequestException('Lô nguyên liệu không khả dụng.');
+        if (!isUsableLotExpiry(balance.materialLot.expiryDate)) throw new BadRequestException('Lô chưa có hạn sử dụng hoặc đã hết hạn.');
         if (row.quantity.gt(balance.quantity)) throw new BadRequestException('Số lượng vượt tồn hiện tại.');
         details.push({ materialId: balance.materialLot.materialId, materialLotId: balance.materialLotId, locationId: balance.locationId, unitId: balance.materialLot.material.unitId, quantity: row.quantity });
       }
@@ -94,11 +96,17 @@ export class StaffProductionController {
       }
       const needed = detail.quantity.mul(output ?? order.quantity).mul(factor).div(order.bom.outputQuantity);
       if (needed.lte(0) || needed.decimalPlaces() > 3) throw new BadRequestException(`Số lượng ${detail.material.name} sau quy đổi vượt độ chính xác kho.`);
-      const balances = await tx.$queryRaw<{ quantity: Prisma.Decimal }[]>`SELECT b.quantity FROM staff_kitchen_balances b JOIN material_lots l ON l.id=b.material_lot_id WHERE b.branch_id=${branchId}::uuid AND l.material_id=${detail.materialId}::uuid AND l.status='ACTIVE'`;
+      const balances = await tx.$queryRaw<{ quantity: Prisma.Decimal }[]>`SELECT (GREATEST(b.quantity-b.reserved_waste-b.reserved_return-COALESCE((SELECT SUM(r.quantity) FROM staff_material_returns r JOIN material_issue_details d ON d.id=r.issue_detail_id WHERE r.branch_id=b.branch_id AND d.material_lot_id=b.material_lot_id AND r.status='PENDING' AND NOT r.stock_reserved),0),0)) AS quantity FROM staff_kitchen_balances b JOIN material_lots l ON l.id=b.material_lot_id WHERE b.branch_id=${branchId}::uuid AND l.material_id=${detail.materialId}::uuid AND l.status='ACTIVE' AND l.expiry_date >= (now() AT TIME ZONE 'Asia/Ho_Chi_Minh')::date`;
       const available = balances.reduce((sum, row) => sum.plus(row.quantity), new Prisma.Decimal(0));
-      results.push({ materialId:detail.materialId, code:detail.material.code, name:detail.material.name, unit:detail.material.unit.name, required:needed.toString(), available:available.toString(), shortage:Prisma.Decimal.max(needed.minus(available),0).toString() });
+      const blocked = await tx.$queryRaw<{ quantity:Prisma.Decimal }[]>`SELECT COALESCE(SUM(GREATEST(b.quantity-b.reserved_waste-b.reserved_return-COALESCE((SELECT SUM(r.quantity) FROM staff_material_returns r JOIN material_issue_details d ON d.id=r.issue_detail_id WHERE r.branch_id=b.branch_id AND d.material_lot_id=b.material_lot_id AND r.status='PENDING' AND NOT r.stock_reserved),0),0)),0) AS quantity FROM staff_kitchen_balances b JOIN material_lots l ON l.id=b.material_lot_id WHERE b.branch_id=${branchId}::uuid AND l.material_id=${detail.materialId}::uuid AND l.status='ACTIVE' AND (l.expiry_date IS NULL OR l.expiry_date < (now() AT TIME ZONE 'Asia/Ho_Chi_Minh')::date)`;
+      results.push({ materialId:detail.materialId, code:detail.material.code, name:detail.material.name, unit:detail.material.unit.name, required:needed.toString(), available:available.toString(), blockedExpiry:blocked[0].quantity.toString(), shortage:Prisma.Decimal.max(needed.minus(available),0).toString() });
     }
     return { order, items: results };
+  }
+  private async checkIssuedLotExpiry(tx: Prisma.TransactionClient, orderId: string) {
+    const movements = await tx.inventoryMovement.findMany({ where: { productionOrderId: orderId, movementType: 'ISSUE' }, include: { materialLot: true } });
+    if (!movements.length) throw new BadRequestException('Không có dữ liệu lô nguyên liệu đã cấp; cần kho kiểm tra trước khi chế biến.');
+    if (movements.some(m => m.materialLot.status !== 'ACTIVE' || !isUsableLotExpiry(m.materialLot.expiryDate))) throw new BadRequestException('Nguyên liệu đã cấp có lô hết hạn, chưa có hạn hoặc không còn hoạt động; cần kho xử lý trước khi chế biến.');
   }
   @Get(':code/material-requirements')
   async productionRequirements(@Req() req: StaffRequest, @Param('code') code: string, @Query('quantity') quantity?: string) {
@@ -118,7 +126,7 @@ export class StaffProductionController {
     const order = await this.db.productionOrder.findFirst({ where: { code, branchId: req.staff.branchId, assignedEmployeeCode: req.staff.code } });
     if (!order) throw new NotFoundException('Không tìm thấy lệnh được giao.');
     const marker = await this.db.$queryRaw<{ production_order_id: string }[]>`SELECT production_order_id FROM staff_kitchen_production_starts WHERE production_order_id=${order.id}::uuid`;
-    if (!marker.length) return this.finishedGoods.reportOutput(code, { reportedQuantity: input.quantity });
+    if (!marker.length) { await this.checkIssuedLotExpiry(this.db, order.id); return this.finishedGoods.reportOutput(code, { reportedQuantity: input.quantity }); }
     return this.db.$transaction(async tx => {
       const { order: current, items } = await this.kitchenRequirements(tx, req.staff.branchId, req.staff.code, code, quantity);
       if (current.status !== 'IN_PROGRESS' || current.materialStatus !== 'ISSUED') throw new ConflictException('Lệnh chưa ở trạng thái đang sản xuất.');
@@ -129,7 +137,7 @@ export class StaffProductionController {
       if (!previous[0].reported_quantity) {
         for (const item of items) {
           let remaining = new Prisma.Decimal(item.required);
-          const lots = await tx.$queryRaw<{ material_lot_id:string; quantity:Prisma.Decimal }[]>`SELECT b.material_lot_id,b.quantity FROM staff_kitchen_balances b JOIN material_lots l ON l.id=b.material_lot_id WHERE b.branch_id=${req.staff.branchId}::uuid AND l.material_id=${item.materialId}::uuid AND l.status='ACTIVE' AND b.quantity>0 ORDER BY l.expiry_date NULLS LAST,l.lot_code,l.id FOR UPDATE OF b`;
+          const lots = await tx.$queryRaw<{ material_lot_id:string; quantity:Prisma.Decimal }[]>`SELECT b.material_lot_id,(GREATEST(b.quantity-b.reserved_waste-b.reserved_return-COALESCE((SELECT SUM(r.quantity) FROM staff_material_returns r JOIN material_issue_details d ON d.id=r.issue_detail_id WHERE r.branch_id=b.branch_id AND d.material_lot_id=b.material_lot_id AND r.status='PENDING' AND NOT r.stock_reserved),0),0)) AS quantity FROM staff_kitchen_balances b JOIN material_lots l ON l.id=b.material_lot_id WHERE b.branch_id=${req.staff.branchId}::uuid AND l.material_id=${item.materialId}::uuid AND l.status='ACTIVE' AND l.expiry_date >= (now() AT TIME ZONE 'Asia/Ho_Chi_Minh')::date AND GREATEST(b.quantity-b.reserved_waste-b.reserved_return-COALESCE((SELECT SUM(r.quantity) FROM staff_material_returns r JOIN material_issue_details d ON d.id=r.issue_detail_id WHERE r.branch_id=b.branch_id AND d.material_lot_id=b.material_lot_id AND r.status='PENDING' AND NOT r.stock_reserved),0),0)>0 ORDER BY l.expiry_date NULLS LAST,l.lot_code,l.id FOR UPDATE OF b`;
           for (const lot of lots) {
             if (remaining.lte(0)) break;
             const used = Prisma.Decimal.min(remaining,lot.quantity);
@@ -154,6 +162,7 @@ export class StaffProductionController {
       const { order, items } = await this.kitchenRequirements(tx, req.staff.branchId, req.staff.code, code);
       if (order.status !== 'PENDING' || !['MAKE_TO_STOCK','HYBRID'].includes(order.productionMode)) throw new ConflictException('Lệnh chưa đủ điều kiện hoặc đã thay đổi.');
       const kitchen = order.materialStatus !== 'ISSUED';
+      if (!kitchen) await this.checkIssuedLotExpiry(tx, order.id);
       if (kitchen) {
         const missing = items.filter(item => new Prisma.Decimal(item.shortage).gt(0));
         if (missing.length) throw new BadRequestException(`Không đủ nguyên liệu tại bếp: ${missing.map(item => `${item.name} thiếu ${item.shortage} ${item.unit}`).join(', ')}.`);

@@ -21,7 +21,8 @@ export class StaffFinishedIssueController {
   const rows = await this.db.finishedGoodsBalance.findMany({ where: { location: { branchId: req.staff.branchId }, quantity: { gt: 0 }, product: { status: 'ACTIVE', ...(req.staff.role === 'BARISTA' ? { category: 'Đồ uống' } : req.staff.role === 'KITCHEN' ? { category: { not: 'Đồ uống' } } : {}) } }, include: { product: true } });
   const grouped = new Map<string, { code: string; name: string; unit: string; quantity: Prisma.Decimal }>();
   for (const row of rows) { if (!row.product) continue; const prev = grouped.get(row.productCode); grouped.set(row.productCode, { code: row.productCode, name: row.product.name, unit: row.product.unit, quantity: (prev?.quantity ?? new Prisma.Decimal(0)).plus(row.quantity) }); }
-  return [...grouped.values()].map(x => ({ ...x, quantity: x.quantity.toString() }));
+  const held=await this.db.finishedGoodsDefect.groupBy({by:['productCode'],where:{branchId:req.staff.branchId,status:'PENDING',deductFromStock:true},_sum:{quantity:true}});
+  return [...grouped.values()].map(x => ({ ...x, quantity: Prisma.Decimal.max(x.quantity.minus(held.find(h=>h.productCode===x.code)?._sum.quantity ?? 0),0).toString() }));
  }
  @Get() async list(@Req() req: StaffRequest) {
   const audits = await this.db.staffAudit.findMany({ where: { actorId: req.staff.id, action: 'FINISHED_ISSUE_REQUEST' }, select: { targetId: true } });
@@ -35,11 +36,12 @@ export class StaffFinishedIssueController {
   return this.db.$transaction(async tx => {
    const product = await tx.product.findFirst({ where: { code, status: 'ACTIVE', ...(req.staff.role === 'BARISTA' ? { category: 'Đồ uống' } : req.staff.role === 'KITCHEN' ? { category: { not: 'Đồ uống' } } : {}) } });
    const stock = await tx.finishedGoodsBalance.aggregate({ where: { productCode: code, location: { branchId: req.staff.branchId } }, _sum: { quantity: true } });
-   if (!product || quantity.gt(stock._sum.quantity ?? 0)) throw new BadRequestException('Thành phẩm không tồn tại hoặc số lượng vượt tồn hiện tại.');
+   const held=await tx.finishedGoodsDefect.aggregate({where:{branchId:req.staff.branchId,productCode:code,status:'PENDING',deductFromStock:true},_sum:{quantity:true}});
+   if (!product || quantity.gt((stock._sum.quantity ?? new Prisma.Decimal(0)).minus(held._sum.quantity ?? 0))) throw new BadRequestException('Thành phẩm không tồn tại hoặc số lượng vượt tồn hiện tại.');
    const shift = await tx.staffShift.findFirst({ where: { userId: req.staff.id, endedAt: null } });
    const issue = await tx.finishedGoodsIssue.create({ data: { code: `PXTP-${randomUUID().replaceAll('-', '').slice(0,12).toUpperCase()}`, branchId: req.staff.branchId, shiftCode: shift?.id ?? 'CHUA-CO-CA', note: `Đề nghị bởi ${req.staff.code}`, details: { create: { productCode: code, requestedQuantity: quantity } } } });
    await tx.staffAudit.create({ data: { actorId: req.staff.id, action: 'FINISHED_ISSUE_REQUEST', targetId: issue.id, detail: issue.code } });
    return { code: issue.code, status: issue.status };
-  });
+  }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
  }
 }

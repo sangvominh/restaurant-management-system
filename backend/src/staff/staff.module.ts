@@ -7,6 +7,10 @@ import { StaffMaterialWasteController } from './material-waste.controller.js';
 import { StaffFinishedDefectController } from './finished-defect.controller.js';
 import { StaffMaterialReturnController } from './material-return.controller.js';
 import { StaffProductionController } from './production.controller.js';
+import { ProcessingDefectController } from './processing-defect.controller.js';
+import { ProcessingDefectDecisionService } from './processing-defect-decision.service.js';
 import { StaffService } from './staff.service.js';
-@Module({ imports: [AuthModule], controllers: [StaffController, StaffProductionController, StaffFinishedIssueController, StaffMaterialWasteController, StaffFinishedDefectController, StaffMaterialReturnController], providers: [StaffService, FinishedGoodsApi] })
+import { KitchenReturnDecisionService } from './kitchen-return-decision.service.js';
+import { KitchenWasteDecisionService } from './kitchen-waste-decision.service.js';
+@Module({ imports: [AuthModule], controllers: [ProcessingDefectController, StaffController, StaffProductionController, StaffFinishedIssueController, StaffMaterialWasteController, StaffFinishedDefectController, StaffMaterialReturnController], providers: [StaffService, FinishedGoodsApi, KitchenWasteDecisionService, KitchenReturnDecisionService, ProcessingDefectDecisionService], exports: [KitchenWasteDecisionService, KitchenReturnDecisionService, ProcessingDefectDecisionService] })
 export class StaffModule {}

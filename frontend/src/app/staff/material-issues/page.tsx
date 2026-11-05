@@ -1,5 +1,5 @@
 "use client";
-import Link from "next/link";
+import { BackLink } from "@/components/staff/context";
 import { useEffect, useRef, useState } from "react";
 import { Badge, Icon, SearchInput } from "@/components/staff/ui";
 import { ResourceState, useResource } from "@/components/staff/context";
@@ -24,7 +24,7 @@ export default function MaterialIssues() {
  }, [data]);
  useEffect(() => { const refresh = () => { if (document.visibilityState === "visible") reload(); }; window.addEventListener("focus", refresh); return () => window.removeEventListener("focus", refresh); }, [reload]);
  return <div className="space-y-5">
-  <Link className="staff-back" href="/staff/inventory">← Tồn nguyên vật liệu</Link>
+  <BackLink href="/staff/inventory"/>
   <div className="stock-title-row"><h1>Phiếu đề nghị của tôi</h1><button className="stock-icon-button stock-refresh" type="button" aria-label="Tải lại danh sách phiếu" title="Tải lại" onClick={reload}><Icon name="refresh" /></button></div>
   <SearchInput value={search} onChange={setSearch} label="Tìm phiếu" hint="Mã phiếu hoặc nguyên liệu"/>
   <div className="issue-toolbar"><div className="status-filters">{[["ALL","Tất cả"],["PENDING","Chờ duyệt"],["APPROVED","Đã duyệt"],["REJECTED","Từ chối"]].map(([key,label]) => <button key={key} className={filter === key ? "active" : ""} aria-pressed={filter === key} onClick={() => setFilter(key)}>{label}</button>)}</div><label className="inventory-sort" title="Sắp xếp phiếu"><Icon name="sort"/><select aria-label="Sắp xếp phiếu" value={sort} onChange={e => setSort(e.target.value)}><option value="newest">Mới nhất</option><option value="oldest">Cũ nhất</option><option value="code-asc">Mã phiếu A–Z</option><option value="code-desc">Mã phiếu Z–A</option></select></label></div>

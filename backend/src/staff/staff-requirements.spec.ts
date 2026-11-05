@@ -9,8 +9,8 @@ const line = { id, menuItemId: '30000000-0000-4000-8000-000000000011', quantity:
 
 describe('Kitchen material requirements', () => {
   const recipes = [
-    { code: 'MEAT', name: 'Thịt', unit: 'kg', quantity: new Prisma.Decimal('0.2'), available: new Prisma.Decimal('0.1') },
-    { code: 'MILK', name: 'Sữa', unit: 'lít', quantity: new Prisma.Decimal('0.1'), available: new Prisma.Decimal('0.05') },
+    { code: 'MEAT', name: 'Thịt', unit: 'kg', quantity: new Prisma.Decimal('0.2'), available: new Prisma.Decimal('0.1'), blocked_expiry: new Prisma.Decimal('2') },
+    { code: 'MILK', name: 'Sữa', unit: 'lít', quantity: new Prisma.Decimal('0.1'), available: new Prisma.Decimal('0.05'), blocked_expiry: new Prisma.Decimal('0') },
   ];
   const tx = { orderLine: { findFirst: vi.fn(), update: vi.fn() }, $queryRaw: vi.fn() };
   const db = { $transaction: vi.fn((work: (client: typeof tx) => unknown) => work(tx)) };
@@ -19,6 +19,7 @@ describe('Kitchen material requirements', () => {
 
   it('calculates the shortage for each ingredient using decimal arithmetic', async () => {
     const result = await service.lineRequirements(user, id);
+    expect(result[0].blockedExpiry).toBe('2');
     expect(result.map(x => [x.code, x.required, x.available, x.shortage])).toEqual([['MEAT','0.4','0.1','0.3'], ['MILK','0.2','0.05','0.15']]);
   });
 
