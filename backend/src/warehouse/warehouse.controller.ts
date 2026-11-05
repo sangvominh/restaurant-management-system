@@ -2,13 +2,13 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
   Param,
   Body,
   Query,
   UsePipes,
   ValidationPipe,
   HttpCode,
-  Patch,
   Delete,
 } from '@nestjs/common';
 
@@ -16,6 +16,9 @@ import { WarehouseService } from './warehouse.service.js';
 import { CreateReceiptDto } from './dto/create-receipt.dto.js';
 import { RejectMaterialIssueDto } from './dto/reject-material-issue.dto.js';
 import { CreateBomDto } from './dto/create-bom.dto.js';
+import { UpdateBomDto } from './dto/update-bom.dto.js';
+import { CreateBomVersionDto } from './dto/create-bom-version.dto.js';
+import { UpdateBomStatusDto } from './dto/update-bom-status.dto.js';
 import { CheckBomStockDto } from './dto/check-bom-stock.dto.js';
 import { CreateProductionOrderDto } from './dto/create-production-order.dto.js';
 import { AssignProductionOrderDto } from './dto/assign-production-order.dto.js';
@@ -29,6 +32,9 @@ import { UpdateMaterialDto } from './dto/update-material.dto.js';
 import { CreateCategoryDto } from './dto/create-category.dto.js';
 import { UpdateCategoryDto } from './dto/update-category.dto.js';
 import { ApproveMaterialAdjustmentDto, RejectMaterialAdjustmentDto } from './dto/process-material-adjustment.dto.js';
+import { CreateFinishedGoodsIssueDto } from './dto/create-finished-goods-issue.dto.js';
+import { ReportFinishedGoodsDto } from './dto/report-finished-goods.dto.js';
+import { CreateFinishedGoodsDefectDto } from './dto/create-finished-goods-defect.dto.js';
 
 @Controller('warehouse')
 export class WarehouseController {
@@ -147,6 +153,7 @@ export class WarehouseController {
     return this.warehouseService.rejectMaterialIssue(code, dto.reason);
   }
 
+  // Tạo công thức BOM
   @Post('boms')
   @UsePipes(
     new ValidationPipe({
@@ -155,20 +162,74 @@ export class WarehouseController {
       transform: true,
     }),
   )
-  // tạo công thức BOM
   createBom(@Body() dto: CreateBomDto) {
     return this.warehouseService.createBom(dto);
   }
-  // GET /warehouse/boms
+
+  // GET /warehouse/boms (hỗ trợ lọc theo productCode & status)
   @Get('boms')
-  getBoms() {
-    return this.warehouseService.getBoms();
+  getBoms(
+    @Query('productCode') productCode?: string,
+    @Query('status') status?: string,
+  ) {
+    return this.warehouseService.getBoms(productCode, status);
   }
 
-  // GET /warehouse/boms/BOM001
+  // GET /warehouse/boms/product/TP001 (Tra cứu tất cả phiên bản công thức theo mã món ăn)
+  @Get('boms/product/:productCode')
+  getBomsByProduct(@Param('productCode') productCode: string) {
+    return this.warehouseService.getBomsByProduct(productCode);
+  }
+
+  // GET /warehouse/boms/BOM001 (Xem chi tiết công thức)
   @Get('boms/:code')
   getBomByCode(@Param('code') code: string) {
     return this.warehouseService.getBomByCode(code);
+  }
+
+  // PATCH /warehouse/boms/BOM001 (Chỉnh sửa công thức BOM)
+  @Patch('boms/:code')
+  @UsePipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  )
+  updateBom(@Param('code') code: string, @Body() dto: UpdateBomDto) {
+    return this.warehouseService.updateBom(code, dto);
+  }
+
+  // POST /warehouse/boms/BOM001/version (Tạo phiên bản mới cho BOM)
+  @Post('boms/:code/version')
+  @UsePipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  )
+  createBomNextVersion(
+    @Param('code') code: string,
+    @Body() dto: CreateBomVersionDto,
+  ) {
+    return this.warehouseService.createBomNextVersion(code, dto);
+  }
+
+  // PATCH /warehouse/boms/BOM001/status (Ngừng áp dụng hoặc kích hoạt lại công thức)
+  @Patch('boms/:code/status')
+  @UsePipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  )
+  updateBomStatus(
+    @Param('code') code: string,
+    @Body() dto: UpdateBomStatusDto,
+  ) {
+    return this.warehouseService.updateBomStatus(code, dto.status);
   }
 
   // POST /warehouse/boms/check-stock
@@ -276,6 +337,13 @@ export class WarehouseController {
     return this.warehouseService.startProductionOrder(code);
   }
 
+  @Post('production-orders/:code/finished-goods')
+  @HttpCode(200)
+  @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
+  reportFinishedGoods(@Param('code') code: string, @Body() dto: ReportFinishedGoodsDto) {
+    return this.warehouseService.reportFinishedGoods(code, dto);
+  }
+
   // GET /warehouse/finished-goods-receipts
   @Get('finished-goods-receipts')
   getFinishedGoodsReceipts(@Query('status') status?: string) {
@@ -325,6 +393,57 @@ export class WarehouseController {
   @Get('finished-goods-movements')
   getFinishedGoodsMovements() {
     return this.warehouseService.getFinishedGoodsMovements();
+  }
+
+  @Get('finished-goods-issues')
+  getFinishedGoodsIssues(@Query('status') status?: string, @Query('shiftCode') shiftCode?: string) {
+    return this.warehouseService.getFinishedGoodsIssues(status, shiftCode);
+  }
+
+  @Get('finished-goods-issue-branches')
+  getFinishedGoodsIssueBranches() {
+    return this.warehouseService.getFinishedGoodsIssueBranches();
+  }
+
+  @Post('finished-goods-issues')
+  @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
+  createFinishedGoodsIssue(@Body() dto: CreateFinishedGoodsIssueDto) {
+    return this.warehouseService.createFinishedGoodsIssue(dto);
+  }
+
+  @Post('finished-goods-issues/:code/approve')
+  @HttpCode(200)
+  approveFinishedGoodsIssue(@Param('code') code: string, @Body() body: { quantities?: Record<string, string> }) {
+    return this.warehouseService.approveFinishedGoodsIssue(code, body?.quantities);
+  }
+
+  @Post('finished-goods-issues/:code/reject')
+  @HttpCode(200)
+  rejectFinishedGoodsIssue(@Param('code') code: string, @Body() body: { reason: string }) {
+    return this.warehouseService.rejectFinishedGoodsIssue(code, body?.reason ?? '');
+  }
+
+  @Get('finished-goods-defects')
+  getFinishedGoodsDefects(@Query('status') status?: string) {
+    return this.warehouseService.getFinishedGoodsDefects(status);
+  }
+
+  @Post('finished-goods-defects')
+  @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
+  createFinishedGoodsDefect(@Body() dto: CreateFinishedGoodsDefectDto) {
+    return this.warehouseService.createFinishedGoodsDefect(dto);
+  }
+
+  @Post('finished-goods-defects/:code/approve')
+  @HttpCode(200)
+  approveFinishedGoodsDefect(@Param('code') code: string) {
+    return this.warehouseService.approveFinishedGoodsDefect(code);
+  }
+
+  @Post('finished-goods-defects/:code/reject')
+  @HttpCode(200)
+  rejectFinishedGoodsDefect(@Param('code') code: string, @Body() body: { reason: string }) {
+    return this.warehouseService.rejectFinishedGoodsDefect(code, body?.reason ?? '');
   }
 
   // GET /warehouse/inventory-movements

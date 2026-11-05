@@ -10,6 +10,8 @@ import { SupplierApi } from './api/supplier.api.js';
 import { MaterialApi } from './api/material.api.js';
 import { CategoryApi } from './api/category.api.js';
 import type { WarehouseReferenceApi } from './api/warehouse-reference.api.js';
+import type { FinishedGoodsIssueApi } from './api/finished-goods-issue.api.js';
+import type { FinishedGoodsDefectApi } from './api/finished-goods-defect.api.js';
 import type { MaterialAdjustmentApi } from './api/material-adjustment.api.js';
 
 describe('WarehouseService', () => {
@@ -30,6 +32,8 @@ describe('WarehouseService', () => {
       {} as CategoryApi,
       {} as WarehouseReferenceApi,
       {} as MaterialAdjustmentApi,
+      {} as FinishedGoodsIssueApi,
+      {} as FinishedGoodsDefectApi,
     );
 
     await service.getSuppliers('rau củ');

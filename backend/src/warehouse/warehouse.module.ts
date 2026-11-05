@@ -18,6 +18,8 @@ import { MaterialApi } from './api/material.api.js';
 import { CategoryApi } from './api/category.api.js';
 import { WarehouseReferenceApi } from './api/warehouse-reference.api.js';
 import { MaterialAdjustmentApi } from './api/material-adjustment.api.js';
+import { FinishedGoodsIssueApi } from './api/finished-goods-issue.api.js';
+import { FinishedGoodsDefectApi } from './api/finished-goods-defect.api.js';
 
 @Module({
   imports: [PrismaModule],
@@ -38,6 +40,8 @@ import { MaterialAdjustmentApi } from './api/material-adjustment.api.js';
     CategoryApi,
     WarehouseReferenceApi,
     MaterialAdjustmentApi,
+    FinishedGoodsIssueApi,
+    FinishedGoodsDefectApi,
   ],
 })
 export class WarehouseModule {}

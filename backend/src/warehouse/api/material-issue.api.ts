@@ -7,6 +7,7 @@ import {
 
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { Prisma } from '../../generated/prisma/client.js';
+import { isUsableLotExpiry } from '../lot-expiry.js';
 
 @Injectable()
 export class MaterialIssueApi {
@@ -140,6 +141,13 @@ export class MaterialIssueApi {
             day: '2-digit',
           });
           const today = formatter.format(new Date());
+          // Kiểm tra lại hạn đối với phiếu cấp cho bếp trước khi duyệt.
+          const staffRequest = await tx.staffAudit.findFirst({ where: { action: 'MATERIAL_REQUEST', targetId: issue.id } });
+          if (staffRequest) {
+            if (issue.details.some(item => !isUsableLotExpiry(item.materialLot.expiryDate))) {
+              throw new BadRequestException('Lô cấp cho bếp chưa có hạn sử dụng hoặc đã hết hạn');
+            }
+          }
 
           // 3. Chuyển phiếu sang APPROVED
           const updated = await tx.materialIssue.updateMany({

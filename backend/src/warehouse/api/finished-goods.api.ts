@@ -4,15 +4,34 @@ import {
   ConflictException,
   NotFoundException,
 } from '@nestjs/common';
+import { randomUUID } from 'node:crypto';
 
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { Prisma } from '../../generated/prisma/client.js';
 import { ApproveFinishedGoodsDto } from '../dto/approve-finished-goods.dto.js';
 import { RejectFinishedGoodsDto } from '../dto/reject-finished-goods.dto.js';
+import { ReportFinishedGoodsDto } from '../dto/report-finished-goods.dto.js';
 
 @Injectable()
 export class FinishedGoodsApi {
   constructor(private readonly prisma: PrismaService) {}
+
+  async reportOutput(orderCode: string, dto: ReportFinishedGoodsDto) {
+    const reportedQuantity = new Prisma.Decimal(dto.reportedQuantity);
+    if (reportedQuantity.lte(0)) throw new BadRequestException('Số lượng hoàn thành phải lớn hơn 0');
+    return this.prisma.$transaction(async (tx) => {
+      const order = await tx.productionOrder.findUnique({ where: { code: orderCode.trim() }, include: { finishedGoodsReceipts: { select: { reportedQuantity: true } } } });
+      if (!order) throw new NotFoundException('Không tìm thấy lệnh sản xuất');
+      if (order.status !== 'IN_PROGRESS' || order.materialStatus !== 'ISSUED') throw new ConflictException('Lệnh chưa ở trạng thái đang sản xuất');
+      const reportedBefore = order.finishedGoodsReceipts.reduce((sum, receipt) => sum.plus(receipt.reportedQuantity), new Prisma.Decimal(0));
+      if (reportedBefore.plus(reportedQuantity).gt(order.quantity)) throw new BadRequestException('Tổng số lượng đã báo không được vượt số lượng kế hoạch');
+      const now = new Date();
+      const receipt = await tx.finishedGoodsReceipt.create({ data: { code: `NTP-${randomUUID().replaceAll('-', '').slice(0, 12).toUpperCase()}`, productionOrderId: order.id, reportedQuantity, note: dto.note?.trim() ?? null } });
+      const changed = await tx.productionOrder.updateMany({ where: { id: order.id, status: 'IN_PROGRESS' }, data: { status: 'WAITING_APPROVAL' } });
+      if (changed.count !== 1) throw new ConflictException('Trạng thái lệnh đã thay đổi');
+      return { message: 'Đã gửi số lượng thành phẩm chờ quản lý duyệt', data: { receiptCode: receipt.code, orderCode: order.code, reportedQuantity: reportedQuantity.toString(), status: 'PENDING', productionStatus: 'WAITING_APPROVAL', submittedAt: now } };
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+  }
 
   // Lấy danh sách phiếu thành phẩm theo trạng thái
   async getReceipts(status = 'PENDING') {
@@ -101,7 +120,14 @@ export class FinishedGoodsApi {
           }
 
           const rejected = reported.minus(accepted);
-          const shortfall = order.quantity.minus(reported);
+          const reportTotals = await tx.finishedGoodsReceipt.aggregate({
+            where: { productionOrderId: order.id },
+            _sum: { reportedQuantity: true },
+          });
+          const totalReported = reportTotals._sum.reportedQuantity ?? new Prisma.Decimal(0);
+          const shortfall = totalReported.gte(order.quantity)
+            ? Prisma.Decimal.max(order.quantity.minus(totalReported), 0)
+            : new Prisma.Decimal(0);
           const reason = dto.reason?.trim() || null;
 
           if ((rejected.gt(0) || shortfall.gt(0)) && !reason) {
@@ -146,14 +172,18 @@ export class FinishedGoodsApi {
             throw new ConflictException('Phiếu đã được xử lý');
           }
 
-          // 6. Hoàn thành lệnh sản xuất
+          // 6. Hoàn thành lệnh khi đã báo đủ kế hoạch; nếu chưa, cho phép staff
+          // tiếp tục sản xuất và gửi đợt kế tiếp sau khi phiếu hiện tại được duyệt.
+          const productionStatus = totalReported.gte(order.quantity)
+            ? 'COMPLETED'
+            : 'IN_PROGRESS';
           const completed = await tx.productionOrder.updateMany({
             where: {
               id: order.id,
               status: 'WAITING_APPROVAL',
               materialStatus: 'ISSUED',
             },
-            data: { status: 'COMPLETED' },
+            data: { status: productionStatus },
           });
 
           if (completed.count !== 1) {
@@ -216,7 +246,7 @@ export class FinishedGoodsApi {
               productionShortfall: shortfall.toString(),
               totalStock: balance.quantity.toString(),
               receiptStatus: 'APPROVED',
-              productionStatus: 'COMPLETED',
+              productionStatus,
             },
           };
         },
@@ -280,13 +310,20 @@ export class FinishedGoodsApi {
             throw new ConflictException('Phiếu đã được xử lý');
           }
 
-          // 4. Trả lệnh về trạng thái xử lý
+          // 4. Cho phép báo phần còn lại; nếu đã báo đủ kế hoạch thì đóng lệnh.
+          const totals = await tx.finishedGoodsReceipt.aggregate({
+            where: { productionOrderId: receipt.productionOrderId },
+            _sum: { reportedQuantity: true },
+          });
+          const productionStatus = (totals._sum.reportedQuantity ?? new Prisma.Decimal(0)).gte(receipt.productionOrder.quantity)
+            ? 'COMPLETED'
+            : 'IN_PROGRESS';
           const result = await tx.productionOrder.updateMany({
             where: {
               id: receipt.productionOrderId,
               status: 'WAITING_APPROVAL',
             },
-            data: { status: 'IN_PROGRESS' },
+            data: { status: productionStatus },
           });
 
           if (result.count !== 1) {
@@ -299,7 +336,7 @@ export class FinishedGoodsApi {
               receiptCode: receipt.code,
               orderCode: receipt.productionOrder.code,
               receiptStatus: 'REJECTED',
-              productionStatus: 'IN_PROGRESS',
+              productionStatus,
               reason,
             },
           };
@@ -437,6 +474,7 @@ export class FinishedGoodsApi {
             productionOrder: true,
           },
         },
+        issueDetail: { include: { issue: true } },
         location: true,
       },
       orderBy: { createdAt: 'desc' },
@@ -446,8 +484,10 @@ export class FinishedGoodsApi {
     return {
       message: 'Lấy lịch sử nhập thành phẩm thành công',
       data: movements.map((item) => ({
-        receiptCode: item.receipt.code,
-        orderCode: item.receipt.productionOrder.code,
+        receiptCode: item.receipt?.code ?? null,
+        orderCode: item.receipt?.productionOrder.code ?? null,
+        issueCode: item.issueDetail?.issue.code ?? null,
+        shiftCode: item.issueDetail?.issue.shiftCode ?? null,
         productCode: item.productCode,
         locationName: item.location.name,
         quantityBefore: item.quantityBefore.toString(),

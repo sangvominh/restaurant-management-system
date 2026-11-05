@@ -30,6 +30,7 @@ function setup() {
     ],
   };
   const tx = {
+      staffAudit: { findFirst: vi.fn().mockResolvedValue(null) },
     materialIssue: {
       findUnique: vi.fn().mockResolvedValue(issue),
       updateMany: vi.fn().mockResolvedValue({ count: 1 }),

@@ -1,0 +1,3 @@
+CREATE TABLE "staff_material_returns" ("id" UUID NOT NULL, "code" TEXT NOT NULL, "actor_id" UUID NOT NULL, "branch_id" UUID NOT NULL, "issue_detail_id" UUID NOT NULL, "quantity" DECIMAL(18,3) NOT NULL, "note" TEXT, "status" TEXT NOT NULL DEFAULT 'PENDING', "created_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "staff_material_returns_pkey" PRIMARY KEY ("id"), CONSTRAINT "staff_material_returns_detail_fkey" FOREIGN KEY ("issue_detail_id") REFERENCES "material_issue_details"("id") ON DELETE RESTRICT);
+CREATE UNIQUE INDEX "staff_material_returns_code_key" ON "staff_material_returns"("code");
+CREATE INDEX "staff_material_returns_issue_detail_id_status_idx" ON "staff_material_returns"("issue_detail_id", "status");

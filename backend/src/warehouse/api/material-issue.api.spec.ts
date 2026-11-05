@@ -63,6 +63,7 @@ describe('MaterialIssueApi', () => {
 
   it('decrements stock and writes movement when approval succeeds', async () => {
     const tx = {
+      staffAudit: { findFirst: vi.fn().mockResolvedValue(null) },
       materialIssue: {
         findUnique: vi.fn().mockResolvedValue(makeIssue()),
         updateMany: vi.fn().mockResolvedValue({ count: 1 }),
@@ -96,6 +97,7 @@ describe('MaterialIssueApi', () => {
 
   it('rejects a repeated approval without decrementing stock again', async () => {
     const tx = {
+      staffAudit: { findFirst: vi.fn().mockResolvedValue(null) },
       materialIssue: {
         findUnique: vi.fn().mockResolvedValue(makeIssue('APPROVED')),
         updateMany: vi.fn(),
@@ -117,6 +119,7 @@ describe('MaterialIssueApi', () => {
 
   it('does not decrement or record movement for an expired lot', async () => {
     const tx = {
+      staffAudit: { findFirst: vi.fn().mockResolvedValue(null) },
       materialIssue: {
         findUnique: vi
           .fn()

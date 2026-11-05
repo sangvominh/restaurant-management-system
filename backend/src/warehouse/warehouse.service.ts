@@ -6,6 +6,8 @@ import { CreateReceiptDto } from './dto/create-receipt.dto.js';
 import { MaterialIssueApi } from './api/material-issue.api.js';
 import { BomApi } from './api/bom.api.js';
 import { CreateBomDto } from './dto/create-bom.dto.js';
+import { UpdateBomDto } from './dto/update-bom.dto.js';
+import { CreateBomVersionDto } from './dto/create-bom-version.dto.js';
 import { CheckBomStockDto } from './dto/check-bom-stock.dto.js';
 import { ProductionOrderApi } from './api/production-order.api.js';
 import { CreateProductionOrderDto } from './dto/create-production-order.dto.js';
@@ -28,6 +30,11 @@ import { WarehouseReferenceApi } from './api/warehouse-reference.api.js';
 import { MaterialAdjustmentApi } from './api/material-adjustment.api.js';
 import { ApproveMaterialAdjustmentDto } from './dto/process-material-adjustment.dto.js';
 
+import { FinishedGoodsIssueApi } from './api/finished-goods-issue.api.js';
+import { CreateFinishedGoodsIssueDto } from './dto/create-finished-goods-issue.dto.js';
+import { ReportFinishedGoodsDto } from './dto/report-finished-goods.dto.js';
+import { FinishedGoodsDefectApi } from './api/finished-goods-defect.api.js';
+import { CreateFinishedGoodsDefectDto } from './dto/create-finished-goods-defect.dto.js';
 @Injectable()
 export class WarehouseService {
   constructor(
@@ -43,6 +50,8 @@ export class WarehouseService {
     private readonly categoryApi: CategoryApi,
     private readonly referenceApi: WarehouseReferenceApi,
     private readonly adjustmentApi: MaterialAdjustmentApi,
+    private readonly finishedGoodsIssueApi: FinishedGoodsIssueApi,
+    private readonly finishedGoodsDefectApi: FinishedGoodsDefectApi,
   ) {}
 
   getBranches() { return this.referenceApi.getBranches(); }
@@ -108,14 +117,34 @@ export class WarehouseService {
     return this.bomApi.createBom(dto);
   }
 
-  // Lấy danh sách công thức BOM
-  getBoms() {
-    return this.bomApi.getBoms();
+  // Lấy danh sách công thức BOM (có lọc theo món ăn & trạng thái)
+  getBoms(productCode?: string, status?: string) {
+    return this.bomApi.getBoms(productCode, status);
+  }
+
+  // Xem danh sách các phiên bản công thức theo mã món ăn (productCode)
+  getBomsByProduct(productCode: string) {
+    return this.bomApi.getBomsByProduct(productCode);
   }
 
   // Xem chi tiết công thức BOM
   getBomByCode(code: string) {
     return this.bomApi.getBomByCode(code);
+  }
+
+  // Sửa / cập nhật công thức BOM
+  updateBom(code: string, dto: UpdateBomDto) {
+    return this.bomApi.updateBom(code, dto);
+  }
+
+  // Tạo phiên bản mới (Version mới) cho công thức BOM
+  createBomNextVersion(code: string, dto: CreateBomVersionDto) {
+    return this.bomApi.createNextVersion(code, dto);
+  }
+
+  // Ngừng áp dụng / Đổi trạng thái BOM (ACTIVE <-> INACTIVE / ARCHIVED)
+  updateBomStatus(code: string, status: string) {
+    return this.bomApi.updateStatus(code, status);
   }
 
   // Kiểm tra nguyên vật liệu theo BOM
@@ -178,6 +207,8 @@ export class WarehouseService {
     return this.productionOrderApi.startProductionOrder(code);
   }
 
+  reportFinishedGoods(code: string, dto: ReportFinishedGoodsDto) { return this.finishedGoodsApi.reportOutput(code, dto); }
+
   // Lấy phiếu thành phẩm
   getFinishedGoodsReceipts(status?: string) {
     return this.finishedGoodsApi.getReceipts(status);
@@ -207,6 +238,16 @@ export class WarehouseService {
   getFinishedGoodsMovements() {
     return this.finishedGoodsApi.getFinishedGoodsMovements();
   }
+
+  createFinishedGoodsIssue(dto: CreateFinishedGoodsIssueDto) { return this.finishedGoodsIssueApi.create(dto); }
+  getFinishedGoodsIssueBranches() { return this.finishedGoodsIssueApi.listBranches(); }
+  getFinishedGoodsIssues(status?: string, shiftCode?: string) { return this.finishedGoodsIssueApi.list(status, shiftCode); }
+  approveFinishedGoodsIssue(code: string, quantities?: Record<string, string>) { return this.finishedGoodsIssueApi.approve(code, quantities); }
+  rejectFinishedGoodsIssue(code: string, reason: string) { return this.finishedGoodsIssueApi.reject(code, reason); }
+  createFinishedGoodsDefect(dto: CreateFinishedGoodsDefectDto) { return this.finishedGoodsDefectApi.create(dto); }
+  getFinishedGoodsDefects(status?: string) { return this.finishedGoodsDefectApi.list(status); }
+  approveFinishedGoodsDefect(code: string) { return this.finishedGoodsDefectApi.approve(code); }
+  rejectFinishedGoodsDefect(code: string, reason: string) { return this.finishedGoodsDefectApi.reject(code, reason); }
 
   // Lấy danh sách tồn kho
   getInventoryMovements(branchCode?: string) {
