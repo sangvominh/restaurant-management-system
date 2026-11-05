@@ -13,8 +13,33 @@ export class StaffProductionController {
   constructor(private readonly db: PrismaService, private readonly finishedGoods: FinishedGoodsApi) {}
   @Get()
   async list(@Req() req: StaffRequest) {
-    const orders = await this.db.productionOrder.findMany({ where: { branchId: req.staff.branchId, assignedEmployeeCode: req.staff.code }, include: { bom: { include: { product: true } } }, orderBy: { createdAt: 'desc' } });
-    return orders.map(o => ({ code: o.code, productCode: o.bom.productCode, productName: o.bom.product?.name ?? o.bom.productCode, quantity: o.quantity.toString(), createdAt: o.createdAt, status: o.status, materialStatus: o.materialStatus }));
+    const orders = await this.db.productionOrder.findMany({ where: { branchId: req.staff.branchId, assignedEmployeeCode: req.staff.code }, include: { bom: { include: { product: true } }, finishedGoodsReceipts: { select: { reportedQuantity: true } } }, orderBy: { createdAt: 'desc' } });
+    return orders.map(o => ({ code: o.code, productCode: o.bom.productCode, productName: o.bom.product?.name ?? o.bom.productCode, quantity: o.quantity.toString(), reportedQuantity: o.finishedGoodsReceipts.reduce((sum, receipt) => sum.plus(receipt.reportedQuantity), new Prisma.Decimal(0)).toString(), createdAt: o.createdAt, status: o.status, materialStatus: o.materialStatus }));
+  }
+  @Get('history')
+  @Roles('KITCHEN', 'BARISTA', 'SUPERVISOR')
+  async history(@Req() req: StaffRequest) {
+    const productScope = req.staff.role === 'BARISTA'
+      ? { category: 'Đồ uống' }
+      : req.staff.role === 'KITCHEN'
+        ? { category: { not: 'Đồ uống' } }
+        : {};
+    const receipts = await this.db.finishedGoodsReceipt.findMany({
+      where: { productionOrder: { branchId: req.staff.branchId, bom: { product: productScope } } },
+      include: { productionOrder: { include: { bom: { include: { product: true } } } } },
+      orderBy: { createdAt: 'desc' }, take: 250,
+    });
+    return receipts.map(receipt => ({
+      receiptCode: receipt.code, orderCode: receipt.productionOrder.code,
+      productCode: receipt.productionOrder.bom.productCode,
+      productName: receipt.productionOrder.bom.product?.name ?? receipt.productionOrder.bom.productCode,
+      plannedQuantity: receipt.productionOrder.quantity.toString(),
+      reportedQuantity: receipt.reportedQuantity.toString(),
+      acceptedQuantity: receipt.acceptedQuantity?.toString() ?? null,
+      rejectedQuantity: receipt.rejectedQuantity?.toString() ?? null,
+      status: receipt.status, note: receipt.inspectionNote ?? receipt.note,
+      createdAt: receipt.createdAt, assignedEmployeeCode: receipt.productionOrder.assignedEmployeeCode,
+    }));
   }
   @Get('menu')
   async menu(@Req() req: StaffRequest) {
@@ -131,26 +156,24 @@ export class StaffProductionController {
       const { order: current, items } = await this.kitchenRequirements(tx, req.staff.branchId, req.staff.code, code, quantity);
       if (current.status !== 'IN_PROGRESS' || current.materialStatus !== 'ISSUED') throw new ConflictException('Lệnh chưa ở trạng thái đang sản xuất.');
       if (quantity.gt(current.quantity)) throw new BadRequestException('Số lượng hoàn thành vượt kế hoạch.');
-      const previous = await tx.$queryRaw<{ reported_quantity: Prisma.Decimal | null }[]>`SELECT reported_quantity FROM staff_kitchen_production_starts WHERE production_order_id=${current.id}::uuid FOR UPDATE`;
-      if (!previous.length) throw new ConflictException('Không tìm thấy dữ liệu cấp nguyên liệu cho lệnh.');
-      if (previous[0].reported_quantity && !previous[0].reported_quantity.equals(quantity)) throw new ConflictException('Lệnh đã ghi nhận nguyên liệu; số lượng báo lại phải giữ nguyên để tránh trừ hai lần.');
-      if (!previous[0].reported_quantity) {
-        for (const item of items) {
+      const marker = await tx.$queryRaw<{ production_order_id: string }[]>`SELECT production_order_id FROM staff_kitchen_production_starts WHERE production_order_id=${current.id}::uuid FOR UPDATE`;
+      if (!marker.length) throw new ConflictException('Không tìm thấy dữ liệu cấp nguyên liệu cho lệnh.');
+      const previous = await tx.finishedGoodsReceipt.aggregate({ where: { productionOrderId: current.id }, _sum: { reportedQuantity: true } });
+      const reportedBefore = previous._sum.reportedQuantity ?? new Prisma.Decimal(0);
+      if (reportedBefore.plus(quantity).gt(current.quantity)) throw new BadRequestException('Tổng số lượng đã báo vượt kế hoạch của lệnh.');
+      const receipt = await tx.finishedGoodsReceipt.create({ data: { code:`NTP-${randomUUID().replaceAll('-', '').slice(0,12).toUpperCase()}`, productionOrderId:current.id, reportedQuantity:quantity } });
+      for (const item of items) {
           let remaining = new Prisma.Decimal(item.required);
           const lots = await tx.$queryRaw<{ material_lot_id:string; quantity:Prisma.Decimal }[]>`SELECT b.material_lot_id,(GREATEST(b.quantity-b.reserved_waste-b.reserved_return-COALESCE((SELECT SUM(r.quantity) FROM staff_material_returns r JOIN material_issue_details d ON d.id=r.issue_detail_id WHERE r.branch_id=b.branch_id AND d.material_lot_id=b.material_lot_id AND r.status='PENDING' AND NOT r.stock_reserved),0),0)) AS quantity FROM staff_kitchen_balances b JOIN material_lots l ON l.id=b.material_lot_id WHERE b.branch_id=${req.staff.branchId}::uuid AND l.material_id=${item.materialId}::uuid AND l.status='ACTIVE' AND l.expiry_date >= (now() AT TIME ZONE 'Asia/Ho_Chi_Minh')::date AND GREATEST(b.quantity-b.reserved_waste-b.reserved_return-COALESCE((SELECT SUM(r.quantity) FROM staff_material_returns r JOIN material_issue_details d ON d.id=r.issue_detail_id WHERE r.branch_id=b.branch_id AND d.material_lot_id=b.material_lot_id AND r.status='PENDING' AND NOT r.stock_reserved),0),0)>0 ORDER BY l.expiry_date NULLS LAST,l.lot_code,l.id FOR UPDATE OF b`;
           for (const lot of lots) {
             if (remaining.lte(0)) break;
             const used = Prisma.Decimal.min(remaining,lot.quantity);
             await tx.$executeRaw`UPDATE staff_kitchen_balances SET quantity=quantity-${used} WHERE branch_id=${req.staff.branchId}::uuid AND material_lot_id=${lot.material_lot_id}::uuid`;
-            await tx.$executeRaw`INSERT INTO staff_kitchen_production_consumptions(production_order_id,material_lot_id,quantity) VALUES (${current.id}::uuid,${lot.material_lot_id}::uuid,${used})`;
+            await tx.$executeRaw`INSERT INTO staff_kitchen_production_consumptions(production_order_id,material_lot_id,quantity,finished_goods_receipt_id) VALUES (${current.id}::uuid,${lot.material_lot_id}::uuid,${used},${receipt.id}::uuid)`;
             remaining = remaining.minus(used);
           }
           if (remaining.gt(0)) throw new BadRequestException(`Không đủ ${item.name} trong tồn bếp; chưa báo hoàn thành.`);
-        }
-        await tx.$executeRaw`UPDATE staff_kitchen_production_starts SET reported_quantity=${quantity} WHERE production_order_id=${current.id}::uuid`;
       }
-      const existing = await tx.finishedGoodsReceipt.findUnique({ where: { productionOrderId: current.id } });
-      const receipt = existing ? await tx.finishedGoodsReceipt.update({ where: { id: existing.id }, data: { reportedQuantity:quantity, acceptedQuantity:null, rejectedQuantity:null, status:'PENDING', note:null, inspectionNote:null, inspectedAt:null, approvedAt:null } }) : await tx.finishedGoodsReceipt.create({ data: { code:`NTP-${randomUUID().replaceAll('-', '').slice(0,12).toUpperCase()}`, productionOrderId:current.id, reportedQuantity:quantity } });
       const changed = await tx.productionOrder.updateMany({ where: { id:current.id, status:'IN_PROGRESS' }, data: { status:'WAITING_APPROVAL' } });
       if (changed.count !== 1) throw new ConflictException('Trạng thái lệnh đã thay đổi.');
       return { message:'Đã gửi số lượng thành phẩm chờ quản lý duyệt', data:{ receiptCode:receipt.code, orderCode:current.code, reportedQuantity:quantity.toString(), status:'PENDING', productionStatus:'WAITING_APPROVAL' } };

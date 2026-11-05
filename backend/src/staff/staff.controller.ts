@@ -13,6 +13,7 @@ export class StaffController {
   @Post('invoices') @Roles('SERVICE', 'CASHIER', 'SUPERVISOR') create(@Req() r: StaffRequest, @Body() b: unknown) { return this.service.createInvoice(r.staff, b); }
   @Post('orders') @Roles('SERVICE', 'SUPERVISOR') order(@Req() r: StaffRequest, @Body() b: unknown) { return this.service.addOrder(r.staff, b); }
   @Get('kitchen') kitchen(@Req() r: StaffRequest) { return this.service.kitchen(r.staff); }
+  @Get('kitchen/history') @Roles('KITCHEN', 'BARISTA', 'SUPERVISOR') kitchenHistory(@Req() r: StaffRequest) { return this.service.kitchenHistory(r.staff); }
   @Get('lines/:id/material-requirements') @Roles('KITCHEN', 'BARISTA', 'SUPERVISOR') requirements(@Req() r: StaffRequest, @Param('id') id: string) { return this.service.lineRequirements(r.staff, id); }
   @Patch('lines/:id') @Roles('SERVICE', 'KITCHEN', 'BARISTA', 'SUPERVISOR') line(@Req() r: StaffRequest, @Param('id') id: string, @Body() b: unknown) { return this.service.updateLine(r.staff, id, b); }
   @Post('lines/:id/cancel') @Roles('SERVICE', 'SUPERVISOR') cancel(@Req() r: StaffRequest, @Param('id') id: string, @Body() b: unknown) { return this.service.cancelLine(r.staff, id, b); }

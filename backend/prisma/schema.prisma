@@ -314,7 +314,7 @@ model ProductionOrder {
 
   assignedEmployeeCode String?               @map("assigned_employee_code") @db.VarChar(50)
   assignedAt           DateTime?             @map("assigned_at") @db.Timestamptz(3)
-  finishedGoodsReceipt FinishedGoodsReceipt?
+  finishedGoodsReceipts FinishedGoodsReceipt[]
 
   bom                Bom                 @relation(fields: [bomId], references: [id], onDelete: Restrict)
   branch             Branch              @relation(fields: [branchId], references: [id], onDelete: Restrict)
@@ -330,7 +330,7 @@ model ProductionOrder {
 model FinishedGoodsReceipt {
   id                String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   code              String @unique @db.VarChar(50)
-  productionOrderId String @unique @map("production_order_id") @db.Uuid
+  productionOrderId String @map("production_order_id") @db.Uuid
 
   reportedQuantity Decimal  @map("reported_quantity") @db.Decimal(18, 3)
   acceptedQuantity Decimal? @map("accepted_quantity") @db.Decimal(18, 3)

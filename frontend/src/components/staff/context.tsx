@@ -129,7 +129,7 @@ const nav = [
 function isStaffNavActive(path: string, href: string) {
   if (href === "/staff") return path === href;
   if (href === "/staff/finished-issues") return ["/staff/finished-issues", "/staff/finished-defects", "/staff/finished-goods"].some(p => path === p || path.startsWith(`${p}/`));
-  if (href === "/staff/kitchen") return path === "/staff/kitchen" || path.startsWith("/staff/kitchen/") || path === "/staff/production";
+  if (href === "/staff/kitchen") return path === "/staff/kitchen" || path.startsWith("/staff/kitchen/") || path === "/staff/production" || path.startsWith("/staff/production/");
   if (href === "/staff/materials") return ["/staff/materials", "/staff/inventory", "/staff/kitchen-inventory", "/staff/material-issues", "/staff/material-waste", "/staff/material-returns", "/staff/reports", "/staff/processing-defects"].some(p => path === p || path.startsWith(`${p}/`));
   return path === href || path.startsWith(`${href}/`);
 }

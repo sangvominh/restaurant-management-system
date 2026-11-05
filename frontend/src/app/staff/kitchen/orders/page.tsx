@@ -45,7 +45,7 @@ export default function KitchenPage() {
   } finally { setBusy(false); }
  }
  return <div className="space-y-5">
-  <BackLink href="/staff/kitchen"/><div className="stock-title-row"><h1>Món theo order</h1><Link href="/staff/processing-defects" className="btn btn-danger">Báo lỗi chế biến</Link><button type="button" className="stock-icon-button stock-refresh" aria-label="Tải lại danh sách món" title="Tải lại" onClick={() => { reload(); stock.reload(); }}><Icon name="refresh"/></button></div>
+  <BackLink href="/staff/kitchen"/><div className="stock-title-row"><h1>Món theo order</h1><Link href="/staff/production/history?type=ORDER&from=orders" className="btn btn-secondary">Lịch sử chế biến</Link><Link href="/staff/processing-defects" className="btn btn-danger">Báo lỗi chế biến</Link><button type="button" className="stock-icon-button stock-refresh" aria-label="Tải lại danh sách món" title="Tải lại" onClick={() => { reload(); stock.reload(); }}><Icon name="refresh"/></button></div>
 
   {message && <Toast key={message}>{message}</Toast>}{failure && !selected && <Toast key={failure} error>{failure}</Toast>}
   <div className="staff-search-toolbar"><SearchInput value={search} onChange={setSearch} label="Tìm món hoặc order" hint="Tên món, bàn hoặc mã order"/><SortSelect value={sort} onChange={setSort} label="Sắp xếp order" options={[["oldest","Cũ nhất"],["newest","Mới nhất"],["table","Tên bàn A–Z"]]}/></div>

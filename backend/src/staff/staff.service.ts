@@ -77,6 +77,26 @@ export class StaffService {
   kitchen(user: StaffIdentity) {
     return this.db.staffOrder.findMany({ where: { invoice: { branchId: user.branchId }, lines: { some: { status: { in: ['QUEUED', 'COOKING', 'READY'] } } } }, include: { invoice: { include: { table: true } }, lines: true }, orderBy: { createdAt: 'asc' } });
   }
+  async kitchenHistory(user: StaffIdentity) {
+    const lines = await this.db.orderLine.findMany({
+      where: {
+        order: { invoice: { branchId: user.branchId } },
+        OR: [{ readyAt: { not: null } }, { servedAt: { not: null } }, { status: 'CANCELLED', cookingAt: { not: null } }],
+        ...(user.role === 'BARISTA' ? { menuItem: { category: 'Đồ uống' } } : user.role === 'KITCHEN' ? { menuItem: { category: { not: 'Đồ uống' } } } : {}),
+      },
+      include: { order: { include: { invoice: { include: { table: true } } } } },
+      orderBy: [{ readyAt: 'desc' }, { servedAt: 'desc' }], take: 500,
+    });
+    return lines.map(line => ({
+      type: 'ORDER', code: line.id.slice(0, 8).toUpperCase(), title: line.name,
+      reference: `${line.order.invoice.table.name} · Order ${line.order.id.slice(0, 8)}`,
+      quantity: line.quantity.toString(), plannedQuantity: line.quantity.toString(),
+      acceptedQuantity: ['READY', 'SERVED'].includes(line.status) ? line.quantity.toString() : null,
+      rejectedQuantity: null, status: line.status, note: line.note || null,
+      createdAt: line.servedAt ?? line.readyAt ?? line.cookingAt ?? line.order.createdAt,
+      employeeCode: null,
+    }));
+  }
   private async requirements(tx: Prisma.TransactionClient, user: StaffIdentity, id: string) {
     const line = await tx.orderLine.findFirst({ where: { id: uuid(id), order: { invoice: { branchId: user.branchId } } } });
     if (!line) throw new NotFoundException('Không tìm thấy món.');

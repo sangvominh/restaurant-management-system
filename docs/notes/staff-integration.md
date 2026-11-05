@@ -31,9 +31,10 @@ Tài liệu này mô tả dữ liệu hiện có và những điểm nhóm cần
 
 ## Báo hoàn thành thành phẩm
 
-- `POST /api/staff/production-orders/:code/finished-goods` nhận `{ quantity }`, lưu `finished_goods_receipts` ở trạng thái `PENDING` và đưa lệnh sang `WAITING_APPROVAL`. Bản ghi này là báo cáo, chưa tăng `finished_goods_balances`.
-- Khi quản lý duyệt phiếu nhập theo API kho hiện có, số lượng được chấp nhận mới được ghi vào tồn thành phẩm. Lệnh dùng tồn bếp có dấu trong `staff_kitchen_production_starts`; lượng đã sử dụng theo lô nằm trong `staff_kitchen_production_consumptions`, và chỉ được trừ một lần khi báo hoàn thành. Lệnh được kho cấp trực tiếp trước đó đi theo luồng cũ.
-- Kiểm tra tồn khi bắt đầu chưa giữ chỗ. Nếu tồn thay đổi, lúc báo hoàn thành phải kiểm tra lại. Khi nối xử lý duyệt/từ chối và gửi lại, cần giữ tính nguyên tử và tránh trừ NVL hai lần; báo lại với số lượng khác hiện bị từ chối đối với lệnh đã ghi nhận tiêu hao.
+- `POST /api/staff/production-orders/:code/finished-goods` nhận `{ quantity }`, tạo một dòng `finished_goods_receipts` ở trạng thái `PENDING` cho mỗi đợt và đưa lệnh sang `WAITING_APPROVAL`. Tổng lượng báo trên mọi đợt không được vượt số lượng lệnh; khi phiếu trước được duyệt hoặc từ chối, lệnh quay về `IN_PROGRESS` nếu tổng lượng báo chưa đạt kế hoạch. Phiếu báo cáo chưa tăng `finished_goods_balances`.
+- Khi quản lý duyệt từng phiếu nhập theo API kho hiện có, chỉ số lượng được chấp nhận của phiếu đó mới được ghi vào tồn thành phẩm. Lệnh chuyển `COMPLETED` khi tổng lượng báo đạt kế hoạch; nếu chưa, nhân viên có thể tiếp tục và báo đợt kế tiếp. Lệnh dùng tồn bếp ghi tiêu hao theo lô và theo phiếu báo trong `staff_kitchen_production_consumptions`; mỗi đợt trừ lượng NVL theo BOM một lần trong cùng giao dịch tạo phiếu. Lệnh được kho cấp trực tiếp đi theo cùng cơ chế phiếu nhiều đợt nhưng không trừ lại tồn bếp.
+- Staff xem lịch sử chế biến chi nhánh tại `GET /api/staff/production-orders/history` (các đợt lệnh sản xuất) và `GET /api/staff/kitchen/history` (món theo order). Staff Bếp xem món không thuộc nhóm Đồ uống; Pha chế xem Đồ uống. Giao diện Bếp KDS gộp hai nguồn và cho lọc theo order, lệnh sản xuất hoặc tất cả.
+- Kiểm tra tồn khi bắt đầu chưa giữ chỗ. Nếu tồn đổi trước lần báo, lúc báo kiểm tra lại và rollback toàn bộ đợt nếu không đủ; phần NVL các đợt trước không bị trừ lần hai.
 
 ## Phiếu hoàn trả và thành phẩm lỗi
 
