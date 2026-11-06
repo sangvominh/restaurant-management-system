@@ -6,8 +6,7 @@ import { CreateReceiptDto } from './dto/create-receipt.dto.js';
 import { MaterialIssueApi } from './api/material-issue.api.js';
 import { BomApi } from './api/bom.api.js';
 import { CreateBomDto } from './dto/create-bom.dto.js';
-import { UpdateBomDto } from './dto/update-bom.dto.js';
-import { CreateBomVersionDto } from './dto/create-bom-version.dto.js';
+import { NewVersionBomDto, UpdateBomDto } from './dto/update-bom.dto.js';
 import { CheckBomStockDto } from './dto/check-bom-stock.dto.js';
 import { ProductionOrderApi } from './api/production-order.api.js';
 import { CreateProductionOrderDto } from './dto/create-production-order.dto.js';
@@ -132,19 +131,16 @@ export class WarehouseService {
     return this.bomApi.getBomByCode(code);
   }
 
-  // Sửa / cập nhật công thức BOM
   updateBom(code: string, dto: UpdateBomDto) {
     return this.bomApi.updateBom(code, dto);
   }
 
-  // Tạo phiên bản mới (Version mới) cho công thức BOM
-  createBomNextVersion(code: string, dto: CreateBomVersionDto) {
-    return this.bomApi.createNextVersion(code, dto);
+  createBomVersion(code: string, dto: NewVersionBomDto) {
+    return this.bomApi.createNewVersion(code, dto);
   }
 
-  // Ngừng áp dụng / Đổi trạng thái BOM (ACTIVE <-> INACTIVE / ARCHIVED)
-  updateBomStatus(code: string, status: string) {
-    return this.bomApi.updateStatus(code, status);
+  deactivateBom(code: string) {
+    return this.bomApi.deactivateBom(code);
   }
 
   // Kiểm tra nguyên vật liệu theo BOM

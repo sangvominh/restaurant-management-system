@@ -1,33 +1,48 @@
 import {
-  IsString,
-  IsOptional,
-  Matches,
+  ArrayMinSize,
   IsArray,
+  IsOptional,
+  IsString,
+  Matches,
+  MaxLength,
   ValidateNested,
-  IsIn,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { BomDetailDto } from './create-bom.dto.js';
 
 export class UpdateBomDto {
-  @IsOptional()
   @IsString()
-  @Matches(/^\d{1,15}(\.\d{1,3})?$/, {
-    message: 'Sản lượng đầu ra phải là số hợp lệ',
-  })
-  outputQuantity?: string;
+  @MaxLength(150)
+  productName: string;
 
   @IsOptional()
   @IsString()
-  @IsIn(['ACTIVE', 'INACTIVE', 'DRAFT', 'ARCHIVED'], {
-    message: 'Trạng thái phải là ACTIVE, INACTIVE, DRAFT hoặc ARCHIVED',
-  })
-  status?: string;
+  @MaxLength(100)
+  category?: string;
 
   @IsOptional()
+  @IsString()
+  @MaxLength(2000)
+  description?: string;
+
+  @IsOptional()
+  @Matches(/^\d{1,15}(\.\d{1,2})?$/)
+  price?: string;
+
+  @IsString()
+  @Matches(/^\d{1,15}(\.\d{1,3})?$/)
+  outputQuantity: string;
+
   @IsArray()
+  @ArrayMinSize(1)
   @ValidateNested({ each: true })
   @Type(() => BomDetailDto)
-  details?: BomDetailDto[];
+  details: BomDetailDto[];
 }
 
+export class NewVersionBomDto extends UpdateBomDto {
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  code?: string;
+}
