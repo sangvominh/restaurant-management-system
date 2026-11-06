@@ -1,6 +1,6 @@
 # System Admin: Prisma + ESM
 
-Nền tương thích `develop` tại commit `7c70254`: NestJS, PostgreSQL, Prisma 7.10.1, ESM/NodeNext và Vitest. Các model `Branch` và `RestaurantTable` giữ nguyên. Công việc này chỉ chuyển lớp dữ liệu của System Admin và chuẩn bị hợp đồng báo cáo; không triển khai kho, BOM hay hóa đơn.
+Nền tương thích `develop` tại commit `7c70254`: NestJS, PostgreSQL, Prisma 7.10.1, ESM/NodeNext và Vitest. Bản tích hợp đã bổ sung module kho/nhà hàng từ 797f8d6; xem [tài liệu tích hợp hiện tại](integration.md) và ma trận API. Phần dưới mô tả nền System Admin và cách giữ dữ liệu cũ.
 
 ## Chạy với database phát triển mới
 
@@ -87,7 +87,7 @@ Với dữ liệu TypeORM cần giữ: xuất JSON quản trị v1 từ phiên b
 - Toàn bộ controller `/api/admin/*` khai báo `@RequireSystemAdmin()`. Chỉ System Admin được quản lý tài khoản, vai trò, phân quyền, báo cáo, cấu hình, danh mục chung, nhật ký và sao lưu/phục hồi. Quyền quản trị không được ủy quyền; kể cả dữ liệu cũ còn chứa `account:manage`, `role:manage`, `report:view` hoặc `backup:manage`, vai trò thường vẫn nhận 403.
 - Danh mục checkbox chỉ có 15 quyền nghiệp vụ theo bảng phân công. System Admin được tick/bỏ tick mọi quyền nghiệp vụ cho vai trò thường, không khóa theo tên vai trò. Backend từ chối wildcard, quyền quản trị, khóa cũ và khóa không tồn tại trong request tạo/sửa vai trò.
 - Quyền mặc định chỉ dùng cho vai trò mới hoặc khi người dùng chủ động chọn mẫu trên giao diện. Seed và khởi động không ghi đè checkbox đã lưu. `GET /api/admin/roles/defaults` cung cấp mẫu; chọn mẫu chỉ đổi checkbox của form, chưa lưu cho tới khi bấm lưu.
-- Nhóm nghiệp vụ sử dụng các khóa bên dưới và gắn `@RequirePermissions(...)` trên API của họ khi tích hợp. Thay đổi hiện tại chỉ khai báo quyền, không xây API kho, BOM, thành phẩm, ca làm, khách hàng hay nối dữ liệu thật.
+- Nhóm nghiệp vụ sử dụng các khóa bên dưới và gắn `@RequirePermissions(...)` trên API của họ khi tích hợp. Các API kho/sản phẩm đã nối trong bản tích hợp được liệt kê tại [ma trận API](warehouse-api-permissions.md); ca làm/nhân viên/khách hàng và nguồn báo cáo thật vẫn chờ tích hợp.
 - Guard JWT áp dụng toàn cục. Route công khai của module mới phải khai báo `@Public()`. Token phải thuộc phiên đăng nhập tồn tại, đúng tài khoản và đúng phiên bản phiên.
 - Đổi/đặt lại mật khẩu, khóa/mở khóa, đổi vai trò/email/quyền hoặc phục hồi thu hồi các phiên liên quan. Token cũ không sống lại sau mở khóa. Token phiên bản cũ trước chuyển đổi phải đăng nhập lại.
 - Các thay đổi tài khoản/vai trò/phục hồi dùng khóa transaction chung để bảo vệ Admin cuối cùng khi có nhiều request đồng thời. Khóa này chỉ áp dụng các đường ghi quản trị đi qua `PrismaService.adminTransaction`.
@@ -101,15 +101,15 @@ Với dữ liệu TypeORM cần giữ: xuất JSON quản trị v1 từ phiên b
 
 `inventory:approve-export` chỉ duyệt nguyên vật liệu, không bao gồm xuất thành phẩm. `product:view` chỉ xem/tìm kiếm/lọc/sắp xếp; không có quyền CRUD sản phẩm trong đặc tả. `order:view` là xem đơn của chính khách đó; nhóm đơn hàng phải kiểm tra chủ sở hữu khi tích hợp. `order:create` bao gồm chọn món, giỏ hàng và thanh toán. Các quyền này không thay thế điều kiện nghiệp vụ (phiếu đã duyệt, ca hiện tại, số lượng tồn, v.v.).
 
-Portal này chỉ cho System Admin đăng nhập vào giao diện. Layout chờ xác nhận `/api/auth/me` trước khi render các trang; không tin quyền trong localStorage và không hiển thị trang quản trị khi xác nhận thất bại. Tài khoản thường vẫn có thể xác thực bằng API login chung để các app nghiệp vụ sử dụng sau này, nhưng không có quyền truy cập portal hay API quản trị.
+Khu vực /, /login và các trang quản trị chỉ cho System Admin; /login gọi `/api/auth/system-admin/login`, từ chối vai trò thường. Kho/Nhà hàng chờ nhóm nối login riêng, không được chuyển từ login System Admin sang /warehouse. Phiên trình duyệt hai khu vực lưu riêng; layout chờ xác nhận `/api/auth/me` trước khi render nội dung, không tin quyền trong localStorage. Tài khoản và checkbox nghiệp vụ vẫn dùng chung. Nhân viên/Khách hàng dùng app riêng chưa tích hợp. Xem [điểm nối](integration.md#đăng-nhập-riêng-và-điểm-nối-warehouse).
 
 ### Cập nhật bản đã chạy và kiểm tra checkbox
 
 1. Dừng backend/frontend đang chạy, kiểm tra `DATABASE_URL` trỏ đúng database Prisma phát triển.
 2. Từ thư mục gốc chạy `npm.cmd run db:migrate --workspace backend` rồi khởi động lại backend/frontend. Không cần seed lại để chuyển các vai trò cũ; migration đã bổ sung vai trò nghiệp vụ còn thiếu. Tất cả tài khoản phải đăng nhập lại.
 3. Đăng nhập System Admin, mở Phân quyền & Vai trò, sửa một vai trò thường. Có thể chọn mẫu, tick thêm/bỏ tick và lưu; tải lại trang để kiểm tra lựa chọn được giữ.
-4. Tạo tài khoản mang vai trò đó. Thử đăng nhập tại `/login`: portal báo chỉ dành cho System Admin. Không tự chuyển đến app khác khi các module chưa tích hợp.
-5. Quyền nghiệp vụ đã lưu có thể kiểm tra bằng API login chung và `/api/auth/me`; các API `/api/admin/*` luôn trả 403 cho tài khoản thường. Khi đổi checkbox, các phiên cũ bị thu hồi.
+4. Tạo tài khoản mang vai trò đó. Đặt khu vực vai trò là Warehouse, đăng nhập /login để vào /warehouse. Thử nhập URL quản trị và gọi API quản trị phải bị chặn.
+5. Quyền nghiệp vụ đã lưu có thể kiểm tra qua API xác thực nền `/api/auth/login` và `/api/auth/me` trong môi trường thử; chưa có form login Warehouse mới. `/api/auth/system-admin/login` và các API `/api/admin/*` từ chối tài khoản thường. Khi đổi checkbox, các phiên cũ bị thu hồi.
 
 Migration không được tự chạy mỗi lần khởi động. Vai trò `Thu ngân` đã tồn tại được giữ để không mất liên kết tài khoản; nếu vẫn dùng đúng quyền mặc định cũ thì được chuyển sang nhóm quyền Nhân viên. Seed database mới tạo đúng năm vai trò: System Admin, Quản lý kho, Quản lý nhà hàng, Nhân viên, Khách hàng.
 

@@ -2,6 +2,7 @@ import {
   Injectable,
   UnauthorizedException,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
@@ -20,7 +21,7 @@ export class AuthService {
     private readonly audit: AuditService,
   ) {}
 
-  async login(email: string, password: string, ip?: string) {
+  async login(email: string, password: string, ip?: string, systemAdminOnly = false) {
     const account = await this.db.account.findUnique({
       where: { email: email.trim().toLowerCase() },
       include: { role: true },
@@ -49,6 +50,17 @@ export class AuthService {
         'Tài khoản đã bị khóa, vui lòng liên hệ quản trị viên',
       );
     }
+    if (systemAdminOnly && !isSystemRole(account.role)) {
+      await this.audit.recordLogin({
+        accountId: account.id,
+        email: account.email,
+        ip,
+        status: 'failed',
+      });
+      throw new ForbiddenException(
+        'Trang đăng nhập này chỉ dành cho System Admin. Kho / Nhà hàng sử dụng trang đăng nhập riêng.',
+      );
+    }
     const session = await this.audit.recordLogin({
       accountId: account.id,
       email: account.email,
@@ -67,6 +79,7 @@ export class AuthService {
       role: account.role.name,
       permissions: account.role.permissions,
       isSystemAdmin: isSystemRole(account.role),
+      portal: isSystemRole(account.role) ? 'system' : account.role.portal,
     };
     return { accessToken, user };
   }

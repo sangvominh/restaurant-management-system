@@ -1,4 +1,4 @@
-# Chạy System Admin bằng Docker
+# Chạy System Admin + Kho / Nhà hàng bằng Docker
 
 `docker-compose.yml` giữ nguyên database của nhóm. `docker-compose.apps.yml` bổ sung backend, frontend và job `backend-init`. Script chạy tự ghép cả hai file và thêm override riêng nếu máy có, để giữ đúng volume dữ liệu hiện tại.
 

@@ -12,6 +12,7 @@ import {
   IS_PUBLIC_KEY,
   PERMISSIONS_KEY,
   SYSTEM_ADMIN_ONLY_KEY,
+  WAREHOUSE_ONLY_KEY,
 } from '../common/auth.decorators.js';
 import {
   isSystemRole,
@@ -77,6 +78,7 @@ export class AuthGuard implements CanActivate {
       role: account.role.name,
       permissions: account.role.permissions,
       isSystemAdmin: isSystemRole(account.role),
+      portal: isSystemRole(account.role) ? 'system' : account.role.portal,
       sessionId: session.id,
     };
     req.user = user;
@@ -88,6 +90,11 @@ export class AuthGuard implements CanActivate {
       PERMISSIONS_KEY,
       targets,
     );
+    const warehouseOnly = this.reflector.getAllAndOverride<boolean>(WAREHOUSE_ONLY_KEY, targets);
+    if (warehouseOnly && (user.isSystemAdmin || user.portal !== 'warehouse'))
+      throw new ForbiddenException('Tài khoản không được truy cập khu vực Kho / Nhà hàng');
+    if (warehouseOnly && !required?.length)
+      throw new ForbiddenException('Chức năng chưa được mở quyền tích hợp');
     if (
       required?.length &&
       !user.isSystemAdmin &&

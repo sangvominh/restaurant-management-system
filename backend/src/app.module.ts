@@ -6,7 +6,10 @@ import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 import { AuthModule } from './auth/auth.module.js';
 import { BackupModule } from './backup/backup.module.js';
+import { WarehouseModule } from './warehouse/warehouse.module.js';
+import { ProductsModule } from './products/products.module.js';
 import { ReportModule } from './report/report.module.js';
+import { BrandingController } from './branding/branding.controller.js';
 
 @Module({
   imports: [
@@ -16,8 +19,10 @@ import { ReportModule } from './report/report.module.js';
     AdminModule,
     BackupModule,
     ReportModule,
+    WarehouseModule,
+    ProductsModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, BrandingController],
   providers: [AppService],
 })
 export class AppModule {}

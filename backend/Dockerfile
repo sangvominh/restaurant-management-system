@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-cert
 FROM base AS dependencies
 COPY package.json package-lock.json ./
 COPY backend/package.json ./backend/package.json
-COPY apps/web-admin-system/package.json ./apps/web-admin-system/package.json
+COPY frontend/web-admin-system/package.json ./frontend/web-admin-system/package.json
 RUN --mount=type=cache,target=/root/.npm \
     npm ci --workspace backend --include-workspace-root --no-audit --no-fund
 
@@ -24,7 +24,7 @@ CMD ["node", "scripts/docker-init.mjs"]
 FROM base AS production-dependencies
 COPY package.json package-lock.json ./
 COPY backend/package.json ./backend/package.json
-COPY apps/web-admin-system/package.json ./apps/web-admin-system/package.json
+COPY frontend/web-admin-system/package.json ./frontend/web-admin-system/package.json
 RUN --mount=type=cache,target=/root/.npm \
     npm ci --omit=dev --workspace backend --include-workspace-root --no-audit --no-fund \
     && mkdir -p backend/node_modules

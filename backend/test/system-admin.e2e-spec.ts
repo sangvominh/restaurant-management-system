@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { readFile } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
 import { PGlite } from '@electric-sql/pglite';
 import { PGLiteSocketServer } from '@electric-sql/pglite-socket';
 import { Test } from '@nestjs/testing';
@@ -24,7 +24,7 @@ const adminEmail = 'admin@example.com';
 const api = () => request(app.getHttpServer());
 async function login(email = adminEmail, secret = password) {
   const response = await api()
-    .post('/api/auth/login')
+    .post(email === adminEmail ? '/api/auth/system-admin/login' : '/api/auth/login')
     .send({ email, password: secret })
     .expect(200);
   expect(response.body.user).not.toHaveProperty('passwordHash');
@@ -33,11 +33,7 @@ async function login(email = adminEmail, secret = password) {
 
 beforeAll(async () => {
   pg = await PGlite.create();
-  for (const migration of [
-    '20261030000000_develop_baseline',
-    '20261030000100_system_admin',
-    '20261031000000_role_permission_policy',
-  ]) {
+  for (const migration of (await readdir(new URL('../prisma/migrations/', import.meta.url))).filter(name => /^\d/.test(name)).sort()) {
     await pg.exec(
       await readFile(
         new URL(
@@ -86,9 +82,10 @@ beforeAll(async () => {
 beforeEach(async () => {
   await pg.exec(`DROP VIEW IF EXISTS public.v_report_revenue; DROP VIEW IF EXISTS public.v_report_stock;
     DROP TABLE IF EXISTS demo_stock_movements, demo_invoices, demo_materials;
-    TRUNCATE accounts, roles, login_logs, audit_logs, categories, system_settings RESTART IDENTITY CASCADE;`);
+    TRUNCATE accounts, roles, login_logs, audit_logs, system_admin_categories, system_settings,
+      branches, units, categories, suppliers, products RESTART IDENTITY CASCADE;`);
   const admin = await db.role.create({
-    data: { name: 'Quản trị viên (Admin)', permissions: ['*'], isSystem: true },
+    data: { name: 'Quản trị viên (Admin)', permissions: ['*'], isSystem: true, portal: 'system' },
   });
   const staff = await db.role.create({
     data: { name: 'Nhân viên', permissions: ['inventory:view'] },
@@ -260,7 +257,7 @@ describe('tài khoản và phân quyền qua HTTP + Prisma/PostgreSQL', () => {
   it('seed tạo Admin đầu tiên và chạy lại không đổi mật khẩu đã có', async () => {
     const { seedSystemAdmin } = await import('../dist/prisma/seed-admin.js');
     await pg.exec(
-      'TRUNCATE accounts, roles, login_logs, audit_logs, categories, system_settings RESTART IDENTITY CASCADE',
+      'TRUNCATE accounts, roles, login_logs, audit_logs, system_admin_categories, system_settings RESTART IDENTITY CASCADE',
     );
     const email = 'bootstrap@example.com';
     await seedSystemAdmin(db, { email, password });
@@ -1054,5 +1051,162 @@ describe('hợp đồng dữ liệu báo cáo', () => {
       .get('/api/admin/reports/stock/materials?period=quarter&year=2026&key=5')
       .auth(token, { type: 'bearer' })
       .expect(400);
+  });
+});
+
+describe('tên nhà hàng dùng chung', () => {
+  it('đọc tên ở màn đăng nhập không cần JWT và không lộ cấu hình riêng', async () => {
+    const response = await api().get('/api/public/branding').expect(200);
+    expect(response.headers['cache-control']).toBe('no-store');
+    expect(response.body).toEqual({ restaurantName: 'Hệ thống Quản lý MRP' });
+    expect(await db.systemSetting.count()).toBe(0);
+  });
+  it('Admin đổi tên thì nguồn dùng chung cập nhật; vai trò thường và tên rỗng bị chặn', async () => {
+    const admin = await login();
+    const child = await login('staff@example.com');
+    await api().put('/api/admin/settings').auth(child, {type:'bearer'}).send({restaurantName:'Không được đổi'}).expect(403);
+    await api().put('/api/admin/settings').auth(admin, {type:'bearer'}).send({restaurantName:'Nhà hàng Đồng Bộ',email:'contact@example.com',phone:'0901234567'}).expect(200);
+    const publicName = await api().get('/api/public/branding').expect(200);
+    expect(publicName.body).toEqual({restaurantName:'Nhà hàng Đồng Bộ'});
+    await api().put('/api/admin/settings').auth(admin, {type:'bearer'}).send({restaurantName:'   '}).expect(400);
+    expect((await api().get('/api/public/branding').expect(200)).body.restaurantName).toBe('Nhà hàng Đồng Bộ');
+  });
+});
+
+describe('đăng nhập riêng System Admin', () => {
+  it('cấp phiên cho System Admin và không yêu cầu thay đổi tài khoản hiện có', async () => {
+    const token = await login();
+    const me = await api().get('/api/auth/me').auth(token, {type:'bearer'}).expect(200);
+    expect(me.body).toMatchObject({id:adminId,isSystemAdmin:true,portal:'system'});
+  });
+
+  it('từ chối vai trò Kho/Nhà hàng/Nhân viên/Khách hàng trước khi tạo phiên thành công', async () => {
+    for (const portal of ['warehouse','employee','customer']) {
+      await db.role.update({where:{name:'Nhân viên'},data:{portal}});
+      const response = await api().post('/api/auth/system-admin/login')
+        .send({email:'staff@example.com',password}).expect(403);
+      expect(response.body).not.toHaveProperty('accessToken');
+      expect(response.body.message).toContain('chỉ dành cho System Admin');
+    }
+    expect(await db.loginLog.count({where:{accountId:staffId,status:'success'}})).toBe(0);
+    expect(await db.loginLog.count({where:{accountId:staffId,status:'failed'}})).toBe(3);
+    // API xác thực hiện có vẫn phục vụ việc nối các app riêng sau này.
+    await login('staff@example.com');
+  });
+
+  it('vẫn từ chối sai mật khẩu và tài khoản Admin bị khóa', async () => {
+    await api().post('/api/auth/system-admin/login').send({email:adminEmail,password:'wrong-password'}).expect(401);
+    await db.account.update({where:{id:adminId},data:{status:'locked'}});
+    await api().post('/api/auth/system-admin/login').send({email:adminEmail,password}).expect(401);
+    expect(await db.loginLog.count({where:{status:'success'}})).toBe(0);
+  });
+});
+
+describe('tích hợp A System Admin — B Kho — C Nhà hàng', () => {
+  async function provision() {
+    const { seedSystemAdmin } = await import('../dist/prisma/seed-admin.js');
+    await seedSystemAdmin(db, { email: adminEmail, password });
+    const a = await login();
+    for (const [name,email,role] of [
+      ['Kho B','warehouse@example.com','Quản lý kho'],
+      ['Nhà hàng C','restaurant@example.com','Quản lý nhà hàng'],
+    ]) await api().post('/api/admin/accounts').auth(a,{type:'bearer'}).send({name,email,role,password}).expect(201);
+    const b = await login('warehouse@example.com');
+    const c = await login('restaurant@example.com');
+    return { a,b,c };
+  }
+  async function stockFixture() {
+    const branch = await db.branch.create({data:{code:'INTEGRATION-CN01',name:'Chi nhánh thử'}});
+    const location = await db.warehouseLocation.create({data:{branchId:branch.id,name:'Kho thử',locationType:'NORMAL'}});
+    const unit = await db.unit.create({data:{name:'kg'}});
+    const category = await db.category.create({data:{name:'Nguyên liệu thử',categoryType:'MATERIAL'}});
+    const material = await db.material.create({data:{code:'INTEGRATION-NVL01',name:'Bột thử',unitId:unit.id,categoryId:category.id}});
+    const lot = await db.materialLot.create({data:{materialId:material.id,lotCode:'LO-01'}});
+    await db.materialBalance.create({data:{locationId:location.id,materialLotId:lot.id,quantity:20}});
+    const supplier = await db.supplier.create({data:{code:'INTEGRATION-NCC01',name:'Nhà cung cấp thử'}});
+    const product = await db.product.create({data:{code:'INTEGRATION-TP01',name:'Món thử',category:'Món thử',price:25000}});
+    await db.finishedGoodsBalance.create({data:{productCode:product.code,locationId:location.id,quantity:10}});
+    return {branch,location,material,lot,supplier,product};
+  }
+  it('A cấp tài khoản B/C, giữ phân quyền sau khi tách đăng nhập và chặn JWT thiếu quyền', async () => {
+    const {a,b,c} = await provision();
+    expect((await api().get('/api/auth/me').auth(a,{type:'bearer'}).expect(200)).body).toMatchObject({portal:'system',isSystemAdmin:true});
+    for (const token of [b,c]) {
+      expect((await api().get('/api/auth/me').auth(token,{type:'bearer'}).expect(200)).body).toMatchObject({portal:'warehouse',isSystemAdmin:false});
+      await api().get('/api/admin/accounts').auth(token,{type:'bearer'}).expect(403);
+    }
+    for(const path of ['/warehouse/inventory','/products','/warehouse/boms','/warehouse/finished-goods-issues']) {
+      await api().get(path).expect(401);
+      await api().get(path).auth(a,{type:'bearer'}).expect(403);
+    }
+    await api().get('/warehouse/inventory').auth(b,{type:'bearer'}).expect(200);
+    await api().get('/products').auth(b,{type:'bearer'}).expect(403);
+    await api().get('/warehouse/boms').auth(b,{type:'bearer'}).expect(403);
+    await api().get('/warehouse/inventory').auth(c,{type:'bearer'}).expect(403);
+    await api().get('/products').auth(c,{type:'bearer'}).expect(200);
+    await api().get('/warehouse/boms').auth(c,{type:'bearer'}).expect(200);
+  });
+  it('B nhập nguyên liệu thật, C không được nhập; API và danh mục hỗ trợ đều kiểm tra quyền', async () => {
+    const {b,c}=await provision();const f=await stockFixture();
+    const body={receiptCode:'PN-INTEGRATION-01',branchCode:f.branch.code,supplierCode:f.supplier.code,
+      details:[{materialCode:f.material.code,lotCode:f.lot.lotCode,locationName:f.location.name,unitName:'kg',quantity:'5',unitPrice:'10000'}]};
+    await api().get('/warehouse/receipt-options').auth(c,{type:'bearer'}).expect(403);
+    const options=await api().get('/warehouse/receipt-options').auth(b,{type:'bearer'}).expect(200);
+    expect(options.body.data.suppliers).toHaveLength(1);
+    await api().post('/warehouse/receipts').auth(c,{type:'bearer'}).send(body).expect(403);
+    await api().post('/warehouse/receipts').auth(b,{type:'bearer'}).send(body).expect(201);
+    expect(Number((await db.materialBalance.findFirstOrThrow()).quantity)).toBe(25);
+    expect(await db.inventoryMovement.count()).toBe(1);
+  });
+  it('C cấu hình BOM và duyệt xuất thành phẩm; B bị chặn trước khi kho thay đổi', async () => {
+    const {b,c}=await provision();const f=await stockFixture();
+    const bom={code:'BOM-INTEGRATION-01',productCode:f.product.code,outputQuantity:'1',details:[{materialCode:f.material.code,unitName:'kg',quantity:'0.5'}]};
+    await api().post('/warehouse/boms').auth(b,{type:'bearer'}).send(bom).expect(403);
+    await api().post('/warehouse/boms').auth(c,{type:'bearer'}).send(bom).expect(201);
+    await api().get('/warehouse/inventory').auth(c,{type:'bearer'}).expect(403);
+    const materials = await api().get('/warehouse/bom-materials').auth(c,{type:'bearer'}).expect(200);
+    expect(materials.body.data[0]).not.toHaveProperty('totalStock');
+    const issue=await db.finishedGoodsIssue.create({data:{code:'PX-INTEGRATION-01',branchId:f.branch.id,shiftCode:'CA-01',details:{create:{productCode:f.product.code,requestedQuantity:2}}}});
+    const path=`/warehouse/finished-goods-issues/${issue.code}/approve`;
+    await api().post(path).auth(b,{type:'bearer'}).send({}).expect(403);
+    expect(Number((await db.finishedGoodsBalance.findFirstOrThrow()).quantity)).toBe(10);
+    await api().post(path).auth(c,{type:'bearer'}).send({}).expect(200);
+    expect(Number((await db.finishedGoodsBalance.findFirstOrThrow()).quantity)).toBe(8);
+    await api().post(path).auth(c,{type:'bearer'}).send({}).expect(409);
+    await api().post('/warehouse/material-issues/UNKNOWN/approve').auth(c,{type:'bearer'}).send({}).expect(403);
+  });
+  it('checkbox là quyền thực tế, cấp thêm BOM cho B có hiệu lực sau đăng nhập lại', async () => {
+    const {a,b}=await provision();
+    const role=await db.role.findUniqueOrThrow({where:{name:'Quản lý kho'}});
+    await api().put(`/api/admin/roles/${role.id}`).auth(a,{type:'bearer'}).send({permissions:['bom:manage']}).expect(200);
+    await api().get('/api/auth/me').auth(b,{type:'bearer'}).expect(401);
+    const fresh=await login('warehouse@example.com');
+    await api().get('/warehouse/boms').auth(fresh,{type:'bearer'}).expect(200);
+    await api().get('/warehouse/receipts').auth(fresh,{type:'bearer'}).expect(403);
+    await api().get('/api/admin/roles').auth(fresh,{type:'bearer'}).expect(403);
+  });
+  it('đổi khu vực vai trò thu hồi phiên, nhân viên không vào warehouse dù có quyền xem tồn', async () => {
+    const {a,b}=await provision();const role=await db.role.findUniqueOrThrow({where:{name:'Quản lý kho'}});
+    await api().put(`/api/admin/roles/${role.id}`).auth(a,{type:'bearer'}).send({portal:'employee'}).expect(200);
+    await api().get('/warehouse/inventory').auth(b,{type:'bearer'}).expect(401);
+    const fresh=await login('warehouse@example.com');
+    expect((await api().get('/api/auth/me').auth(fresh,{type:'bearer'}).expect(200)).body.portal).toBe('employee');
+    await api().get('/warehouse/inventory').auth(fresh,{type:'bearer'}).expect(403);
+    await api().post('/api/admin/roles').auth(a,{type:'bearer'}).send({name:'Giả System Admin',portal:'system',permissions:[]}).expect(400);
+  });
+  it('khóa tài khoản và đăng xuất chặn cả API warehouse, API admin và thông tin phiên', async () => {
+    const {a,b,c}=await provision();
+    const account=await db.account.findUniqueOrThrow({where:{email:'warehouse@example.com'}});
+    await api().patch(`/api/admin/accounts/${account.id}/toggle-status`).auth(a,{type:'bearer'}).expect(200);
+    await api().get('/warehouse/inventory').auth(b,{type:'bearer'}).expect(401);
+    await api().post('/api/auth/logout').auth(c,{type:'bearer'}).expect(200);
+    await api().get('/products').auth(c,{type:'bearer'}).expect(401);
+    await api().get('/api/auth/me').auth(c,{type:'bearer'}).expect(401);
+  });
+  it('không mở CRUD sản phẩm, nhập sau sản xuất hoặc lỗi thành phẩm khi chưa chốt quyền riêng', async () => {
+    const {c}=await provision();
+    await api().post('/products').auth(c,{type:'bearer'}).send({}).expect(403);
+    await api().post('/warehouse/finished-goods-receipts/UNKNOWN/approve').auth(c,{type:'bearer'}).send({}).expect(403);
+    await api().post('/warehouse/finished-goods-defects').auth(c,{type:'bearer'}).send({}).expect(403);
   });
 });

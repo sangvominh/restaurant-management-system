@@ -9,7 +9,7 @@
     "docker:logs": "node scripts/docker-apps.mjs logs"
   },
   "workspaces": [
-    "apps/*",
+    "frontend/*",
     "packages/*",
     "backend"
   ]

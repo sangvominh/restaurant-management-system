@@ -6,6 +6,7 @@ import type { PrismaService } from '../prisma/prisma.service.js';
 import {
   PERMISSIONS_KEY,
   SYSTEM_ADMIN_ONLY_KEY,
+  WAREHOUSE_ONLY_KEY,
 } from '../common/auth.decorators.js';
 import { AuthGuard } from './auth.guard.js';
 
@@ -22,7 +23,7 @@ function fixture(permissions: string[], isSystem = false) {
       email: 'a@example.com',
       status: 'active',
       sessionVersion: 0,
-      role: { name: 'Tên vai trò tùy ý', permissions, isSystem },
+      role: { name: 'Tên vai trò tùy ý', permissions, isSystem, portal: 'warehouse' },
     },
   };
   const jwt = {
@@ -42,6 +43,24 @@ function fixture(permissions: string[], isSystem = false) {
 }
 
 describe('quyền nghiệp vụ và ranh giới System Admin', () => {
+  it('warehouse chặn System Admin có wildcard và chặn route chưa khai báo quyền', async () => {
+    const f = fixture(['*'], true);
+    Reflect.defineMetadata(WAREHOUSE_ONLY_KEY, true, f.controller);
+    Reflect.defineMetadata(PERMISSIONS_KEY, ['inventory:view'], f.handler);
+    await expect(f.guard.canActivate(f.context)).rejects.toThrow(ForbiddenException);
+    f.session.account.role.isSystem = false;
+    f.session.account.role.permissions = ['inventory:view'];
+    await expect(f.guard.canActivate(f.context)).resolves.toBe(true);
+    Reflect.deleteMetadata(PERMISSIONS_KEY, f.handler);
+    await expect(f.guard.canActivate(f.context)).rejects.toThrow(ForbiddenException);
+  });
+  it('quyền đúng không vượt qua giới hạn portal', async () => {
+    const f = fixture(['inventory:view']);
+    Reflect.defineMetadata(WAREHOUSE_ONLY_KEY, true, f.controller);
+    Reflect.defineMetadata(PERMISSIONS_KEY, ['inventory:view'], f.handler);
+    f.session.account.role.portal = 'employee';
+    await expect(f.guard.canActivate(f.context)).rejects.toThrow(ForbiddenException);
+  });
   it('cho phép đúng quyền được tick và chặn ngay khi quyền không còn trong database', async () => {
     const f = fixture(['supplier:manage', 'inventory:view']);
     Reflect.defineMetadata(PERMISSIONS_KEY, ['supplier:manage'], f.handler);

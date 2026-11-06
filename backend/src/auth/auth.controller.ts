@@ -42,6 +42,13 @@ export class AuthController {
     return this.auth.login(dto.email, dto.password, ip);
   }
 
+  @Public()
+  @Post('system-admin/login')
+  @HttpCode(200)
+  loginSystemAdmin(@Body() dto: LoginDto, @Ip() ip: string) {
+    return this.auth.login(dto.email, dto.password, ip, true);
+  }
+
   @Post('logout')
   @HttpCode(200)
   logout(@CurrentUser() user: AuthUser) {

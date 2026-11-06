@@ -3,6 +3,8 @@
 **/.next
 **/dist
 **/coverage
+**/test-results
+**/playwright-report
 **/*.tsbuildinfo
 .npm-cache
 backups

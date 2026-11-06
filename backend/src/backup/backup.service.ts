@@ -25,6 +25,7 @@ interface RoleRow {
   description: string;
   isSystem: boolean;
   permissions: string[];
+  portal: string;
   createdAt?: Date;
 }
 interface AccountRow {
@@ -85,7 +86,7 @@ export class BackupService {
             include: { role: true },
             orderBy: { id: 'asc' },
           }),
-          this.db.category.findMany({ orderBy: { id: 'asc' } }),
+          this.db.systemAdminCategory.findMany({ orderBy: { id: 'asc' } }),
           this.db.systemSetting.findMany({ orderBy: { id: 'asc' } }),
         ],
         { isolationLevel: 'RepeatableRead' },
@@ -203,11 +204,11 @@ export class BackupService {
           accounts: { none: {} },
         },
       });
-      await tx.category.deleteMany({
+      await tx.systemAdminCategory.deleteMany({
         where: { id: { notIn: backup.categories.map((c) => c.id) } },
       });
       for (const c of backup.categories)
-        await tx.category.upsert({ where: { id: c.id }, create: c, update: c });
+        await tx.systemAdminCategory.upsert({ where: { id: c.id }, create: c, update: c });
       for (const s of backup.settings)
         await tx.systemSetting.upsert({
           where: { id: s.id },
@@ -217,7 +218,7 @@ export class BackupService {
       for (const table of [
         'accounts',
         'roles',
-        'categories',
+        'system_admin_categories',
         'system_settings',
       ]) {
         await tx.$queryRaw(Prisma.sql`SELECT setval(pg_get_serial_sequence(${table}, 'id'),
@@ -327,8 +328,13 @@ export class BackupService {
         permissionWarnings.push(
           `${w} (${name}): quyền cũ được chuyển sang danh mục mới; quyền quản trị của vai trò thường bị loại bỏ.`,
         );
+      const portal = r.portal ?? (r.isSystem === true ? 'system' : (name === 'Nhân viên' || name === 'Thu ngân') ? 'employee' : name === 'Khách hàng' ? 'customer' : 'warehouse');
+      if (!['system', 'warehouse', 'employee', 'customer'].includes(portal as string) ||
+          ((r.isSystem === true) !== (portal === 'system')))
+        errors.push(`${w}: khu vực truy cập không hợp lệ`);
       return {
         id: r.id as number,
+        portal: portal as string,
         name,
         description: typeof r.description === 'string' ? r.description : '',
         isSystem: r.isSystem === true,

@@ -1,6 +1,6 @@
 import * as bcrypt from 'bcryptjs';
 import { isEmail } from 'class-validator';
-import { DEFAULT_ROLE_PERMISSIONS } from '../common/permissions.js';
+import { DEFAULT_ROLE_PERMISSIONS, defaultPortal } from '../common/permissions.js';
 import type { PrismaClient } from '../generated/prisma/client.js';
 
 export async function seedSystemAdmin(
@@ -31,6 +31,7 @@ export async function seedSystemAdmin(
             name,
             permissions,
             description: name,
+            portal: defaultPortal(name, permissions),
             isSystem: permissions.includes('*'),
           },
         });

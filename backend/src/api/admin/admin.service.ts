@@ -14,6 +14,7 @@ import {
 } from '../../common/management-policy.js';
 import {
   DEFAULT_ROLE_PERMISSIONS,
+  defaultPortal,
   PERMISSIONS,
   WILDCARD,
 } from '../../common/permissions.js';
@@ -35,6 +36,7 @@ const roleResponse = (r: Role & { _count: { accounts: number } }) => ({
   description: r.description,
   isSystem: r.isSystem,
   permissions: r.permissions,
+  portal: r.portal,
   usersCount: r._count.accounts,
 });
 
@@ -232,7 +234,7 @@ export class AdminService {
   getRoleDefaults() {
     return Object.entries(DEFAULT_ROLE_PERMISSIONS)
       .filter(([, permissions]) => !permissions.includes(WILDCARD))
-      .map(([name, permissions]) => ({ name, permissions }));
+      .map(([name, permissions]) => ({ name, permissions, portal: defaultPortal(name, permissions) }));
   }
 
   async getAllRoles() {
@@ -250,6 +252,7 @@ export class AdminService {
       tx.role.create({
         data: {
           name: dto.name,
+          portal: dto.portal ?? 'warehouse',
           description: dto.description ?? '',
           permissions: dto.permissions ?? [],
         },
@@ -273,7 +276,7 @@ export class AdminService {
       if (
         current.isSystem &&
         ((dto.name !== undefined && dto.name !== current.name) ||
-          dto.permissions !== undefined)
+          dto.permissions !== undefined || dto.portal !== undefined)
       )
         throw new BadRequestException(
           'Không thể đổi tên hoặc quyền của vai trò hệ thống',
@@ -284,12 +287,13 @@ export class AdminService {
         where: { id },
         data: {
           name: dto.name,
+          portal: dto.portal,
           description: dto.description,
           permissions: dto.permissions,
         },
         include: { _count: { select: { accounts: true } } },
       });
-      if (dto.permissions !== undefined) {
+      if (dto.permissions !== undefined || dto.portal !== undefined) {
         await tx.account.updateMany({
           where: { roleId: id },
           data: { sessionVersion: { increment: 1 } },
@@ -336,12 +340,12 @@ export class AdminService {
   }
 
   getAllCategories() {
-    return this.db.category.findMany({ orderBy: { id: 'asc' } });
+    return this.db.systemAdminCategory.findMany({ orderBy: { id: 'asc' } });
   }
 
   async createCategory(dto: CreateCategoryDto, actor: AuthUser) {
     const saved = await this.db.adminTransaction((tx) =>
-      tx.category.create({ data: dto }),
+      tx.systemAdminCategory.create({ data: dto }),
     );
     await this.audit.log(actor, {
       action: 'category.create',
@@ -354,7 +358,7 @@ export class AdminService {
 
   async updateCategory(id: number, dto: UpdateCategoryDto, actor: AuthUser) {
     const saved = await this.db.adminTransaction((tx) =>
-      tx.category.update({ where: { id }, data: dto }),
+      tx.systemAdminCategory.update({ where: { id }, data: dto }),
     );
     await this.audit.log(actor, {
       action: 'category.update',
@@ -367,7 +371,7 @@ export class AdminService {
 
   async deleteCategory(id: number, actor: AuthUser) {
     const saved = await this.db.adminTransaction((tx) =>
-      tx.category.delete({ where: { id } }),
+      tx.systemAdminCategory.delete({ where: { id } }),
     );
     await this.audit.log(actor, {
       action: 'category.delete',
@@ -412,7 +416,7 @@ export class AdminService {
     const [accounts, roles, categories, settings, logs] = await Promise.all([
       this.db.account.findMany({ select: { status: true, roleId: true } }),
       this.db.role.findMany({ select: { id: true } }),
-      this.db.category.findMany(),
+      this.db.systemAdminCategory.findMany(),
       this.getSettings(),
       this.audit.recentActivity(6),
     ]);

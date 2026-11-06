@@ -74,6 +74,12 @@ export const PERMISSIONS = [
 ] as const;
 
 export const ALL_PERMISSION_KEYS: string[] = PERMISSIONS.map((p) => p.key);
+export function defaultPortal(name: string, permissions: string[]): string {
+  if (permissions.includes('*')) return 'system';
+  if (name === 'Nhân viên' || name === 'Thu ngân') return 'employee';
+  if (name === 'Khách hàng') return 'customer';
+  return 'warehouse';
+}
 export const WILDCARD = '*';
 
 /** Các quyền cũ giữ tên để bảo vệ API, không được cấp qua checkbox. */

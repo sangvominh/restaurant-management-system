@@ -99,6 +99,10 @@ export class UpdateAccountDto {
 
 /* ---------------- Roles ---------------- */
 export class CreateRoleDto {
+  @IsOptional()
+  @IsIn(['warehouse', 'employee', 'customer'])
+  portal?: string;
+
   @Transform(trim)
   @IsString()
   @IsNotEmpty({ message: 'Tên vai trò không được để trống' })
@@ -119,6 +123,10 @@ export class CreateRoleDto {
 }
 
 export class UpdateRoleDto {
+  @IsOptional()
+  @IsIn(['warehouse', 'employee', 'customer'])
+  portal?: string;
+
   @IsOptional()
   @Transform(trim)
   @IsString()

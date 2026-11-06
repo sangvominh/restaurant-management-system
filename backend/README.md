@@ -46,7 +46,7 @@ npm run start:dev
 
 Backend cổng 3001; frontend cổng 3000. Trong PowerShell dùng `npm.cmd` nếu execution policy chặn `npm.ps1`.
 
-Portal và mọi API `/api/admin/*` chỉ dành cho System Admin. Vai trò thường chỉ được cấp các quyền nghiệp vụ qua checkbox; mặc định theo phân công kho, nhà hàng, nhân viên và khách hàng. API login chung vẫn xác thực các tài khoản khác để các app nghiệp vụ dùng sau khi tích hợp.
+Portal và mọi API `/api/admin/*` chỉ dành cho System Admin. `/login` gọi `POST /api/auth/system-admin/login`, từ chối vai trò thường trước khi cấp phiên. Login Warehouse riêng do nhóm phụ trách, chưa tạo trong đợt này. Vẫn giữ tài khoản và checkbox nghiệp vụ dùng chung; các vai trò portal warehouse dùng đúng quyền đã tick, System Admin không gọi được API kho dù có wildcard. API `/api/auth/login`, `/me`, `/logout` hiện có được giữ làm điểm nối cho app riêng. Xem [hợp đồng tích hợp](../docs/integration.md#đăng-nhập-riêng-và-điểm-nối-warehouse).
 
 Nếu đã chạy bản Prisma trước đó, dừng server, chạy `npm run db:migrate`, rồi khởi động lại và đăng nhập lại. Migration mới chuyển các mặc định cũ, bảo toàn quyền nghiệp vụ đã tùy chỉnh và thu hồi phiên cũ. Xem tài liệu để biết chi tiết chuyển khóa quyền.
 
