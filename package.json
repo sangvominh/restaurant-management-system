@@ -4,5 +4,8 @@
   },
   "devDependencies": {
     "prisma": "^5.22.0"
+  },
+  "scripts": {
+    "dev:staff-warehouse": "node backend/scripts/dev-staff-warehouse.mjs"
   }
 }

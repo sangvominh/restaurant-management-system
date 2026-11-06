@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { Check, Eye, RefreshCw, X } from "lucide-react";
 import { WarehouseApiError } from "@/services/api";
 import {
@@ -52,8 +52,8 @@ export default function MaterialIssueManagement() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
 
-  async function load(nextStatus = status) {
-    setLoading(true);
+  const load = useCallback(async (nextStatus = status, silent = false) => {
+    if (!silent) setLoading(true);
     setError("");
     try {
       setIssues(await warehouseService.getMaterialIssues(nextStatus));
@@ -63,10 +63,14 @@ export default function MaterialIssueManagement() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [status]);
   useEffect(() => {
-    void load("PENDING");
-  }, []);
+    void load();
+    const refresh = () => { if (document.visibilityState === "visible") void load(status, true); };
+    const timer = window.setInterval(refresh, 10000);
+    window.addEventListener("focus", refresh);
+    return () => { window.clearInterval(timer); window.removeEventListener("focus", refresh); };
+  }, [load, status]);
 
   async function showDetail(code: string) {
     setError("");
@@ -157,9 +161,7 @@ export default function MaterialIssueManagement() {
             key={tab.value}
             className={`tab-button ${status === tab.value ? "tab-active" : ""}`}
             onClick={() => {
-              setStatus(tab.value);
-              void load(tab.value);
-            }}
+              setStatus(tab.value);            }}
           >
             {tab.label}
           </button>
@@ -200,7 +202,7 @@ export default function MaterialIssueManagement() {
                     <td>{dateLabel(item.createdAt)}</td>
                     <td>{item.totalItems}</td>
                     <td>{labelFor(item.status)}</td>
-                    <td>
+                    <td><div className="row-actions">
                       <button
                         className="row-action"
                         aria-label="Xem chi tiết"
@@ -208,7 +210,11 @@ export default function MaterialIssueManagement() {
                       >
                         <Eye size={14} />
                       </button>
-                    </td>
+                      {item.status === "PENDING" && <>
+                        <button className="row-action" title="Chấp nhận" aria-label={"Chấp nhận " + item.issueCode} disabled={!!processingCode} onClick={() => { setError(""); setApproving(item.issueCode); }}><Check size={14}/></button>
+                        <button className="row-action" title="Từ chối" aria-label={"Từ chối " + item.issueCode} disabled={!!processingCode} onClick={() => { setError(""); setReason(""); setRejecting(item.issueCode); }}><X size={14}/></button>
+                      </>}
+                    </div></td>
                   </tr>
                 ))}
               </tbody>

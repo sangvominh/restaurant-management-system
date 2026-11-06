@@ -155,7 +155,7 @@ export class MaterialIssueApi {
               id: issue.id,
               status: 'PENDING',
             },
-            data: { status: 'APPROVED' },
+            data: { status: 'APPROVED', processedAt: new Date() },
           });
 
           if (updated.count !== 1) {
@@ -302,6 +302,7 @@ export class MaterialIssueApi {
       data: {
         status: 'REJECTED',
         note,
+        processedAt: new Date(),
       },
     });
 

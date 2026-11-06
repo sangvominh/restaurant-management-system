@@ -36,6 +36,13 @@ model Branch {
   finishedGoodsDefects FinishedGoodsDefect[]
 
   @@map("branches")
+
+  staff_kitchen_balances          staff_kitchen_balances[] @ignore
+  staff_kitchen_production_starts staff_kitchen_production_starts[] @ignore
+  staff_kitchen_receipts          staff_kitchen_receipts[] @ignore
+  staff_kitchen_sources           staff_kitchen_sources[] @ignore
+  staff_kitchen_waste             staff_kitchen_waste[] @ignore
+  staff_processing_defects        staff_processing_defects[] @ignore
 }
 
 model RestaurantTable {
@@ -106,6 +113,8 @@ model Material {
 
   @@index([categoryId])
   @@map("materials")
+
+  staff_demo_order_recipes staff_demo_order_recipes[] @ignore
 }
 
 model WarehouseLocation {
@@ -143,6 +152,13 @@ model MaterialLot {
 
   @@unique([materialId, lotCode])
   @@map("material_lots")
+
+  staff_kitchen_balances                staff_kitchen_balances[] @ignore
+  staff_kitchen_order_consumptions      staff_kitchen_order_consumptions[] @ignore
+  staff_kitchen_production_consumptions staff_kitchen_production_consumptions[] @ignore
+  staff_kitchen_receipts                staff_kitchen_receipts[] @ignore
+  staff_kitchen_sources                 staff_kitchen_sources[] @ignore
+  staff_kitchen_waste                   staff_kitchen_waste[] @ignore
 }
 
 model MaterialBalance {
@@ -245,6 +261,7 @@ model MaterialIssue {
   status    String   @default("PENDING") @db.VarChar(20)
   note      String?
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  processedAt DateTime? @map("processed_at") @db.Timestamptz(3)
 
   branch  Branch                @relation(fields: [branchId], references: [id])
   details MaterialIssueDetail[]
@@ -270,6 +287,9 @@ model MaterialIssueDetail {
   settlement  MaterialUsageSettlement?
 
   @@map("material_issue_details")
+
+  staff_kitchen_receipts staff_kitchen_receipts? @ignore
+  materialReturns StaffMaterialReturn[]
 }
 
 model MaterialAdjustment {
@@ -385,6 +405,10 @@ model ProductionOrder {
   @@index([branchId, status])
   @@index([bomId])
   @@map("production_orders")
+
+  staff_kitchen_production_consumptions staff_kitchen_production_consumptions[] @ignore
+  staff_kitchen_production_starts       staff_kitchen_production_starts? @ignore
+  staff_processing_defects              staff_processing_defects[] @ignore
 }
 
 model FinishedGoodsReceipt {
@@ -409,6 +433,9 @@ model FinishedGoodsReceipt {
 
   @@index([status, createdAt])
   @@map("finished_goods_receipts")
+
+  staff_kitchen_production_consumptions staff_kitchen_production_consumptions[] @ignore
+  @@index([productionOrderId, createdAt], map: "finished_goods_receipts_production_order_id_idx")
 }
 
 model FinishedGoodsBalance {
@@ -500,6 +527,9 @@ model FinishedGoodsMovement {
   location WarehouseLocation @relation(fields: [locationId], references: [id], onDelete: Restrict)
 
   @@map("finished_goods_movements")
+
+  @@index([defectId])
+  @@index([issueDetailId])
 }
 
 model FinishedGoodsDefect {
@@ -577,6 +607,9 @@ model StaffUser {
   payments Payment[]
   audits StaffAudit[]
   @@map("staff_users")
+
+  staff_kitchen_waste      staff_kitchen_waste[] @ignore
+  staff_processing_defects staff_processing_defects[] @ignore
 }
 
 model StaffSession {
@@ -603,6 +636,8 @@ model MenuItem {
   recipe RecipeIngredient[]
   @@index([branchId])
   @@map("menu_items")
+
+  staff_demo_order_recipes staff_demo_order_recipes[] @ignore
 }
 
 model Invoice {
@@ -652,6 +687,11 @@ model OrderLine {
   consumption CookingConsumption?
   @@index([orderId])
   @@map("order_lines")
+
+  staff_kitchen_order_consumptions                                                   staff_kitchen_order_consumptions[] @ignore
+  staff_kitchen_waste                                                                staff_kitchen_waste[] @ignore
+  staff_processing_defects_staff_processing_defects_order_line_idToorder_lines       staff_processing_defects[]         @relation("staff_processing_defects_order_line_idToorder_lines") @ignore
+  staff_processing_defects_staff_processing_defects_retry_order_line_idToorder_lines staff_processing_defects[]         @relation("staff_processing_defects_retry_order_line_idToorder_lines") @ignore
 }
 
 model Payment {
@@ -782,4 +822,169 @@ model StaffMaterialReturn {
   movement InventoryMovement? @relation(fields: [movementId], references: [id], onDelete: Restrict)
   @@index([issueDetailId, status])
   @@map("staff_material_returns")
+
+  issueDetail MaterialIssueDetail @relation(fields: [issueDetailId], references: [id], onUpdate: NoAction, map: "staff_material_returns_detail_fkey")
+}
+
+// Existing SQL-managed ledgers. Keep their queries, checks and triggers in migrations.
+// Ignored models preserve the tables in the datamodel without adding Client APIs.
+
+model staff_demo_order_recipes {
+  menu_item_id String   @db.Uuid
+  material_id  String   @db.Uuid
+  quantity     Decimal  @db.Decimal(18, 3)
+  materials    Material @relation(fields: [material_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  menu_items   MenuItem @relation(fields: [menu_item_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([menu_item_id, material_id])
+
+  @@ignore
+}
+
+model staff_kitchen_balances {
+  branch_id       String      @db.Uuid
+  material_lot_id String      @db.Uuid
+  quantity        Decimal     @default(0) @db.Decimal(18, 3)
+  reserved_waste  Decimal     @default(0) @db.Decimal(18, 3)
+  reserved_return Decimal     @default(0) @db.Decimal(18, 3)
+  branches        Branch      @relation(fields: [branch_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  material_lots   MaterialLot @relation(fields: [material_lot_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([branch_id, material_lot_id])
+
+  @@ignore
+}
+
+model staff_kitchen_order_consumptions {
+  order_line_id   String      @db.Uuid
+  material_lot_id String      @db.Uuid
+  quantity        Decimal     @db.Decimal(18, 3)
+  material_lots   MaterialLot @relation(fields: [material_lot_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  order_lines     OrderLine   @relation(fields: [order_line_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([order_line_id, material_lot_id])
+
+  @@ignore
+}
+
+model staff_kitchen_production_consumptions {
+  production_order_id       String                @db.Uuid
+  material_lot_id           String                @db.Uuid
+  quantity                  Decimal               @db.Decimal(18, 3)
+  finished_goods_receipt_id String?               @db.Uuid
+  material_lots             MaterialLot           @relation(fields: [material_lot_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  production_orders         ProductionOrder       @relation(fields: [production_order_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  finished_goods_receipts   FinishedGoodsReceipt? @relation(fields: [finished_goods_receipt_id], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "staff_kitchen_production_consumptions_receipt_id_fkey")
+
+  @@ignore
+  // The conditional receipt/lot unique index is managed by migration 20261105160000.
+}
+
+model staff_kitchen_production_starts {
+  production_order_id String          @id @db.Uuid
+  branch_id           String          @db.Uuid
+  reported_quantity   Decimal?        @db.Decimal(18, 3)
+  created_at          DateTime        @default(now()) @db.Timestamptz(3)
+  branches            Branch          @relation(fields: [branch_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  production_orders   ProductionOrder @relation(fields: [production_order_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@ignore
+}
+
+model staff_kitchen_receipts {
+  issue_detail_id        String                 @id @db.Uuid
+  branch_id              String                 @db.Uuid
+  material_lot_id        String                 @db.Uuid
+  quantity               Decimal                @db.Decimal(18, 3)
+  created_at             DateTime               @default(now()) @db.Timestamptz(3)
+  branches               Branch                 @relation(fields: [branch_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  material_issue_details MaterialIssueDetail    @relation(fields: [issue_detail_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  material_lots          MaterialLot            @relation(fields: [material_lot_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  staff_kitchen_sources  staff_kitchen_sources? @ignore
+
+  @@ignore
+}
+
+model staff_kitchen_source_allocations {
+  issue_detail_id       String                @db.Uuid
+  event_type            String
+  event_key             String
+  quantity              Decimal               @db.Decimal(18, 3)
+  staff_kitchen_sources staff_kitchen_sources @relation(fields: [issue_detail_id], references: [issue_detail_id], onDelete: NoAction, onUpdate: NoAction) @ignore
+
+  @@id([issue_detail_id, event_type, event_key])
+  @@index([event_type, event_key], map: "staff_kitchen_alloc_event_idx")
+
+  @@ignore
+}
+
+model staff_kitchen_sources {
+  issue_detail_id                  String                             @id @db.Uuid
+  branch_id                        String                             @db.Uuid
+  material_lot_id                  String                             @db.Uuid
+  received                         Decimal                            @db.Decimal(18, 3)
+  available                        Decimal                            @db.Decimal(18, 3)
+  received_at                      DateTime                           @db.Timestamptz(3)
+  source_seq                       BigInt                             @unique(map: "staff_kitchen_sources_sequence_idx") @default(autoincrement())
+  staff_kitchen_source_allocations staff_kitchen_source_allocations[] @ignore
+  branches                         Branch                             @relation(fields: [branch_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  staff_kitchen_receipts           staff_kitchen_receipts             @relation(fields: [issue_detail_id], references: [issue_detail_id], onDelete: NoAction, onUpdate: NoAction) @ignore
+  material_lots                    MaterialLot                        @relation(fields: [material_lot_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([branch_id, material_lot_id, received_at, issue_detail_id], map: "staff_kitchen_sources_fifo_idx")
+
+  @@ignore
+}
+
+model staff_kitchen_waste {
+  id                       String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code                     String                    @unique
+  actor_id                 String                    @db.Uuid
+  branch_id                String                    @db.Uuid
+  material_lot_id          String                    @db.Uuid
+  order_line_id            String?                   @db.Uuid
+  quantity                 Decimal                   @db.Decimal(18, 3)
+  reason                   String
+  created_at               DateTime                  @default(now()) @db.Timestamptz(3)
+  status                   String                    @default("RECORDED")
+  decision_note            String?
+  decided_by               String?
+  processed_at             DateTime?                 @db.Timestamptz(3)
+  processing_defect_id     String?                   @db.Uuid
+  staff_users              StaffUser                 @relation(fields: [actor_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  branches                 Branch                    @relation(fields: [branch_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  material_lots            MaterialLot               @relation(fields: [material_lot_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  order_lines              OrderLine?                @relation(fields: [order_line_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  staff_processing_defects staff_processing_defects? @relation(fields: [processing_defect_id], references: [id], onDelete: NoAction, onUpdate: NoAction) @ignore
+
+  @@index([branch_id, status, created_at], map: "staff_kitchen_waste_branch_status_idx")
+
+  @@ignore
+}
+
+model staff_processing_defects {
+  id                                                                    String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code                                                                  String                @unique
+  actor_id                                                              String                @db.Uuid
+  branch_id                                                             String                @db.Uuid
+  order_line_id                                                         String?               @db.Uuid
+  production_order_id                                                   String?               @db.Uuid
+  quantity                                                              Decimal               @db.Decimal(18, 3)
+  reason                                                                String
+  status                                                                String                @default("PENDING")
+  decision_note                                                         String?
+  decided_by                                                            String?
+  created_at                                                            DateTime              @default(now()) @db.Timestamptz(3)
+  processed_at                                                          DateTime?             @db.Timestamptz(3)
+  retry_order_line_id                                                   String?               @db.Uuid
+  staff_kitchen_waste                                                   staff_kitchen_waste[] @ignore
+  staff_users                                                           StaffUser             @relation(fields: [actor_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  branches                                                              Branch                @relation(fields: [branch_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  order_lines_staff_processing_defects_order_line_idToorder_lines       OrderLine?            @relation("staff_processing_defects_order_line_idToorder_lines", fields: [order_line_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  production_orders                                                     ProductionOrder?      @relation(fields: [production_order_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  order_lines_staff_processing_defects_retry_order_line_idToorder_lines OrderLine?            @relation("staff_processing_defects_retry_order_line_idToorder_lines", fields: [retry_order_line_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([branch_id, status, created_at], map: "staff_processing_defect_status_idx")
+
+  @@ignore
 }

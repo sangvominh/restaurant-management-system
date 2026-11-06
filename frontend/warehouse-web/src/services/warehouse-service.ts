@@ -125,7 +125,7 @@ export const warehouseService = {
   ) => warehouseRequest<Supplier>("/suppliers", warehouseJson("POST", data)),
   updateSupplier: (
     code: string,
-    data: Partial<Pick<Supplier, "name" | "phone" | "email" | "address">>,
+    data: Partial<Pick<Supplier, "name" | "phone" | "email" | "address" | "status">>,
   ) =>
     warehouseRequest<Supplier>(
       `/suppliers/${encodeURIComponent(code)}`,

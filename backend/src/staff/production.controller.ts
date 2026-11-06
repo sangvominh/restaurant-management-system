@@ -84,7 +84,7 @@ export class StaffProductionController {
   async materialRequests(@Req() req: StaffRequest) {
     const audits = await this.db.staffAudit.findMany({ where: { actorId: req.staff.id, action: 'MATERIAL_REQUEST' }, select: { targetId: true }, orderBy: { createdAt: 'desc' }, take: 100 });
     const issues = await this.db.materialIssue.findMany({ where: { id: { in: audits.map(a => a.targetId) }, branchId: req.staff.branchId }, include: { details: { include: { material: true, materialLot: true, unit: true, location: true } } }, orderBy: { createdAt: 'desc' } });
-    return issues.map(i => ({ code: i.issueCode, status: i.status, createdAt: i.createdAt, note: i.note, details: i.details.map(d => ({ name: d.material.name, lot: d.materialLot.lotCode, location: d.location.name, quantity: d.quantity.toString(), unit: d.unit.name })) }));
+    return issues.map(i => ({ code: i.issueCode, status: i.status, createdAt: i.createdAt, processedAt: i.processedAt, note: i.note, details: i.details.map(d => ({ name: d.material.name, lot: d.materialLot.lotCode, location: d.location.name, quantity: d.quantity.toString(), unit: d.unit.name })) }));
   }
   @Post('material-requests')
   async requestMaterial(@Req() req: StaffRequest, @Body() body: unknown) {

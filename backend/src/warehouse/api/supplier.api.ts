@@ -3,6 +3,7 @@ import {
   BadRequestException,
   ConflictException,
   NotFoundException,
+  MethodNotAllowedException,
 } from '@nestjs/common';
 
 import { PrismaService } from '../../prisma/prisma.service.js';
@@ -118,6 +119,13 @@ export class SupplierApi {
       data.address = this.normalizeOptional(dto.address);
     }
 
+    if (dto.status !== undefined) {
+      if (dto.status !== 'ACTIVE' && dto.status !== 'INACTIVE') {
+        throw new BadRequestException('Trạng thái nhà cung cấp không hợp lệ');
+      }
+      data.status = dto.status;
+    }
+
     if (Object.keys(data).length === 0) {
       throw new BadRequestException(
         'Cần cung cấp ít nhất một thông tin để cập nhật',
@@ -151,30 +159,9 @@ export class SupplierApi {
     return normalized || null;
   }
 
-  //Xóa nhà cung cấp chưa có phiếu nhập
-  async deleteSupplier(code: string) {
-    try {
-      await this.prisma.supplier.delete({
-        where: { code: code.trim() },
-      });
-
-      return {
-        message: 'Xóa nhà cung cấp thành công',
-      };
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if (error.code === 'P2025') {
-          throw new NotFoundException('Không tìm thấy nhà cung cấp');
-        }
-
-        if (error.code === 'P2003') {
-          throw new ConflictException(
-            'Nhà cung cấp đã có dữ liệu liên quan, không thể xóa',
-          );
-        }
-      }
-
-      throw error;
-    }
+  async deleteSupplier(_code: string) {
+    throw new MethodNotAllowedException(
+      'Không cho phép xóa nhà cung cấp. Hãy chọn Ngừng hoạt động.',
+    );
   }
 }

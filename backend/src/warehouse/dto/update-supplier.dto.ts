@@ -1,5 +1,6 @@
 import {
   IsEmail,
+  IsIn,
   IsOptional,
   IsString,
   Matches,
@@ -7,6 +8,10 @@ import {
 } from 'class-validator';
 
 export class UpdateSupplierDto {
+  @IsOptional()
+  @IsIn(['ACTIVE', 'INACTIVE'])
+  status?: 'ACTIVE' | 'INACTIVE';
+
   @IsOptional()
   @IsString()
   @MaxLength(200)

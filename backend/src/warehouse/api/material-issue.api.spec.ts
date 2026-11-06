@@ -93,6 +93,10 @@ describe('MaterialIssueApi', () => {
     });
     expect(tx.inventoryMovement.create).toHaveBeenCalledOnce();
     expect(result.data.status).toBe('APPROVED');
+    expect(tx.materialIssue.updateMany).toHaveBeenCalledWith({
+      where: { id: 'issue-id', status: 'PENDING' },
+      data: { status: 'APPROVED', processedAt: expect.any(Date) },
+    });
   });
 
   it('rejects a repeated approval without decrementing stock again', async () => {
@@ -141,6 +145,20 @@ describe('MaterialIssueApi', () => {
     );
     expect(tx.materialBalance.updateMany).not.toHaveBeenCalled();
     expect(tx.inventoryMovement.create).not.toHaveBeenCalled();
+  });
+
+  it('saves rejection time together with status and note', async () => {
+    prisma.materialIssue.findUnique.mockResolvedValue(makeIssue());
+    prisma.materialIssue.updateMany.mockResolvedValue({ count: 1 });
+    await api.rejectIssue('XNVL001', 'Không còn nhu cầu');
+    expect(prisma.materialIssue.updateMany).toHaveBeenCalledWith({
+      where: { id: 'issue-id', status: 'PENDING' },
+      data: {
+        status: 'REJECTED',
+        note: 'Lý do từ chối: Không còn nhu cầu',
+        processedAt: expect.any(Date),
+      },
+    });
   });
 
   it('requires a non-empty rejection reason', async () => {

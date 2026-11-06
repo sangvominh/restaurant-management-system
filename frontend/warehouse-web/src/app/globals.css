@@ -63,3 +63,7 @@
 .modal-description,.modal-items>div{font-size:11px}
 .form-field span{font-size:10px}
 @media(max-width:680px){.page-heading h1,.workspace-heading h1,.inventory-detail-heading h1{font-size:22px}.page-heading p{font-size:11.5px}.nav-item{font-size:12px}.app-footer{font-size:9px}.inventory-stat span{font-size:10px}.inventory-table td{font-size:10px}.inventory-footnote,.inventory-pagination{font-size:9px}}
+
+.workspace-table-panel .table-wrap{overflow-x:auto}
+.workspace-table .row-actions{display:inline-flex;flex-flow:row nowrap;align-items:center;gap:4px;white-space:nowrap}
+.workspace-table .row-actions .row-action{flex-shrink:0}

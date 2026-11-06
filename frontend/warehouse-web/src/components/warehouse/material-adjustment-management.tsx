@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { Check, Eye, X } from "lucide-react";
 import {
   warehouseService,
   type IssueStatus,
@@ -33,8 +34,8 @@ export default function MaterialAdjustmentManagement({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     setError("");
     try {
       setRows(await warehouseService.getAdjustments(type, status));
@@ -49,8 +50,12 @@ export default function MaterialAdjustmentManagement({
   }, [type, status]);
   useEffect(() => {
     void load();
+    const refresh = () => { if (document.visibilityState === "visible") void load(true); };
+    const timer = window.setInterval(refresh, 10000);
+    window.addEventListener("focus", refresh);
+    return () => { window.clearInterval(timer); window.removeEventListener("focus", refresh); };
   }, [load]);
-  async function open(code: string) {
+  async function open(code: string, reject = false) {
     setError("");
     try {
       const item = await warehouseService.getAdjustment(code);
@@ -58,7 +63,7 @@ export default function MaterialAdjustmentManagement({
       setQuantity(item.quantity);
       setQuality("");
       setNote("");
-      setRejecting(false);
+      setRejecting(reject);
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : "Không tải được chi tiết.",
@@ -176,14 +181,20 @@ export default function MaterialAdjustmentManagement({
                         : `Đã lĩnh · ${row.issueCode}`}
                     </td>
                     <td>{statusLabel(row.status)}</td>
-                    <td>
+                    <td><div className="row-actions">
                       <button
-                        className="code-link"
+                        className="row-action"
+                        title="Xem chi tiết"
+                        aria-label={"Xem chi tiết " + row.code}
                         onClick={() => void open(row.code)}
                       >
-                        Xem chi tiết
+                        <Eye size={14}/>
                       </button>
-                    </td>
+                      {row.status === "PENDING" && <>
+                        <button className="row-action" title="Chấp nhận" aria-label={"Chấp nhận " + row.code} disabled={saving} onClick={() => void open(row.code)}><Check size={14}/></button>
+                        <button className="row-action" title="Từ chối" aria-label={"Từ chối " + row.code} disabled={saving} onClick={() => void open(row.code, true)}><X size={14}/></button>
+                      </>}
+                    </div></td>
                   </tr>
                 ))}
               </tbody>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState, type FormEvent } from "react";
-import { Pencil, Plus, RefreshCw, Search, Trash2, X } from "lucide-react";
+import { Eye, Pencil, Plus, RefreshCw, Search, Lock, Unlock, X } from "lucide-react";
 import { WarehouseApiError } from "@/services/api";
 import { warehouseService, type Supplier } from "@/services/warehouse-service";
 
@@ -37,7 +37,7 @@ export default function SupplierManagement() {
   const [form, setForm] = useState<SupplierForm | null>(null);
   const [editingCode, setEditingCode] = useState<string | null>(null);
   const [detail, setDetail] = useState<Supplier | null>(null);
-  const [deleting, setDeleting] = useState<Supplier | null>(null);
+  const [changingStatus, setChangingStatus] = useState<Supplier | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -91,14 +91,14 @@ export default function SupplierManagement() {
     }
   }
 
-  async function remove(supplier: Supplier) {
+  async function changeStatus(supplier: Supplier) {
     if (saving) return;
     setSaving(true);
     setError("");
     try {
-      await warehouseService.deleteSupplier(supplier.code);
-      setNotice("Đã xóa nhà cung cấp.");
-      setDeleting(null);
+      await warehouseService.updateSupplier(supplier.code, {status:supplier.status === "ACTIVE" ? "INACTIVE" : "ACTIVE"});
+      setNotice(supplier.status === "ACTIVE" ? "Đã ngừng hoạt động nhà cung cấp." : "Đã kích hoạt lại nhà cung cấp.");
+      setChangingStatus(null);
       await load(search);
     } catch (cause) {
       setError(errorMessage(cause));
@@ -219,7 +219,8 @@ export default function SupplierManagement() {
                         ? "Đang hoạt động"
                         : "Ngừng hoạt động"}
                     </td>
-                    <td>
+                    <td><div className="row-actions">
+                      <button className="row-action" aria-label={"Xem chi tiết " + supplier.code} title="Xem chi tiết" onClick={() => void showDetail(supplier.code)}><Eye size={14}/></button>
                       <button
                         className="row-action"
                         aria-label="Sửa"
@@ -239,13 +240,14 @@ export default function SupplierManagement() {
                       </button>
                       <button
                         className="row-action"
-                        aria-label="Xóa"
-                        title="Xóa"
-                        onClick={() => { setError(""); setDeleting(supplier); }}
+                        aria-label={supplier.status === "ACTIVE" ? "Ngừng hoạt động" : "Kích hoạt lại"}
+                        title={supplier.status === "ACTIVE" ? "Ngừng hoạt động" : "Kích hoạt lại"}
+                        disabled={saving}
+                        onClick={() => { setError(""); setChangingStatus(supplier); }}
                       >
-                        <Trash2 size={14} />
+                        {supplier.status === "ACTIVE" ? <Lock size={14}/> : <Unlock size={14}/>}
                       </button>
-                    </td>
+                    </div></td>
                   </tr>
                 ))}
               </tbody>
@@ -348,7 +350,7 @@ export default function SupplierManagement() {
           </form>
         </div>
       )}
-      {deleting && <div className="modal-backdrop"><div className="modal-card" role="dialog" aria-label="Xác nhận xóa nhà cung cấp"><h3>Xóa {deleting.code}?</h3><p>{deleting.name}</p>{error && <p className="form-error" role="alert">{error}</p>}<div className="modal-actions"><button className="button button-secondary" disabled={saving} onClick={() => setDeleting(null)}>Hủy</button><button className="button button-primary" disabled={saving} onClick={() => void remove(deleting)}>Xác nhận xóa</button></div></div></div>}
+      {changingStatus && <div className="modal-backdrop"><div className="modal-card" role="dialog" aria-label="Xác nhận trạng thái nhà cung cấp"><h3>{changingStatus.status === "ACTIVE" ? "Ngừng hoạt động" : "Kích hoạt lại"} {changingStatus.code}?</h3><p>{changingStatus.name}. Thông tin và lịch sử phiếu nhập được giữ nguyên.</p>{error && <p className="form-error" role="alert">{error}</p>}<div className="modal-actions"><button className="button button-secondary" disabled={saving} onClick={() => setChangingStatus(null)}>Hủy</button><button className="button button-primary" disabled={saving} onClick={() => void changeStatus(changingStatus)}>{saving ? "Đang xử lý…" : "Xác nhận"}</button></div></div></div>}
       {detail && (
         <div
           className="modal-backdrop"
@@ -389,7 +391,7 @@ export default function SupplierManagement() {
               </div>
               <div>
                 <span>Trạng thái</span>
-                <strong>{detail.status}</strong>
+                <strong>{detail.status === "ACTIVE" ? "Đang hoạt động" : "Ngừng hoạt động"}</strong>
               </div>
             </div>
             <div className="modal-actions">

@@ -1,3 +1,4 @@
+import InventoryMovementDetail from "@/components/warehouse/inventory-movement-detail";
 import {
   getInventory,
   getInventoryMovements,
@@ -64,6 +65,7 @@ export default async function WarehouseHistory({
                           "THAY ĐỔI",
                           "TỒN SAU",
                           "THỜI ĐIỂM",
+                          "THAO TÁC",
                         ]
                     ).map((label) => (
                       <th key={label}>{label}</th>
@@ -106,6 +108,7 @@ export default async function WarehouseHistory({
                               timeZone: "Asia/Ho_Chi_Minh",
                             })}
                           </td>
+                          <td><InventoryMovementDetail movement={item}/></td>
                         </tr>
                       ))}
                 </tbody>

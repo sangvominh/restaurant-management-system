@@ -88,16 +88,23 @@ describe('SupplierApi', () => {
     expect(prisma.supplier.update).not.toHaveBeenCalled();
   });
 
-  it('blocks deletion when a receipt references the supplier', async () => {
-    prisma.supplier.delete.mockRejectedValue(
-      new Prisma.PrismaClientKnownRequestError('Foreign key constraint', {
-        code: 'P2003',
-        clientVersion: '7.10.1',
-      }),
-    );
+  it('changes supplier status without deleting its record', async () => {
+    prisma.supplier.update.mockResolvedValue({ code: 'NCC001', status: 'INACTIVE' });
+    await api.updateSupplier('NCC001', { status: 'INACTIVE' });
+    expect(prisma.supplier.update).toHaveBeenCalledWith({
+      where: { code: 'NCC001' }, data: { status: 'INACTIVE' },
+    });
+    expect(prisma.supplier.delete).not.toHaveBeenCalled();
+  });
 
-    await expect(api.deleteSupplier('NCC001')).rejects.toBeInstanceOf(
-      ConflictException,
-    );
+  it('rejects invalid supplier status', async () => {
+    await expect(api.updateSupplier('NCC001', { status: 'DELETED' } as never))
+      .rejects.toBeInstanceOf(BadRequestException);
+    expect(prisma.supplier.update).not.toHaveBeenCalled();
+  });
+
+  it('blocks hard deletion even without receipt history', async () => {
+    await expect(api.deleteSupplier('NCC001')).rejects.toThrow('Ngừng hoạt động');
+    expect(prisma.supplier.delete).not.toHaveBeenCalled();
   });
 });

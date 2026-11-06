@@ -25,6 +25,7 @@ const server = app.getHttpServer();
 const ids = Object.fromEntries(['branch','unit','category','staff','material','lot',
   'location','balance','issue','detail','issueUnit'].map(name => [name, randomUUID()]));
 const suffix = ids.branch.slice(0,8);
+let ownsUnit = false, ownsIssueUnit = false;
 const results = { database: 'restaurant_integration_test', schemaReads: [],
   stockWaste: null, issuedReturn: null };
 try {
@@ -34,8 +35,18 @@ try {
     results.schemaReads.push({ path, status: response.status });
   }
   await db.branch.create({ data: { id:ids.branch, code:'IT-'+suffix, name:'Integration fixture' } });
-  await db.unit.create({ data: { id:ids.unit, name:'kg' } });
-  await db.unit.create({data:{id:ids.issueUnit,name:'g',baseUnitId:ids.unit,conversionFactor:'0.001'}});
+  const kg = await db.unit.findUnique({where:{name:'kg'}});
+  if (kg) ids.unit=kg.id;
+  else { await db.unit.create({data:{id:ids.unit,name:'kg'}}); ownsUnit=true; }
+  const grams = await db.unit.findUnique({where:{name:'g'}});
+  if (grams) {
+    assert.equal(grams.baseUnitId,ids.unit,'Existing g must convert to kg');
+    assert.equal(grams.conversionFactor.toString(),'0.001');
+    ids.issueUnit=grams.id;
+  } else {
+    await db.unit.create({data:{id:ids.issueUnit,name:'g',baseUnitId:ids.unit,conversionFactor:'0.001'}});
+    ownsIssueUnit=true;
+  }
   await db.category.create({ data: { id:ids.category, code:'DM-'+suffix,
     name:'Integration fixture', categoryType:'MATERIAL' } });
   await db.warehouseLocation.create({ data: { id:ids.location, branchId:ids.branch,
@@ -60,6 +71,10 @@ try {
     .send({ balanceId:ids.balance, quantity:'2', unit:'kg', reason:'Integration fixture' });
   assert.equal(waste.status, 201, JSON.stringify(waste.body));
   assert.equal(waste.body.status, 'PENDING');
+  const submittedAt = new Date(Date.now()-20*60000);
+  await db.staffMaterialWaste.update({where:{code:waste.body.code},data:{createdAt:submittedAt}});
+  const pendingWaste=await request(server).get('/api/staff/material-waste').set('Cookie',cookie);
+  assert.equal(pendingWaste.body.find(row=>row.code===waste.body.code).processedAt,null);
   const stockAfterWaste = await db.materialBalance.findUniqueOrThrow({ where:{id:ids.balance} });
   assert.equal(stockAfterWaste.quantity.toString(), '10');
   const wasteList = await request(server).get('/warehouse/material-adjustments?type=WASTE&status=PENDING');
@@ -91,6 +106,9 @@ try {
       conditionConfirmed:true,note:'Integration fixture'});
   assert.equal(returned.status, 201, JSON.stringify(returned.body));
   assert.equal(returned.body.status, 'PENDING');
+  await db.staffMaterialReturn.update({where:{code:returned.body.code},data:{createdAt:submittedAt}});
+  const pendingReturn=await request(server).get('/api/staff/material-returns').set('Cookie',cookie);
+  assert.equal(pendingReturn.body.find(row=>row.code===returned.body.code).processedAt,null);
   const stockAfterReturn = await db.materialBalance.findUniqueOrThrow({where:{id:ids.balance}});
   const kitchen = (await db.$queryRaw`SELECT quantity::text,reserved_return::text
     FROM staff_kitchen_balances WHERE branch_id=${ids.branch}::uuid
@@ -113,6 +131,17 @@ try {
 
   // Batch 2: process the same stored document and verify both sides see its state.
   const checks = [];
+  async function checkDecisionTime(path,code,older=false) {
+    const staffResponse=await request(server).get('/api/staff/'+path).set('Cookie',cookie);
+    assert.equal(staffResponse.status,200);
+    const row=staffResponse.body.find(row=>row.code===code);
+    const adminResponse=await request(server).get('/warehouse/material-adjustments/'+code);
+    assert.equal(adminResponse.status,200);
+    assert.ok(row.processedAt,'Staff must expose the actual decision time');
+    assert.equal(row.processedAt,adminResponse.body.data.processedAt);
+    assert.equal(row.createdAt,adminResponse.body.data.createdAt);
+    if(older)assert.ok(new Date(row.processedAt)-new Date(row.createdAt)>=19*60000);
+  }
   const process = (code,action,body) => request(server)
     .post('/warehouse/material-adjustments/'+code+'/'+action).send(body);
   const stock = async () => (await db.materialBalance.findUniqueOrThrow({where:{id:ids.balance}})).quantity.toString();
@@ -140,6 +169,7 @@ try {
   assert.equal(approvedWaste.id,wasteRow.id);assert.equal(approvedWaste.status,'APPROVED');
   assert.equal(approvedWaste.movement.quantityChange.toString(),'-2');
   assert.equal(approvedWaste.movementId,approvedWaste.movement.id);
+  await checkDecisionTime('material-waste',waste.body.code,true);
   response=await request(server).get('/api/staff/material-waste').set('Cookie',cookie);
   assert.equal(response.body.find(row=>row.code===waste.body.code).status,'APPROVED');
   assert.equal((await process(waste.body.code,'approve',{acceptedQuantity:'2'})).status,409);
@@ -154,6 +184,7 @@ try {
   assert.equal(response.status,200,JSON.stringify(response.body));
   assert.equal(Number((await kitchenBalance()).quantity),5);
   assert.equal(Number((await kitchenBalance()).reserved_waste),0);
+  await checkDecisionTime('material-waste',rejectedKitchen);
   checks.push('Kitchen waste rejection: reservation released, physical stock unchanged');
 
   response=await process(returned.body.code,'reject',{reason:'Integration rejection'});
@@ -163,6 +194,7 @@ try {
   assert.equal((await process(returned.body.code,'reject',{reason:'Again'})).status,409);
   response=await request(server).get('/api/staff/material-returns').set('Cookie',cookie);
   assert.equal(response.body.find(row=>row.code===returned.body.code).status,'REJECTED');
+  await checkDecisionTime('material-returns',returned.body.code,true);
   checks.push('Return rejection: same record/status on Staff, reservation/source released, no stock change');
 
   const acceptedReturn=await createReturn('2');
@@ -175,6 +207,7 @@ try {
   assert.equal(Number((await kitchenBalance()).reserved_return),0);
   const accepted=await db.staffMaterialReturn.findUniqueOrThrow({where:{code:acceptedReturn},include:{movement:true}});
   assert.equal(accepted.status,'APPROVED');assert.equal(accepted.movement.quantityChange.toString(),'2');
+  await checkDecisionTime('material-returns',acceptedReturn);
   assert.equal((await process(acceptedReturn,'approve',{acceptedQuantity:'2',qualityStatus:'ACCEPTABLE'})).status,409);
   response=await staffPost('material-returns',{issueDetailId:ids.detail,quantity:'4',condition:'SEALED',conditionConfirmed:true});
   assert.equal(response.status,400);
@@ -187,6 +220,7 @@ try {
   assert.equal(Number((await kitchenBalance()).reserved_waste),0);
   assert.equal(await stock(),'10');
   assert.equal(await db.inventoryMovement.count({where:{materialLotId:ids.lot}}),2);
+  await checkDecisionTime('material-waste',acceptedKitchen);
   checks.push('Issued waste approval: kitchen decreases once, warehouse not decremented again, no duplicate warehouse movement');
 
   const [first,second]=await Promise.all([createWaste('6'),createWaste('6')]);
@@ -266,6 +300,7 @@ try {
   assert.equal(await stock(),'3');assert.equal(Number((await kitchenBalance()).quantity),2);
   await db.branch.update({where:{id:ids.branch},data:{isActive:true}});
   checks.push('Inactive branch cannot process an issued waste; balances remain unchanged');
+  checks.push('Decision timestamps: Staff matches Warehouse for stock/kitchen waste and returns; creation 20 minutes earlier stays distinct');
   results.processingChecks=checks;
 
   console.log(JSON.stringify(results,null,2));
@@ -292,8 +327,8 @@ try {
       await tx.materialLot.deleteMany({where:{id:ids.lot}});
       await tx.material.deleteMany({where:{id:ids.material}});
       await tx.category.deleteMany({where:{id:ids.category}});
-      await tx.unit.deleteMany({where:{id:ids.issueUnit}});
-      await tx.unit.deleteMany({where:{id:ids.unit}});
+      if (ownsIssueUnit) await tx.unit.deleteMany({where:{id:ids.issueUnit}});
+      if (ownsUnit) await tx.unit.deleteMany({where:{id:ids.unit}});
       await tx.warehouseLocation.deleteMany({where:{id:ids.location}});
       await tx.branch.deleteMany({where:{id:ids.branch}});
     });

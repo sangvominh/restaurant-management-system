@@ -24,13 +24,17 @@ export function useStaff() {
   if (!context) throw new Error("Missing staff context");
   return context;
 }
-export function useResource<T>(path: string) {
+export function useResource<T>(path: string, refreshInterval = 0) {
   const [state, setState] = useState<{ data?: T; error?: ApiError }>({});
   const [revision, setRevision] = useState(0);
   const sharedRevision = useContext(Context)?.revision;
   useEffect(() => {
     let active = true;
-    api<T>(path)
+    let pending = false;
+    const load = () => {
+      if (pending) return;
+      pending = true;
+      void api<T>(path)
       .then((data) => {
         if (active) setState({ data });
       })
@@ -45,11 +49,19 @@ export function useResource<T>(path: string) {
                     "Không thể kết nối máy chủ. Kiểm tra backend và mạng.",
                   ),
           });
-      });
+      })
+      .finally(() => { pending = false; });
+    };
+    load();
+    const refresh = () => { if (document.visibilityState === "visible") load(); };
+    const timer = refreshInterval > 0 ? window.setInterval(refresh, refreshInterval) : undefined;
+    if (refreshInterval > 0) window.addEventListener("focus", refresh);
     return () => {
       active = false;
+      window.clearInterval(timer);
+      window.removeEventListener("focus", refresh);
     };
-  }, [path, revision, sharedRevision]);
+  }, [path, revision, sharedRevision, refreshInterval]);
   const reload = useCallback(() => setRevision((r) => r + 1), []);
   return { ...state, reload };
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState, type FormEvent } from "react";
-import { Eye, Pencil, Plus, RefreshCw, Search, X } from "lucide-react";
+import { Eye, Lock, Unlock, Pencil, Plus, RefreshCw, Search, X } from "lucide-react";
 import { WarehouseApiError } from "@/services/api";
 import {
   warehouseService,
@@ -49,6 +49,8 @@ function errorMessage(error: unknown) {
 export default function MaterialManagement() {
   const [tab, setTab] = useState<"materials" | "categories">("materials");
   const [detail, setDetail] = useState<MaterialRecord | null>(null);
+  const [categoryDetail, setCategoryDetail] = useState<Category | null>(null);
+  const [changingStatus, setChangingStatus] = useState<{ kind: "material" | "category"; code: string; name: string; status: "ACTIVE" | "INACTIVE" } | null>(null);
   const [statusFilter, setStatusFilter] = useState("");
   const [materials, setMaterials] = useState<MaterialRecord[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -155,6 +157,19 @@ export default function MaterialManagement() {
     } finally {
       setSaving(false);
     }
+  }
+
+  async function changeStatus() {
+    if (!changingStatus || saving) return;
+    setSaving(true); setError("");
+    try {
+      const nextStatus = changingStatus.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
+      if (changingStatus.kind === "material") await warehouseService.updateMaterial(changingStatus.code, { status: nextStatus });
+      else await warehouseService.updateCategory(changingStatus.code, { status: nextStatus });
+      setNotice((nextStatus === "INACTIVE" ? "Đã khóa " : "Đã mở khóa ") + changingStatus.code + ".");
+      setChangingStatus(null); await load(search);
+    } catch (cause) { setError(errorMessage(cause)); }
+    finally { setSaving(false); }
   }
 
   function openMaterial(item?: MaterialRecord) {
@@ -268,7 +283,7 @@ export default function MaterialManagement() {
                     <td>{item.name}</td>
                     <td>{item.categoryType}</td>
                     <td>{item.status}</td>
-                    <td>
+                    <td><div className="row-actions"><button className="row-action" aria-label={"Xem chi tiết " + item.code} title="Xem chi tiết" onClick={() => setCategoryDetail(item)}><Eye size={14}/></button><button className="row-action" aria-label={(item.status === "ACTIVE" ? "Khóa " : "Mở khóa ") + item.code} title={item.status === "ACTIVE" ? "Khóa" : "Mở khóa"} disabled={saving} onClick={() => { setError(""); setChangingStatus({kind:"category", ...item}); }}>{item.status === "ACTIVE" ? <Lock size={14}/> : <Unlock size={14}/>}</button>
                       <button
                         className="row-action"
                         aria-label={`Sửa ${item.code}`}
@@ -284,7 +299,7 @@ export default function MaterialManagement() {
                       >
                         <Pencil size={14} />
                       </button>
-                    </td>
+                    </div></td>
                   </tr>
                 ))}
               </tbody>
@@ -354,19 +369,19 @@ export default function MaterialManagement() {
                     <td>{item.unitName}</td>
                     <td>{item.minStock}</td>
                     <td>{item.status}</td>
-                    <td>
+                    <td><div className="row-actions">
                       <button
                         className="row-action"
                         aria-label={`Xem ${item.code}`}
                         onClick={() => { setError(""); warehouseService.getMaterial(item.code).then(setDetail).catch(cause => setError(errorMessage(cause))); }}
-                      ><Eye size={14} /></button>
+                      ><Eye size={14} /></button><button className="row-action" aria-label={(item.status === "ACTIVE" ? "Khóa " : "Mở khóa ") + item.code} title={item.status === "ACTIVE" ? "Khóa" : "Mở khóa"} disabled={saving} onClick={() => { setError(""); setChangingStatus({kind:"material", ...item}); }}>{item.status === "ACTIVE" ? <Lock size={14}/> : <Unlock size={14}/>}</button>
                       <button className="row-action"
                         aria-label={`Sửa ${item.code}`}
                         onClick={() => openMaterial(item)}
                       >
                         <Pencil size={14} />
                       </button>
-                    </td>
+                    </div></td>
                   </tr>
                 ))}
               </tbody>
@@ -376,6 +391,8 @@ export default function MaterialManagement() {
       </section>
 
       {detail && <div className="modal-backdrop"><div className="modal-card" role="dialog" aria-label="Chi tiết nguyên vật liệu"><div className="modal-top"><h3>Chi tiết nguyên vật liệu · {detail.code}</h3><button className="icon-button" aria-label="Đóng chi tiết" onClick={() => setDetail(null)}><X size={17} /></button></div><div className="modal-items"><div><span>Tên</span><strong>{detail.name}</strong></div><div><span>Danh mục</span><strong>{detail.categoryName}</strong></div><div><span>Đơn vị</span><strong>{detail.unitName}</strong></div><div><span>Tồn tối thiểu</span><strong>{detail.minStock}</strong></div><div><span>Trạng thái</span><strong>{detail.status === "ACTIVE" ? "Hoạt động" : "Ngừng hoạt động"}</strong></div></div></div></div>}
+      {categoryDetail && <div className="modal-backdrop"><div className="modal-card" role="dialog" aria-label="Chi tiết danh mục NVL"><div className="modal-top"><h3>Chi tiết danh mục NVL · {categoryDetail.code}</h3><button className="icon-button" aria-label="Đóng chi tiết danh mục" onClick={() => setCategoryDetail(null)}><X size={17}/></button></div><div className="modal-items"><div><span>Mã danh mục</span><strong>{categoryDetail.code}</strong></div><div><span>Tên danh mục</span><strong>{categoryDetail.name}</strong></div><div><span>Loại</span><strong>Nguyên vật liệu</strong></div><div><span>Trạng thái</span><strong>{categoryDetail.status === "ACTIVE" ? "Hoạt động" : "Ngừng hoạt động"}</strong></div></div></div></div>}
+      {changingStatus && <div className="modal-backdrop"><div className="modal-card" role="dialog" aria-label="Xác nhận khóa dữ liệu"><h3>{changingStatus.status === "ACTIVE" ? "Khóa" : "Mở khóa"} {changingStatus.code}?</h3><p>{changingStatus.name}. Dữ liệu và lịch sử được giữ nguyên.</p>{error && <p className="form-error" role="alert">{error}</p>}<div className="modal-actions"><button className="button button-secondary" disabled={saving} onClick={() => setChangingStatus(null)}>Hủy</button><button className="button button-primary" disabled={saving} onClick={() => void changeStatus()}>{saving ? "Đang xử lý…" : "Xác nhận"}</button></div></div></div>}
       {materialForm && (
         <div className="modal-backdrop">
           <form className="modal-card" onSubmit={saveMaterial}>

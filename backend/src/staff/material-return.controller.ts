@@ -31,7 +31,7 @@ export class StaffMaterialReturnController {
  @Get() async list(@Req() req: StaffRequest) {
   const rows = await this.db.staffMaterialReturn.findMany({ where: { actorId: req.staff.id, branchId: req.staff.branchId }, orderBy: { createdAt: 'desc' }, take: 100 });
   const details = await this.db.materialIssueDetail.findMany({ where: { id: { in: rows.map(x => x.issueDetailId) } }, include: { issue: true, material: { include: { unit: true } }, materialLot: true, unit: true } });
-  return rows.map(r => { const d = details.find(x => x.id === r.issueDetailId); return { code:r.code, status:r.status, createdAt:r.createdAt, quantity:r.quantity.toString(), note:r.note, condition:r.condition, decisionNote:r.decisionNote, name:d?.material.name, lot:d?.materialLot.lotCode, unit:d?.material.unit.name, issueCode:d?.issue.issueCode }; });
+  return rows.map(r => { const d = details.find(x => x.id === r.issueDetailId); return { code:r.code, status:r.status, createdAt:r.createdAt, processedAt:r.processedAt, quantity:r.quantity.toString(), note:r.note, condition:r.condition, decisionNote:r.decisionNote, name:d?.material.name, lot:d?.materialLot.lotCode, unit:d?.material.unit.name, issueCode:d?.issue.issueCode }; });
  }
  @Post() async create(@Req() req: StaffRequest, @Body() body: unknown) {
   const input=object(body); const detailId=uuid(input.issueDetailId);

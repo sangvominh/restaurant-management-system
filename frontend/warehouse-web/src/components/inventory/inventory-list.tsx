@@ -5,7 +5,7 @@ import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowDownWideNarrow,
-  ArrowRight,
+  Eye,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -406,10 +406,12 @@ export default function InventoryList({
                           </td>
                           <td>
                             <Link
-                              className="inventory-detail-link"
+                              className="row-action"
+                              title="Xem chi tiết"
+                              aria-label={"Xem chi tiết " + item.code}
                               href={`/inventory/${encodeURIComponent(item.code)}${branchCode ? `?branchCode=${encodeURIComponent(branchCode)}` : ""}`}
                             >
-                              Xem chi tiết <ArrowRight size={13} />
+                              <Eye size={14}/>
                             </Link>
                           </td>
                         </tr>
