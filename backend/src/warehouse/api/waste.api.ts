@@ -147,4 +147,53 @@ export class WasteApi {
       },
     };
   }
+
+  // Lấy chi tiết phiếu hao hụt theo mã
+  async getRequestByCode(code: string) {
+    const item = await this.prisma.wasteRequest.findUnique({
+      where: { code: code.trim() },
+      include: {
+        receipt: {
+          include: {
+            movement: { include: { location: true } },
+            productionOrder: {
+              include: {
+                bom: { include: { product: true } },
+                branch: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!item) {
+      throw new NotFoundException('Không tìm thấy phiếu hao hụt');
+    }
+
+    return {
+      message: 'Lấy chi tiết phiếu hao hụt thành công',
+      data: {
+        code: item.code,
+        receiptCode: item.receipt.code,
+        orderCode: item.receipt.productionOrder.code,
+        productCode: item.receipt.productionOrder.bom.productCode,
+        productName:
+          item.receipt.productionOrder.bom.product.name ||
+          item.receipt.productionOrder.bom.productName ||
+          item.receipt.productionOrder.bom.productCode,
+        branchCode: item.receipt.productionOrder.branch.code,
+        locationName: item.receipt.movement?.location?.name ?? null,
+        reportedQuantity: item.receipt.reportedQuantity.toString(),
+        acceptedQuantity: item.receipt.acceptedQuantity?.toString() ?? null,
+        quantity: item.quantity.toString(),
+        reason: item.reason,
+        status: item.status,
+        decisionNote: item.decisionNote,
+        createdAt: item.createdAt,
+        processedAt: item.processedAt,
+        receiptStatus: item.receipt.status,
+      },
+    };
+  }
 }

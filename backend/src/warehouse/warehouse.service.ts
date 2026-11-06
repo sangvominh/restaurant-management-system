@@ -199,6 +199,10 @@ export class WarehouseService {
     return this.finishedGoodsApi.getInventory(branchCode, productCode);
   }
 
+  getFinishedGoodsInventoryDetail(productCode: string, branchCode: string) {
+    return this.finishedGoodsApi.getInventoryDetail(productCode, branchCode);
+  }
+
   // Xem chi tiết phiếu thành phẩm
   getFinishedGoodsReceiptByCode(code: string) {
     return this.finishedGoodsApi.getReceiptByCode(code);
@@ -217,6 +221,11 @@ export class WarehouseService {
   // Lấy danh sách yêu cầu hao hụt
   getWasteRequests(status?: string) {
     return this.wasteApi.getRequests(status);
+  }
+
+  // Lấy chi tiết yêu cầu hao hụt theo mã
+  getWasteRequestByCode(code: string) {
+    return this.wasteApi.getRequestByCode(code);
   }
 
   // Duyệt yêu cầu hao hụt

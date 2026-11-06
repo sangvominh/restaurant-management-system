@@ -328,6 +328,19 @@ export class WarehouseController {
       productCode,
     );
   }
+
+  // GET /warehouse/finished-goods-inventory/:productCode?branchCode=BR001
+  @Get('finished-goods-inventory/:productCode')
+  getFinishedGoodsInventoryDetail(
+    @Param('productCode') productCode: string,
+    @Query('branchCode') branchCode: string,
+  ) {
+    return this.warehouseService.getFinishedGoodsInventoryDetail(
+      productCode,
+      branchCode,
+    );
+  }
+
   // GET /warehouse/finished-goods-receipts/:code
   @Get('finished-goods-receipts/:code')
   getFinishedGoodsReceiptByCode(@Param('code') code: string) {
@@ -350,6 +363,12 @@ export class WarehouseController {
   @Get('waste-requests')
   getWasteRequests(@Query('status') status?: string) {
     return this.warehouseService.getWasteRequests(status);
+  }
+
+  // GET /warehouse/waste-requests/:code
+  @Get('waste-requests/:code')
+  getWasteRequestByCode(@Param('code') code: string) {
+    return this.warehouseService.getWasteRequestByCode(code);
   }
 
   // POST /warehouse/waste-requests/:code/approve
