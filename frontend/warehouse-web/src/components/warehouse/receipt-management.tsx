@@ -61,9 +61,9 @@ export default function ReceiptManagement() {
   const [locations, setLocations] = useState<WarehouseLocation[]>([]);
   const [locationsLoading, setLocationsLoading] = useState(false);
   const [supplierCode, setSupplierCode] = useState("");
-  const [branchCode, setBranchCode] = useState("");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
+  const [historyError, setHistoryError] = useState("");
   const [formOpen, setFormOpen] = useState(false);
   const [receiptCode, setReceiptCode] = useState("");
   const [formSupplier, setFormSupplier] = useState("");
@@ -76,14 +76,14 @@ export default function ReceiptManagement() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
 
-  async function load(filters = { supplierCode, branchCode, from, to }) {
+  async function load(filters = { supplierCode, from, to }) {
     setLoading(true);
-    setError("");
+    setHistoryError("");
     try {
       const data = await warehouseService.getReceipts(filters);
       setReceipts(data);
     } catch (cause) {
-      setError(errorMessage(cause));
+      setHistoryError(errorMessage(cause));
       setReceipts([]);
     } finally {
       setLoading(false);
@@ -199,11 +199,11 @@ export default function ReceiptManagement() {
   }
 
   async function showDetail(code: string) {
-    setError("");
+    setHistoryError("");
     try {
       setDetail(await warehouseService.getReceipt(code));
     } catch (cause) {
-      setError(errorMessage(cause));
+      setHistoryError(errorMessage(cause));
     }
   }
 
@@ -211,18 +211,13 @@ export default function ReceiptManagement() {
     <>
       <div className="page-heading workspace-heading">
         <div>
-          <div className="eyebrow">
-            <span className="eyebrow-line" /> KHO VẬN{" "}
-            <span className="crumb-slash">/</span> NHẬP KHO
-          </div>
           <h1>Quản lý nhập kho NVL</h1>
-          <p>
-            Tạo và tra cứu phiếu nhập; phiếu được ghi nhận ngay vào tồn kho.
-          </p>
         </div>
+        <div className="heading-actions">
         <button className="button button-primary" onClick={openForm}>
           <Plus size={16} /> Tạo phiếu nhập
         </button>
+        </div>
       </div>
       {notice && (
         <div className="demo-banner success-banner">
@@ -237,124 +232,7 @@ export default function ReceiptManagement() {
           {error}
         </div>
       )}
-      <div className="panel workspace-table-panel">
-        <div className="table-toolbar">
-          <div className="toolbar-search">
-            <Search size={16} />
-            <input
-              value={supplierCode}
-              onChange={(event) => setSupplierCode(event.target.value)}
-              placeholder="Mã nhà cung cấp (lọc)"
-              aria-label="Mã nhà cung cấp"
-            />
-            <input
-              value={branchCode}
-              onChange={(event) => setBranchCode(event.target.value)}
-              placeholder="Mã chi nhánh (lọc)"
-              aria-label="Mã chi nhánh"
-            />
-            <input
-              type="date"
-              value={from}
-              onChange={(event) => setFrom(event.target.value)}
-              aria-label="Từ ngày"
-            />
-            <input
-              type="date"
-              value={to}
-              onChange={(event) => setTo(event.target.value)}
-              aria-label="Đến ngày"
-            />
-            <button
-              className="button button-secondary"
-              onClick={() => void load()}
-              disabled={loading}
-            >
-              Lọc
-            </button>
-            <button
-              className="row-action"
-              onClick={() => {
-                setSupplierCode("");
-                setBranchCode("");
-                setFrom("");
-                setTo("");
-                void load({ supplierCode: "", branchCode: "", from: "", to: "" });
-              }}
-              aria-label="Xóa bộ lọc"
-            >
-              <X size={14} />
-            </button>
-          </div>
-          <div className="toolbar-controls">
-            <button
-              className="button button-secondary"
-              onClick={() => void load()}
-              disabled={loading}
-            >
-              <RefreshCw size={14} /> Tải lại
-            </button>
-          </div>
-        </div>
-        {loading ? (
-          <div className="inventory-empty">Đang tải phiếu nhập…</div>
-        ) : receipts.length === 0 ? (
-          <div className="inventory-empty">
-            <strong>
-              {error
-                ? "Không thể tải danh sách."
-                : "Chưa có phiếu nhập phù hợp."}
-            </strong>
-            <span>Danh sách lấy từ PostgreSQL qua Backend.</span>
-          </div>
-        ) : (
-          <div className="table-wrap">
-            <table className="data-table workspace-table">
-              <thead>
-                <tr>
-                  <th>MÃ PHIẾU</th>
-                  <th>NHÀ CUNG CẤP</th>
-                  <th>CHI NHÁNH</th>
-                  <th>NGÀY NHẬP</th>
-                  <th>SỐ MẶT HÀNG</th>
-                  <th>TRẠNG THÁI</th>
-                  <th>THAO TÁC</th>
-                </tr>
-              </thead>
-              <tbody>
-                {receipts.map((item) => (
-                  <tr key={item.receiptCode}>
-                    <td>
-                      <button
-                        className="code-link"
-                        onClick={() => void showDetail(item.receiptCode)}
-                      >
-                        {item.receiptCode}
-                      </button>
-                    </td>
-                    <td>{item.supplierName}</td>
-                    <td>
-                      {item.branchName} <small>({item.branchCode})</small>
-                    </td>
-                    <td>{dateLabel(item.createdAt)}</td>
-                    <td>{item.totalItems}</td>
-                    <td>{item.status}</td>
-                    <td>
-                      <button
-                        className="row-action"
-                        aria-label="Xem chi tiết"
-                        onClick={() => void showDetail(item.receiptCode)}
-                      >
-                        <Eye size={14} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+
 
       {formOpen && (
         <div className="modal-backdrop">
@@ -366,6 +244,8 @@ export default function ReceiptManagement() {
               width: "min(720px, 100%)",
             }}
             onSubmit={submit}
+            role="dialog"
+            aria-label="Tạo phiếu nhập kho"
           >
             <div className="modal-top">
               <div>
@@ -600,6 +480,115 @@ export default function ReceiptManagement() {
           </form>
         </div>
       )}
+      {historyError && <div className="form-error" role="alert">{historyError}</div>}
+      <div className="panel workspace-table-panel receipt-list-panel">
+        <div className="table-toolbar">
+          <div className="toolbar-search">
+            <Search size={16} />
+            <input
+              value={supplierCode}
+              onChange={(event) => setSupplierCode(event.target.value)}
+              placeholder="Mã nhà cung cấp (lọc)"
+              aria-label="Mã nhà cung cấp"
+            />
+            <input
+              type="date"
+              value={from}
+              onChange={(event) => setFrom(event.target.value)}
+              aria-label="Từ ngày"
+            />
+            <input
+              type="date"
+              value={to}
+              onChange={(event) => setTo(event.target.value)}
+              aria-label="Đến ngày"
+            />
+            <button
+              className="button button-secondary"
+              onClick={() => void load()}
+              disabled={loading}
+            >
+              Lọc
+            </button>
+            <button
+              className="row-action"
+              onClick={() => {
+                setSupplierCode("");
+                setFrom("");
+                setTo("");
+                void load({ supplierCode: "", from: "", to: "" });
+              }}
+              aria-label="Xóa bộ lọc"
+            >
+              <X size={14} />
+            </button>
+          </div>
+          <div className="toolbar-controls">
+            <button
+              className="button button-secondary"
+              onClick={() => void load()}
+              disabled={loading}
+            >
+              <RefreshCw size={14} /> Tải lại
+            </button>
+          </div>
+        </div>
+        {loading ? (
+          <div className="inventory-empty">Đang tải phiếu nhập…</div>
+        ) : receipts.length === 0 ? (
+          <div className="inventory-empty">
+            <strong>
+              {historyError
+                ? "Không thể tải danh sách."
+                : "Chưa có phiếu nhập phù hợp."}
+            </strong>
+            <span>Thử thay đổi bộ lọc hoặc tải lại lịch sử.</span>
+          </div>
+        ) : (
+          <div className="table-wrap">
+            <table className="data-table workspace-table">
+              <thead>
+                <tr>
+                  <th>MÃ PHIẾU</th>
+                  <th>NHÀ CUNG CẤP</th>
+                  <th>NGÀY NHẬP</th>
+                  <th>SỐ MẶT HÀNG</th>
+                  <th>TRẠNG THÁI</th>
+                  <th>THAO TÁC</th>
+                </tr>
+              </thead>
+              <tbody>
+                {receipts.map((item) => (
+                  <tr key={item.receiptCode}>
+                    <td>
+                      <button
+                        className="code-link"
+                        onClick={() => void showDetail(item.receiptCode)}
+                      >
+                        {item.receiptCode}
+                      </button>
+                    </td>
+                    <td>{item.supplierName}</td>
+                    <td>{dateLabel(item.createdAt)}</td>
+                    <td>{item.totalItems}</td>
+                    <td>{item.status}</td>
+                    <td>
+                      <button
+                        className="row-action"
+                        aria-label="Xem chi tiết"
+                        onClick={() => void showDetail(item.receiptCode)}
+                      >
+                        <Eye size={14} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
       {detail && (
         <div
           className="modal-backdrop"
@@ -632,7 +621,6 @@ export default function ReceiptManagement() {
             </div>
             <div className="modal-meta">
               <span>Nhà cung cấp: {detail.supplierName}</span>
-              <span>Chi nhánh: {detail.branchName}</span>
               <span>Ngày nhập: {dateLabel(detail.createdAt)}</span>
               {detail.note && <span>Ghi chú: {detail.note}</span>}
             </div>

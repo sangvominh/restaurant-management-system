@@ -125,14 +125,7 @@ export default function MaterialIssueManagement() {
     <>
       <div className="page-heading workspace-heading">
         <div>
-          <div className="eyebrow">
-            <span className="eyebrow-line" /> KHO VẬN{" "}
-            <span className="crumb-slash">/</span> DUYỆT XUẤT NVL
-          </div>
           <h1>Phê duyệt yêu cầu xuất NVL</h1>
-          <p>
-            Xem phiếu do phân hệ nhân viên tạo; duyệt hoặc từ chối với lý do.
-          </p>
         </div>
         <button
           className="button button-secondary"
@@ -185,7 +178,6 @@ export default function MaterialIssueManagement() {
               <thead>
                 <tr>
                   <th>MÃ PHIẾU</th>
-                  <th>CHI NHÁNH</th>
                   <th>NGÀY TẠO</th>
                   <th>SỐ MẶT HÀNG</th>
                   <th>TRẠNG THÁI</th>
@@ -196,9 +188,6 @@ export default function MaterialIssueManagement() {
                 {issues.map((item) => (
                   <tr key={item.issueCode}>
                     <td>{item.issueCode}</td>
-                    <td>
-                      {item.branchName} <small>({item.branchCode})</small>
-                    </td>
                     <td>{dateLabel(item.createdAt)}</td>
                     <td>{item.totalItems}</td>
                     <td>{labelFor(item.status)}</td>
@@ -254,9 +243,6 @@ export default function MaterialIssueManagement() {
               </button>
             </div>
             <div className="modal-meta">
-              <span>
-                Chi nhánh: {detail.branchName} ({detail.branchCode})
-              </span>
               <span>Ngày tạo: {dateLabel(detail.createdAt)}</span>
               {detail.note && <span>Ghi chú: {detail.note}</span>}
             </div>

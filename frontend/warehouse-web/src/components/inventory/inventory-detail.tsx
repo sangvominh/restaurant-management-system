@@ -86,10 +86,6 @@ export default function InventoryDetailView({
       </Link>
       <div className="page-heading inventory-detail-heading">
         <div>
-          <div className="eyebrow">
-            <span className="eyebrow-line" /> TỒN KHO{" "}
-            <span className="crumb-slash">/</span> CHI TIẾT NGUYÊN VẬT LIỆU
-          </div>
           <h1>{inventory.name}</h1>
           <p>
             {inventory.code} <span className="crumb-slash">·</span>{" "}
@@ -154,7 +150,6 @@ export default function InventoryDetailView({
         <div className="panel-header">
           <div>
             <h2>Chi tiết lô hàng và vị trí lưu kho</h2>
-            <p>Tồn tổng và khả dụng theo lô, chi nhánh và vị trí kho.</p>
           </div>
         </div>
         {inventory.lots.length === 0 ? (
@@ -206,9 +201,6 @@ export default function InventoryDetailView({
                         </span>
                         <div className="location-copy">
                           <strong>{location.locationName}</strong>
-                          <span>
-                            {location.branchName} ({location.branchCode})
-                          </span>
                         </div>
                         <span className="location-quantity">
                           {numberFormat.format(location.quantity)} /{" "}

@@ -1,0 +1,273 @@
+{
+  "database": "restaurant_dev",
+  "applied": false,
+  "legacySchema": "warehouse_legacy_20261106",
+  "migrations": [
+    {
+      "name": "202610260002_staff_ops",
+      "mode": "Executed existing migration SQL"
+    },
+    {
+      "name": "20261029200000_add_product_table",
+      "mode": "Reconciled existing products and FK; no sample products or fabricated data inserted"
+    },
+    {
+      "name": "20261031120000_add_finished_goods_issue",
+      "mode": "Executed existing migration SQL"
+    },
+    {
+      "name": "20261101090000_finished_goods_issue_by_shift",
+      "mode": "Executed existing migration SQL"
+    },
+    {
+      "name": "20261101130000_finished_goods_defects",
+      "mode": "Executed existing migration SQL"
+    },
+    {
+      "name": "202611020001_staff_material_waste",
+      "mode": "Executed existing migration SQL"
+    },
+    {
+      "name": "202611020002_staff_material_return",
+      "mode": "Executed existing migration SQL"
+    },
+    {
+      "name": "202611020003_staff_barista",
+      "mode": "Executed existing migration SQL"
+    },
+    {
+      "name": "20261103160000_material_adjustments",
+      "mode": "Executed existing migration SQL"
+    },
+    {
+      "name": "20261104000000_product_bom_link",
+      "mode": "Reconciled existing products and FK; no sample products or fabricated data inserted"
+    },
+    {
+      "name": "20261104120000_staff_kitchen_stock",
+      "mode": "Executed existing migration SQL"
+    },
+    {
+      "name": "20261104150000_staff_kitchen_production",
+      "mode": "Executed existing migration SQL"
+    },
+    {
+      "name": "20261105000000_add_gram_unit",
+      "mode": "Executed existing migration SQL"
+    },
+    {
+      "name": "20261105100000_kitchen_waste_approval",
+      "mode": "Executed existing migration SQL"
+    },
+    {
+      "name": "20261105110000_staff_return_reservations",
+      "mode": "Executed existing migration SQL"
+    },
+    {
+      "name": "20261105120000_staff_processing_defects",
+      "mode": "Executed existing migration SQL"
+    },
+    {
+      "name": "20261105130000_kitchen_source_allocation",
+      "mode": "Executed existing migration SQL"
+    },
+    {
+      "name": "20261105140000_kitchen_source_order",
+      "mode": "Executed existing migration SQL"
+    },
+    {
+      "name": "20261105150000_processing_retry_link",
+      "mode": "Executed existing migration SQL"
+    },
+    {
+      "name": "20261105160000_production_batches_and_history",
+      "mode": "Executed existing migration SQL"
+    },
+    {
+      "name": "20261105170000_staff_stock_waste_decision",
+      "mode": "Executed existing migration SQL"
+    },
+    {
+      "name": "20261105171000_staff_return_movement",
+      "mode": "Executed existing migration SQL"
+    },
+    {
+      "name": "20261106030000_material_issue_processed_at",
+      "mode": "Executed existing migration SQL"
+    }
+  ],
+  "preserved": [
+    {
+      "table": "accounts",
+      "originalRows": 1,
+      "afterRows": 1
+    },
+    {
+      "table": "audit_logs",
+      "originalRows": 0,
+      "afterRows": 0
+    },
+    {
+      "table": "bom_details",
+      "originalRows": 9,
+      "afterRows": 9
+    },
+    {
+      "table": "boms",
+      "originalRows": 5,
+      "afterRows": 5
+    },
+    {
+      "table": "branches",
+      "originalRows": 1,
+      "afterRows": 1
+    },
+    {
+      "table": "categories",
+      "originalRows": 7,
+      "afterRows": 7
+    },
+    {
+      "table": "finished_goods_balances",
+      "originalRows": 1,
+      "afterRows": 1
+    },
+    {
+      "table": "finished_goods_movements",
+      "originalRows": 1,
+      "afterRows": 1
+    },
+    {
+      "table": "finished_goods_receipts",
+      "originalRows": 3,
+      "afterRows": 3
+    },
+    {
+      "table": "goods_receipt_details",
+      "originalRows": 3,
+      "afterRows": 3
+    },
+    {
+      "table": "goods_receipts",
+      "originalRows": 3,
+      "afterRows": 3
+    },
+    {
+      "table": "inventory_movements",
+      "originalRows": 5,
+      "afterRows": 5
+    },
+    {
+      "table": "login_logs",
+      "originalRows": 2,
+      "afterRows": 2
+    },
+    {
+      "table": "material_adjustment_details",
+      "originalRows": 0,
+      "afterRows": 0
+    },
+    {
+      "table": "material_adjustments",
+      "originalRows": 0,
+      "afterRows": 0
+    },
+    {
+      "table": "material_balances",
+      "originalRows": 10,
+      "afterRows": 10
+    },
+    {
+      "table": "material_issue_details",
+      "originalRows": 2,
+      "afterRows": 2
+    },
+    {
+      "table": "material_issues",
+      "originalRows": 3,
+      "afterRows": 3
+    },
+    {
+      "table": "material_lots",
+      "originalRows": 10,
+      "afterRows": 10
+    },
+    {
+      "table": "materials",
+      "originalRows": 10,
+      "afterRows": 10
+    },
+    {
+      "table": "production_orders",
+      "originalRows": 6,
+      "afterRows": 6
+    },
+    {
+      "table": "products",
+      "originalRows": 1,
+      "afterRows": 1
+    },
+    {
+      "table": "restaurant_tables",
+      "originalRows": 0,
+      "afterRows": 0
+    },
+    {
+      "table": "roles",
+      "originalRows": 5,
+      "afterRows": 5
+    },
+    {
+      "table": "suppliers",
+      "originalRows": 4,
+      "afterRows": 4
+    },
+    {
+      "table": "system_admin_categories",
+      "originalRows": 0,
+      "afterRows": 0
+    },
+    {
+      "table": "system_settings",
+      "originalRows": 1,
+      "afterRows": 1
+    },
+    {
+      "table": "units",
+      "originalRows": 2,
+      "afterRows": 3
+    },
+    {
+      "table": "warehouse_locations",
+      "originalRows": 3,
+      "afterRows": 3
+    },
+    {
+      "table": "waste_requests",
+      "originalRows": 2,
+      "afterRows": 2
+    }
+  ],
+  "unvalidatedForeignKeys": [
+    {
+      "table": "boms",
+      "constraint": "boms_product_code_fkey",
+      "orphanRows": 4
+    },
+    {
+      "table": "finished_goods_balances",
+      "constraint": "finished_goods_balances_product_code_fkey",
+      "orphanRows": 1
+    },
+    {
+      "table": "boms",
+      "constraint": "boms_product_code_fkey",
+      "orphanRows": 4
+    },
+    {
+      "table": "finished_goods_balances",
+      "constraint": "finished_goods_balances_product_code_fkey",
+      "orphanRows": 1
+    }
+  ]
+}

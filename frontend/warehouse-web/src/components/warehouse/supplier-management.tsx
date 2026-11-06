@@ -120,12 +120,7 @@ export default function SupplierManagement() {
     <>
       <div className="page-heading workspace-heading">
         <div>
-          <div className="eyebrow">
-            <span className="eyebrow-line" /> KHO VẬN{" "}
-            <span className="crumb-slash">/</span> NHÀ CUNG CẤP
-          </div>
           <h1>Quản lý nhà cung cấp</h1>
-          <p>Danh sách nhà cung cấp nguyên vật liệu từ hệ thống kho.</p>
         </div>
         <button
           className="button button-primary"

@@ -21,49 +21,70 @@
 @media(max-width:980px){.inventory-table{min-width:970px}.lot-list{grid-template-columns:1fr}}
 @media(max-width:680px){.inventory-live{align-self:flex-start}.inventory-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.inventory-stat{min-height:58px;padding:10px}.inventory-stat span{font-size:9px}.inventory-stat strong{font-size:15px}.inventory-toolbar{align-items:stretch;flex-direction:column;padding:10px}.inventory-search{width:100%;min-height:34px}.inventory-filters{overflow:auto}.inventory-select{flex:1;min-width:130px}.sort-select{min-width:108px}.inventory-table{min-width:930px}.inventory-detail-stats{grid-template-columns:1fr;gap:7px}.inventory-detail-stat{min-height:63px;padding:10px}.inventory-detail-heading{align-items:flex-start}.inventory-detail-heading h1{font-size:20px}.inventory-detail-heading>.detail-status{margin-top:25px}.lot-heading{grid-template-columns:1fr auto;gap:9px}.lot-total{grid-column:2;grid-row:1;align-items:flex-end}.lot-expiry{grid-column:1;grid-row:2}.inventory-error{margin:30px 0;padding:21px}.inventory-pagination{font-size:8px;padding:0 9px}.inventory-footnote{font-size:8px}}
 
-/* Slightly larger type for day-to-day readability. */
-.nav-item{font-size:12.5px}
-.nav-group-label,.eyebrow{font-size:9.5px}
-.breadcrumbs,.branch-select,.search-box input{font-size:12px}
+/* Warehouse typography: increase small text by 1–2px. */
+.nav-item{font-size:14px}
+.nav-group-label,.eyebrow{font-size:11.5px}
+.breadcrumbs,.branch-select,.search-box input{font-size:13.5px}
 .page-heading h1{font-size:25px}
-.page-heading p{font-size:12.5px}
+.page-heading p{font-size:14px}
 .workspace-heading h1{font-size:24px}
-.button{font-size:11.5px}
-.kpi-label{font-size:11px}
-.kpi-note{font-size:10px}
+.button{font-size:14px}
+.kpi-label{font-size:13.5px}
+.kpi-note{font-size:13px}
 .kpi-value-row>strong{font-size:22px}
-.panel-header h2{font-size:13px}
-.panel-header p{font-size:10.5px}
-.text-link,.panel-footer-link{font-size:10px}
-.data-table th{font-size:9px}
-.data-table td{font-size:10px}
-.status-pill,.count-badge,.code-link{font-size:9px}
-.alert-main strong,.expiry-info>strong{font-size:11px}
-.alert-main span,.expiry-info>span,.alert-stock span{font-size:9px}
-.production-product strong{font-size:10px}
-.production-product span{font-size:9px}
-.app-footer{font-size:10px}
-.summary-item span:not(.summary-icon){font-size:10px}
-.toolbar-search input,.filter-select select{font-size:10px}
-.inventory-stat span{font-size:11px}
-.inventory-search input{font-size:11px}
-.inventory-select select{font-size:10px}
-.inventory-table th{font-size:9px}
-.inventory-table td{font-size:10.5px}
-.inventory-code{font-size:10px}
-.inventory-name{font-size:11px}
-.inventory-detail-link,.inventory-pagination,.inventory-footnote{font-size:10px}
-.inventory-empty strong{font-size:12px}
-.inventory-empty span,.inventory-error p{font-size:10px}
-.inventory-detail-stat>div>span{font-size:10px}
-.location-copy strong{font-size:10px}
-.location-copy span,.lot-expiry span,.lot-total>span{font-size:9px}
-.location-quantity{font-size:11px}
-.form-field input,.form-field select,.form-field textarea{font-size:11px}
-.modal-description,.modal-items>div{font-size:11px}
-.form-field span{font-size:10px}
-@media(max-width:680px){.page-heading h1,.workspace-heading h1,.inventory-detail-heading h1{font-size:22px}.page-heading p{font-size:11.5px}.nav-item{font-size:12px}.app-footer{font-size:9px}.inventory-stat span{font-size:10px}.inventory-table td{font-size:10px}.inventory-footnote,.inventory-pagination{font-size:9px}}
+.panel-header h2{font-size:15.5px}
+.panel-header p{font-size:13.5px}
+.text-link,.panel-footer-link{font-size:13px}
+.data-table th{font-size:13px}
+.data-table td{font-size:14px}
+.status-pill,.count-badge,.code-link{font-size:13px}
+.alert-main strong,.expiry-info>strong{font-size:13.5px}
+.alert-main span,.expiry-info>span,.alert-stock span{font-size:12px}
+.production-product strong{font-size:12px}
+.production-product span{font-size:11px}
+.app-footer{font-size:12px}
+.summary-item span:not(.summary-icon){font-size:12px}
+.toolbar-search input,.filter-select select{font-size:14px}
+.inventory-stat span{font-size:12.5px}
+.inventory-search input{font-size:14.5px}
+.inventory-select select{font-size:14px}
+.inventory-table th{font-size:13px}
+.inventory-table td{font-size:14.5px}
+.inventory-code{font-size:14px}
+.inventory-name{font-size:14.5px}
+.inventory-detail-link,.inventory-pagination,.inventory-footnote{font-size:12px}
+.inventory-empty strong{font-size:13.5px}
+.inventory-empty span,.inventory-error p{font-size:12px}
+.inventory-detail-stat>div>span{font-size:12px}
+.location-copy strong{font-size:13px}
+.location-copy span,.lot-expiry span,.lot-total>span{font-size:12px}
+.location-quantity{font-size:12.5px}
+.form-field input,.form-field select,.form-field textarea{font-size:14.5px}
+.modal-description,.modal-items>div{font-size:15px}
+.form-field span{font-size:14px}
+@media(max-width:680px){.page-heading h1,.workspace-heading h1,.inventory-detail-heading h1{font-size:22px}.page-heading p{font-size:13px}.nav-item{font-size:13.5px}.app-footer{font-size:11px}.inventory-stat span{font-size:12px}.inventory-table td{font-size:14px}.inventory-footnote,.inventory-pagination{font-size:11px}}
 
 .workspace-table-panel .table-wrap{overflow-x:auto}
 .workspace-table .row-actions{display:inline-flex;flex-flow:row nowrap;align-items:center;gap:4px;white-space:nowrap}
 .workspace-table .row-actions .row-action{flex-shrink:0}
+
+.receipt-list-panel .table-toolbar{height:auto;padding:12px 14px;flex-wrap:wrap;gap:12px}.receipt-list-panel .toolbar-search{height:auto;min-height:34px;flex-wrap:wrap;max-width:none;gap:8px;padding:0;border:0}.receipt-list-panel .toolbar-search>svg{flex-shrink:0}.receipt-list-panel .toolbar-search input{width:auto;min-width:0;flex:1 1 150px;height:34px;padding:0 10px;border:1px solid #e9e9e4;border-radius:6px}.receipt-list-panel .table-wrap{overflow-x:auto}
+
+.warehouse-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}.warehouse-charts{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:16px;margin-bottom:16px}.warehouse-charts>.panel{min-width:0}.warehouse-chart{height:370px;padding:0 12px 12px}.warehouse-donut{height:230px}.warehouse-chart-legend{list-style:none;margin:0;padding:0 20px 18px;display:grid;gap:8px;font-size:13px}.warehouse-chart-legend li,.warehouse-chart-legend li>span{display:flex;align-items:center;gap:8px}.warehouse-chart-legend li{justify-content:space-between}.warehouse-chart-legend i{width:10px;height:10px;border-radius:50%;flex-shrink:0}.chart-unit{display:flex;align-items:center;gap:6px;white-space:nowrap;font-size:12px}.chart-unit select{border:1px solid #e9e9e4;border-radius:6px;padding:5px;background:white}.warehouse-charts .panel-header{gap:12px;flex-wrap:wrap}@media(max-width:1100px){.warehouse-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.warehouse-charts{grid-template-columns:minmax(0,1fr)}}
+
+.nav-item{min-height:40px;height:auto;line-height:1.35}.tab-button{font-size:12px}.modal-actions{flex-wrap:wrap}.warehouse-charts .panel-header p{line-height:1.5}@media(max-width:680px){.warehouse-kpis{gap:10px}.warehouse-charts{gap:12px}.warehouse-chart{padding-left:0;padding-right:4px}.receipt-list-panel .toolbar-search{width:100%;gap:8px}.receipt-list-panel .toolbar-search input{flex:1 1 120px;max-width:100%}.toolbar-controls{flex-wrap:wrap}}
+
+.search-box span{font-size:13px;white-space:nowrap}@media(max-width:680px){.search-box span{display:none}.breadcrumbs{min-width:0;overflow:hidden}.breadcrumbs strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.topbar-actions{flex-shrink:0}}
+
+/* Warehouse lookup and movement history */
+.toolbar-lookup{position:relative}.warehouse-tools .search-box{padding:8px 10px;min-width:0}.warehouse-tools .search-box input{width:190px;min-width:0;border:0;outline:0;background:transparent;font:inherit;color:inherit}
+.toolbar-results{width:330px;max-width:calc(100vw - 24px);max-height:65vh;overflow:auto;z-index:60}.toolbar-results>a{display:block;padding:10px 0;border-bottom:1px solid #eee;text-decoration:none;color:inherit}.toolbar-results small,.toolbar-results>a strong{display:block}.toolbar-results small{color:#73736b;margin-top:4px}.toolbar-results>span{display:block;margin-top:8px;color:#73736b}
+.inventory-history-modal{width:min(1100px,100%);max-height:90vh;overflow:auto}.history-filters{display:flex;align-items:end;gap:8px;flex-wrap:wrap;margin:14px 0}.history-filters input,.history-filters select{border:1px solid #ddd;border-radius:6px;padding:9px;max-width:100%;font:inherit}.history-filters label{display:grid;gap:4px}.data-limit-note{color:#73736b;margin:0 0 12px}
+@media(max-width:680px){.warehouse-tools{gap:8px}.warehouse-tools .search-box{width:145px;justify-content:flex-start}.warehouse-tools .search-box input{display:block;width:100px;font-size:12px}.toolbar-lookup{position:static}.toolbar-lookup .toolbar-results{position:fixed;top:64px;left:12px;right:12px;width:auto}.warehouse-tools .top-avatar,.warehouse-tools .top-divider{display:none}.page-heading h1{margin-bottom:0}.history-filters>input{width:100%}}
+
+/* Readable detail dialogs and supporting text. */
+.modal-card{font-size:15px;line-height:1.5}.modal-top h3{font-size:20px}.modal-kicker,.modal-section-label{font-size:11.5px}.modal-meta{font-size:14.5px}.modal-items>div{height:auto;min-height:40px;gap:12px;padding:9px 0;align-items:flex-start;line-height:1.5}.modal-items strong{overflow-wrap:anywhere}.form-error,.table-pagination,.inventory-status,.detail-status{font-size:12px}.data-table td small,.stock-amount small,.stock-low small,.inventory-detail-stat small,.lot-total small,.location-quantity small{font-size:11.5px}.lot-code-label{font-size:10px}.lot-heading>div>strong{font-size:13px}.lot-expiry strong{font-size:12px!important}.lot-no-locations{font-size:12px}.inventory-empty button{font-size:12px}
+
+.period-summary-note{margin:0;padding:14px 16px;font-size:13px;line-height:1.6;color:#777972}.dashboard-recent-movements .table-wrap{overflow-x:auto}.dashboard-recent-movements table{min-width:620px}
+
+.warehouse-report-charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:16px}.warehouse-report-charts>.panel{min-width:0}.warehouse-report-charts .panel-header{flex-wrap:wrap;gap:10px}.period-chart{height:300px;padding:0 8px}.period-chart-values{list-style:none;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0;padding:12px 16px}.period-chart-values li{display:grid;gap:6px;font-size:14px;min-width:0}.period-chart-values span{color:#777972}.period-chart-values strong{overflow-wrap:anywhere}.warehouse-report-charts .form-error{margin:0 16px 16px}.period-summary-timing{grid-column:1/-1;padding:0 2px}.warehouse-report-charts .chart-unit select{max-width:190px;font-size:13px}@media(max-width:1100px){.warehouse-report-charts{grid-template-columns:minmax(0,1fr)}}@media(max-width:680px){.period-chart{height:260px;padding:0}.period-chart-values{gap:8px;padding:12px;font-size:13px}}

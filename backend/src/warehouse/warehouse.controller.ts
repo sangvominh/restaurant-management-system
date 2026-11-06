@@ -219,51 +219,6 @@ export class WarehouseController {
     return this.warehouseService.getBomByCode(code);
   }
 
-  // PATCH /warehouse/boms/BOM001 (Chỉnh sửa công thức BOM)
-  @Patch('boms/:code')
-  @UsePipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-    }),
-  )
-  updateBom(@Param('code') code: string, @Body() dto: UpdateBomDto) {
-    return this.warehouseService.updateBom(code, dto);
-  }
-
-  // POST /warehouse/boms/BOM001/version (Tạo phiên bản mới cho BOM)
-  @Post('boms/:code/version')
-  @UsePipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-    }),
-  )
-  createBomNextVersion(
-    @Param('code') code: string,
-    @Body() dto: CreateBomVersionDto,
-  ) {
-    return this.warehouseService.createBomNextVersion(code, dto);
-  }
-
-  // PATCH /warehouse/boms/BOM001/status (Ngừng áp dụng hoặc kích hoạt lại công thức)
-  @Patch('boms/:code/status')
-  @UsePipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-    }),
-  )
-  updateBomStatus(
-    @Param('code') code: string,
-    @Body() dto: UpdateBomStatusDto,
-  ) {
-    return this.warehouseService.updateBomStatus(code, dto.status);
-  }
-
   // POST /warehouse/boms/check-stock
   @Post('boms/check-stock')
   @HttpCode(200)

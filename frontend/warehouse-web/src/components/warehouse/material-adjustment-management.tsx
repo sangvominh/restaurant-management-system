@@ -104,9 +104,6 @@ export default function MaterialAdjustmentManagement({
       <div className="page-heading workspace-heading">
         <div>
           <h1>{title}</h1>
-          <p>
-            Phiếu do nhân viên gửi; chỉ thay đổi tồn khi Admin duyệt hợp lệ.
-          </p>
         </div>
         <button
           className="button button-secondary"
@@ -153,7 +150,7 @@ export default function MaterialAdjustmentManagement({
                 <tr>
                   <th>MÃ PHIẾU</th>
                   <th>NVL / LÔ</th>
-                  <th>CHI NHÁNH / VỊ TRÍ</th>
+                  <th>VỊ TRÍ</th>
                   <th>ĐỀ NGHỊ / ĐÃ DUYỆT</th>
                   <th>NGUỒN</th>
                   <th>TRẠNG THÁI</th>
@@ -169,7 +166,7 @@ export default function MaterialAdjustmentManagement({
                       <small> · {row.lotCode}</small>
                     </td>
                     <td>
-                      {row.branchCode} · {row.locationName}
+                      {row.locationName}
                     </td>
                     <td>
                       {row.quantity} / {row.acceptedQuantity ?? "—"}{" "}
@@ -232,9 +229,9 @@ export default function MaterialAdjustmentManagement({
                 </strong>
               </div>
               <div>
-                <span>Chi nhánh / vị trí</span>
+                <span>Vị trí</span>
                 <strong>
-                  {detail.branchCode} · {detail.locationName}
+                  {detail.locationName}
                 </strong>
               </div>
               <div>

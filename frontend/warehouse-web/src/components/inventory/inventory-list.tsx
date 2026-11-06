@@ -1,11 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowDownWideNarrow,
-  Eye,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -14,7 +12,9 @@ import {
   PackageSearch,
   RefreshCw,
   Search,
+  X,
 } from "lucide-react";
+import { getInventoryMovements } from "@/services/inventory.service";
 import type { InventoryListItem, InventoryMovement } from "@/types/inventory";
 
 const numberFormat = new Intl.NumberFormat("vi-VN", {
@@ -31,13 +31,11 @@ function statusLabel(status: string) {
 export default function InventoryList({
   initialItems,
   alerts,
-  movements,
   branchCode,
   initialError,
 }: {
   initialItems: InventoryListItem[];
   alerts: InventoryListItem[];
-  movements: InventoryMovement[];
   branchCode: string;
   initialError?: string;
 }) {
@@ -46,8 +44,30 @@ export default function InventoryList({
   const [status, setStatus] = useState("Tất cả trạng thái");
   const [sort, setSort] = useState("name-asc");
   const [page, setPage] = useState(1);
-  const [branchInput, setBranchInput] = useState(branchCode);
   const [showMovements, setShowMovements] = useState(false);
+  const [history, setHistory] = useState<InventoryMovement[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyError, setHistoryError] = useState("");
+  const [movementType, setMovementType] = useState("");
+  const [movementSearch, setMovementSearch] = useState("");
+  const [movementFrom, setMovementFrom] = useState("");
+  const [movementTo, setMovementTo] = useState("");
+  const movementLabels: Record<string, string> = { RECEIPT: "Nhập kho", ISSUE: "Xuất kho", WASTE: "Hao hụt", RETURN: "Hoàn trả" };
+  const visibleMovements = history.filter(item => {
+    const query = movementSearch.trim().toLocaleLowerCase("vi");
+    const day = new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Ho_Chi_Minh" }).format(new Date(item.createdAt));
+    return (!movementType || item.movementType === movementType)
+      && (!query || [item.materialCode, item.lotCode, item.orderCode, initialItems.find(material => material.code === item.materialCode)?.name].some(value => value?.toLocaleLowerCase("vi").includes(query)))
+      && (!movementFrom || day >= movementFrom) && (!movementTo || day <= movementTo);
+  });
+  async function loadMovements() {
+    setHistoryLoading(true);
+    setHistoryError("");
+    setHistory([]);
+    try { setHistory(await getInventoryMovements(branchCode)); }
+    catch (cause) { setHistoryError(cause instanceof Error ? cause.message : "Không thể tải lịch sử giao dịch."); }
+    finally { setHistoryLoading(false); }
+  }
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
@@ -85,65 +105,41 @@ export default function InventoryList({
   function retry() {
     startTransition(() => router.refresh());
   }
-  function applyBranch() {
-    const next = new URLSearchParams(window.location.search);
-    if (branchInput.trim()) next.set("branchCode", branchInput.trim());
-    else next.delete("branchCode");
-    router.push(`/inventory${next.size ? `?${next.toString()}` : ""}`);
-  }
 
   return (
     <>
       <div className="page-heading workspace-heading">
         <div>
-          <div className="eyebrow">
-            <span className="eyebrow-line" /> KHO VẬN{" "}
-            <span className="crumb-slash">/</span> TỒN KHO NGUYÊN VẬT LIỆU
-          </div>
           <h1>Tồn kho nguyên vật liệu</h1>
-          <p>
-            Theo dõi tồn tổng, tồn khả dụng, hạn lô và cảnh báo từ hệ thống kho.
-          </p>
         </div>
         <div className="inventory-live">
           <span className="live-dot" /> Dữ liệu Backend
         </div>
       </div>
-      <div className="inventory-toolbar panel" style={{ marginBottom: 12 }}>
-        <label className="inventory-search">
-          <Search size={15} />
-          <input
-            value={branchInput}
-            onChange={(event) => setBranchInput(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") applyBranch();
-            }}
-            placeholder="Mã chi nhánh (để trống = tất cả)"
-            aria-label="Lọc theo mã chi nhánh"
-          />
-        </label>
-        <button className="button button-secondary" onClick={applyBranch}>
-          Lọc chi nhánh
-        </button>
-        {branchCode && (
-          <button
-            className="button button-secondary"
-            onClick={() => {
-              setBranchInput("");
-              router.push("/inventory");
-            }}
-          >
-            Xóa lọc
-          </button>
-        )}
-        <button
-          className="button button-secondary"
-          onClick={() => setShowMovements((value) => !value)}
-        >
-          {showMovements ? "Ẩn lịch sử" : "Lịch sử nhập/xuất"} (
-          {movements.length})
-        </button>
+      <div className="heading-actions" style={{ marginBottom: 12 }}>
+        <button className="button button-secondary" onClick={() => { setShowMovements(true); void loadMovements(); }}>Lịch sử nhập/xuất</button>
       </div>
+      {showMovements && (
+        <div className="modal-backdrop" onMouseDown={event => { if (event.target === event.currentTarget) setShowMovements(false); }}>
+          <section className="modal-card inventory-history-modal" role="dialog" aria-modal="true" aria-label="Lịch sử nhập/xuất NVL" onKeyDown={event => { if (event.key === "Escape") setShowMovements(false); }}>
+            <div className="modal-top"><h2>Lịch sử nhập/xuất NVL</h2><button autoFocus className="icon-button" aria-label="Đóng lịch sử" onClick={() => setShowMovements(false)}><X size={18}/></button></div>
+            <p>Chỉ lọc trong 100 giao dịch gần nhất. API chưa cung cấp mã phiếu nhập/xuất; mã liên quan dưới đây là yêu cầu chế biến nếu có.</p>
+            <div className="history-filters">
+              <input aria-label="Tìm giao dịch" placeholder="Mã/tên NVL, lô, mã liên quan" value={movementSearch} onChange={event => setMovementSearch(event.target.value)}/>
+              <select aria-label="Loại giao dịch" value={movementType} onChange={event => setMovementType(event.target.value)}><option value="">Tất cả giao dịch</option>{Array.from(new Set(history.map(item => item.movementType))).map(type => <option key={type} value={type}>{movementLabels[type] ?? type}</option>)}</select>
+              <label>Từ ngày<input type="date" aria-label="Lịch sử từ ngày" value={movementFrom} onChange={event => setMovementFrom(event.target.value)}/></label>
+              <label>Đến ngày<input type="date" aria-label="Lịch sử đến ngày" value={movementTo} onChange={event => setMovementTo(event.target.value)}/></label>
+              <button className="button button-secondary" onClick={() => { setMovementSearch(""); setMovementType(""); setMovementFrom(""); setMovementTo(""); }}>Xóa lọc</button>
+              <button className="button button-secondary" disabled={historyLoading} onClick={() => void loadMovements()}><RefreshCw size={14}/> Tải lại</button>
+            </div>
+            {historyLoading ? <div className="inventory-empty" role="status">Đang tải lịch sử…</div> : historyError ? <div className="form-error" role="alert">{historyError}</div> : visibleMovements.length === 0 ? <div className="inventory-empty">Không có giao dịch phù hợp.</div> : (
+              <div className="table-wrap"><table className="data-table workspace-table"><thead><tr><th>MÃ LIÊN QUAN</th><th>NGUYÊN VẬT LIỆU</th><th>LÔ / VỊ TRÍ</th><th>LOẠI</th><th>SỐ LƯỢNG THAY ĐỔI</th><th>THỜI GIAN</th></tr></thead><tbody>
+                {visibleMovements.map((item, index) => <tr key={index}><td>{item.orderCode ?? "—"}</td><td>{item.materialCode}<small>{initialItems.find(material => material.code === item.materialCode)?.name}</small></td><td>{item.lotCode}<small>{item.locationName}</small></td><td>{movementLabels[item.movementType] ?? item.movementType}</td><td>{numberFormat.format(Number(item.quantityChange))} {initialItems.find(material => material.code === item.materialCode)?.unit}</td><td>{new Intl.DateTimeFormat("vi-VN", { dateStyle: "short", timeStyle: "short", timeZone: "Asia/Ho_Chi_Minh" }).format(new Date(item.createdAt))}</td></tr>)}
+              </tbody></table></div>
+            )}
+          </section>
+        </div>
+      )}
       {initialError ? (
         <div className="inventory-error inline-inventory-error">
           <div className="error-mark">
@@ -202,58 +198,6 @@ export default function InventoryList({
                   )
                   .join("; ")}
               </p>
-            </section>
-          )}
-          {showMovements && (
-            <section
-              className="panel workspace-table-panel"
-              style={{ marginBottom: 12 }}
-            >
-              <div className="panel-header">
-                <div>
-                  <h2>Lịch sử nhập / xuất nguyên vật liệu</h2>
-                  <p>100 giao dịch gần nhất từ Backend.</p>
-                </div>
-              </div>
-              {movements.length === 0 ? (
-                <div className="inventory-empty">Chưa có giao dịch kho.</div>
-              ) : (
-                <div className="table-wrap">
-                  <table className="data-table workspace-table">
-                    <thead>
-                      <tr>
-                        <th>MÃ NVL</th>
-                        <th>MÃ LÔ</th>
-                        <th>VỊ TRÍ</th>
-                        <th>LOẠI</th>
-                        <th>THAY ĐỔI</th>
-                        <th>TỒN SAU</th>
-                        <th>THỜI GIAN</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {movements.map((item, index) => (
-                        <tr
-                          key={`${item.materialCode}-${item.lotCode}-${item.createdAt}-${index}`}
-                        >
-                          <td>{item.materialCode}</td>
-                          <td>{item.lotCode}</td>
-                          <td>{item.locationName}</td>
-                          <td>{({ RECEIPT: "Nhập kho", ISSUE: "Xuất kho", WASTE: "Hao hụt", RETURN: "Hoàn trả" } as Record<string, string>)[item.movementType] ?? item.movementType}</td>
-                          <td>{item.quantityChange}</td>
-                          <td>{item.quantityAfter}</td>
-                          <td>
-                            {new Intl.DateTimeFormat("vi-VN", {
-                              dateStyle: "short",
-                              timeStyle: "short",
-                            }).format(new Date(item.createdAt))}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
             </section>
           )}
           <div className="panel inventory-panel">
@@ -358,7 +302,6 @@ export default function InventoryList({
                         <th>TỒN KHẢ DỤNG</th>
                         <th>TỒN TỐI THIỂU</th>
                         <th>TRẠNG THÁI</th>
-                        <th>THAO TÁC</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -403,16 +346,6 @@ export default function InventoryList({
                               <i />
                               {statusLabel(item.stockStatus)}
                             </span>
-                          </td>
-                          <td>
-                            <Link
-                              className="row-action"
-                              title="Xem chi tiết"
-                              aria-label={"Xem chi tiết " + item.code}
-                              href={`/inventory/${encodeURIComponent(item.code)}${branchCode ? `?branchCode=${encodeURIComponent(branchCode)}` : ""}`}
-                            >
-                              <Eye size={14}/>
-                            </Link>
                           </td>
                         </tr>
                       ))}

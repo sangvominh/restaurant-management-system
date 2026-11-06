@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import WarehousePeriodSummary from "@/components/dashboard/warehouse-period-summary";
 import Link from "next/link";
 import {
   getInventory,
@@ -6,49 +8,49 @@ import {
 } from "@/services/inventory.service";
 import { warehouseService } from "@/services/warehouse-service";
 
-export default async function WarehouseDashboard() {
+async function DashboardContent() {
   try {
-    const [inventory, alerts, issues, movements] = await Promise.all([
+    const [inventory, alerts, issues, movements, receipts] = await Promise.all([
       getInventory(),
       getInventoryAlerts(),
       warehouseService.getMaterialIssues("PENDING"),
       getInventoryMovements(),
+      warehouseService.getReceipts(),
     ]);
+    const today = new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Ho_Chi_Minh" }).format(new Date());
+    const firstDay = new Date(today + "T00:00:00+07:00");
+    firstDay.setTime(firstDay.getTime() - 4 * 24 * 60 * 60 * 1000);
+    const recentMovements = movements.filter(item => new Date(item.createdAt) >= firstDay && new Date(item.createdAt) <= new Date());
     return (
       <>
         <div className="page-heading">
           <div>
-            <div className="eyebrow">
-              {new Date().toLocaleDateString("vi-VN", {
-                timeZone: "Asia/Ho_Chi_Minh",
-                dateStyle: "full",
-              })}
-            </div>
             <h1>Tổng quan kho nguyên vật liệu</h1>
-            <p>Số liệu trực tiếp từ hệ thống kho.</p>
           </div>
           <Link className="button button-primary" href="/receipts">
             Tạo phiếu nhập
           </Link>
         </div>
-        <section className="kpi-grid">
+        <section className="kpi-grid warehouse-kpis">
           {[
             [
               "Nguyên vật liệu đang hoạt động",
               inventory.filter((item) => item.status === "ACTIVE").length,
             ],
             ["NVL có tồn khả dụng thấp", alerts.length],
-            ["Phiếu xuất chờ (tải tối đa 50)", issues.length],
+            ["Phiếu xuất chờ (tối đa 50)", issues.length],
+            ["Phiếu nhập gần đây (tối đa 50)", receipts.length],
           ].map(([label, value]) => (
             <div className="kpi-card" key={label}>
               <span className="kpi-label">{label}</span>
               <div className="kpi-value-row">
                 <strong>{value}</strong>
               </div>
-              <span className="kpi-note">Dữ liệu Backend</span>
+              <span className="kpi-note">Dữ liệu hiện tại</span>
             </div>
           ))}
         </section>
+        <Suspense fallback={<div className="inventory-empty" role="status">Đang tổng hợp nhập kho và hao hụt…</div>}><WarehousePeriodSummary receipts={receipts}/></Suspense>
         <section className="dashboard-grid dashboard-grid-primary">
           <div className="panel">
             <div className="panel-header">
@@ -97,9 +99,6 @@ export default async function WarehouseDashboard() {
                   <div className="alert-row" key={item.issueCode}>
                     <div className="alert-main">
                       <strong>{item.issueCode}</strong>
-                      <span>
-                        {item.branchCode} · {item.branchName}
-                      </span>
                     </div>
                     <span className="status-pill warning">Chờ duyệt</span>
                   </div>
@@ -108,37 +107,36 @@ export default async function WarehouseDashboard() {
             )}
           </div>
         </section>
-        <div className="panel">
+        <div className="panel dashboard-recent-movements">
           <div className="panel-header">
             <div>
-              <h2>Giao dịch kho gần nhất</h2>
-              <p>Trong 100 giao dịch gần nhất từ Backend.</p>
+              <h2>Giao dịch kho 5 ngày gần nhất</h2>
+              <p>Hôm nay và 4 ngày trước, theo giờ Việt Nam. API trả tối đa 100 giao dịch.</p>
             </div>
             <Link className="text-link" href="/transactions">
               Xem lịch sử
             </Link>
           </div>
-          {!movements.length ? (
-            <div className="inventory-empty">Chưa có giao dịch kho.</div>
+          {!recentMovements.length ? (
+            <div className="inventory-empty">Không có giao dịch trong 5 ngày gần nhất.</div>
           ) : (
             <div className="table-wrap">
               <table className="data-table">
                 <thead>
                   <tr>
                     <th>NVL / LÔ</th>
-                    <th>CHI NHÁNH</th>
                     <th>LOẠI</th>
                     <th>THAY ĐỔI</th>
                     <th>TỒN SAU</th>
+                    <th>THỜI GIAN</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {movements.slice(0, 8).map((item, index) => (
+                  {recentMovements.map((item, index) => (
                     <tr key={index}>
                       <td>
                         {item.materialCode} · {item.lotCode}
                       </td>
-                      <td>{item.branchCode}</td>
                       <td>
                         {(
                           {
@@ -151,6 +149,7 @@ export default async function WarehouseDashboard() {
                       </td>
                       <td>{item.quantityChange}</td>
                       <td>{item.quantityAfter}</td>
+                      <td>{new Intl.DateTimeFormat("vi-VN", { dateStyle: "short", timeStyle: "short", timeZone: "Asia/Ho_Chi_Minh" }).format(new Date(item.createdAt))}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -173,4 +172,8 @@ export default async function WarehouseDashboard() {
       </div>
     );
   }
+}
+
+export default function WarehouseDashboard() {
+  return <Suspense fallback={<div className="inventory-empty" role="status">Đang tải tổng quan kho…</div>}><DashboardContent/></Suspense>;
 }

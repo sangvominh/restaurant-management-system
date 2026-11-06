@@ -11,7 +11,7 @@ export default async function WarehouseHistory({
   report?: boolean;
   branchCode?: string;
 }) {
-  const title = report ? "Báo cáo tồn kho hiện tại" : "Lịch sử giao dịch kho";
+  const title = report ? "Tồn kho hiện tại" : "Lịch sử giao dịch kho";
   try {
     const inventory = report ? await getInventory(branchCode) : [];
     const movements = report ? [] : await getInventoryMovements(branchCode);
@@ -20,26 +20,13 @@ export default async function WarehouseHistory({
         <div className="page-heading workspace-heading">
           <div>
             <h1>{title}</h1>
-            <p>
-              {report
-                ? "Tổng tồn vật lý và tồn khả dụng theo đơn vị cơ sở của từng NVL."
-                : "100 giao dịch gần nhất, gồm cả lịch sử chi nhánh ngừng hoạt động."}
-            </p>
+
           </div>
         </div>
-        {report && (
-          <div className="demo-banner">
-            Chưa hỗ trợ báo cáo kỳ tháng/quý/năm: cần API tổng hợp lịch sử đầy
-            đủ. Bảng dưới là số dư hiện tại.
-          </div>
-        )}
         <form className="inventory-toolbar panel" method="get">
-          <label className="form-field">
-            <span>Mã chi nhánh (trống = tất cả)</span>
-            <input name="branchCode" defaultValue={branchCode} />
-          </label>
-          <button className="button button-secondary">Lọc / Tải lại</button>
+          <button className="button button-secondary">Tải lại</button>
         </form>
+        <p className="data-limit-note">{report ? "Chưa hỗ trợ báo cáo theo kỳ." : "Chỉ hiển thị 100 giao dịch gần nhất."}</p>
         <div className="panel workspace-table-panel">
           {!(report ? inventory.length : movements.length) ? (
             <div className="inventory-empty">Chưa có dữ liệu phù hợp.</div>
@@ -60,7 +47,7 @@ export default async function WarehouseHistory({
                       : [
                           "MÃ NVL",
                           "LÔ",
-                          "CHI NHÁNH / VỊ TRÍ",
+                          "VỊ TRÍ",
                           "LOẠI",
                           "THAY ĐỔI",
                           "TỒN SAU",
@@ -89,7 +76,7 @@ export default async function WarehouseHistory({
                           <td>{item.materialCode}</td>
                           <td>{item.lotCode}</td>
                           <td>
-                            {item.branchCode} · {item.locationName}
+                            {item.locationName}
                           </td>
                           <td>
                             {(

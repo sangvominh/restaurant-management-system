@@ -10,7 +10,6 @@ export default function InventoryMovementDetail({ movement }: { movement: Invent
   const fields = [
     ["Nguyên vật liệu", movement.materialCode],
     ["Lô nguyên vật liệu", movement.lotCode],
-    ["Chi nhánh", [movement.branchCode, movement.branchName].filter(Boolean).join(" · ")],
     ["Vị trí kho", movement.locationName],
     ["Loại giao dịch", type],
     ["Số lượng trước giao dịch", movement.quantityBefore],

@@ -203,12 +203,7 @@ export default function MaterialManagement() {
     <>
       <div className="page-heading workspace-heading">
         <div>
-          <div className="eyebrow">
-            <span className="eyebrow-line" /> KHO VẬN{" "}
-            <span className="crumb-slash">/</span> DANH MỤC NGUYÊN VẬT LIỆU
-          </div>
           <h1>Danh mục & nguyên vật liệu</h1>
-          <p>Quản lý danh mục, đơn vị tính và định mức tồn tối thiểu.</p>
         </div>
         <div className="heading-actions">
           <button

@@ -94,24 +94,6 @@ model Category {
   @@map("categories")
 }
 
-model Product {
-  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  code        String   @unique @db.VarChar(50)
-  name        String   @db.VarChar(200)
-  category    String   @db.VarChar(100)
-  price       Decimal  @db.Decimal(18, 2)
-  unit        String   @default("phần") @db.VarChar(50)
-  imageUrl    String?  @map("image_url")
-  description String?  @db.Text
-  status      String   @default("ACTIVE") @db.VarChar(20)
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
-
-  boms Bom[]
-
-  @@index([category, status])
-  @@map("products")
-}
 
 model Material {
   id       String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid

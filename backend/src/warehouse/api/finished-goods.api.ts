@@ -478,6 +478,7 @@ export class FinishedGoodsApi {
   async getFinishedGoodsMovements() {
     const movements = await this.prisma.finishedGoodsMovement.findMany({
       include: {
+        issueDetail: { include: { issue: true } },
         receipt: {
           include: {
             productionOrder: {
@@ -502,17 +503,17 @@ export class FinishedGoodsApi {
         shiftCode: item.issueDetail?.issue.shiftCode ?? null,
         productCode: item.productCode,
         productName:
-          item.receipt.productionOrder.bom.product.name ||
-          item.receipt.productionOrder.bom.productName ||
+          item.receipt?.productionOrder.bom.product?.name ||
+          item.receipt?.productionOrder.bom.productName ||
           item.productCode,
         branchCode: item.location.branch.code,
         locationName: item.location.name,
         quantityBefore: item.quantityBefore.toString(),
         quantityChange: item.quantityChange.toString(),
         quantityAfter: item.quantityAfter.toString(),
-        receiptStatus: item.receipt.status,
-        inspectionNote: item.receipt.inspectionNote,
-        approvedAt: item.receipt.approvedAt,
+        receiptStatus: item.receipt?.status ?? null,
+        inspectionNote: item.receipt?.inspectionNote ?? null,
+        approvedAt: item.receipt?.approvedAt ?? null,
         createdAt: item.createdAt,
       })),
     };

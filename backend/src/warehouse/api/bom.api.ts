@@ -106,7 +106,7 @@ export class BomApi {
             productName,
             outputQuantity: new Prisma.Decimal(dto.outputQuantity),
             details: {
-              create: details,
+              create: preparedDetails,
             },
           },
           include: {
@@ -126,7 +126,7 @@ export class BomApi {
         data: {
           code: bom.code,
           productCode: bom.productCode,
-          productName: bom.productName || bom.product.name,
+          productName: bom.productName || bom.product?.name || bom.productCode,
           version: bom.version,
           outputQuantity: bom.outputQuantity.toString(),
           status: bom.status,
@@ -183,14 +183,14 @@ export class BomApi {
       data: boms.map((bom) => ({
         code: bom.code,
         productCode: bom.productCode,
-        productName: bom.productName || bom.product.name,
+        productName: bom.productName || bom.product?.name || bom.productCode,
         version: bom.version,
         outputQuantity: bom.outputQuantity.toString(),
         status: bom.status,
         createdAt: bom.createdAt,
-        category: bom.product.category,
-        description: bom.product.description,
-        price: bom.product.price.toString(),
+        category: bom.product?.category ?? null,
+        description: bom.product?.description ?? null,
+        price: bom.product?.price.toString() ?? null,
 
         totalMaterials: bom.details.length,
         details: bom.details.map((item) => ({
@@ -292,14 +292,14 @@ export class BomApi {
       data: {
         code: bom.code,
         productCode: bom.productCode,
-        productName: bom.productName || bom.product.name,
+        productName: bom.productName || bom.product?.name || bom.productCode,
         version: bom.version,
         outputQuantity: bom.outputQuantity.toString(),
         status: bom.status,
         createdAt: bom.createdAt,
-        category: bom.product.category,
-        description: bom.product.description,
-        price: bom.product.price.toString(),
+        category: bom.product?.category ?? null,
+        description: bom.product?.description ?? null,
+        price: bom.product?.price.toString() ?? null,
         versions: await this.prisma.bom.findMany({
           where: { productCode: bom.productCode },
           orderBy: { version: 'desc' },
@@ -823,7 +823,7 @@ export class BomApi {
     version: number;
     outputQuantity: Prisma.Decimal;
     status: string;
-    product: { name: string };
+    product: { name: string } | null;
     details: {
       quantity: Prisma.Decimal;
       material: { code: string; name: string };
@@ -833,7 +833,7 @@ export class BomApi {
     return {
       code: bom.code,
       productCode: bom.productCode,
-      productName: bom.productName || bom.product.name,
+      productName: bom.productName || bom.product?.name || bom.productCode,
       version: bom.version,
       outputQuantity: bom.outputQuantity.toString(),
       status: bom.status,
