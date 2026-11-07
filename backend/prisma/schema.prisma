@@ -36,7 +36,6 @@ model Branch {
   staff StaffUser[]
   menu MenuItem[]
   invoices Invoice[]
-  stock StockBatch[]
   staff_kitchen_balances          staff_kitchen_balances[] @ignore
   staff_kitchen_production_starts staff_kitchen_production_starts[] @ignore
   staff_kitchen_receipts          staff_kitchen_receipts[] @ignore
@@ -744,7 +743,6 @@ model MenuItem {
   recipeConfigured Boolean @default(false) @map("recipe_configured")
   branch Branch @relation(fields: [branchId], references: [id], onDelete: Restrict)
   lines OrderLine[]
-  recipe RecipeIngredient[]
   @@index([branchId])
   @@map("menu_items")
 }
@@ -796,7 +794,6 @@ model OrderLine {
   servedAt DateTime? @db.Timestamptz(3) @map("served_at")
   order StaffOrder @relation(fields: [orderId], references: [id], onDelete: Restrict)
   menuItem MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Restrict)
-  consumption CookingConsumption?
   @@index([orderId])
   @@map("order_lines")
 
@@ -841,65 +838,6 @@ model StaffAudit {
   createdAt DateTime @default(now()) @db.Timestamptz(3) @map("created_at")
   actor StaffUser @relation(fields: [actorId], references: [id], onDelete: Restrict)
   @@map("staff_audits")
-}
-
-
-model Ingredient {
-  id String @id @default(uuid()) @db.Uuid
-  name String
-  unit String
-  recipe RecipeIngredient[]
-  batches StockBatch[]
-  @@map("ingredients")
-}
-
-
-model RecipeIngredient {
-  menuItemId String @db.Uuid @map("menu_item_id")
-  ingredientId String @db.Uuid @map("ingredient_id")
-  quantity Decimal @db.Decimal(14, 3)
-  menuItem MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Restrict)
-  ingredient Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Restrict)
-  @@id([menuItemId, ingredientId])
-  @@map("recipe_ingredients")
-}
-
-
-model StockBatch {
-  id String @id @default(uuid()) @db.Uuid
-  branchId String @db.Uuid @map("branch_id")
-  ingredientId String @db.Uuid @map("ingredient_id")
-  code String
-  remaining Decimal @db.Decimal(14, 3)
-  expiresAt DateTime @db.Timestamptz(3) @map("expires_at")
-  branch Branch @relation(fields: [branchId], references: [id], onDelete: Restrict)
-  ingredient Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Restrict)
-  movements StockConsumptionLine[]
-  @@unique([branchId, code])
-  @@index([branchId, ingredientId, expiresAt])
-  @@map("stock_batches")
-}
-
-
-model CookingConsumption {
-  // Shared idempotency point for cooking: integrations must reuse this ledger.
-  id String @id @default(uuid()) @db.Uuid
-  orderLineId String @unique @db.Uuid @map("order_line_id")
-  createdAt DateTime @default(now()) @db.Timestamptz(3) @map("created_at")
-  orderLine OrderLine @relation(fields: [orderLineId], references: [id], onDelete: Restrict)
-  batches StockConsumptionLine[]
-  @@map("cooking_consumptions")
-}
-
-
-model StockConsumptionLine {
-  consumptionId String @db.Uuid @map("consumption_id")
-  batchId String @db.Uuid @map("batch_id")
-  quantity Decimal @db.Decimal(14, 3)
-  consumption CookingConsumption @relation(fields: [consumptionId], references: [id], onDelete: Restrict)
-  batch StockBatch @relation(fields: [batchId], references: [id], onDelete: Restrict)
-  @@id([consumptionId, batchId])
-  @@map("stock_consumption_lines")
 }
 
 

@@ -50,6 +50,63 @@ it('nâng cấp giữ ID nhân viên, mật khẩu và định lượng công th
       (await pg.query("SELECT to_regclass('staff_sessions') AS old_session"))
         .rows[0],
     ).toEqual({ old_session: null });
+    for (const table of [
+      'ingredients',
+      'recipe_ingredients',
+      'stock_batches',
+      'cooking_consumptions',
+      'stock_consumption_lines',
+    ]) {
+      expect(
+        (await pg.query(`SELECT to_regclass('${table}') AS retired_table`))
+          .rows[0],
+      ).toEqual({ retired_table: null });
+    }
+  } finally {
+    await pg.close();
+  }
+}, 30000);
+
+it('không xóa ledger nguyên liệu cũ khi vẫn còn dữ liệu', async () => {
+  const pg = await PGlite.create();
+  try {
+    const cleanup = '20261107000400_remove_unused_staff_inventory';
+    const migrations = (
+      await readdir(new URL('../prisma/migrations/', import.meta.url))
+    )
+      .filter((name) => /^\d/.test(name) && name < cleanup)
+      .sort();
+    for (const name of migrations) {
+      await pg.exec(
+        await readFile(
+          new URL(
+            `../prisma/migrations/${name}/migration.sql`,
+            import.meta.url,
+          ),
+          'utf8',
+        ),
+      );
+    }
+    await pg.exec(
+      "INSERT INTO ingredients(id, name, unit) VALUES (gen_random_uuid(), 'Legacy ingredient', 'kg')",
+    );
+    const sql = await readFile(
+      new URL(`../prisma/migrations/${cleanup}/migration.sql`, import.meta.url),
+      'utf8',
+    );
+    await expect(pg.exec(sql)).rejects.toThrow(
+      'Legacy ingredient tables contain data',
+    );
+    await pg.exec('ROLLBACK');
+    expect((await pg.query('SELECT name FROM ingredients')).rows).toEqual([
+      { name: 'Legacy ingredient' },
+    ]);
+    await pg.exec('DELETE FROM ingredients');
+    await pg.exec(sql);
+    expect(
+      (await pg.query("SELECT to_regclass('ingredients') AS retired_table"))
+        .rows[0],
+    ).toEqual({ retired_table: null });
   } finally {
     await pg.close();
   }

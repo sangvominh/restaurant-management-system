@@ -118,7 +118,7 @@ export class StaffService {
     if (!['COOKING', 'READY', 'SERVED'].includes(status)) throw new BadRequestException('Trạng thái không hỗ trợ.');
     if (status === 'SERVED' ? !['SERVICE', 'SUPERVISOR'].includes(user.role) : !['KITCHEN', 'BARISTA', 'SUPERVISOR'].includes(user.role)) throw new ForbiddenException('Không có quyền xử lý trạng thái này.');
     return this.tx(async tx => {
-      const line = await tx.orderLine.findFirst({ where: { id: uuid(id), order: { invoice: { branchId: user.branchId } } }, include: { menuItem: { include: { recipe: true } } } });
+      const line = await tx.orderLine.findFirst({ where: { id: uuid(id), order: { invoice: { branchId: user.branchId } } }, include: { menuItem: true } });
       if (!line) throw new NotFoundException('Không tìm thấy món.');
       if (line.status === status) return line;
       const previous = { COOKING: 'QUEUED', READY: 'COOKING', SERVED: 'READY' }[status];
