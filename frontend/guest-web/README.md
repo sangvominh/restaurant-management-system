@@ -1,6 +1,6 @@
 # Guest Web
 
-Chạy từ root repository bằng `npm run dev:guest`, mở http://localhost:3005 . Đây là khung Next.js; trang hiện tại chưa triển khai nghiệp vụ khách hàng.
+Trong `frontend/guest-web`, chạy `npm ci` lần đầu rồi `npm run dev`, mở http://localhost:3005. Đây là khung Next.js; trang hiện tại chưa triển khai nghiệp vụ khách hàng.
 
 ## Tài nguyên cần giữ
 
@@ -9,6 +9,6 @@ Chạy từ root repository bằng `npm run dev:guest`, mở http://localhost:30
 - `app/`, `next.config.ts`, `package.json`, TypeScript và các cấu hình build: cần để phát triển ứng dụng.
 - `public/next.svg`, `public/vercel.svg`: trang template hiện tại còn dùng.
 
-Đã bỏ ba SVG mẫu không dùng và lockfile con. Cài các workspace bằng `npm ci` tại root, dùng package-lock.json chung.
+Dependency và package-lock.json nằm riêng trong thư mục này. Không cần cài package ở root hoặc frontend khác.
 
-Không coi trang template hoặc ảnh thiết kế là tính năng đã chạy. Xem [hướng dẫn kiểm thử toàn hệ thống](../../docs/TESTING.md).
+Không coi trang template hoặc ảnh thiết kế là tính năng đã chạy. Xem [hướng dẫn kiểm thử toàn hệ thống](../../docs/content/duy-tri/kiem-thu.md).

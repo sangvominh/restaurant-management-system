@@ -2,7 +2,7 @@ import './globals.css';
 import { RestaurantBrandingProvider } from './lib/restaurant-branding';
 
 export const metadata = {
-  title: 'Hệ thống Quản lý MRP Nhà hàng',
+  title: 'Admin server',
 };
 
 // Layout gốc chỉ có html/body để trang /login không bị bọc sidebar.

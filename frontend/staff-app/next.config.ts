@@ -8,7 +8,10 @@ const config: NextConfig = {
         source: "/api/auth/:path*",
         destination: `${process.env.API_INTERNAL_URL || "http://127.0.0.1:3000"}/api/staff-auth/:path*`,
       },
-      ...(process.env.MRP_DEMO_URL ? [{ source: "/api/mrp/:path*", destination: `${process.env.MRP_DEMO_URL}/warehouse/:path*` }] : []),
+      {
+        source: "/api/mrp/:path*",
+        destination: `${process.env.API_INTERNAL_URL || "http://127.0.0.1:3000"}/warehouse/:path*`,
+      },
       {
         source: "/api/:path*",
         destination: `${process.env.API_INTERNAL_URL || "http://127.0.0.1:3000"}/api/:path*`,

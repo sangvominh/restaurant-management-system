@@ -5,59 +5,25 @@ services:
     environment:
       POSTGRES_USER: restaurant
       POSTGRES_PASSWORD: local_dev_only
-      POSTGRES_DB: ${DATABASE_NAME:-restaurant_dev}
+      POSTGRES_DB: restaurant_dev
     ports:
-      - "127.0.0.1:${DB_PORT:-5433}:5432"
+      - "127.0.0.1:5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U restaurant -d ${DATABASE_NAME:-restaurant_dev}"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
-
-  backend-init:
-    build:
-      context: .
-      dockerfile: backend/Dockerfile
-      target: tools
-    env_file:
-      - ./backend/.env
-    environment:
-      DATABASE_URL: postgresql://restaurant:local_dev_only@db:5432/${DATABASE_NAME:-restaurant_dev}?schema=public
-    depends_on:
-      db:
-        condition: service_healthy
-    restart: "no"
 
   backend:
     build:
-      context: .
-      dockerfile: backend/Dockerfile
-      target: runtime
+      context: ./backend
+      dockerfile: Dockerfile
     env_file:
       - ./backend/.env
     environment:
-      NODE_ENV: production
-      JWT_ISSUER: ${DATABASE_NAME:-restaurant_dev}
       PORT: "3000"
-      DATABASE_URL: postgresql://restaurant:local_dev_only@db:5432/${DATABASE_NAME:-restaurant_dev}?schema=public
-      CORS_ORIGIN: http://localhost:3001,http://localhost:3002,http://localhost:3003,http://localhost:3004,http://localhost:3005
+      JWT_ISSUER: restaurant_dev
+      DATABASE_URL: postgresql://restaurant:local_dev_only@db:5432/restaurant_dev?schema=public
+      CORS_ORIGIN: http://localhost:3001,http://localhost:3002,http://localhost:3003,http://localhost:3004,http://localhost:3005,http://localhost:3006
     ports:
-      - "127.0.0.1:${API_PORT:-3000}:3000"
-    depends_on:
-      db:
-        condition: service_healthy
-      backend-init:
-        condition: service_completed_successfully
-    healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
-      interval: 5s
-      timeout: 3s
-      retries: 12
-      start_period: 15s
-    restart: unless-stopped
-    init: true
+      - "127.0.0.1:3000:3000"
 
 volumes:
   postgres_data:

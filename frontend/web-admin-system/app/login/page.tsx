@@ -4,8 +4,9 @@ import React, { useEffect, useState } from 'react';
 import { Alert, Button, ConfigProvider, Form, Input } from 'antd';
 import { LockOutlined, MailOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
-import { apiFetch, clearSession, getToken, isSystemAdmin, readError, saveSession, type AuthUser } from '../lib/api';
-import { useRestaurantBranding } from '../lib/restaurant-branding';
+import { API_URL, apiFetch, clearSession, getToken, readError, saveSession, type AuthUser } from '@/app/lib/api';
+import { useRestaurantBranding } from '@/app/lib/restaurant-branding';
+import { canEnterPortal, portal } from '@/app/lib/portal';
 
 /* ---------- Màu (đồng bộ với các trang quản trị) ---------- */
 const C = {
@@ -168,8 +169,9 @@ export default function LoginPage() {
         if (!res.ok || cancelled) return;
         const user: AuthUser = await res.json();
         if (!cancelled) {
+          if (!canEnterPortal(user)) { clearSession(); return; }
           saveSession(getToken()!, user);
-          router.replace(isSystemAdmin(user) ? '/' : '/warehouse');
+          router.replace('/');
         }
       } catch {
         // Vẫn cho phép đăng nhập lại khi phiên cũ không xác nhận được.
@@ -183,18 +185,25 @@ export default function LoginPage() {
     setError(null);
     let success = false;
     try {
-      const res = await apiFetch('/api/auth/login', {
+      const res = await apiFetch('/api/auth/system-admin/login', {
         method: 'POST',
         body: JSON.stringify(values),
       });
       if (!res.ok) throw new Error(await readError(res, 'Đăng nhập thất bại'));
       const data: { accessToken: string; user: AuthUser } = await res.json();
+      if (!canEnterPortal(data.user)) {
+        // Revoke the session just created for a web this account cannot enter.
+        await fetch(`${API_URL}/api/auth/logout`, {
+          method: 'POST', headers: { Authorization: `Bearer ${data.accessToken}` },
+        });
+        throw new Error(`Tài khoản chưa có quyền vào ${portal.title}.`);
+      }
       saveSession(data.accessToken, data.user);
       success = true;
       setOpened(true);
       // Cho nắp cloche kịp nhấc lên; bỏ qua nếu người dùng chọn giảm chuyển động.
       if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) await wait(550);
-      router.replace(isSystemAdmin(data.user) ? '/' : '/warehouse');
+      router.replace('/');
     } catch (e: any) {
       // Lỗi mạng của fetch có message tiếng Anh khó hiểu -> thay bằng câu dễ hiểu.
       setError(e instanceof TypeError ? 'Không kết nối được máy chủ. Hãy kiểm tra backend đang chạy.' : e.message);
@@ -258,8 +267,8 @@ export default function LoginPage() {
 
         <section className="lg-panel">
           <div className="lg-card">
-            <h1 className="lg-title">Đăng nhập</h1>
-            <p className="lg-sub">Đăng nhập để quản lý hệ thống, kho hoặc nhà hàng theo quyền được cấp.</p>
+            <h1 className="lg-title">{portal.title}</h1>
+            <p className="lg-sub">Đăng nhập vào {portal.title}. Phiên đăng nhập được lưu riêng cho web này.</p>
 
             {error && <Alert type="error" showIcon message={error} style={{ marginBottom: 20 }} />}
 

@@ -1,10 +1,11 @@
 import { test, expect } from '@playwright/test';
 
-const api = process.env.E2E_API_URL ?? 'http://localhost:3201';
-const web = process.env.E2E_WEB_URL ?? 'http://localhost:3200';
+const api = process.env.E2E_API_URL ?? 'http://localhost:3010';
+const web = process.env.E2E_WEB_URL ?? 'http://localhost:3004';
 test.skip(!process.env.E2E_ADMIN_EMAIL || !process.env.E2E_ADMIN_PASSWORD, 'Use an isolated stack and test Admin credentials.');
 
-test('đổi tên trên System Admin đồng bộ login, Kho/Nhà hàng, footer và tiêu đề tab đang mở', async ({ page, browser, request }) => {
+test('đổi tên trên Admin server đồng bộ sang các web nghiệp vụ riêng', async ({ page, browser, request }) => {
+  test.setTimeout(90000);
   const signedIn = await request.post(api+'/api/auth/system-admin/login', {data:{email:process.env.E2E_ADMIN_EMAIL,password:process.env.E2E_ADMIN_PASSWORD}});
   expect(signedIn.ok()).toBeTruthy();
   const admin = (await signedIn.json()).accessToken;
@@ -15,7 +16,10 @@ test('đổi tên trên System Admin đồng bộ login, Kho/Nhà hàng, footer 
   const contexts = [];
   try {
     const warehousePages = [];
-    for (const [label,permission] of [['Kho','inventory:view'],['Nhà hàng','product:view']]) {
+    for (const [label,permission,origin,area] of [
+      ['Kho','inventory:view',process.env.E2E_WAREHOUSE_URL ?? 'http://localhost:3001','warehouse'],
+      ['Bán hàng','product:view',process.env.E2E_SALES_URL ?? 'http://localhost:3002','sales'],
+    ]) {
       const suffix=Date.now().toString()+Math.random().toString(16).slice(2,7);
       const roleResponse=await request.post(api+'/api/admin/roles',{headers,data:{name:`branding-${suffix}`,description:'Temporary branding test',portal:'warehouse',permissions:[permission]}});
       expect(roleResponse.ok()).toBeTruthy();const role=await roleResponse.json();
@@ -25,11 +29,11 @@ test('đổi tên trên System Admin đồng bộ login, Kho/Nhà hàng, footer 
       const login=await request.post(api+'/api/auth/login',{data:{email,password:'BrowserBrand@123'}});
       expect(login.ok()).toBeTruthy();const session=await login.json();
       const context=await browser.newContext();contexts.push(context);
-      await context.addInitScript(({accessToken,user})=>{
-        localStorage.setItem('account_access_token',accessToken);localStorage.setItem('account_auth_user',JSON.stringify(user));
-      },session);
+      await context.addInitScript(({accessToken,user,area})=>{
+        localStorage.setItem(`${area}_access_token`,accessToken);localStorage.setItem(`${area}_auth_user`,JSON.stringify(user));
+      },{...session,area});
       const warehouse=await context.newPage();warehousePages.push(warehouse);
-      await warehouse.goto(web+'/warehouse');
+      await warehouse.goto(origin+'/');
       await expect(warehouse.locator('.brand-copy strong')).toHaveText(original.restaurantName);
     }
     const visitorContext=await browser.newContext();contexts.push(visitorContext);

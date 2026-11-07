@@ -1,5 +1,5 @@
 /**
- * Điểm gọi API duy nhất của web admin: tự gắn JWT, tự đưa về /login khi hết phiên,
+ * API client của web này: tự gắn JWT và đưa về /login khi hết phiên,
  * và gom cách đọc thông báo lỗi của server (kể cả lỗi kiểm tra dữ liệu dạng mảng).
  *
  * Lưu ý bảo mật: token lưu ở localStorage nên script chèn vào trang (XSS) đọc được.
@@ -7,7 +7,8 @@
  */
 export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
-const SESSION_KEYS = { token: 'account_access_token', user: 'account_auth_user' };
+const app = 'system';
+const SESSION_KEYS = { token: `${app}_access_token`, user: `${app}_auth_user` };
 
 export interface AuthUser {
   id: number;
@@ -73,7 +74,7 @@ export async function apiFetch(path: string, init: RequestInit = {}): Promise<Re
 
   const res = await fetch(`${API_URL}${path}`, { ...init, headers });
 
-  // Một phiên tài khoản dùng chung cho các khu vực quản trị.
+  // Mỗi web giữ phiên riêng; hết phiên ở web này không xóa phiên web khác.
   const isLogin = path === '/api/auth/login' || path === '/api/auth/system-admin/login';
   if (res.status === 401 && typeof window !== 'undefined' && !isLogin) {
     clearSession();

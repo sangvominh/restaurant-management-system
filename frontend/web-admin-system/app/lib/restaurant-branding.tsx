@@ -1,7 +1,8 @@
 'use client';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { API_URL } from './api';
+import { API_URL } from '@/app/lib/api';
+import { portal } from '@/app/lib/portal';
 
 const CHANNEL = 'restaurant-branding';
 const STORAGE_EVENT = 'restaurant-branding-updated';
@@ -67,7 +68,7 @@ export function RestaurantBrandingProvider({ children }: { children: React.React
   }, [refresh]);
 
   useEffect(() => {
-    const area = pathname.startsWith('/warehouse') ? 'Kho / Nhà hàng' : pathname === '/login' ? 'Đăng nhập' : 'System Admin';
+    const area = pathname === '/login' ? `Đăng nhập ${portal.title}` : portal.title;
     document.title = `${restaurantName} | ${area}`;
   }, [restaurantName, pathname]);
 

@@ -9,7 +9,7 @@ Yêu cầu Node.js 24 LTS (khuyến nghị), npm.
 ```sh
 cd frontend/staff-app
 npm ci
-npm run dev -- --port 3003
+npm run dev
 ```
 
 Mở http://localhost:3003/preview/dashboard. Có đủ 11 màn hình; chọn bằng menu bên trái trên desktop hoặc hộp chọn trên đầu trang ở điện thoại. Màn hình đăng nhập mẫu: http://localhost:3003/preview/login.
@@ -28,11 +28,11 @@ npm run typecheck
 npm run build
 ```
 
-`/staff` kết nối backend local. Xem hướng dẫn chạy PostgreSQL, backend, dữ liệu demo và frontend trong [README gốc](../../README.md).
+`/staff` kết nối một backend duy nhất qua proxy Next.js. Copy `.env.example` thành `.env.local` nếu cần đổi `API_INTERNAL_URL` (mặc định http://localhost:3000); cả API Staff và API kho đều đi về địa chỉ này. Dependency và lockfile của Staff nằm riêng trong thư mục này. Xem cách chạy PostgreSQL và backend trong [README gốc](../../README.md).
 
 ## Trạng thái kiểm tra bản preview
 
 - 11 route preview trả HTTP 200 và có nhãn dữ liệu mẫu.
 - Đã xem giao diện trên trình duyệt, thử khung 390px và kiểm tra tăng số lượng món / thông báo chưa kết nối.
 - ESLint đạt, không còn cảnh báo sau khi sửa cấu hình font trong root layout.
-- Hiện trạng và cách kiểm thử bản tích hợp hiện tại: xem [README gốc](../../README.md) và [hướng dẫn test](../../docs/TESTING.md). Các kết quả preview ở trên không thay thế nghiệm thu nghiệp vụ.
+- Hiện trạng và cách kiểm thử bản tích hợp hiện tại: xem [README gốc](../../README.md) và [hướng dẫn test](../../docs/content/duy-tri/kiem-thu.md). Các kết quả preview ở trên không thay thế nghiệm thu nghiệp vụ.

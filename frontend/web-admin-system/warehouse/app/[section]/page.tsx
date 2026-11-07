@@ -1,6 +1,0 @@
-import Workspace from "@/warehouse/components/workspace";
-
-export default async function SectionPage({ params }: { params: Promise<{ section: string }> }) {
-  const { section } = await params;
-  return <Workspace key={section} section={section} />;
-}

@@ -56,8 +56,8 @@ beforeAll(async () => {
   configureApp(app);
   await app.init();
   db = app.get(PrismaService);
-  const { seedDemo } = await import('../dist/prisma/seed-demo.js');
-  await seedDemo(db, password);
+  const { seedFoundationFixture } = await import('./fixtures/foundation');
+  await seedFoundationFixture(db, password);
 }, 60000);
 
 afterAll(async () => {
@@ -66,9 +66,9 @@ afterAll(async () => {
   await pg?.close();
 });
 
-it('bootstrap chạy lại giữ tài khoản/quyền và demo không ghi đè DB có dữ liệu', async () => {
+it('bootstrap chạy lại giữ tài khoản/quyền và fixture không ghi đè DB có dữ liệu', async () => {
   const { seedSystemAdmin } = await import('../dist/prisma/seed-admin.js');
-  const { seedDemo } = await import('../dist/prisma/seed-demo.js');
+  const { seedFoundationFixture } = await import('./fixtures/foundation');
   const before = await db.account.findUniqueOrThrow({
     where: { email: 'owner@demo.local' },
   });
@@ -82,7 +82,7 @@ it('bootstrap chạy lại giữ tài khoản/quyền và demo không ghi đè D
   ).toBe(before.passwordHash);
   expect(await db.account.count()).toBe(7);
   expect(await db.staffUser.count()).toBe(4);
-  await expect(seedDemo(db, password)).rejects.toThrow('DB trống');
+  await expect(seedFoundationFixture(db, password)).rejects.toThrow('DB trống');
   expect(await db.account.count()).toBe(7);
 });
 
