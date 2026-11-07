@@ -35,4 +35,4 @@ npm run build
 - 11 route preview trả HTTP 200 và có nhãn dữ liệu mẫu.
 - Đã xem giao diện trên trình duyệt, thử khung 390px và kiểm tra tăng số lượng món / thông báo chưa kết nối.
 - ESLint đạt, không còn cảnh báo sau khi sửa cấu hình font trong root layout.
-- Bản tích hợp feat/restaurant_v2: đã cài lại dependency theo lockfile; typecheck và production build PASS. Xem ../../README_INTEGRATION.md về điều kiện DB và các luồng chưa liên thông.
+- Hiện trạng và cách kiểm thử bản tích hợp hiện tại: xem [README gốc](../../README.md) và [hướng dẫn test](../../docs/TESTING.md). Các kết quả preview ở trên không thay thế nghiệm thu nghiệp vụ.
