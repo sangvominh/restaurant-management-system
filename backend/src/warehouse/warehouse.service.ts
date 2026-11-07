@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
+import { ProductionCapacityApi } from './api/production-capacity.api.js';
+import { InventoryReportApi, type InventoryReportQuery } from './api/inventory-report.api.js';
 import { InventoryApi } from './api/inventory.api.js';
 import { ReceiptApi } from './api/receipt.api.js';
 import { CreateReceiptDto } from './dto/create-receipt.dto.js';
@@ -38,6 +40,8 @@ import { CreateFinishedGoodsDefectDto } from './dto/create-finished-goods-defect
 export class WarehouseService {
   constructor(
     private readonly inventoryApi: InventoryApi,
+    private readonly inventoryReportApi: InventoryReportApi,
+    private readonly productionCapacityApi: ProductionCapacityApi,
     private readonly receiptApi: ReceiptApi,
     private readonly materialIssueApi: MaterialIssueApi,
     private readonly bomApi: BomApi,
@@ -52,6 +56,10 @@ export class WarehouseService {
     private readonly finishedGoodsIssueApi: FinishedGoodsIssueApi,
     private readonly finishedGoodsDefectApi: FinishedGoodsDefectApi,
   ) {}
+
+  getProductionCapacity(branchCode?: string) { return this.productionCapacityApi.getCapacity(branchCode); }
+
+  getInventoryReport(query: InventoryReportQuery) { return this.inventoryReportApi.getReport(query); }
 
   getBranches() { return this.referenceApi.getBranches(); }
   getLocations(branchId: string) { return this.referenceApi.getLocations(branchId); }

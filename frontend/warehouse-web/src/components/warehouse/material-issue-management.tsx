@@ -1,5 +1,7 @@
 "use client";
 
+import Pagination, { usePagination } from "@/components/shared/pagination";
+
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { Check, Eye, RefreshCw, X } from "lucide-react";
 import { WarehouseApiError } from "@/services/api";
@@ -52,6 +54,7 @@ export default function MaterialIssueManagement() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
 
+  const pagination = usePagination(issues, status);
   const load = useCallback(async (nextStatus = status, silent = false) => {
     if (!silent) setLoading(true);
     setError("");
@@ -185,7 +188,7 @@ export default function MaterialIssueManagement() {
                 </tr>
               </thead>
               <tbody>
-                {issues.map((item) => (
+                {pagination.items.map((item) => (
                   <tr key={item.issueCode}>
                     <td>{item.issueCode}</td>
                     <td>{dateLabel(item.createdAt)}</td>
@@ -208,6 +211,7 @@ export default function MaterialIssueManagement() {
                 ))}
               </tbody>
             </table>
+            <Pagination {...pagination.controls} limit={50}/>
           </div>
         )}
       </div>

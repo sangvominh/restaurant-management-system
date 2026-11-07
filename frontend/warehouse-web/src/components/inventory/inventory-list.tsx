@@ -1,5 +1,8 @@
 "use client";
 
+import ProductionCapacity from "@/components/inventory/production-capacity";
+import Pagination, { usePagination } from "@/components/shared/pagination";
+
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -45,6 +48,7 @@ export default function InventoryList({
   const [sort, setSort] = useState("name-asc");
   const [page, setPage] = useState(1);
   const [showMovements, setShowMovements] = useState(false);
+  const [showCapacity, setShowCapacity] = useState(false);
   const [history, setHistory] = useState<InventoryMovement[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState("");
@@ -60,6 +64,7 @@ export default function InventoryList({
       && (!query || [item.materialCode, item.lotCode, item.orderCode, initialItems.find(material => material.code === item.materialCode)?.name].some(value => value?.toLocaleLowerCase("vi").includes(query)))
       && (!movementFrom || day >= movementFrom) && (!movementTo || day <= movementTo);
   });
+  const movementPages = usePagination(visibleMovements, [movementType, movementSearch, movementFrom, movementTo].join("|"));
   async function loadMovements() {
     setHistoryLoading(true);
     setHistoryError("");
@@ -117,8 +122,10 @@ export default function InventoryList({
         </div>
       </div>
       <div className="heading-actions" style={{ marginBottom: 12 }}>
+        <button className="button button-secondary" onClick={() => setShowCapacity(true)}>Kiểm tra định mức</button>
         <button className="button button-secondary" onClick={() => { setShowMovements(true); void loadMovements(); }}>Lịch sử nhập/xuất</button>
       </div>
+      {showCapacity && <ProductionCapacity initialBranchCode={branchCode} onClose={() => setShowCapacity(false)}/>}
       {showMovements && (
         <div className="modal-backdrop" onMouseDown={event => { if (event.target === event.currentTarget) setShowMovements(false); }}>
           <section className="modal-card inventory-history-modal" role="dialog" aria-modal="true" aria-label="Lịch sử nhập/xuất NVL" onKeyDown={event => { if (event.key === "Escape") setShowMovements(false); }}>
@@ -134,8 +141,8 @@ export default function InventoryList({
             </div>
             {historyLoading ? <div className="inventory-empty" role="status">Đang tải lịch sử…</div> : historyError ? <div className="form-error" role="alert">{historyError}</div> : visibleMovements.length === 0 ? <div className="inventory-empty">Không có giao dịch phù hợp.</div> : (
               <div className="table-wrap"><table className="data-table workspace-table"><thead><tr><th>MÃ LIÊN QUAN</th><th>NGUYÊN VẬT LIỆU</th><th>LÔ / VỊ TRÍ</th><th>LOẠI</th><th>SỐ LƯỢNG THAY ĐỔI</th><th>THỜI GIAN</th></tr></thead><tbody>
-                {visibleMovements.map((item, index) => <tr key={index}><td>{item.orderCode ?? "—"}</td><td>{item.materialCode}<small>{initialItems.find(material => material.code === item.materialCode)?.name}</small></td><td>{item.lotCode}<small>{item.locationName}</small></td><td>{movementLabels[item.movementType] ?? item.movementType}</td><td>{numberFormat.format(Number(item.quantityChange))} {initialItems.find(material => material.code === item.materialCode)?.unit}</td><td>{new Intl.DateTimeFormat("vi-VN", { dateStyle: "short", timeStyle: "short", timeZone: "Asia/Ho_Chi_Minh" }).format(new Date(item.createdAt))}</td></tr>)}
-              </tbody></table></div>
+                {movementPages.items.map((item, index) => <tr key={index}><td>{item.orderCode ?? "—"}</td><td>{item.materialCode}<small>{initialItems.find(material => material.code === item.materialCode)?.name}</small></td><td>{item.lotCode}<small>{item.locationName}</small></td><td>{movementLabels[item.movementType] ?? item.movementType}</td><td>{numberFormat.format(Number(item.quantityChange))} {initialItems.find(material => material.code === item.materialCode)?.unit}</td><td>{new Intl.DateTimeFormat("vi-VN", { dateStyle: "short", timeStyle: "short", timeZone: "Asia/Ho_Chi_Minh" }).format(new Date(item.createdAt))}</td></tr>)}
+              </tbody></table><Pagination {...movementPages.controls} limit={100}/></div>
             )}
           </section>
         </div>
@@ -200,7 +207,7 @@ export default function InventoryList({
               </p>
             </section>
           )}
-          <div className="panel inventory-panel">
+          <div className="panel inventory-panel fit-table-panel">
             <div className="inventory-toolbar">
               <div className="inventory-search">
                 <Search size={16} />
@@ -291,7 +298,7 @@ export default function InventoryList({
             ) : (
               <>
                 <div className="table-wrap">
-                  <table className="data-table inventory-table">
+                  <table className="data-table workspace-table inventory-table">
                     <thead>
                       <tr>
                         <th>MÃ NVL</th>
@@ -307,23 +314,23 @@ export default function InventoryList({
                     <tbody>
                       {visibleRows.map((item) => (
                         <tr key={item.code}>
-                          <td>
+                          <td data-label="Mã NVL"><div className="fit-cell-value">
                             <span className="inventory-code">{item.code}</span>
-                          </td>
-                          <td>
+                          </div></td>
+                          <td data-label="Tên nguyên vật liệu"><div className="fit-cell-value">
                             <strong className="inventory-name">
                               {item.name}
                             </strong>
-                          </td>
-                          <td>{item.category}</td>
-                          <td>{item.unit}</td>
-                          <td>
+                          </div></td>
+                          <td data-label="Phân loại"><div className="fit-cell-value">{item.category}</div></td>
+                          <td data-label="Đơn vị"><div className="fit-cell-value">{item.unit}</div></td>
+                          <td data-label="Tổng tồn"><div className="fit-cell-value">
                             <strong className="stock-amount">
                               {numberFormat.format(item.totalStock)}{" "}
                               <small>{item.unit}</small>
                             </strong>
-                          </td>
-                          <td>
+                          </div></td>
+                          <td data-label="Tồn khả dụng"><div className="fit-cell-value">
                             <strong
                               className={
                                 item.stockStatus === "LOW_STOCK"
@@ -334,19 +341,19 @@ export default function InventoryList({
                               {numberFormat.format(item.availableStock)}{" "}
                               <small>{item.unit}</small>
                             </strong>
-                          </td>
-                          <td>
+                          </div></td>
+                          <td data-label="Tồn tối thiểu"><div className="fit-cell-value">
                             {numberFormat.format(item.minStock)}{" "}
                             <span className="table-unit">{item.unit}</span>
-                          </td>
-                          <td>
+                          </div></td>
+                          <td data-label="Trạng thái"><div className="fit-cell-value">
                             <span
                               className={`inventory-status ${item.stockStatus === "AVAILABLE" ? "available" : item.stockStatus === "LOW_STOCK" ? "low" : "unknown"}`}
                             >
                               <i />
                               {statusLabel(item.stockStatus)}
                             </span>
-                          </td>
+                          </div></td>
                         </tr>
                       ))}
                     </tbody>

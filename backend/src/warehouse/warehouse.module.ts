@@ -7,6 +7,8 @@ import { KitchenWasteDecisionService } from '../staff/kitchen-waste-decision.ser
 import { WarehouseController } from './warehouse.controller.js';
 import { WarehouseService } from './warehouse.service.js';
 
+import { ProductionCapacityApi } from './api/production-capacity.api.js';
+import { InventoryReportApi } from './api/inventory-report.api.js';
 import { InventoryApi } from './api/inventory.api.js';
 import { ReceiptApi } from './api/receipt.api.js';
 import { MaterialIssueApi } from './api/material-issue.api.js';
@@ -31,6 +33,8 @@ import { FinishedGoodsDefectApi } from './api/finished-goods-defect.api.js';
   providers: [
     WarehouseService,
     InventoryApi,
+    InventoryReportApi,
+    ProductionCapacityApi,
     ReceiptApi,
     MaterialIssueApi,
     BomApi,

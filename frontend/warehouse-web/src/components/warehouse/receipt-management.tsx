@@ -1,5 +1,7 @@
 "use client";
 
+import Pagination, { usePagination } from "@/components/shared/pagination";
+
 import { useEffect, useState, type FormEvent } from "react";
 import { Eye, Plus, RefreshCw, Search, X } from "lucide-react";
 import { WarehouseApiError } from "@/services/api";
@@ -76,6 +78,7 @@ export default function ReceiptManagement() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
 
+  const pagination = usePagination(receipts, [supplierCode, from, to].join("|"));
   async function load(filters = { supplierCode, from, to }) {
     setLoading(true);
     setHistoryError("");
@@ -558,7 +561,7 @@ export default function ReceiptManagement() {
                 </tr>
               </thead>
               <tbody>
-                {receipts.map((item) => (
+                {pagination.items.map((item) => (
                   <tr key={item.receiptCode}>
                     <td>
                       <button
@@ -585,6 +588,7 @@ export default function ReceiptManagement() {
                 ))}
               </tbody>
             </table>
+            <Pagination {...pagination.controls} limit={50}/>
           </div>
         )}
       </div>

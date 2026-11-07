@@ -99,7 +99,7 @@ const groups = [
       { title: "Hao hụt / Hư hỏng NVL", href: "/losses", icon: AlertTriangle },
       { title: "Hoàn trả NVL", href: "/returns", icon: FileInput },
       {
-        title: "Báo cáo tồn kho",
+        title: "Báo cáo nhập xuất tồn",
         href: "/reports",
         icon: ChartNoAxesCombined,
       },
@@ -125,6 +125,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
   );
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const isCollapsed = collapsed && !mobileOpen;
   const title =
     pageTitles[pathname] ??
     (pathname.startsWith("/inventory/")
@@ -133,13 +134,13 @@ export default function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="app-frame">
       <aside
-        className={`sidebar ${collapsed ? "sidebar-collapsed" : ""} ${mobileOpen ? "sidebar-mobile-open" : ""}`}
+        className={`sidebar ${isCollapsed ? "sidebar-collapsed" : ""} ${mobileOpen ? "sidebar-mobile-open" : ""}`}
       >
         <div className="brand-row">
           <div className="brand-mark">
             <ShoppingBasket size={19} strokeWidth={2.4} />
           </div>
-          {!collapsed && (
+          {!isCollapsed && (
             <div className="brand-copy">
               <strong>mộc</strong>
               <span>RESTAURANT GROUP</span>
@@ -147,10 +148,13 @@ export default function AppShell({ children }: { children: ReactNode }) {
           )}
           <button
             className="icon-button collapse-button"
-            onClick={() => setCollapsed(!collapsed)}
-            aria-label="Thu gọn menu"
+            onClick={() => setCollapsed(value => !value)}
+            aria-label={isCollapsed ? "Mở rộng menu" : "Thu gọn menu"}
+            title={isCollapsed ? "Mở rộng menu" : "Thu gọn menu"}
+            aria-expanded={!isCollapsed}
+            aria-controls="warehouse-navigation"
           >
-            <PanelLeftClose size={17} />
+            {isCollapsed ? <ChevronRight size={17} /> : <PanelLeftClose size={17} />}
           </button>
           <button
             className="icon-button mobile-close"
@@ -160,27 +164,28 @@ export default function AppShell({ children }: { children: ReactNode }) {
             <X size={18} />
           </button>
         </div>
-        {!collapsed && (
+        {!isCollapsed && (
           <div className="module-label">
             <span className="module-dot" /> ADMIN KHO
           </div>
         )}
-        <nav className="side-nav">
+        <nav id="warehouse-navigation" className="side-nav" aria-label="Menu Admin Kho">
           {groups.map((group) => (
             <div className="nav-group" key={group.label}>
               <div className="nav-group-label">
-                {!collapsed ? group.label : <span className="nav-divider" />}
+                {!isCollapsed ? group.label : <span className="nav-divider" />}
               </div>
               {group.items.map(({ title: itemTitle, href, icon: Icon }) => (
                 <Link
                   key={href}
+                  aria-label={itemTitle}
                   href={href}
-                  title={collapsed ? `${group.label} · ${itemTitle}` : undefined}
+                  title={isCollapsed ? `${group.label} · ${itemTitle}` : undefined}
                   onClick={() => setMobileOpen(false)}
                   className={`nav-item ${pathname === href ? "nav-item-active" : ""}`}
                 >
                   <Icon size={18} strokeWidth={1.8} />
-                  <span>{itemTitle}</span>
+                  {!isCollapsed && <span>{itemTitle}</span>}
                 </Link>
               ))}
             </div>
@@ -191,7 +196,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
             <div className="warehouse-icon">
               <Archive size={16} />
             </div>
-            {!collapsed && (
+            {!isCollapsed && (
               <div>
                 <strong>Phân hệ Admin Kho</strong>
                 <span>Quản lý nguyên vật liệu</span>
@@ -201,13 +206,13 @@ export default function AppShell({ children }: { children: ReactNode }) {
           </div>
           <div className="sidebar-user">
             <div className="avatar">AK</div>
-            {!collapsed && (
+            {!isCollapsed && (
               <div className="sidebar-user-copy">
                 <strong>Admin Kho</strong>
                 <span>Quản lý kho</span>
               </div>
             )}
-            {!collapsed && <ChevronDown size={15} className="user-chevron" />}
+            {!isCollapsed && <ChevronDown size={15} className="user-chevron" />}
           </div>
         </div>
       </aside>

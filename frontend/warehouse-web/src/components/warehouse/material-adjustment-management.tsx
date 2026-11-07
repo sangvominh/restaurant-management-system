@@ -1,5 +1,7 @@
 "use client";
 
+import Pagination, { usePagination } from "@/components/shared/pagination";
+
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { Check, Eye, X } from "lucide-react";
 import {
@@ -34,6 +36,7 @@ export default function MaterialAdjustmentManagement({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const pagination = usePagination(rows, type + status);
   const load = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
     setError("");
@@ -134,7 +137,7 @@ export default function MaterialAdjustmentManagement({
           </button>
         ))}
       </div>
-      <div className="panel workspace-table-panel">
+      <div className="panel workspace-table-panel fit-table-panel">
         {loading ? (
           <div className="inventory-empty">Đang tải phiếu…</div>
         ) : !rows.length ? (
@@ -152,33 +155,27 @@ export default function MaterialAdjustmentManagement({
                   <th>NVL / LÔ</th>
                   <th>VỊ TRÍ</th>
                   <th>ĐỀ NGHỊ / ĐÃ DUYỆT</th>
-                  <th>NGUỒN</th>
                   <th>TRẠNG THÁI</th>
                   <th>THAO TÁC</th>
                 </tr>
               </thead>
               <tbody>
-                {rows.map((row) => (
+                {pagination.items.map((row) => (
                   <tr key={row.code}>
-                    <td>{row.code}</td>
-                    <td>
+                    <td data-label="Mã phiếu"><div className="fit-cell-value">{row.code}</div></td>
+                    <td data-label="NVL / Lô"><div className="fit-cell-value">
                       {row.materialCode} · {row.materialName}
                       <small> · {row.lotCode}</small>
-                    </td>
-                    <td>
+                    </div></td>
+                    <td data-label="Vị trí"><div className="fit-cell-value">
                       {row.locationName}
-                    </td>
-                    <td>
+                    </div></td>
+                    <td data-label="Đề nghị / Đã duyệt"><div className="fit-cell-value">
                       {row.quantity} / {row.acceptedQuantity ?? "—"}{" "}
                       {row.unitName}
-                    </td>
-                    <td>
-                      {row.source === "STOCK"
-                        ? "Trong kho"
-                        : `Đã lĩnh · ${row.issueCode}`}
-                    </td>
-                    <td>{statusLabel(row.status)}</td>
-                    <td><div className="row-actions">
+                    </div></td>
+                    <td data-label="Trạng thái"><div className="fit-cell-value">{statusLabel(row.status)}</div></td>
+                    <td data-label="Thao tác"><div className="fit-cell-value"><div className="row-actions">
                       <button
                         className="row-action"
                         title="Xem chi tiết"
@@ -191,11 +188,12 @@ export default function MaterialAdjustmentManagement({
                         <button className="row-action" title="Chấp nhận" aria-label={"Chấp nhận " + row.code} disabled={saving} onClick={() => void open(row.code)}><Check size={14}/></button>
                         <button className="row-action" title="Từ chối" aria-label={"Từ chối " + row.code} disabled={saving} onClick={() => void open(row.code, true)}><X size={14}/></button>
                       </>}
-                    </div></td>
+                    </div></div></td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            <Pagination {...pagination.controls} limit={100}/>
           </div>
         )}
       </div>

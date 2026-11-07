@@ -1,5 +1,7 @@
 "use client";
 
+import Pagination, { usePagination } from "@/components/shared/pagination";
+
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { Eye, Lock, Unlock, Pencil, Plus, RefreshCw, Search, X } from "lucide-react";
 import { WarehouseApiError } from "@/services/api";
@@ -199,6 +201,8 @@ export default function MaterialManagement() {
   }
 
   const visibleMaterials = materials.filter(item => !statusFilter || item.status === statusFilter);
+  const materialPages = usePagination(visibleMaterials, search + "|" + statusFilter);
+  const categoryPages = usePagination(categories);
   return (
     <>
       <div className="page-heading workspace-heading">
@@ -272,7 +276,7 @@ export default function MaterialManagement() {
                 </tr>
               </thead>
               <tbody>
-                {categories.map((item) => (
+                {categoryPages.items.map((item) => (
                   <tr key={item.code}>
                     <td>{item.code}</td>
                     <td>{item.name}</td>
@@ -299,6 +303,7 @@ export default function MaterialManagement() {
                 ))}
               </tbody>
             </table>
+            <Pagination {...categoryPages.controls} limit={100}/>
           </div>
         )}
       </section>
@@ -356,7 +361,7 @@ export default function MaterialManagement() {
                 </tr>
               </thead>
               <tbody>
-                {visibleMaterials.map((item) => (
+                {materialPages.items.map((item) => (
                   <tr key={item.code}>
                     <td>{item.code}</td>
                     <td>{item.name}</td>
@@ -381,6 +386,7 @@ export default function MaterialManagement() {
                 ))}
               </tbody>
             </table>
+            <Pagination {...materialPages.controls} limit={50}/>
           </div>
         )}
       </section>

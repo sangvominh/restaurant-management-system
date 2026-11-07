@@ -1,4 +1,6 @@
 import { WarehouseService } from './warehouse.service.js';
+import type { ProductionCapacityApi } from './api/production-capacity.api.js';
+import type { InventoryReportApi } from './api/inventory-report.api.js';
 import { InventoryApi } from './api/inventory.api.js';
 import { ReceiptApi } from './api/receipt.api.js';
 import { MaterialIssueApi } from './api/material-issue.api.js';
@@ -21,6 +23,8 @@ describe('WarehouseService', () => {
     } as unknown as SupplierApi;
     const service = new WarehouseService(
       {} as InventoryApi,
+      {} as InventoryReportApi,
+      {} as ProductionCapacityApi,
       {} as ReceiptApi,
       {} as MaterialIssueApi,
       {} as BomApi,

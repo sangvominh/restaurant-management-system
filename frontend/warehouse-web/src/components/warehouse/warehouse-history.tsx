@@ -1,3 +1,4 @@
+import Link from "next/link";
 import InventoryMovementDetail from "@/components/warehouse/inventory-movement-detail";
 import {
   getInventory,
@@ -7,14 +8,20 @@ import {
 export default async function WarehouseHistory({
   report = false,
   branchCode = "",
+  page: requestedPage = 1,
 }: {
   report?: boolean;
   branchCode?: string;
+  page?: number;
 }) {
   const title = report ? "Tồn kho hiện tại" : "Lịch sử giao dịch kho";
   try {
     const inventory = report ? await getInventory(branchCode) : [];
     const movements = report ? [] : await getInventoryMovements(branchCode);
+    const total = report ? inventory.length : movements.length;
+    const pageCount = Math.max(1, Math.ceil(total / 10));
+    const page = Number.isInteger(requestedPage) ? Math.max(1, Math.min(requestedPage, pageCount)) : 1;
+    const pageLink = (next: number) => "?" + new URLSearchParams({ ...(branchCode ? { branchCode } : {}), page: String(next) });
     return (
       <>
         <div className="page-heading workspace-heading">
@@ -61,7 +68,7 @@ export default async function WarehouseHistory({
                 </thead>
                 <tbody>
                   {report
-                    ? inventory.map((item) => (
+                    ? inventory.slice((page - 1) * 10, page * 10).map((item) => (
                         <tr key={item.code}>
                           <td>{item.code}</td>
                           <td>{item.name}</td>
@@ -71,7 +78,7 @@ export default async function WarehouseHistory({
                           <td>{item.minStock}</td>
                         </tr>
                       ))
-                    : movements.map((item, index) => (
+                    : movements.slice((page - 1) * 10, page * 10).map((item, index) => (
                         <tr key={index}>
                           <td>{item.materialCode}</td>
                           <td>{item.lotCode}</td>
@@ -100,6 +107,7 @@ export default async function WarehouseHistory({
                       ))}
                 </tbody>
               </table>
+              <nav className="list-pagination" aria-label="Phân trang"><span>Hiển thị {(page - 1) * 10 + 1}–{Math.min(page * 10, total)} / {total}</span><div>{page > 1 ? <Link className="button button-secondary" aria-label="Trang trước" href={pageLink(page - 1)}>Trước</Link> : <button className="button button-secondary" disabled>Trước</button>}<span>Trang {page} / {pageCount}</span>{page < pageCount ? <Link className="button button-secondary" aria-label="Trang sau" href={pageLink(page + 1)}>Sau</Link> : <button className="button button-secondary" disabled>Sau</button>}</div></nav>
             </div>
           )}
         </div>

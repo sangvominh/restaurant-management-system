@@ -7,6 +7,8 @@ const allowedMethods = ["GET", "POST", "PATCH", "DELETE"] as const;
 const adminWarehouseRoutes: Record<(typeof allowedMethods)[number], RegExp[]> =
   {
     GET: [
+      /^production-capacity$/,
+      /^reports\/inventory$/,
       /^branches$/,
       /^locations$/,
       /^material-adjustments$/,

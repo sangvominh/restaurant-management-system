@@ -1,5 +1,7 @@
 "use client";
 
+import Pagination, { usePagination } from "@/components/shared/pagination";
+
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { Eye, Pencil, Plus, RefreshCw, Search, Lock, Unlock, X } from "lucide-react";
 import { WarehouseApiError } from "@/services/api";
@@ -43,6 +45,7 @@ export default function SupplierManagement() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
 
+  const pagination = usePagination(suppliers, search);
   const load = useCallback(async (keyword: string) => {
     setLoading(true);
     setError("");
@@ -146,7 +149,7 @@ export default function SupplierManagement() {
           {error}
         </div>
       )}
-      <div className="panel workspace-table-panel">
+      <div className="panel workspace-table-panel fit-table-panel">
         <div className="table-toolbar">
           <div className="toolbar-search">
             <Search size={16} />
@@ -195,26 +198,26 @@ export default function SupplierManagement() {
                 </tr>
               </thead>
               <tbody>
-                {suppliers.map((supplier) => (
+                {pagination.items.map((supplier) => (
                   <tr key={supplier.code}>
-                    <td>
+                    <td data-label="Mã NCC"><div className="fit-cell-value">
                       <button
                         className="code-link"
                         onClick={() => void showDetail(supplier.code)}
                       >
                         {supplier.code}
                       </button>
-                    </td>
-                    <td>{supplier.name}</td>
-                    <td>{supplier.phone || "—"}</td>
-                    <td>{supplier.email || "—"}</td>
-                    <td>{supplier.address || "—"}</td>
-                    <td>
+                    </div></td>
+                    <td data-label="Tên nhà cung cấp"><div className="fit-cell-value">{supplier.name}</div></td>
+                    <td data-label="Điện thoại"><div className="fit-cell-value">{supplier.phone || "—"}</div></td>
+                    <td data-label="Email"><div className="fit-cell-value">{supplier.email || "—"}</div></td>
+                    <td data-label="Địa chỉ"><div className="fit-cell-value">{supplier.address || "—"}</div></td>
+                    <td data-label="Trạng thái"><div className="fit-cell-value">
                       {supplier.status === "ACTIVE"
                         ? "Đang hoạt động"
                         : "Ngừng hoạt động"}
-                    </td>
-                    <td><div className="row-actions">
+                    </div></td>
+                    <td data-label="Thao tác"><div className="fit-cell-value"><div className="row-actions">
                       <button className="row-action" aria-label={"Xem chi tiết " + supplier.code} title="Xem chi tiết" onClick={() => void showDetail(supplier.code)}><Eye size={14}/></button>
                       <button
                         className="row-action"
@@ -242,11 +245,12 @@ export default function SupplierManagement() {
                       >
                         {supplier.status === "ACTIVE" ? <Lock size={14}/> : <Unlock size={14}/>}
                       </button>
-                    </div></td>
+                    </div></div></td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            <Pagination {...pagination.controls} limit={50}/>
           </div>
         )}
       </div>

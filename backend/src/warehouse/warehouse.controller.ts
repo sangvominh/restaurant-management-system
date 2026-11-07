@@ -12,6 +12,7 @@ import {
   Delete,
 } from '@nestjs/common';
 
+import type { InventoryReportQuery } from './api/inventory-report.api.js';
 import { WarehouseService } from './warehouse.service.js';
 import { CreateReceiptDto } from './dto/create-receipt.dto.js';
 import { RejectMaterialIssueDto } from './dto/reject-material-issue.dto.js';
@@ -37,6 +38,12 @@ import { CreateFinishedGoodsDefectDto } from './dto/create-finished-goods-defect
 @Controller('warehouse')
 export class WarehouseController {
   constructor(private readonly warehouseService: WarehouseService) {}
+
+  @Get('production-capacity')
+  getProductionCapacity(@Query('branchCode') branchCode?: string) { return this.warehouseService.getProductionCapacity(branchCode); }
+
+  @Get('reports/inventory')
+  getInventoryReport(@Query() query: InventoryReportQuery) { return this.warehouseService.getInventoryReport(query); }
 
   @Get('branches')
   getBranches() { return this.warehouseService.getBranches(); }

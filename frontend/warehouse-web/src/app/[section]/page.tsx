@@ -1,3 +1,4 @@
+import InventoryReport from "@/components/warehouse/inventory-report";
 import WarehouseHistory from "@/components/warehouse/warehouse-history";
 import MaterialAdjustmentManagement from "@/components/warehouse/material-adjustment-management";
 import { notFound } from "next/navigation";
@@ -11,7 +12,7 @@ export default async function SectionPage({
   searchParams,
 }: {
   params: Promise<{ section: string }>;
-  searchParams: Promise<{ branchCode?: string }>;
+  searchParams: Promise<{ branchCode?: string; page?: string }>;
 }) {
   const { section } = await params;
   if (section === "suppliers") return <SupplierManagement />;
@@ -20,6 +21,7 @@ export default async function SectionPage({
   if (section === "material-issues") return <MaterialIssueManagement />;
   if (section === "losses") return <MaterialAdjustmentManagement key="WASTE" type="WASTE" />;
   if (section === "returns") return <MaterialAdjustmentManagement key="RETURN" type="RETURN" />;
-  if (section === "reports" || section === "transactions") return <WarehouseHistory report={section === "reports"} branchCode={(await searchParams).branchCode} />;
+  if (section === "reports") return <InventoryReport/>;
+  if (section === "transactions") { const query = await searchParams; return <WarehouseHistory branchCode={query.branchCode} page={Number(query.page) || 1}/>; }
   notFound();
 }
