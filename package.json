@@ -2,20 +2,25 @@
   "name": "restaurant-management-system",
   "private": true,
   "scripts": {
-    "dev:system": "npm run dev --workspace web-admin-system -- --port 3004",
-    "dev:warehouse": "npm run dev --workspace warehouse-web",
-    "dev:restaurant": "npm run dev --workspace restaurant-web",
+    "dev:up": "node scripts/project.mjs up",
+    "dev:stop": "node scripts/project.mjs stop",
+    "dev:down": "node scripts/project.mjs down",
+    "dev:status": "node scripts/project.mjs status",
+    "dev:logs": "node scripts/project.mjs logs",
+    "dev:admin": "npm run dev --workspace web-admin-system -- --port 3004",
     "dev:staff": "npm run dev --workspace restaurant-staff",
     "dev:guest": "npm run dev --workspace guest-web -- --port 3005",
-    "docker:up": "node scripts/docker-apps.mjs up",
-    "docker:stop": "node scripts/docker-apps.mjs stop",
-    "docker:down": "node scripts/docker-apps.mjs down",
-    "docker:ps": "node scripts/docker-apps.mjs ps",
-    "docker:logs": "node scripts/docker-apps.mjs logs"
+    "db:migrate": "node scripts/project.mjs migrate",
+    "db:bootstrap": "node scripts/project.mjs bootstrap",
+    "db:backup": "node scripts/project.mjs backup",
+    "demo:rebuild": "node scripts/project.mjs demo-rebuild",
+    "demo:stop": "node scripts/project.mjs demo-stop",
+    "check": "node scripts/check.mjs"
   },
   "workspaces": [
-    "frontend/*",
-    "packages/*",
-    "backend"
+    "backend",
+    "frontend/web-admin-system",
+    "frontend/staff-app",
+    "frontend/guest-web"
   ]
 }

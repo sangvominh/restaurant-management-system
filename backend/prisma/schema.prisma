@@ -114,8 +114,6 @@ model Material {
 
   @@index([categoryId])
   @@map("materials")
-
-  staff_demo_order_recipes staff_demo_order_recipes[] @ignore
 }
 
 model WarehouseLocation {
@@ -296,6 +294,7 @@ model MaterialIssueDetail {
 }
 
 model Bom {
+  menuItems MenuItem[]
   id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   code           String   @unique @db.VarChar(50)
   productCode    String   @map("product_code") @db.VarChar(50)
@@ -563,11 +562,12 @@ model Account {
   roleId         Int           @map("role_id")
   role           Role          @relation(fields: [roleId], references: [id], onDelete: Restrict)
   status         AccountStatus @default(active)
-  passwordHash   String?       @map("password_hash") @db.VarChar(100)
+  passwordHash   String?       @map("password_hash") @db.VarChar(200)
   sessionVersion Int           @default(0) @map("session_version")
   createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
   loginLogs      LoginLog[]
   auditLogs      AuditLog[]
+  staffProfile StaffUser?
 
   @@index([roleId])
   @@map("accounts")
@@ -711,12 +711,12 @@ model StaffUser {
   id String @id @default(uuid()) @db.Uuid
   code String @unique
   name String
-  passwordHash String @map("password_hash")
+  accountId Int @unique @map("account_id")
+  account Account @relation(fields: [accountId], references: [id], onDelete: Restrict)
   role StaffRole
   branchId String @db.Uuid @map("branch_id")
   isActive Boolean @default(true) @map("is_active")
   branch Branch @relation(fields: [branchId], references: [id], onDelete: Restrict)
-  sessions StaffSession[]
   shifts StaffShift[]
   orders StaffOrder[]
   payments Payment[]
@@ -728,17 +728,11 @@ model StaffUser {
 }
 
 
-model StaffSession {
-  tokenHash String @id @map("token_hash")
-  userId String @db.Uuid @map("user_id")
-  expiresAt DateTime @db.Timestamptz(3) @map("expires_at")
-  user StaffUser @relation(fields: [userId], references: [id], onDelete: Cascade)
-  @@index([expiresAt])
-  @@map("staff_sessions")
-}
 
 
 model MenuItem {
+  bomId String? @db.Uuid @map("bom_id")
+  bom Bom? @relation(fields: [bomId], references: [id], onDelete: Restrict)
   id String @id @default(uuid()) @db.Uuid
   branchId String @db.Uuid @map("branch_id")
   name String
@@ -753,8 +747,6 @@ model MenuItem {
   recipe RecipeIngredient[]
   @@index([branchId])
   @@map("menu_items")
-
-  staff_demo_order_recipes staff_demo_order_recipes[] @ignore
 }
 
 
@@ -955,17 +947,6 @@ model StaffMaterialReturn {
 }
 
 
-model staff_demo_order_recipes {
-  menu_item_id String   @db.Uuid
-  material_id  String   @db.Uuid
-  quantity     Decimal  @db.Decimal(18, 3)
-  materials    Material @relation(fields: [material_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  menu_items   MenuItem @relation(fields: [menu_item_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-
-  @@id([menu_item_id, material_id])
-
-  @@ignore
-}
 
 
 model staff_kitchen_balances {

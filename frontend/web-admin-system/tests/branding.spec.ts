@@ -26,7 +26,7 @@ test('đổi tên trên System Admin đồng bộ login, Kho/Nhà hàng, footer 
       expect(login.ok()).toBeTruthy();const session=await login.json();
       const context=await browser.newContext();contexts.push(context);
       await context.addInitScript(({accessToken,user})=>{
-        localStorage.setItem('warehouse_access_token',accessToken);localStorage.setItem('warehouse_auth_user',JSON.stringify(user));
+        localStorage.setItem('account_access_token',accessToken);localStorage.setItem('account_auth_user',JSON.stringify(user));
       },session);
       const warehouse=await context.newPage();warehousePages.push(warehouse);
       await warehouse.goto(web+'/warehouse');

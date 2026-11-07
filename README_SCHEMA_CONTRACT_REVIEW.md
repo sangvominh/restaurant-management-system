@@ -1,3 +1,5 @@
+> Tài liệu lịch sử trước chuẩn hóa. Chuẩn hiện tại: [FOUNDATION](docs/FOUNDATION.md); cách chạy theo README gốc.
+
 # Kiểm tra schema và contract tích hợp
 
 **Cập nhật:** phần dưới là khảo sát trước khi sửa. Luồng dùng chung phiếu đã được nối và kiểm thử trên DB test; xem [báo cáo hiện tại](README_SHARED_MATERIAL_ADJUSTMENTS.md).

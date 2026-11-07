@@ -1,3 +1,5 @@
+> Tài liệu lịch sử trước chuẩn hóa. Chuẩn hiện tại: [FOUNDATION](docs/FOUNDATION.md); cách chạy theo README gốc.
+
 # Phiếu NVL dùng chung giữa Staff và Admin Kho
 
 ## Kết quả

@@ -52,6 +52,7 @@ interface UserRow {
   email: string;
   role: string;
   status: UserStatus;
+  staffProfile?: { code: string; role: string; branchId: string; isActive: boolean } | null;
 }
 
 
@@ -70,6 +71,7 @@ const css = `
 
 export default function AccountManagementPage() {
   const [users, setUsers] = useState<UserRow[]>([]);
+  const [branches, setBranches] = useState<{ id: string; name: string }[]>([]);
   const [roleNames, setRoleNames] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [keyword, setKeyword] = useState('');
@@ -80,6 +82,7 @@ export default function AccountManagementPage() {
   const [editingUser, setEditingUser] = useState<UserRow | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [form] = Form.useForm();
+  const staffCode = Form.useWatch(['staffProfile', 'code'], form);
 
   // 1. Lấy danh sách tài khoản từ Backend NestJS
   const fetchAccounts = async () => {
@@ -112,6 +115,7 @@ export default function AccountManagementPage() {
   useEffect(() => {
     fetchAccounts();
     fetchRoleNames();
+    apiFetch('/api/admin/branches').then(async res => { if (res.ok) setBranches(await res.json()); });
   }, []);
 
   // 2. Khóa / Mở khóa tài khoản qua API PATCH
@@ -153,16 +157,19 @@ export default function AccountManagementPage() {
 
   const openEditModal = (user: UserRow) => {
     setEditingUser(user);
+    form.resetFields();
     form.setFieldsValue({
       name: user.name,
       email: user.email,
       role: user.role,
+      staffProfile: user.staffProfile ?? undefined,
     });
     setIsModalOpen(true);
   };
 
   // 4. Lưu dữ liệu (POST khi thêm mới, PUT khi chỉnh sửa)
-  const handleSaveUser = async (values: { name: string; email: string; role: string; password?: string }) => {
+  const handleSaveUser = async (values: { name: string; email: string; role: string; password?: string; staffProfile?: { code?: string; role?: string; branchId?: string } }) => {
+    if (!values.staffProfile?.code) delete values.staffProfile;
     setSubmitting(true);
     try {
       if (editingUser) {
@@ -476,6 +483,9 @@ export default function AccountManagementPage() {
               <Select size="large" options={roleOptions} placeholder="Chọn vai trò phân quyền" />
             </Form.Item>
 
+            <Form.Item label="Mã nhân viên (để trống nếu không dùng Staff)" name={['staffProfile', 'code']}><Input /></Form.Item>
+            <Form.Item label="Chi nhánh làm việc" name={['staffProfile', 'branchId']} rules={[{ required: !!staffCode, message: 'Chọn chi nhánh cho hồ sơ nhân viên' }]}><Select allowClear options={branches.map(b => ({ value: b.id, label: b.name }))} /></Form.Item>
+            <Form.Item label="Vị trí nhân viên" name={['staffProfile', 'role']} rules={[{ required: !!staffCode, message: 'Chọn vị trí nhân viên' }]}><Select allowClear options={['SERVICE','KITCHEN','BARISTA','CASHIER','SUPERVISOR'].map(value => ({ value, label: value }))} /></Form.Item>
             <Form.Item
               label={editingUser ? 'Đặt lại mật khẩu (để trống nếu không đổi)' : 'Mật khẩu'}
               name="password"
@@ -491,4 +501,5 @@ export default function AccountManagementPage() {
       </div>
     </ConfigProvider>
   );
+
 }

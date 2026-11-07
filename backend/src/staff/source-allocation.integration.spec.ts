@@ -1,3 +1,4 @@
+import { configureMenuRecipe } from '../../test/helpers/menu-recipe.js';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { ProcessingDefectController } from './processing-defect.controller.js';
@@ -21,7 +22,7 @@ describe.skipIf(!process.env.TEST_KITCHEN_DATABASE)('FIFO source allocation (Pos
   const issue=async(code:string)=>{const i=await db.materialIssue.create({data:{issueCode:code,branchId,details:{create:{materialId:material.id,materialLotId:lot.id,locationId:location.id,unitId:unit.id,quantity:'10'}}},include:{details:true}});await db.staffAudit.create({data:{actorId:req.staff.id,action:'MATERIAL_REQUEST',targetId:i.id,detail:code}});await db.materialIssue.update({where:{id:i.id},data:{status:'APPROVED'}});return i.details[0].id;};
   first=await issue('SOURCE-A');second=await issue('SOURCE-B');
   const menu=await db.menuItem.create({data:{branchId,name:'Source dish',category:'Test',price:1}});
-  await db.$executeRaw`INSERT INTO staff_demo_order_recipes(menu_item_id,material_id,quantity) VALUES (${menu.id}::uuid,${material.id}::uuid,12)`;
+  await configureMenuRecipe(db, menu.id, material.id, 12);
   const invoice=await db.invoice.create({data:{branchId,tableId:'10000000-0000-4000-8000-000000000101',guestName:'Source test'}});
   const order=await db.staffOrder.create({data:{invoiceId:invoice.id,createdById:req.staff.id,requestKey:'40000000-0000-4000-8000-000000000078'}});
   const line=await db.orderLine.create({data:{orderId:order.id,menuItemId:menu.id,name:'Source dish',unitPrice:1,quantity:1}});
@@ -91,7 +92,7 @@ describe.skipIf(!process.env.TEST_KITCHEN_DATABASE)('FIFO source allocation (Pos
   await db.staffAudit.create({data:{actorId:req.staff.id,action:'MATERIAL_REQUEST',targetId:issue.id,detail:issue.issueCode}});
   await db.materialIssue.update({where:{id:issue.id},data:{status:'APPROVED'}});
   const menu=await db.menuItem.create({data:{branchId,name:'Legacy dish',category:'Test',price:1}});
-  await db.$executeRaw`INSERT INTO staff_demo_order_recipes(menu_item_id,material_id,quantity) VALUES (${menu.id}::uuid,${material.id}::uuid,7)`;
+  await configureMenuRecipe(db, menu.id, material.id, 7);
   const invoice=await db.invoice.create({data:{branchId,tableId:'10000000-0000-4000-8000-000000000101',guestName:'Legacy'}});
   const order=await db.staffOrder.create({data:{invoiceId:invoice.id,createdById:req.staff.id,requestKey:'40000000-0000-4000-8000-000000000079'}});
   const line=await db.orderLine.create({data:{orderId:order.id,menuItemId:menu.id,name:'Legacy dish',unitPrice:1,quantity:1}});

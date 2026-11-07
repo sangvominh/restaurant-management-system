@@ -56,7 +56,7 @@ export class AdminService {
   private async account(tx: Prisma.TransactionClient, id: number) {
     const account = await tx.account.findUnique({
       where: { id },
-      include: { role: true },
+      include: { role: true, staffProfile: true },
     });
     if (!account) throw new NotFoundException('Không tìm thấy tài khoản');
     return account;
@@ -92,10 +92,14 @@ export class AdminService {
   async getAllAccounts() {
     return (
       await this.db.account.findMany({
-        include: { role: true },
+        include: { role: true, staffProfile: true },
         orderBy: { id: 'desc' },
       })
     ).map(accountResponse);
+  }
+
+  getBranches() {
+    return this.db.branch.findMany({ where: { isActive: true }, select: { id: true, code: true, name: true }, orderBy: { code: 'asc' } });
   }
 
   async createAccount(dto: CreateAccountDto, actor: AuthUser) {
@@ -111,8 +115,9 @@ export class AdminService {
           passwordHash,
           username: dto.username ?? null,
           phone: dto.phone ?? null,
+          ...(dto.staffProfile ? { staffProfile: { create: { ...dto.staffProfile, name: dto.name } } } : {}),
         },
-        include: { role: true },
+        include: { role: true, staffProfile: true },
       });
     });
     await this.audit.log(actor, {
@@ -144,7 +149,7 @@ export class AdminService {
       const revoke =
         passwordHash !== undefined ||
         roleId !== current.roleId ||
-        email !== current.email;
+        email !== current.email || dto.staffProfile !== undefined;
       const updated = await tx.account.update({
         where: { id },
         data: {
@@ -154,9 +159,13 @@ export class AdminService {
           passwordHash,
           username: dto.username,
           phone: dto.phone,
+          ...(dto.staffProfile ? { staffProfile: { upsert: {
+            create: { ...dto.staffProfile, name: dto.name ?? current.name },
+            update: { ...dto.staffProfile, name: dto.name ?? current.name },
+          } } } : {}),
           ...(revoke ? { sessionVersion: { increment: 1 } } : {}),
         },
-        include: { role: true },
+        include: { role: true, staffProfile: true },
       });
       if (revoke) await this.revoke(tx, id);
       return updated;
@@ -191,7 +200,7 @@ export class AdminService {
           status: current.status === 'active' ? 'locked' : 'active',
           sessionVersion: { increment: 1 },
         },
-        include: { role: true },
+        include: { role: true, staffProfile: true },
       });
     });
     await this.audit.log(actor, {

@@ -24,7 +24,7 @@ export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   // 1. Tạo món ăn mới
-  @RequirePermissions("integration:pending")
+  @RequirePermissions("product:manage")
   @Post()
   @UsePipes(
     new ValidationPipe({
@@ -72,7 +72,7 @@ export class ProductsController {
   }
 
   // 6. Cập nhật món ăn
-  @RequirePermissions("integration:pending")
+  @RequirePermissions("product:manage")
   @Patch(':code')
   @UsePipes(
     new ValidationPipe({
@@ -86,7 +86,7 @@ export class ProductsController {
   }
 
   // 7. Xóa món ăn
-  @RequirePermissions("integration:pending")
+  @RequirePermissions("product:manage")
   @Delete(':code')
   @HttpCode(HttpStatus.OK)
   remove(@Param('code') code: string) {

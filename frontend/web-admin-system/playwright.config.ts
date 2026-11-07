@@ -6,7 +6,7 @@ export default defineConfig({
   timeout: 30000,
   expect: { timeout: 10000 },
   use: {
-    baseURL: process.env.E2E_WEB_URL ?? 'http://localhost:3200',
+    baseURL: process.env.E2E_WEB_URL ?? 'http://localhost:3004',
     channel: process.env.PLAYWRIGHT_CHANNEL || undefined,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',

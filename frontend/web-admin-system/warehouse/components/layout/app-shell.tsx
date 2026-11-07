@@ -16,6 +16,7 @@ import {
 const groups = [
   { label: "TỔNG QUAN", items: [{ title: "Dashboard", href: "/", icon: LayoutDashboard }] },
   { label: "QUẢN LÝ KHO", items: [
+    { title: "Quản lý thành phẩm nhà hàng", href: "/restaurant", icon: UtensilsCrossed },
     { title: "Tồn kho nguyên vật liệu", href: "/inventory", icon: Boxes },
     { title: "Tồn kho thành phẩm", href: "/finished-goods", icon: PackageCheck },
     { title: "Nhập kho", href: "/receipts", icon: FileInput },
@@ -45,7 +46,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
   const visibleGroups = groups.map(group => ({ ...group, items: group.items.filter(item => item.href === '/' || WAREHOUSE_PAGES.some(page => page.path === '/warehouse' + item.href && allowed(user, ...page.permissions))) })).filter(group => group.items.length);
   async function logout() {
     try { await apiFetch('/api/auth/logout', { method: 'POST' }); } catch { /* still clear local session */ }
-    clearSession(); window.location.href = '/warehouse';
+    clearSession(); window.location.href = '/login';
   }
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);

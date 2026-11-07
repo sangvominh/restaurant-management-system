@@ -1,3 +1,5 @@
+> Tài liệu lịch sử trước chuẩn hóa. Chuẩn hiện tại: [FOUNDATION](docs/FOUNDATION.md); cách chạy theo README gốc.
+
 # Kết quả hoàn thiện Warehouse Web
 
 Ngày chốt: 04/11/2026. Nhánh `feat/restaurant_v1`, nền `bfcb1fe`.

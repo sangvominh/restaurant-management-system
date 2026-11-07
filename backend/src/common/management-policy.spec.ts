@@ -49,7 +49,7 @@ describe('System Admin độc quyền quản trị', () => {
     for (const permission of [
       '*',
       ...SYSTEM_PERMISSION_KEYS,
-      'product:manage',
+      'system:manage',
       'invented:permission',
     ])
       expect(() =>

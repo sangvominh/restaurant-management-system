@@ -1,113 +1,101 @@
 # Restaurant Management System
 
-Bản tích hợp local trên `develop`: đã merge `feat/system-admin` rồi `feat/warehouse_ver2`, ưu tiên incoming khi conflict. Xem [đánh giá 6 phân hệ](docs/PROJECT_STATUS.md) trước khi tiếp tục phát triển.
+Backend NestJS chia module, một PostgreSQL và một hệ tài khoản. Backend + DB chạy Docker; frontend chạy local. Nguồn chuẩn về kiến trúc và dữ liệu: [FOUNDATION.md](docs/FOUNDATION.md).
 
-## Cách chạy thống nhất
+## Chạy môi trường phát triển
 
-Backend NestJS và PostgreSQL chạy bằng Docker Compose. Các frontend Next.js chạy local. Cần Node.js 24 LTS, npm và Docker Desktop đã bật Linux engine.
-
-Chạy mọi lệnh dưới đây tại thư mục gốc repository, trừ khi có ghi khác.
-
-### 1. Chuẩn bị môi trường
-
-PowerShell:
+Cần Node.js 24 LTS, npm và Docker Desktop dùng Linux engine. Chạy lệnh từ root repository.
 
 ```powershell
+npm ci
+# Chỉ copy nếu chưa có backend/.env:
 Copy-Item backend/.env.example backend/.env
 node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
 ```
 
-Chỉ copy nếu chưa có `backend/.env`. Gán chuỗi vừa tạo vào `JWT_SECRET`, đổi `SEED_ADMIN_EMAIL` và `SEED_DEFAULT_PASSWORD` (ít nhất 8 ký tự). Không commit `.env`. Compose tự thay `DATABASE_URL` sang hostname `db`; URL `127.0.0.1:5433` trong file mẫu dành cho công cụ chạy từ máy host.
-
-### 2. Chạy backend + DB
+Trong `backend/.env`, đặt `JWT_SECRET` bằng chuỗi ngẫu nhiên, `SEED_ADMIN_EMAIL` và `SEED_DEFAULT_PASSWORD` của chủ hệ thống. Không commit file này.
 
 ```powershell
-npm run docker:up
-npm run docker:ps
+npm run dev:up
+npm run db:bootstrap
+npm run dev:status
 ```
 
-Hoặc dùng Compose trực tiếp:
+`dev:up` build image, chạy migration và khởi động API/DB. **Không seed khi khởi động.** `db:bootstrap` tạo dữ liệu nền và chủ hệ thống đầu tiên; chạy lại giữ mật khẩu, quyền và tài khoản đã có.
+
+Mở terminal riêng cho frontend cần dùng:
+
+| Lệnh | URL | Phạm vi |
+| --- | --- | --- |
+| `npm run dev:admin` | http://localhost:3004/login | Một cổng quản trị cho hệ thống, kho và nhà hàng |
+| `npm run dev:staff` | http://localhost:3003/staff/login | Nhân viên: phục vụ, bếp, pha chế, thu ngân, quản lý ca |
+| `npm run dev:guest` | http://localhost:3005 | Khung web khách, chưa có nghiệp vụ khách hoàn chỉnh |
+
+Chủ hệ thống vào `/`, `/warehouse` và `/warehouse/restaurant` bằng cùng phiên đăng nhập. Kho/nhà hàng đăng nhập tại `/login`, chức năng hiển thị theo quyền. Tạo tài khoản có quyền `staff:access` và hồ sơ nhân viên (mã, vị trí, chi nhánh) tại trang Tài khoản để dùng Staff. Staff đăng nhập bằng email hoặc mã nhân viên, dùng cùng mật khẩu; khóa/đổi mật khẩu/đổi quyền từ quản trị sẽ thu hồi phiên.
+
+API: http://localhost:3000/ . PostgreSQL host: `127.0.0.1:5433`, database `restaurant_dev`, user `restaurant`, password local `local_dev_only`. `backend-init` exit 0 là bình thường; `db` và `backend` cần healthy. Compose project/volume vẫn là `restaurant-integrated` / `restaurant-integrated_postgres_data`.
+
+## Demo chung, dựng lại được
+
+Demo dùng project **restaurant-demo** riêng, API `3010`, DB `5434`, database `restaurant_demo`. Lệnh dưới xóa và dựng lại **chỉ volume demo**, không sửa DB phát triển:
 
 ```powershell
-docker compose -f docker-compose.yml -f docker-compose.apps.yml up -d --build --wait --wait-timeout 180
+$env:DEMO_PASSWORD = 'mat-khau-local-cua-ban-it-nhat-8-ky-tu'
+npm run demo:rebuild
 ```
 
-Mặc định chỉ chạy `db`, `backend-init`, `backend`. Frontend Docker cũ nằm trong profile `legacy-frontend`, không bật trong quy trình này.
+Demo v1 có 1 chi nhánh, 1 bàn, 1 kho, nhà cung cấp, gạo 20 kg có phiếu nhập và sổ biến động, món cơm giá 15.000đ và BOM 0,1 kg/phần. Tồn bếp và hóa đơn ban đầu trống: phải yêu cầu/duyệt cấp NVL, chế biến và thu tiền qua nghiệp vụ thật.
 
-`backend-init` chạy migration, tạo các vai trò và tài khoản System Admin đầu tiên từ `.env`. Lần chạy sau giữ nguyên tài khoản/mật khẩu và quyền đã có. Job init kết thúc với mã 0 là bình thường; backend và DB phải healthy.
+| Email | Vai trò / mã Staff |
+| --- | --- |
+| `owner@demo.local` | Chủ hệ thống |
+| `warehouse@demo.local` | Quản lý kho |
+| `restaurant@demo.local` | Quản lý nhà hàng |
+| `service@demo.local` | Phục vụ / `SERVICE` |
+| `kitchen@demo.local` | Bếp / `KITCHEN` |
+| `cashier@demo.local` | Thu ngân / `CASHIER` |
+| `supervisor@demo.local` | Quản lý ca / `SUPERVISOR` |
 
-- API/health: http://localhost:3000/ (trả `Hello World!`).
-- PostgreSQL từ máy host: `127.0.0.1:5433`, database `restaurant_dev`, user `restaurant`, password `local_dev_only`.
-- Compose project: `restaurant-integrated`, volume: `restaurant-integrated_postgres_data`. Đây là DB local tích hợp riêng, không tự lấy dữ liệu từ volume của nhánh cũ.
-- Đổi cổng host nếu cần: `$env:DB_PORT="5434"` hoặc `$env:API_PORT="3010"` trước khi chạy. Nếu đổi API_PORT, cập nhật các biến frontend bên dưới và khởi động lại frontend.
+Tất cả dùng mật khẩu bạn vừa đặt trong `DEMO_PASSWORD`. Không có mật khẩu demo hardcode.
 
-Bộ migration đã hợp nhất hai lịch sử cho DB local mới; các bản tạo bảng trùng được giữ tại `backend/prisma/archived-system-admin-migrations`. Không áp dụng tự động vào DB đang dùng từ nhánh khác. Xem [ghi chú migration](backend/prisma/archived-system-admin-migrations/README.md). Không cần reset DB hay dùng `db push` để khởi động.
-
-### 3. Chạy frontend local
-
-```powershell
-npm ci
-```
-
-Mở terminal riêng cho mỗi giao diện cần xem:
-
-| Phân hệ | Lệnh từ root | Địa chỉ | Lưu ý |
-| --- | --- | --- | --- |
-| Admin hệ thống | `npm run dev:system` | http://localhost:3004/login | Đăng nhập bằng email/mật khẩu seed trong `.env` |
-| Kho/nhà hàng có JWT | dùng cùng `dev:system` | http://localhost:3004/warehouse | Tài khoản portal `warehouse`; tạo từ quản trị hệ thống |
-| Admin kho riêng | `npm run dev:warehouse` | http://localhost:3001 | Giao diện cũ; chưa truyền JWT, API có thể trả 401 |
-| Admin nhà hàng riêng | `npm run dev:restaurant` | http://localhost:3002 | Chưa nối đăng nhập JWT; API có thể trả 401 |
-| App nhân viên (web) | `npm run dev:staff` | http://localhost:3003/staff/login | Dùng `staff_users`/cookie, chưa dùng tài khoản admin |
-| Web khách | `npm run dev:guest` | http://localhost:3005 | Hiện là trang khởi tạo Next.js |
-
-App khách native/mobile riêng chưa có trong checkout tích hợp. App nhân viên có trang thiết kế tại `/preview/dashboard`; `/staff/login` mới là luồng dùng API. DB mới chỉ seed System Admin và vai trò, chưa có chi nhánh, nguyên liệu, menu, nhân viên hay dữ liệu giao dịch demo. Không coi trang preview là nghiệp vụ đã chạy.
-
-Frontend mặc định trỏ đến API `3000`. Khi đổi cổng API, tạo `.env.local` trong frontend tương ứng:
+Để frontend dùng API demo, tạo các file local (đã được Git ignore):
 
 ```dotenv
 # frontend/web-admin-system/.env.local
-NEXT_PUBLIC_API_URL=http://localhost:3000
+NEXT_PUBLIC_API_URL=http://localhost:3010
+```
 
-# frontend/warehouse-web/.env.local và frontend/restaurant-web/.env.local
-API_BASE_URL=http://localhost:3000
-
+```dotenv
 # frontend/staff-app/.env.local
-API_INTERNAL_URL=http://127.0.0.1:3000
+API_INTERNAL_URL=http://127.0.0.1:3010
 ```
 
-Mỗi file chỉ cần biến của chính frontend đó. Staff proxy giữ URL `/api/auth/*` ở trình duyệt và chuyển sang `/api/staff-auth/*` để không trùng đăng nhập JWT của admin. Các endpoint `/api/staff/*` vẫn kiểm tra cookie và quyền nhân viên.
+Khởi động lại frontend sau khi đổi env. Xóa hai file local này hoặc đổi về cổng `3000` để quay lại DB phát triển.
 
-### 4. Kiểm tra và dừng
+## Lệnh vận hành chính thức
 
-```powershell
-Invoke-RestMethod http://localhost:3000/
-npm run docker:logs
-npm run docker:stop
-npm run docker:down
-```
+| Lệnh | Tác động |
+| --- | --- |
+| `npm run dev:up` | Build và khởi động backend/DB phát triển; áp dụng migration |
+| `npm run dev:status` | Trạng thái container phát triển |
+| `npm run dev:logs` | Theo dõi log; Ctrl+C để thoát |
+| `npm run dev:stop` | Dừng container phát triển, giữ dữ liệu |
+| `npm run dev:down` | Bỏ container/network phát triển, giữ volume |
+| `npm run db:migrate` | Chạy job migration từ image đã build |
+| `npm run db:bootstrap` | Tạo dữ liệu nền và chủ hệ thống; không nạp demo |
+| `npm run db:backup` | Sao lưu đầy đủ DB phát triển vào `backups/*.dump` |
+| `npm run demo:rebuild` | Dựng lại môi trường demo riêng |
+| `npm run demo:stop` | Dừng demo, giữ volume |
+| `npm run check` | Build, unit/E2E, TypeScript các frontend chính thức |
 
-`docker:stop` giữ container; `docker:down` bỏ container/network và giữ volume dữ liệu. Không thêm `-v` nếu cần giữ DB. Frontend dừng bằng Ctrl+C trong terminal tương ứng.
+Frontend dừng bằng Ctrl+C. Kiểm tra API bằng `Invoke-RestMethod http://localhost:3000/`. Nếu migration lỗi, xem `dev:logs`; không tự reset DB hoặc đánh dấu migration đã chạy. Backup JSON trong giao diện chỉ phục vụ dữ liệu quản trị; bản dump từ `db:backup` mới gồm toàn bộ nghiệp vụ.
 
-Nếu DB/API không healthy, xem log của job init trước:
+## Quy tắc dữ liệu và phát triển
 
-```powershell
-docker compose -f docker-compose.yml -f docker-compose.apps.yml logs --tail 100 backend-init backend db
-```
+- Bootstrap: `backend/src/prisma/seed-admin.ts`. Demo duy nhất: `backend/src/prisma/seed-demo.ts`.
+- Test tự tạo fixture; bộ E2E nền tảng dùng PostgreSQL nhúng PGlite, không dùng DB Compose. Một số test integration cũ có điều kiện skip khi không có DB test riêng; xem [giới hạn và kiểm chứng](docs/FOUNDATION.md).
+- Không nạp demo qua HTTP hoặc trang Báo cáo. Báo cáo đọc thanh toán và sổ biến động kho thật.
+- Thay đổi schema có migration; thay đổi API cập nhật nơi gọi và test trong cùng thay đổi. Không seed/reset DB dùng chung từ nhánh cá nhân.
+- Chỉ có 3 frontend trong npm workspace. Các bản standalone kho/nhà hàng và script cũ đang chờ xóa theo [danh sách đã kiểm kê](docs/CLEANUP_PENDING.md); không dùng để vận hành.
 
-Lỗi cổng bận: đổi cổng host hoặc dừng tiến trình/container đang chiếm cổng. Lỗi migration trên DB cũ: dừng lại và kiểm tra lịch sử `_prisma_migrations`; không tự xóa dữ liệu hay đánh dấu migration đã chạy.
-
-## Kiểm tra mã nguồn
-
-```powershell
-npm run build --workspace backend
-npm run test --workspace backend
-npm run test:e2e --workspace backend
-npm run typecheck --workspace warehouse-web
-npm run typecheck --workspace restaurant-web
-npm run typecheck --workspace restaurant-staff
-npx tsc --noEmit -p frontend/web-admin-system/tsconfig.json
-```
-
-E2E System Admin dùng PostgreSQL nhúng PGlite, không dùng DB Compose. Một số test Staff cần DB integration riêng và có điều kiện skip; xem kết quả thực tế trong [báo cáo](docs/PROJECT_STATUS.md).
-
-Các README cũ mô tả từng lần bàn giao và có thể dùng cổng/auth trước merge. Với bản tích hợp hiện tại, dùng README này làm hướng dẫn chạy chính.
+Tài liệu bàn giao trước đợt chuẩn hóa là tài liệu lịch sử. Dùng README này làm nguồn duy nhất cho cách chạy hiện tại.

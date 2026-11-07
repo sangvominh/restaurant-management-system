@@ -1,3 +1,5 @@
+> Tài liệu lịch sử trước chuẩn hóa. Chuẩn hiện tại: [FOUNDATION](docs/FOUNDATION.md); cách chạy theo README gốc.
+
 # Kết nối Staff và Admin Kho
 
 Phạm vi: lĩnh/xuất NVL, hao hụt NVL trong kho/đã lĩnh, hoàn trả NVL.

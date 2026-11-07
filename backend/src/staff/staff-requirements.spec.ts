@@ -30,6 +30,6 @@ describe('Kitchen material requirements', () => {
 
   it('rejects a menu item with no configured demo recipe', async () => {
     tx.$queryRaw.mockResolvedValue([]);
-    await expect(service.lineRequirements(user, id)).rejects.toThrow('Món chưa có công thức giả lập.');
+    await expect(service.lineRequirements(user, id)).rejects.toThrow('Món chưa có công thức BOM.');
   });
 });

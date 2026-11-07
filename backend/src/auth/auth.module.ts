@@ -15,7 +15,9 @@ import { AuthService } from './auth.service.js';
       useFactory: (config: ConfigService) => ({
         // Không có JWT_SECRET thì dừng ngay lúc khởi động thay vì chạy với khóa mặc định đoán được.
         secret: config.getOrThrow<string>('JWT_SECRET'),
+        verifyOptions: { issuer: config.get<string>('JWT_ISSUER') ?? 'restaurant-dev' },
         signOptions: {
+          issuer: config.get<string>('JWT_ISSUER') ?? 'restaurant-dev',
           expiresIn: config.get<string>('JWT_EXPIRES_IN') ?? '8h',
         } as any,
       }),

@@ -24,11 +24,11 @@ const adminEmail = 'admin@example.com';
 
 const api = () => request(app.getHttpServer());
 
-it('giữ đăng nhập cookie nhân viên tách biệt với JWT quản trị sau tích hợp', async () => {
+it('dùng chung tài khoản và thu hồi phiên nhân viên qua cookie JWT', async () => {
   const branch = await db.branch.create({ data: { code: 'STAFF-AUTH', name: 'Chi nhánh kiểm thử' } });
   await db.staffUser.create({ data: {
     code: 'STAFF-AUTH-TEST', name: 'Nhân viên kiểm thử', role: 'SERVICE',
-    branchId: branch.id, passwordHash: hashPassword(password),
+    branch: { connect: { id: branch.id } }, account: { create: { name: 'Nhân viên kiểm thử', email: 'staff-auth@test.local', passwordHash, roleId: (await db.role.create({ data: { name: 'Staff access', portal: 'employee', permissions: ['staff:access'] } })).id } },
   } });
   await api().get('/api/staff/tables').expect(401);
   await api().post('/api/staff-auth/login').send({ code: 'STAFF-AUTH-TEST', password }).expect(403);
@@ -292,6 +292,7 @@ describe('tài khoản và phân quyền qua HTTP + Prisma/PostgreSQL', () => {
     expect(
       defaults.find((role) => role.name === 'Quản lý kho')?.permissions,
     ).toEqual([
+      'waste:manage',
       'supplier:manage',
       'material:manage',
       'inventory:import',
@@ -300,7 +301,7 @@ describe('tài khoản và phân quyền qua HTTP + Prisma/PostgreSQL', () => {
     ]);
     expect(
       defaults.find((role) => role.name === 'Quản lý nhà hàng')?.permissions,
-    ).toEqual(['product:view', 'bom:manage', 'finished-goods:approve-export']);
+    ).toEqual(['product:manage', 'production:manage', 'finished-goods:inspect', 'waste:manage', 'product:view', 'bom:manage', 'finished-goods:approve-export']);
     const custom = defaults.find((role) => role.name === 'Quản lý kho')!;
     await db.role.update({
       where: { id: custom.id },
@@ -472,7 +473,6 @@ describe('tài khoản và phân quyền qua HTTP + Prisma/PostgreSQL', () => {
       'roles',
       'categories',
       'backup/restore',
-      'reports/demo-data',
     ])
       await api()
         .post(`/api/admin/${path}`)
@@ -520,14 +520,14 @@ describe('tài khoản và phân quyền qua HTTP + Prisma/PostgreSQL', () => {
       .expect(403);
   });
 
-  it('checkbox chỉ chứa quyền nghiệp vụ, không có quản trị, quyền sản phẩm CRUD hay quyền xuất gộp', async () => {
+  it('danh mục quyền nghiệp vụ có sản phẩm, sản xuất và Staff, không cấp quyền quản trị', async () => {
     const token = await login();
     const catalog = await api()
       .get('/api/admin/permissions')
       .auth(token, { type: 'bearer' })
       .expect(200);
     const keys = catalog.body.map((item: { key: string }) => item.key);
-    expect(keys).toHaveLength(15);
+    expect(keys).toHaveLength(20);
     for (const required of [
       'material:manage',
       'product:view',
@@ -552,7 +552,6 @@ describe('tài khoản và phân quyền qua HTTP + Prisma/PostgreSQL', () => {
       'dashboard:view',
       'audit:view',
       'category:manage',
-      'product:manage',
       'production:request',
     ])
       expect(keys).not.toContain(forbidden);
@@ -564,7 +563,7 @@ describe('tài khoản và phân quyền qua HTTP + Prisma/PostgreSQL', () => {
       presets.body.find(
         (role: { name: string }) => role.name === 'Quản lý nhà hàng',
       ).permissions,
-    ).toEqual(['product:view', 'bom:manage', 'finished-goods:approve-export']);
+    ).toEqual(['product:manage', 'production:manage', 'finished-goods:inspect', 'waste:manage', 'product:view', 'bom:manage', 'finished-goods:approve-export']);
   });
 
   it('Admin không thể cấp quyền quản trị, wildcard hay cờ hệ thống bằng request tạo/sửa vai trò', async () => {
@@ -582,7 +581,6 @@ describe('tài khoản và phân quyền qua HTTP + Prisma/PostgreSQL', () => {
       ['setting:manage'],
       ['dashboard:view'],
       ['audit:view'],
-      ['product:manage'],
       ['production:request'],
       ['unknown:permission'],
     ]) {
@@ -1019,45 +1017,10 @@ describe('hợp đồng dữ liệu báo cáo', () => {
     expect(res.body[0]).toMatchObject({ materialId: id, closing: 5 });
   });
 
-  it('nạp/xóa demo trong transaction, không ghi đè khi một nguồn đã là dữ liệu thật', async () => {
+  it('không còn endpoint tự tạo hoặc xóa dữ liệu báo cáo mẫu', async () => {
     const token = await login();
-    await api()
-      .post('/api/admin/reports/demo-data')
-      .auth(token, { type: 'bearer' })
-      .expect(200);
-    const status = await api()
-      .get('/api/admin/reports/status')
-      .auth(token, { type: 'bearer' })
-      .expect(200);
-    expect(status.body).toMatchObject({
-      revenueReady: true,
-      stockReady: true,
-      demo: true,
-    });
-    await pg.exec(`COMMENT ON VIEW public.v_report_stock IS NULL`);
-    await api()
-      .post('/api/admin/reports/demo-data')
-      .auth(token, { type: 'bearer' })
-      .expect(409);
-    await api()
-      .delete('/api/admin/reports/demo-data')
-      .auth(token, { type: 'bearer' })
-      .expect(409);
-    await pg.exec(
-      `COMMENT ON VIEW public.v_report_stock IS 'system-admin-demo-v1'`,
-    );
-    await api()
-      .delete('/api/admin/reports/demo-data')
-      .auth(token, { type: 'bearer' })
-      .expect(200);
-    const absent = await api()
-      .get('/api/admin/reports/status')
-      .auth(token, { type: 'bearer' })
-      .expect(200);
-    expect(absent.body).toMatchObject({
-      revenueReady: false,
-      stockReady: false,
-    });
+    await api().post('/api/admin/reports/demo-data').auth(token, {type:'bearer'}).expect(404);
+    await api().delete('/api/admin/reports/demo-data').auth(token, {type:'bearer'}).expect(404);
   });
 
   it('từ chối kỳ báo cáo và key không hợp lệ trước khi truy vấn', async () => {
@@ -1137,7 +1100,7 @@ describe('tích hợp A System Admin — B Kho — C Nhà hàng', () => {
   async function stockFixture() {
     const branch = await db.branch.create({data:{code:'INTEGRATION-CN01',name:'Chi nhánh thử'}});
     const location = await db.warehouseLocation.create({data:{branchId:branch.id,name:'Kho thử',locationType:'NORMAL'}});
-    const unit = await db.unit.create({data:{name:'kg'}});
+    const unit = await db.unit.upsert({where:{name:'kg'},update:{},create:{name:'kg'}});
     const category = await db.category.create({data:{code:'DM-TEST',name:'Nguyên liệu thử',categoryType:'MATERIAL'}});
     const material = await db.material.create({data:{code:'INTEGRATION-NVL01',name:'Bột thử',unitId:unit.id,categoryId:category.id}});
     const lot = await db.materialLot.create({data:{materialId:material.id,lotCode:'LO-01'}});
@@ -1156,7 +1119,7 @@ describe('tích hợp A System Admin — B Kho — C Nhà hàng', () => {
     }
     for(const path of ['/warehouse/inventory','/products','/warehouse/boms','/warehouse/finished-goods-issues']) {
       await api().get(path).expect(401);
-      await api().get(path).auth(a,{type:'bearer'}).expect(403);
+      await api().get(path).auth(a,{type:'bearer'}).expect(200);
     }
     await api().get('/warehouse/inventory').auth(b,{type:'bearer'}).expect(200);
     await api().get('/products').auth(b,{type:'bearer'}).expect(403);
@@ -1222,10 +1185,11 @@ describe('tích hợp A System Admin — B Kho — C Nhà hàng', () => {
     await api().get('/products').auth(c,{type:'bearer'}).expect(401);
     await api().get('/api/auth/me').auth(c,{type:'bearer'}).expect(401);
   });
-  it('không mở CRUD sản phẩm, nhập sau sản xuất hoặc lỗi thành phẩm khi chưa chốt quyền riêng', async () => {
-    const {c}=await provision();
-    await api().post('/products').auth(c,{type:'bearer'}).send({}).expect(403);
-    await api().post('/warehouse/finished-goods-receipts/UNKNOWN/approve').auth(c,{type:'bearer'}).send({}).expect(403);
-    await api().post('/warehouse/finished-goods-defects').auth(c,{type:'bearer'}).send({}).expect(403);
+  it('quyền sản phẩm và kiểm tra thành phẩm được khai báo riêng, không dùng quyền chờ tích hợp', async () => {
+    const {b,c}=await provision();
+    await api().post('/products').auth(b,{type:'bearer'}).send({}).expect(403);
+    await api().post('/products').auth(c,{type:'bearer'}).send({}).expect(400);
+    await api().post('/warehouse/finished-goods-receipts/UNKNOWN/approve').auth(b,{type:'bearer'}).send({}).expect(403);
+    await api().post('/warehouse/finished-goods-receipts/UNKNOWN/approve').auth(c,{type:'bearer'}).send({}).expect(400);
   });
 });

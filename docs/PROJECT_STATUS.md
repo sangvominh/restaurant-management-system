@@ -1,3 +1,5 @@
+> Tài liệu lịch sử trước chuẩn hóa. Chuẩn hiện tại: [FOUNDATION](FOUNDATION.md); cách chạy theo README gốc.
+
 # Đánh giá dự án sau tích hợp — 07/11/2026
 
 Đây là đánh giá trên mã nguồn và các kiểm tra được chạy trong checkout `develop`, không phải chứng nhận hoàn tất nghiệp vụ hay production. Phạm vi dừng ở gom code, thống nhất cách chạy và đánh giá sáu phân hệ.

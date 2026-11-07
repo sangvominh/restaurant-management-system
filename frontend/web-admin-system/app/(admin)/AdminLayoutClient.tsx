@@ -22,6 +22,7 @@ const { Header, Sider, Content } = Layout;
 
 // Mỗi mục menu ứng với một trang và (các) quyền được phép vào trang đó.
 const NAV = [
+  { key: '/warehouse', icon: <AppstoreOutlined />, label: 'Kho / Nhà hàng', perms: ['*'] },
   { key: '/', icon: <AppstoreOutlined />, label: 'Tổng quan', perms: ['dashboard:view'] },
   { key: '/reports', icon: <BarChartOutlined />, label: 'Báo cáo tổng hợp', perms: ['report:view'] },
   { key: '/accounts', icon: <TeamOutlined />, label: 'Quản lý Tài khoản', perms: ['account:manage'] },

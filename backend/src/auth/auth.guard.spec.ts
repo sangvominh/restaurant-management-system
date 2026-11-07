@@ -8,6 +8,7 @@ import {
   SYSTEM_ADMIN_ONLY_KEY,
   WAREHOUSE_ONLY_KEY,
 } from '../common/auth.decorators.js';
+import { AuthService } from './auth.service.js';
 import { AuthGuard } from './auth.guard.js';
 
 function fixture(permissions: string[], isSystem = false) {
@@ -32,7 +33,7 @@ function fixture(permissions: string[], isSystem = false) {
   const db = {
     loginLog: { findUnique: async () => session },
   } as unknown as PrismaService;
-  const guard = new AuthGuard(new Reflector(), jwt, db);
+  const guard = new AuthGuard(new Reflector(), new AuthService(db, jwt, {} as never));
   const req = { headers: { authorization: 'Bearer example' } };
   const context = {
     getHandler: () => handler,
@@ -43,11 +44,11 @@ function fixture(permissions: string[], isSystem = false) {
 }
 
 describe('quyền nghiệp vụ và ranh giới System Admin', () => {
-  it('warehouse chặn System Admin có wildcard và chặn route chưa khai báo quyền', async () => {
+  it('chủ hệ thống vào kho; route thiếu khai báo quyền vẫn bị chặn', async () => {
     const f = fixture(['*'], true);
     Reflect.defineMetadata(WAREHOUSE_ONLY_KEY, true, f.controller);
     Reflect.defineMetadata(PERMISSIONS_KEY, ['inventory:view'], f.handler);
-    await expect(f.guard.canActivate(f.context)).rejects.toThrow(ForbiddenException);
+    await expect(f.guard.canActivate(f.context)).resolves.toBe(true);
     f.session.account.role.isSystem = false;
     f.session.account.role.permissions = ['inventory:view'];
     await expect(f.guard.canActivate(f.context)).resolves.toBe(true);

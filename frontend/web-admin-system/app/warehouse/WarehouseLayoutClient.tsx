@@ -37,11 +37,8 @@ export default function WarehouseLayout({ children }: { children: React.ReactNod
   if (!ready) return <div style={{ padding: 64 }}><Spin tip="Đang xác nhận phiên đăng nhập" /></div>;
   if (error) return <Result status="error" title="Không xác nhận được phiên đăng nhập"
     extra={<Button onClick={() => setRetry(r => r + 1)}>Thử lại</Button>} />;
-  if (!user) return <Result status="info" title="Warehouse sử dụng đăng nhập riêng"
-    subTitle="Đang chờ nhóm Kho / Nhà hàng kết nối trang đăng nhập riêng. Tài khoản và quyền vẫn do System Admin quản lý." />;
-  if (isSystemAdmin(user) || user.portal !== 'warehouse') return <Result status="403"
-    title="Khu vực chỉ dành cho Kho / Nhà hàng"
-    extra={user && isSystemAdmin(user) ? <Link href="/">Về System Admin</Link> : <Button onClick={logout}>Đăng xuất</Button>} />;
+  if (!user) return <Result status="info" title="Vui lòng đăng nhập" extra={<Link href="/login">Đăng nhập</Link>} />;
+  if (!isSystemAdmin(user) && user.portal !== 'warehouse') return <Result status="403" title="Bạn chưa có quyền Kho / Nhà hàng" extra={<Button onClick={logout}>Đăng xuất</Button>} />;
   const nav = WAREHOUSE_PAGES.filter(p => allowed(user, ...p.permissions));
   const page = WAREHOUSE_PAGES.find(p => pathname === p.path || pathname.startsWith(p.path + '/'));
   const canView = pathname === '/warehouse' || (!!page && allowed(user, ...page.permissions));

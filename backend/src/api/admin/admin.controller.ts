@@ -32,6 +32,10 @@ import {
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
+  @Get('branches')
+  @RequirePermissions('account:manage')
+  branches() { return this.adminService.getBranches(); }
+
   // --- ACCOUNTS ---
   @Get('accounts')
   @RequirePermissions('account:manage')

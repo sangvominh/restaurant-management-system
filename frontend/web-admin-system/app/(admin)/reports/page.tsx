@@ -1,9 +1,9 @@
 'use client';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, Button, Card, Popconfirm, Segmented, Select, Space, Spin, Table, Tabs, Tag, message } from 'antd';
+import { Alert, Button, Card, Segmented, Select, Space, Spin, Table, Tabs, Tag, message } from 'antd';
 import type { TableColumnsType } from 'antd';
-import { DownloadOutlined, ExperimentOutlined, ReloadOutlined } from '@ant-design/icons';
-import { apiFetch, getUser, hasPermission, readError } from '../../lib/api';
+import { DownloadOutlined, ReloadOutlined } from '@ant-design/icons';
+import { apiFetch, readError } from '../../lib/api';
 
 const C = {
   ink: '#1c1612', gold: '#b8893b', card: '#ffffff', line: '#ece5d8', text: '#3b3129', muted: '#8a7d70',
@@ -121,8 +121,6 @@ export default function ReportsPage() {
   const [stock, setStock] = useState<StockRes | null>(null);
   const [loading, setLoading] = useState(true);
   const [details, setDetails] = useState<Record<number, MaterialRow[]>>({});
-  const [busy, setBusy] = useState(false);
-  const canDemo = hasPermission(getUser(), 'backup:manage');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -148,20 +146,6 @@ export default function ReportsPage() {
     load();
   }, [load]);
 
-  const demoCall = async (method: 'POST' | 'DELETE') => {
-    setBusy(true);
-    try {
-      const res = await apiFetch('/api/admin/reports/demo-data', { method });
-      if (!res.ok) throw new Error(await readError(res, 'Thao tác thất bại'));
-      message.success(method === 'POST' ? 'Đã nạp dữ liệu mẫu' : 'Đã xóa dữ liệu mẫu');
-      await load();
-    } catch (e: any) {
-      message.error(e.message);
-    } finally {
-      setBusy(false);
-    }
-  };
-
   const loadMaterials = async (key: number) => {
     if (details[key]) return;
     const res = await apiFetch(`/api/admin/reports/stock/materials?period=${period}&year=${year}&key=${key}`);
@@ -176,7 +160,6 @@ export default function ReportsPage() {
   );
 
   const notReady = rev && stock && !rev.ready && !stock.ready;
-  const isDemo = !!(rev?.demo || stock?.demo);
 
   const revCols: TableColumnsType<RevenueRow> = [
     { title: 'Kỳ', dataIndex: 'label' },
@@ -221,7 +204,7 @@ export default function ReportsPage() {
       `}</style>
       <h1 style={{ fontFamily: serif, color: C.ink, margin: '0 0 4px', fontSize: 28 }}>Báo cáo tổng hợp</h1>
       <p style={{ color: C.muted, margin: '0 0 16px' }}>
-        Thống kê doanh thu và nguyên vật liệu nhập - xuất - tồn theo tháng, quý, năm.
+        Thống kê doanh thu và nguyên vật liệu nhập - xuất - tồn theo tháng, quý, năm. Giá trị kho tham chiếu giá nhập gần nhất, chưa phải giá vốn kế toán.
       </p>
 
       <Space wrap style={{ marginBottom: 16 }}>
@@ -232,12 +215,6 @@ export default function ReportsPage() {
         />
         <Select value={year} onChange={setYear} options={yearOptions} style={{ width: 150 }} />
         <Button icon={<ReloadOutlined />} onClick={load}>Tải lại</Button>
-        {isDemo && <Tag color="orange">Đang dùng dữ liệu mẫu</Tag>}
-        {isDemo && canDemo && (
-          <Popconfirm title="Xóa dữ liệu mẫu?" okText="Xóa" cancelText="Hủy" onConfirm={() => demoCall('DELETE')}>
-            <Button size="small" danger loading={busy}>Xóa dữ liệu mẫu</Button>
-          </Popconfirm>
-        )}
       </Space>
 
       {loading && !rev ? (
@@ -247,21 +224,7 @@ export default function ReportsPage() {
           type="info"
           showIcon
           message="Chưa có nguồn dữ liệu cho báo cáo"
-          description={
-            <div>
-              <p style={{ margin: '4px 0 12px' }}>
-                Báo cáo đọc dữ liệu hóa đơn và phiếu nhập/xuất kho của các nhóm khác. Các bảng này chưa tồn tại trong cơ sở dữ liệu.
-                Bạn có thể nạp dữ liệu mẫu để xem thử giao diện, sau này thay bằng dữ liệu thật.
-              </p>
-              {canDemo ? (
-                <Button type="primary" icon={<ExperimentOutlined />} loading={busy} onClick={() => demoCall('POST')}>
-                  Nạp dữ liệu mẫu
-                </Button>
-              ) : (
-                <span>Nhờ quản trị viên nạp dữ liệu mẫu hoặc kết nối nguồn dữ liệu thật.</span>
-              )}
-            </div>
-          }
+          description="Chưa kết nối được nguồn báo cáo. Vui lòng liên hệ quản trị hệ thống."
         />
       ) : (
         <Spin spinning={loading}>

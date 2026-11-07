@@ -4,9 +4,10 @@ import type { AuthUser } from '@/app/lib/api';
 export const WarehouseUser = createContext<AuthUser | null>(null);
 export function useWarehouseUser() { return useContext(WarehouseUser); }
 export function allowed(user: AuthUser | null, ...permissions: string[]) {
-  return !!user && !user.isSystemAdmin && user.portal === 'warehouse' && permissions.some(p => user.permissions.includes(p));
+  return !!user && (user.isSystemAdmin || (user.portal === 'warehouse' && permissions.some(p => user.permissions.includes(p))));
 }
 export const WAREHOUSE_PAGES = [
+  { path: '/warehouse/restaurant', label: 'Quản lý thành phẩm nhà hàng', permissions: ['product:view'] },
   { path: '/warehouse/inventory', label: 'Tồn kho nguyên vật liệu', permissions: ['inventory:view'] },
   { path: '/warehouse/receipts', label: 'Nhập nguyên vật liệu', permissions: ['inventory:import'] },
   { path: '/warehouse/material-issues', label: 'Duyệt xuất nguyên vật liệu', permissions: ['inventory:approve-export'] },

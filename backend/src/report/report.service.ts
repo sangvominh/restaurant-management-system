@@ -1,8 +1,5 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
-import { AuditService } from '../audit/audit.service.js';
-import { AuthUser } from '../common/auth.decorators.js';
-import { DEMO_INSTALL, DEMO_REMOVE } from './report.demo.js';
 
 export type Period = 'month' | 'quarter' | 'year';
 
@@ -65,7 +62,6 @@ const STOCK_BASE = `(SELECT (occurred_at AT TIME ZONE ${TZ})::date AS d, materia
 export class ReportService {
   constructor(
     private readonly db: PrismaService,
-    private readonly audit: AuditService,
   ) {}
 
   // SQL chỉ gồm hằng số trong module; giá trị kỳ/ngày luôn truyền bằng tham số $1/$2.
@@ -235,64 +231,4 @@ export class ReportService {
     }));
   }
 
-  async installDemo(actor: AuthUser) {
-    const st = await this.status();
-    if (
-      (st.revenueReady && !st.revenueDemo) ||
-      (st.stockReady && !st.stockDemo)
-    ) {
-      throw new ConflictException(
-        'Hệ thống đã có nguồn dữ liệu báo cáo thật, không nạp dữ liệu mẫu để tránh ghi đè',
-      );
-    }
-    await this.db.adminTransaction(async (tx) => {
-      // Kiểm tra lại sau khi lấy khóa, tránh đổi nguồn giữa kiểm tra và ghi.
-      const [{ real }] = await tx.$queryRaw<{ real: boolean }[]>`SELECT EXISTS (
-        SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
-        WHERE n.nspname = 'public' AND c.relname IN ('v_report_revenue', 'v_report_stock', 'demo_materials', 'demo_invoices', 'demo_stock_movements')
-        AND COALESCE(obj_description(c.oid, 'pg_class'), '') <> 'system-admin-demo-v1'
-      ) AS real`;
-      if (real)
-        throw new ConflictException(
-          'Có nguồn dữ liệu không thuộc bộ demo, không ghi đè',
-        );
-      for (const sql of DEMO_INSTALL) await tx.$executeRawUnsafe(sql);
-    });
-    await this.audit.log(actor, {
-      action: 'report.demo_load',
-      entityName: 'report',
-      description: 'Nạp dữ liệu mẫu cho báo cáo tổng hợp',
-    });
-    return { message: 'Đã nạp dữ liệu mẫu' };
-  }
-
-  async removeDemo(actor: AuthUser) {
-    const st = await this.status();
-    if (
-      (st.revenueReady && !st.revenueDemo) ||
-      (st.stockReady && !st.stockDemo)
-    ) {
-      throw new ConflictException(
-        'Nguồn dữ liệu hiện tại là dữ liệu thật, không xóa',
-      );
-    }
-    await this.db.adminTransaction(async (tx) => {
-      const [{ real }] = await tx.$queryRaw<{ real: boolean }[]>`SELECT EXISTS (
-        SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
-        WHERE n.nspname = 'public' AND c.relname IN ('v_report_revenue', 'v_report_stock', 'demo_materials', 'demo_invoices', 'demo_stock_movements')
-        AND COALESCE(obj_description(c.oid, 'pg_class'), '') <> 'system-admin-demo-v1'
-      ) AS real`;
-      if (real)
-        throw new ConflictException(
-          'Có nguồn dữ liệu không thuộc bộ demo, không xóa',
-        );
-      for (const sql of DEMO_REMOVE) await tx.$executeRawUnsafe(sql);
-    });
-    await this.audit.log(actor, {
-      action: 'report.demo_remove',
-      entityName: 'report',
-      description: 'Xóa dữ liệu mẫu của báo cáo tổng hợp',
-    });
-    return { message: 'Đã xóa dữ liệu mẫu' };
-  }
 }

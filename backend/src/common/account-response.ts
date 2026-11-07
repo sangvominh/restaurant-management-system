@@ -1,6 +1,6 @@
-import type { Account, Role } from '../generated/prisma/client.js';
+import type { Account, Role, StaffUser } from '../generated/prisma/client.js';
 
-export function accountResponse(account: Account & { role: Role }) {
+export function accountResponse(account: Account & { role: Role; staffProfile?: StaffUser | null }) {
   return {
     id: account.id,
     name: account.name,
@@ -10,5 +10,6 @@ export function accountResponse(account: Account & { role: Role }) {
     role: account.role.name,
     status: account.status,
     createdAt: account.createdAt,
+    staffProfile: account.staffProfile ?? null,
   };
 }

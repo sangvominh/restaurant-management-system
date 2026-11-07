@@ -36,6 +36,8 @@ export async function seedSystemAdmin(
           },
         });
       }
+      for (const name of ['kg', 'lít', 'phần'])
+        await tx.unit.upsert({ where: { name }, update: {}, create: { name } });
       const role = await tx.role.findUniqueOrThrow({
         where: { name: 'Quản trị viên (Admin)' },
       });

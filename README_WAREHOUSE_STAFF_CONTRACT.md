@@ -1,3 +1,5 @@
+> Tài liệu lịch sử trước chuẩn hóa. Chuẩn hiện tại: [FOUNDATION](docs/FOUNDATION.md); cách chạy theo README gốc.
+
 # Bàn giao App Nhân viên: hao hụt và hoàn trả NVL
 
 **Cập nhật:** phiếu Staff hiện được Admin Kho đọc/xử lý trực tiếp tại bản ghi gốc; xem [contract dùng chung hiện tại](README_SHARED_MATERIAL_ADJUSTMENTS.md). Nội dung dưới mô tả cơ chế MaterialAdjustment cũ, vẫn giữ cho các phiếu cũ.

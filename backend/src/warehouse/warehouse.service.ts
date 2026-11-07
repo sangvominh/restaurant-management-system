@@ -1,3 +1,15 @@
+import { ApproveMaterialAdjustmentDto } from './dto/process-material-adjustment.dto.js';
+import { SharedMaterialAdjustmentApi } from './api/shared-material-adjustment.api.js';
+import { WarehouseReferenceApi } from './api/warehouse-reference.api.js';
+import { UpdateCategoryDto } from './dto/update-category.dto.js';
+import { CreateCategoryDto } from './dto/create-category.dto.js';
+import { UpdateMaterialDto } from './dto/update-material.dto.js';
+import { CategoryApi } from './api/category.api.js';
+import { CreateMaterialDto } from './dto/create-material.dto.js';
+import { MaterialApi } from './api/material.api.js';
+import { UpdateSupplierDto } from './dto/update-supplier.dto.js';
+import { CreateSupplierDto } from './dto/create-supplier.dto.js';
+import { SupplierApi } from './api/supplier.api.js';
 import { Injectable } from '@nestjs/common';
 
 import { InventoryApi } from './api/inventory.api.js';
@@ -32,18 +44,23 @@ export class WarehouseService {
     private readonly productionOrderApi: ProductionOrderApi,
     private readonly finishedGoodsApi: FinishedGoodsApi,
     private readonly wasteApi: WasteApi,
+    private readonly supplierApi: SupplierApi,
+    private readonly materialApi: MaterialApi,
+    private readonly categoryApi: CategoryApi,
+    private readonly referenceApi: WarehouseReferenceApi,
+    private readonly adjustmentApi: SharedMaterialAdjustmentApi,
     private readonly finishedGoodsIssueApi: FinishedGoodsIssueApi,
     private readonly finishedGoodsDefectApi: FinishedGoodsDefectApi,
   ) {}
 
   //Danh sách tồn kho
-  getInventory() {
-    return this.inventoryApi.getInventory();
+  getInventory(branchCode?: string) {
+    return this.inventoryApi.getInventory(branchCode);
   }
 
   // Chi tiết tồn kho
-  getInventoryByCode(code: string) {
-    return this.inventoryApi.getInventoryByCode(code);
+  getInventoryByCode(code: string, branchCode?: string) {
+    return this.inventoryApi.getInventoryByCode(code, branchCode);
   }
 
   // Tạo phiếu nhập
@@ -51,8 +68,13 @@ export class WarehouseService {
     return this.receiptApi.createReceipt(dto);
   }
 
-  getReceipts() {
-    return this.receiptApi.getReceipts();
+  getReceipts(
+    supplierCode?: string,
+    branchCode?: string,
+    from?: string,
+    to?: string,
+  ) {
+    return this.receiptApi.getReceipts(supplierCode, branchCode, from, to);
   }
   // Xem chi tiết phiếu nhập theo mã
   getReceiptByCode(code: string) {
@@ -173,7 +195,9 @@ export class WarehouseService {
     return this.productionOrderApi.startProductionOrder(code);
   }
 
-  reportFinishedGoods(code: string, dto: ReportFinishedGoodsDto) { return this.finishedGoodsApi.reportOutput(code, dto); }
+  reportFinishedGoods(code: string, dto: ReportFinishedGoodsDto) {
+    return this.finishedGoodsApi.reportOutput(code, dto);
+  }
 
   // Lấy phiếu thành phẩm
   getFinishedGoodsReceipts(status?: string) {
@@ -209,15 +233,33 @@ export class WarehouseService {
     return this.finishedGoodsApi.getFinishedGoodsMovements();
   }
 
-  createFinishedGoodsIssue(dto: CreateFinishedGoodsIssueDto) { return this.finishedGoodsIssueApi.create(dto); }
-  getFinishedGoodsIssueBranches() { return this.finishedGoodsIssueApi.listBranches(); }
-  getFinishedGoodsIssues(status?: string, shiftCode?: string) { return this.finishedGoodsIssueApi.list(status, shiftCode); }
-  approveFinishedGoodsIssue(code: string, quantities?: Record<string, string>) { return this.finishedGoodsIssueApi.approve(code, quantities); }
-  rejectFinishedGoodsIssue(code: string, reason: string) { return this.finishedGoodsIssueApi.reject(code, reason); }
-  createFinishedGoodsDefect(dto: CreateFinishedGoodsDefectDto) { return this.finishedGoodsDefectApi.create(dto); }
-  getFinishedGoodsDefects(status?: string) { return this.finishedGoodsDefectApi.list(status); }
-  approveFinishedGoodsDefect(code: string) { return this.finishedGoodsDefectApi.approve(code); }
-  rejectFinishedGoodsDefect(code: string, reason: string) { return this.finishedGoodsDefectApi.reject(code, reason); }
+  createFinishedGoodsIssue(dto: CreateFinishedGoodsIssueDto) {
+    return this.finishedGoodsIssueApi.create(dto);
+  }
+  getFinishedGoodsIssueBranches() {
+    return this.finishedGoodsIssueApi.listBranches();
+  }
+  getFinishedGoodsIssues(status?: string, shiftCode?: string) {
+    return this.finishedGoodsIssueApi.list(status, shiftCode);
+  }
+  approveFinishedGoodsIssue(code: string, quantities?: Record<string, string>) {
+    return this.finishedGoodsIssueApi.approve(code, quantities);
+  }
+  rejectFinishedGoodsIssue(code: string, reason: string) {
+    return this.finishedGoodsIssueApi.reject(code, reason);
+  }
+  createFinishedGoodsDefect(dto: CreateFinishedGoodsDefectDto) {
+    return this.finishedGoodsDefectApi.create(dto);
+  }
+  getFinishedGoodsDefects(status?: string) {
+    return this.finishedGoodsDefectApi.list(status);
+  }
+  approveFinishedGoodsDefect(code: string) {
+    return this.finishedGoodsDefectApi.approve(code);
+  }
+  rejectFinishedGoodsDefect(code: string, reason: string) {
+    return this.finishedGoodsDefectApi.reject(code, reason);
+  }
 
   // Lấy danh sách tồn kho
   getInventoryMovements() {
@@ -242,5 +284,89 @@ export class WarehouseService {
   // Từ chối yêu cầu hao hụt
   rejectWasteRequest(code: string, dto: RejectWasteDto) {
     return this.wasteApi.rejectRequest(code, dto);
+  }
+
+  getBranches() {
+    return this.referenceApi.getBranches();
+  }
+
+  getLocations(branchId: string) {
+    return this.referenceApi.getLocations(branchId);
+  }
+
+  getMaterialAdjustments(type?: string, status?: string) {
+    return this.adjustmentApi.getRequests(type, status);
+  }
+
+  getMaterialAdjustment(code: string) {
+    return this.adjustmentApi.getRequest(code);
+  }
+
+  approveMaterialAdjustment(code: string, dto: ApproveMaterialAdjustmentDto) {
+    return this.adjustmentApi.approve(code, dto);
+  }
+
+  rejectMaterialAdjustment(code: string, reason: string) {
+    return this.adjustmentApi.reject(code, reason);
+  }
+
+  getInventoryAlerts(branchCode?: string) {
+    return this.inventoryApi.getInventoryAlerts(branchCode);
+  }
+
+  deactivateBom(code: string) {
+    return this.bomApi.updateStatus(code, 'INACTIVE');
+  }
+
+  getSuppliers(search?: string) {
+    return this.supplierApi.getSuppliers(search);
+  }
+
+  getSupplierByCode(code: string) {
+    return this.supplierApi.getSupplierByCode(code);
+  }
+
+  createSupplier(dto: CreateSupplierDto) {
+    return this.supplierApi.createSupplier(dto);
+  }
+
+  updateSupplier(code: string, dto: UpdateSupplierDto) {
+    return this.supplierApi.updateSupplier(code, dto);
+  }
+
+  deleteSupplier(code: string) {
+    return this.supplierApi.deleteSupplier(code);
+  }
+
+  getMaterials(search?: string) {
+    return this.materialApi.getMaterials(search);
+  }
+
+  createMaterial(dto: CreateMaterialDto) {
+    return this.materialApi.createMaterial(dto);
+  }
+
+  getMaterialByCode(code: string) {
+    return this.materialApi.getMaterialByCode(code);
+  }
+
+  updateMaterial(code: string, dto: UpdateMaterialDto) {
+    return this.materialApi.updateMaterial(code, dto);
+  }
+
+  getCategories() {
+    return this.categoryApi.getCategories();
+  }
+
+  createCategory(dto: CreateCategoryDto) {
+    return this.categoryApi.createCategory(dto);
+  }
+
+  updateCategory(code: string, dto: UpdateCategoryDto) {
+    return this.categoryApi.updateCategory(code, dto);
+  }
+
+  getUnits() {
+    return this.categoryApi.getUnits();
   }
 }

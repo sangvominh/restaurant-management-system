@@ -1,5 +1,10 @@
 /** Chỉ quyền nghiệp vụ xuất hiện trong checkbox của vai trò thường. */
 export const PERMISSIONS = [
+  { key: 'product:manage', label: 'Quản lý sản phẩm', group: 'Nhà hàng' },
+  { key: 'production:manage', label: 'Quản lý lệnh sản xuất', group: 'Nhà hàng' },
+  { key: 'finished-goods:inspect', label: 'Kiểm tra và duyệt nhập thành phẩm', group: 'Nhà hàng' },
+  { key: 'waste:manage', label: 'Duyệt hao hụt và lỗi', group: 'Kho / Nhà hàng' },
+  { key: 'staff:access', label: 'Truy cập ứng dụng nhân viên', group: 'Nhân viên' },
   {
     key: 'supplier:manage',
     label: 'Quản lý nhà cung cấp (thêm, sửa, xóa)',
@@ -95,6 +100,7 @@ export const SYSTEM_PERMISSION_KEYS = [
 ] as const;
 
 export const EMPLOYEE_PERMISSIONS = [
+  'staff:access',
   'shift:view',
   'inventory:view',
   'inventory:request-export',
@@ -106,6 +112,7 @@ export const EMPLOYEE_PERMISSIONS = [
 export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
   'Quản trị viên (Admin)': [WILDCARD],
   'Quản lý kho': [
+    'waste:manage',
     'supplier:manage',
     'material:manage',
     'inventory:import',
@@ -113,6 +120,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
     'inventory:view',
   ],
   'Quản lý nhà hàng': [
+    'product:manage', 'production:manage', 'finished-goods:inspect', 'waste:manage',
     'product:view',
     'bom:manage',
     'finished-goods:approve-export',

@@ -167,15 +167,9 @@ export default function LoginPage() {
         const res = await apiFetch('/api/auth/me');
         if (!res.ok || cancelled) return;
         const user: AuthUser = await res.json();
-        if (!isSystemAdmin(user)) {
-          clearSession();
-          setError('Trang đăng nhập này chỉ dành cho System Admin. Kho / Nhà hàng sử dụng trang đăng nhập riêng.');
-          return;
-        }
-        const token = getToken();
-        if (!cancelled && token) {
-          saveSession(token, user);
-          router.replace('/');
+        if (!cancelled) {
+          saveSession(getToken()!, user);
+          router.replace(isSystemAdmin(user) ? '/' : '/warehouse');
         }
       } catch {
         // Vẫn cho phép đăng nhập lại khi phiên cũ không xác nhận được.
@@ -189,19 +183,18 @@ export default function LoginPage() {
     setError(null);
     let success = false;
     try {
-      const res = await apiFetch('/api/auth/system-admin/login', {
+      const res = await apiFetch('/api/auth/login', {
         method: 'POST',
         body: JSON.stringify(values),
       });
       if (!res.ok) throw new Error(await readError(res, 'Đăng nhập thất bại'));
       const data: { accessToken: string; user: AuthUser } = await res.json();
-      if (!isSystemAdmin(data.user)) throw new Error('Tài khoản không có quyền truy cập System Admin.');
       saveSession(data.accessToken, data.user);
       success = true;
       setOpened(true);
       // Cho nắp cloche kịp nhấc lên; bỏ qua nếu người dùng chọn giảm chuyển động.
       if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) await wait(550);
-      router.replace('/');
+      router.replace(isSystemAdmin(data.user) ? '/' : '/warehouse');
     } catch (e: any) {
       // Lỗi mạng của fetch có message tiếng Anh khó hiểu -> thay bằng câu dễ hiểu.
       setError(e instanceof TypeError ? 'Không kết nối được máy chủ. Hãy kiểm tra backend đang chạy.' : e.message);
@@ -266,7 +259,7 @@ export default function LoginPage() {
         <section className="lg-panel">
           <div className="lg-card">
             <h1 className="lg-title">Đăng nhập</h1>
-            <p className="lg-sub">Đăng nhập bằng tài khoản System Admin để quản trị hệ thống.</p>
+            <p className="lg-sub">Đăng nhập để quản lý hệ thống, kho hoặc nhà hàng theo quyền được cấp.</p>
 
             {error && <Alert type="error" showIcon message={error} style={{ marginBottom: 20 }} />}
 

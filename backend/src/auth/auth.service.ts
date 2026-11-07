@@ -10,6 +10,7 @@ import { AuditService } from '../audit/audit.service.js';
 import type { AuthUser } from '../common/auth.decorators.js';
 import { isSystemRole } from '../common/management-policy.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { verifyPassword } from './password.js';
 
 const DUMMY_HASH = bcrypt.hashSync('khong-ton-tai', 10);
 
@@ -21,15 +22,20 @@ export class AuthService {
     private readonly audit: AuditService,
   ) {}
 
-  async login(email: string, password: string, ip?: string, systemAdminOnly = false) {
+  async login(
+    email: string,
+    password: string,
+    ip?: string,
+    systemAdminOnly = false,
+  ) {
     const account = await this.db.account.findUnique({
       where: { email: email.trim().toLowerCase() },
       include: { role: true },
     });
-    const ok = await bcrypt.compare(
-      password,
-      account?.passwordHash ?? DUMMY_HASH,
-    );
+    const storedHash = account?.passwordHash ?? DUMMY_HASH;
+    const ok = storedHash.startsWith('$2')
+      ? await bcrypt.compare(password, storedHash)
+      : verifyPassword(password, storedHash);
     if (!account || !account.passwordHash || !ok) {
       await this.audit.recordLogin({
         accountId: account?.id ?? null,
@@ -89,6 +95,52 @@ export class AuthService {
     return { message: 'Đã đăng xuất' };
   }
 
+  async authenticate(token: string) {
+    let payload: { sub: number; sid: number; ver: number };
+    try {
+      payload = await this.jwt.verifyAsync(token);
+    } catch {
+      throw new UnauthorizedException(
+        'Phiên đăng nhập không hợp lệ hoặc đã hết hạn',
+      );
+    }
+    if (
+      !Number.isInteger(payload.sub) ||
+      payload.sub <= 0 ||
+      !Number.isInteger(payload.sid) ||
+      payload.sid <= 0 ||
+      !Number.isInteger(payload.ver)
+    )
+      throw new UnauthorizedException('Phiên đăng nhập không hợp lệ');
+    const session = await this.db.loginLog.findUnique({
+      where: { id: payload.sid },
+      include: { account: { include: { role: true } } },
+    });
+    const account = session?.account;
+    if (
+      !session ||
+      session.status !== 'success' ||
+      session.logoutAt ||
+      !account ||
+      session.accountId !== payload.sub ||
+      account.status !== 'active' ||
+      account.sessionVersion !== payload.ver
+    )
+      throw new UnauthorizedException(
+        'Phiên đăng nhập đã kết thúc hoặc tài khoản bị khóa',
+      );
+    return {
+      id: account.id,
+      name: account.name,
+      email: account.email,
+      role: account.role.name,
+      permissions: account.role.permissions,
+      isSystemAdmin: isSystemRole(account.role),
+      portal: isSystemRole(account.role) ? 'system' : account.role.portal,
+      sessionId: session.id,
+    } satisfies AuthUser;
+  }
+
   async changePassword(
     userId: number,
     oldPassword: string,
@@ -99,7 +151,9 @@ export class AuthService {
       const account = await tx.account.findUnique({ where: { id: userId } });
       if (
         !account?.passwordHash ||
-        !(await bcrypt.compare(oldPassword, account.passwordHash))
+        !(account.passwordHash.startsWith('$2')
+          ? await bcrypt.compare(oldPassword, account.passwordHash)
+          : verifyPassword(oldPassword, account.passwordHash))
       )
         throw new BadRequestException('Mật khẩu hiện tại không đúng');
       if (oldPassword === newPassword)

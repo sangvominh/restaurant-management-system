@@ -1,3 +1,5 @@
+> Tài liệu lịch sử trước chuẩn hóa. Chuẩn hiện tại: [FOUNDATION](docs/FOUNDATION.md); cách chạy theo README gốc.
+
 # Bàn giao API hiện có — Admin Nhà Hàng
 
 ## 1. Tồn kho và phiếu thành phẩm

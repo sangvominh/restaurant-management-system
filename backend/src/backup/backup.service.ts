@@ -373,9 +373,9 @@ export class BackupService {
       }
       if (
         hash != null &&
-        (typeof hash !== 'string' || !/^\$2[aby]\$\d{2}\$.{53}$/.test(hash))
+        (typeof hash !== 'string' || !(/^\$2[aby]\$\d{2}\$.{53}$/.test(hash) || /^[a-f0-9]{32}:[a-f0-9]{128}$/i.test(hash)))
       ) {
-        errors.push(`${w}: mật khẩu băm không đúng định dạng bcrypt`);
+        errors.push(`${w}: mật khẩu băm không đúng định dạng được hỗ trợ`);
       }
       return {
         id: r.id as number,

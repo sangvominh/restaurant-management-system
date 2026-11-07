@@ -7,6 +7,7 @@ import {
 
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { Prisma } from '../../generated/prisma/client.js';
+import { isUsableLotExpiry } from '../lot-expiry.js';
 
 @Injectable()
 export class MaterialIssueApi {
@@ -50,7 +51,7 @@ export class MaterialIssueApi {
       })),
     };
   }
-// Xem chi tiết phiếu xuất nguyên vật liệu
+  // Xem chi tiết phiếu xuất nguyên vật liệu
   async getMaterialIssueByCode(code: string) {
     // 1. Tìm phiếu xuất theo mã
     const issue = await this.prisma.materialIssue.findUnique({
@@ -95,7 +96,7 @@ export class MaterialIssueApi {
       },
     };
   }
-// Phê duyệt phiếu xuất nguyên vật liệu
+  // Phê duyệt phiếu xuất nguyên vật liệu
   async approveIssue(code: string) {
     try {
       return await this.prisma.$transaction(
@@ -104,6 +105,7 @@ export class MaterialIssueApi {
           const issue = await tx.materialIssue.findUnique({
             where: { issueCode: code },
             include: {
+              branch: true,
               details: {
                 include: {
                   material: true,
@@ -124,8 +126,27 @@ export class MaterialIssueApi {
             throw new ConflictException('Phiếu đã được xử lý');
           }
 
+          if (!issue.branch.isActive) {
+            throw new BadRequestException('Không thể xuất NVL từ chi nhánh ngừng hoạt động');
+          }
+
           if (issue.details.length === 0) {
             throw new BadRequestException('Phiếu chưa có nguyên vật liệu');
+          }
+
+          const formatter = new Intl.DateTimeFormat('sv-SE', {
+            timeZone: 'Asia/Ho_Chi_Minh',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+          });
+          const today = formatter.format(new Date());
+          // Kiểm tra lại hạn đối với phiếu cấp cho bếp trước khi duyệt.
+          const staffRequest = await tx.staffAudit.findFirst({ where: { action: 'MATERIAL_REQUEST', targetId: issue.id } });
+          if (staffRequest) {
+            if (issue.details.some(item => !isUsableLotExpiry(item.materialLot.expiryDate))) {
+              throw new BadRequestException('Lô cấp cho bếp chưa có hạn sử dụng hoặc đã hết hạn');
+            }
           }
 
           // 3. Chuyển phiếu sang APPROVED
@@ -134,7 +155,7 @@ export class MaterialIssueApi {
               id: issue.id,
               status: 'PENDING',
             },
-            data: { status: 'APPROVED' },
+            data: { status: 'APPROVED', processedAt: new Date() },
           });
 
           if (updated.count !== 1) {
@@ -149,16 +170,23 @@ export class MaterialIssueApi {
               item.materialLot.status !== 'ACTIVE' ||
               item.unit.status !== 'ACTIVE' ||
               item.materialLot.materialId !== item.materialId ||
-              item.location.branchId !== issue.branchId
+              item.location.branchId !== issue.branchId ||
+              (item.materialLot.expiryDate !== null &&
+                formatter.format(item.materialLot.expiryDate) < today)
             ) {
-              throw new BadRequestException('Thông tin NVL không hợp lệ');
+              throw new BadRequestException(
+                'Thông tin NVL không hợp lệ hoặc lô đã hết hạn',
+              );
             }
 
             // Quy đổi về đơn vị tồn kho
             let quantity = item.quantity;
 
             if (item.unitId !== item.material.unitId) {
-              if (item.unit.baseUnitId !== item.material.unitId) {
+              if (
+                item.unit.baseUnitId !== item.material.unitId ||
+                item.unit.conversionFactor.lte(0)
+              ) {
                 throw new BadRequestException('Đơn vị tính không phù hợp');
               }
 
@@ -237,7 +265,7 @@ export class MaterialIssueApi {
       throw error;
     }
   }
-// Từ chối phiếu xuất nguyên vật liệu
+  // Từ chối phiếu xuất nguyên vật liệu
   async rejectIssue(code: string, reason: string) {
     // 1. Kiểm tra lý do
     reason = reason.trim();
@@ -274,6 +302,7 @@ export class MaterialIssueApi {
       data: {
         status: 'REJECTED',
         note,
+        processedAt: new Date(),
       },
     });
 

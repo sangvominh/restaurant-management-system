@@ -1,3 +1,5 @@
+> Tài liệu lịch sử trước chuẩn hóa. Chuẩn hiện tại: [FOUNDATION](FOUNDATION.md); cách chạy theo README gốc.
+
 # Quyền API Kho / Nhà hàng
 
 Mọi API bên dưới cần phiên đăng nhập hợp lệ, portal warehouse và không phải System Admin. Nhiều quyền trong một dòng có nghĩa ít nhất một quyền. Các thao tác chờ chốt quyền luôn bị từ chối.

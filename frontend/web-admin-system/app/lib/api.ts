@@ -7,11 +7,7 @@
  */
 export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
-export type SessionScope = 'system-admin' | 'warehouse';
-const SESSION_KEYS = {
-  'system-admin': { token: 'system_admin_access_token', user: 'system_admin_auth_user' },
-  warehouse: { token: 'warehouse_access_token', user: 'warehouse_auth_user' },
-} as const;
+const SESSION_KEYS = { token: 'account_access_token', user: 'account_auth_user' };
 
 export interface AuthUser {
   id: number;
@@ -27,36 +23,36 @@ export function isSystemAdmin(user: AuthUser | null): boolean {
   return user?.isSystemAdmin === true && user.permissions.includes('*');
 }
 
-export function getToken(scope: SessionScope = 'system-admin'): string | null {
+export function getToken(): string | null {
   try {
-    return localStorage.getItem(SESSION_KEYS[scope].token);
+    return localStorage.getItem(SESSION_KEYS.token);
   } catch {
     return null;
   }
 }
 
-export function getUser(scope: SessionScope = 'system-admin'): AuthUser | null {
+export function getUser(): AuthUser | null {
   try {
-    const raw = localStorage.getItem(SESSION_KEYS[scope].user);
+    const raw = localStorage.getItem(SESSION_KEYS.user);
     return raw ? (JSON.parse(raw) as AuthUser) : null;
   } catch {
     return null;
   }
 }
 
-export function saveSession(token: string, user: AuthUser, scope: SessionScope = 'system-admin') {
+export function saveSession(token: string, user: AuthUser) {
   try {
-    localStorage.setItem(SESSION_KEYS[scope].token, token);
-    localStorage.setItem(SESSION_KEYS[scope].user, JSON.stringify(user));
+    localStorage.setItem(SESSION_KEYS.token, token);
+    localStorage.setItem(SESSION_KEYS.user, JSON.stringify(user));
   } catch {
     /* trình duyệt chặn lưu trữ: phiên sẽ mất khi tải lại trang */
   }
 }
 
-export function clearSession(scope: SessionScope = 'system-admin') {
+export function clearSession() {
   try {
-    localStorage.removeItem(SESSION_KEYS[scope].token);
-    localStorage.removeItem(SESSION_KEYS[scope].user);
+    localStorage.removeItem(SESSION_KEYS.token);
+    localStorage.removeItem(SESSION_KEYS.user);
   } catch {
     /* bỏ qua */
   }
@@ -69,19 +65,19 @@ export function hasPermission(user: AuthUser | null, ...required: string[]): boo
   return required.some((p) => user.permissions.includes(p));
 }
 
-export async function apiFetch(path: string, init: RequestInit = {}, scope: SessionScope = 'system-admin'): Promise<Response> {
+export async function apiFetch(path: string, init: RequestInit = {}): Promise<Response> {
   const headers = new Headers(init.headers);
-  const token = getToken(scope);
+  const token = getToken();
   if (token) headers.set('Authorization', `Bearer ${token}`);
   if (init.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
 
   const res = await fetch(`${API_URL}${path}`, { ...init, headers });
 
-  // Mỗi khu vực chỉ xóa phiên của chính nó; Warehouse không dùng login System Admin.
+  // Một phiên tài khoản dùng chung cho các khu vực quản trị.
   const isLogin = path === '/api/auth/login' || path === '/api/auth/system-admin/login';
   if (res.status === 401 && typeof window !== 'undefined' && !isLogin) {
-    clearSession(scope);
-    window.location.href = scope === 'warehouse' ? '/warehouse' : '/login';
+    clearSession();
+    window.location.href = '/login';
   }
   return res;
 }

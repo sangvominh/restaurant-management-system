@@ -1,3 +1,4 @@
+import { configureMenuRecipe } from '../../test/helpers/menu-recipe.js';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { StaffMaterialWasteController } from './material-waste.controller.js';
@@ -50,7 +51,7 @@ describe.skipIf(!process.env.TEST_KITCHEN_DATABASE)('kitchen waste reservation (
   const invoice = await db.invoice.create({data:{branchId:branch,tableId:'10000000-0000-4000-8000-000000000101',guestName:'Test'}});
   const order = await db.staffOrder.create({data:{invoiceId:invoice.id,createdById:kitchen.staff.id,requestKey:'20000000-0000-4000-8000-000000000010'}});
   const line = await db.orderLine.create({data:{orderId:order.id,menuItemId:'10000000-0000-4000-8000-000000000500',name:'Test',unitPrice:1,quantity:1}});
-  await db.$executeRaw`INSERT INTO staff_demo_order_recipes(menu_item_id,material_id,quantity) VALUES ('10000000-0000-4000-8000-000000000500'::uuid,'20000000-0000-4000-8000-000000000003'::uuid,2)`;
+  await configureMenuRecipe(db, '10000000-0000-4000-8000-000000000500', '20000000-0000-4000-8000-000000000003', 2);
   const staff = new StaffService(db);
   const requirements = await staff.lineRequirements(kitchen.staff,line.id);
   expect(requirements[0]).toMatchObject({available:'9',blockedExpiry:'9',shortage:'0'});

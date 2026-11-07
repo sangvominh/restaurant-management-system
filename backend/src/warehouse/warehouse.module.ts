@@ -1,3 +1,10 @@
+import { StaffModule } from '../staff/staff.module.js';
+import { SharedMaterialAdjustmentApi } from './api/shared-material-adjustment.api.js';
+import { MaterialAdjustmentApi } from './api/material-adjustment.api.js';
+import { WarehouseReferenceApi } from './api/warehouse-reference.api.js';
+import { CategoryApi } from './api/category.api.js';
+import { MaterialApi } from './api/material.api.js';
+import { SupplierApi } from './api/supplier.api.js';
 
 import { Module } from '@nestjs/common';
 
@@ -17,11 +24,17 @@ import { FinishedGoodsIssueApi } from './api/finished-goods-issue.api.js';
 import { FinishedGoodsDefectApi } from './api/finished-goods-defect.api.js';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, StaffModule],
 
   controllers: [WarehouseController],
 
   providers: [
+    SupplierApi,
+    MaterialApi,
+    CategoryApi,
+    WarehouseReferenceApi,
+    MaterialAdjustmentApi,
+    SharedMaterialAdjustmentApi,
     WarehouseService,
     InventoryApi,
     ReceiptApi,

@@ -100,14 +100,14 @@ export class StaffService {
   private async requirements(tx: Prisma.TransactionClient, user: StaffIdentity, id: string) {
     const line = await tx.orderLine.findFirst({ where: { id: uuid(id), order: { invoice: { branchId: user.branchId } } } });
     if (!line) throw new NotFoundException('Không tìm thấy món.');
-    const recipes = await tx.$queryRaw<{code:string; name:string; unit:string; quantity:Prisma.Decimal; available:Prisma.Decimal; blocked_expiry:Prisma.Decimal}[]>`
-      SELECT m.code, m.name, u.name AS unit, r.quantity,
+    const recipes = await tx.$queryRaw<{code:string; name:string; unit:string; quantity:Prisma.Decimal | null; available:Prisma.Decimal; blocked_expiry:Prisma.Decimal}[]>`
+      SELECT m.code, m.name, u.name AS unit, (r.quantity / NULLIF(bom.output_quantity, 0) * CASE WHEN r.unit_id=m.unit_id THEN 1 WHEN ru.base_unit_id=m.unit_id THEN ru.conversion_factor END) AS quantity,
         COALESCE((SELECT SUM(GREATEST(b.quantity-b.reserved_waste-b.reserved_return-COALESCE((SELECT SUM(r.quantity) FROM staff_material_returns r JOIN material_issue_details d ON d.id=r.issue_detail_id WHERE r.branch_id=b.branch_id AND d.material_lot_id=b.material_lot_id AND r.status='PENDING' AND NOT r.stock_reserved),0),0)) FROM staff_kitchen_balances b JOIN material_lots l ON l.id=b.material_lot_id WHERE b.branch_id=${user.branchId}::uuid AND l.material_id=m.id AND l.status='ACTIVE' AND l.expiry_date >= (now() AT TIME ZONE 'Asia/Ho_Chi_Minh')::date),0) AS available,
         COALESCE((SELECT SUM(GREATEST(b.quantity-b.reserved_waste-b.reserved_return-COALESCE((SELECT SUM(r.quantity) FROM staff_material_returns r JOIN material_issue_details d ON d.id=r.issue_detail_id WHERE r.branch_id=b.branch_id AND d.material_lot_id=b.material_lot_id AND r.status='PENDING' AND NOT r.stock_reserved),0),0)) FROM staff_kitchen_balances b JOIN material_lots l ON l.id=b.material_lot_id WHERE b.branch_id=${user.branchId}::uuid AND l.material_id=m.id AND l.status='ACTIVE' AND (l.expiry_date IS NULL OR l.expiry_date < (now() AT TIME ZONE 'Asia/Ho_Chi_Minh')::date)),0) AS blocked_expiry
-      FROM staff_demo_order_recipes r JOIN materials m ON m.id=r.material_id JOIN units u ON u.id=m.unit_id
-      WHERE r.menu_item_id=${line.menuItemId}::uuid ORDER BY m.name`;
-    if (!recipes.length) throw new BadRequestException('Món chưa có công thức giả lập.');
-    return recipes.map(r => { const required = r.quantity.mul(line.quantity); return { code:r.code, name:r.name, unit:r.unit, required:required.toString(), available:r.available.toString(), blockedExpiry:r.blocked_expiry.toString(), shortage:Prisma.Decimal.max(required.minus(r.available),0).toString() }; });
+      FROM menu_items menu JOIN boms bom ON bom.id=menu.bom_id AND bom.status='ACTIVE' JOIN bom_details r ON r.bom_id=bom.id JOIN materials m ON m.id=r.material_id JOIN units ru ON ru.id=r.unit_id JOIN units u ON u.id=m.unit_id
+      WHERE menu.id=${line.menuItemId}::uuid ORDER BY m.name`;
+    if (!recipes.length) throw new BadRequestException('Món chưa có công thức BOM.');
+    return recipes.map(r => { if (!r.quantity) throw new BadRequestException('Đơn vị BOM không quy đổi được về đơn vị tồn kho.'); const required = r.quantity.mul(line.quantity); return { code:r.code, name:r.name, unit:r.unit, required:required.toString(), available:r.available.toString(), blockedExpiry:r.blocked_expiry.toString(), shortage:Prisma.Decimal.max(required.minus(r.available),0).toString() }; });
   }
   lineRequirements(user: StaffIdentity, id: string) { return this.tx(tx => this.requirements(tx, user, id)); }
   updateLine(user: StaffIdentity, id: string, body: unknown) {
@@ -130,12 +130,13 @@ export class StaffService {
       if (status === 'READY') {
         const pending=await tx.$queryRaw<{count:bigint}[]>`SELECT COUNT(*) AS count FROM staff_processing_defects WHERE order_line_id=${line.id}::uuid AND status='PENDING'`;
         if (pending[0].count > 0n) throw new ConflictException('Món có phiếu sự cố đang chờ duyệt; chưa thể báo hoàn thành.');
-        // Demo recipe quantities use the material's inventory unit. Missing mappings never consume stock.
-        const recipes = await tx.$queryRaw<{ material_id: string; quantity: Prisma.Decimal; name: string }[]>`
-          SELECT r.material_id, r.quantity, m.name FROM staff_demo_order_recipes r
-          JOIN materials m ON m.id=r.material_id WHERE r.menu_item_id=${line.menuItemId}::uuid ORDER BY r.material_id`;
-        if (!recipes.length) throw new BadRequestException('Món chưa có công thức giả lập; chưa thể báo hoàn thành.');
+        // BOM quantities are converted into inventory units before consuming stock.
+        const recipes = await tx.$queryRaw<{ material_id: string; quantity: Prisma.Decimal | null; name: string }[]>`
+          SELECT r.material_id, (r.quantity / NULLIF(bom.output_quantity, 0) * CASE WHEN r.unit_id=m.unit_id THEN 1 WHEN ru.base_unit_id=m.unit_id THEN ru.conversion_factor END) AS quantity, m.name FROM menu_items menu JOIN boms bom ON bom.id=menu.bom_id AND bom.status='ACTIVE' JOIN bom_details r ON r.bom_id=bom.id
+          JOIN materials m ON m.id=r.material_id JOIN units ru ON ru.id=r.unit_id WHERE menu.id=${line.menuItemId}::uuid ORDER BY r.material_id`;
+        if (!recipes.length) throw new BadRequestException('Món chưa có công thức BOM; chưa thể báo hoàn thành.');
         for (const recipe of recipes) {
+          if (!recipe.quantity) throw new BadRequestException('Đơn vị BOM không quy đổi được về đơn vị tồn kho.');
           let remaining = recipe.quantity.mul(line.quantity);
           const lots = await tx.$queryRaw<{ material_lot_id: string; quantity: Prisma.Decimal }[]>`
             SELECT b.material_lot_id, (GREATEST(b.quantity-b.reserved_waste-b.reserved_return-COALESCE((SELECT SUM(r.quantity) FROM staff_material_returns r JOIN material_issue_details d ON d.id=r.issue_detail_id WHERE r.branch_id=b.branch_id AND d.material_lot_id=b.material_lot_id AND r.status='PENDING' AND NOT r.stock_reserved),0),0)) AS quantity FROM staff_kitchen_balances b
@@ -163,7 +164,7 @@ export class StaffService {
         await tx.$executeRaw`INSERT INTO staff_kitchen_waste(code,actor_id,branch_id,material_lot_id,order_line_id,quantity,reason,status) VALUES (${code},${user.id}::uuid,${user.branchId}::uuid,${lotId}::uuid,${line.id}::uuid,${quantity},${reason},'PENDING')`;
       }
       const result = await tx.orderLine.update({ where: { id: line.id }, data: { status: status as 'COOKING' | 'READY' | 'SERVED', ...(status === 'COOKING' ? { cookingAt: new Date() } : status === 'READY' ? { readyAt: new Date() } : { servedAt: new Date() }) } });
-      await this.audit(tx, user, `LINE_${status}`, id, status === 'READY' ? 'Trừ tồn bếp theo công thức giả lập' : 'Không thay đổi tồn kho');
+      await this.audit(tx, user, `LINE_${status}`, id, status === 'READY' ? 'Trừ tồn bếp theo công thức BOM' : 'Không thay đổi tồn kho');
       return result;
     });
   }

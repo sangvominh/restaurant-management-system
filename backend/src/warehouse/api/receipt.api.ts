@@ -2,6 +2,7 @@ import {
   Injectable,
   BadRequestException,
   ConflictException,
+  NotFoundException,
 } from '@nestjs/common';
 
 import { Prisma } from '../../generated/prisma/client.js';
@@ -10,7 +11,7 @@ import {
   CreateReceiptDto,
   CreateReceiptDetailDto,
 } from '../dto/create-receipt.dto.js';
-import { NotFoundException } from '@nestjs/common';
+
 @Injectable()
 export class ReceiptApi {
   constructor(private readonly prisma: PrismaService) {}
@@ -20,11 +21,6 @@ export class ReceiptApi {
     try {
       return await this.prisma.$transaction(
         async (tx) => {
-          // Kiểm tra thông tin chung
-          await this.checkInfo(tx, dto);
-
-          // Tạo phiếu nhập
-
           const { supplier, branch } = await this.checkInfo(tx, dto);
 
           const receipt = await tx.goodsReceipt.create({
@@ -77,10 +73,57 @@ export class ReceiptApi {
       throw error;
     }
   }
-// Lấy danh sách phiếu nhập kho
-  async getReceipts() {
-    // Lấy danh sách phiếu nhập từ PostgreSQL
+  // Lấy danh sách phiếu nhập kho
+  async getReceipts(
+    supplierCode?: string,
+    branchCode?: string,
+    from?: string,
+    to?: string,
+  ) {
+    const where: Prisma.GoodsReceiptWhereInput = {};
+
+    if (supplierCode?.trim()) {
+      const supplier = await this.prisma.supplier.findUnique({
+        where: { code: supplierCode.trim() },
+      });
+
+      if (!supplier) {
+        throw new NotFoundException('Không tìm thấy nhà cung cấp');
+      }
+
+      where.supplierId = supplier.id;
+    }
+
+    if (branchCode?.trim()) {
+      const branch = await this.prisma.branch.findUnique({
+        where: { code: branchCode.trim() },
+      });
+
+      if (!branch) {
+        throw new NotFoundException('Không tìm thấy chi nhánh');
+      }
+
+      where.branchId = branch.id;
+    }
+
+    if (from || to) {
+      const start = from ? this.parseDate(from, 'from') : undefined;
+      const end = to ? this.parseDate(to, 'to') : undefined;
+
+      if (start && end && start > end) {
+        throw new BadRequestException(
+          'Ngày bắt đầu không được sau ngày kết thúc',
+        );
+      }
+
+      where.createdAt = {
+        ...(start ? { gte: start } : {}),
+        ...(end ? { lt: new Date(end.getTime() + 24 * 60 * 60 * 1000) } : {}),
+      };
+    }
+
     const receipts = await this.prisma.goodsReceipt.findMany({
+      where,
       include: {
         supplier: true,
         branch: true,
@@ -114,12 +157,34 @@ export class ReceiptApi {
     };
   }
 
+  private parseDate(value: string, field: string, dateOnly = false) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      throw new BadRequestException(
+        `Ngày ${field} phải theo định dạng YYYY-MM-DD`,
+      );
+    }
+
+    const [year, month, day] = value.split('-').map(Number);
+    const check = new Date(Date.UTC(year, month - 1, day));
+
+    if (
+      check.getUTCFullYear() !== year ||
+      check.getUTCMonth() !== month - 1 ||
+      check.getUTCDate() !== day
+    ) {
+      throw new BadRequestException(`Ngày ${field} không hợp lệ`);
+    }
+
+    // PostgreSQL DATE stores a calendar day; timestamp filters use local midnight.
+    return new Date(`${value}T00:00:00.000${dateOnly ? 'Z' : '+07:00'}`);
+  }
+
   //Kiểm tra nhà cung cấp và chi nhánh
 
   private async checkInfo(tx: Prisma.TransactionClient, dto: CreateReceiptDto) {
     // Tìm nhà cung cấp theo mã
     const supplier = await tx.supplier.findUnique({
-      where: { code: dto.supplierCode },
+      where: { code: dto.supplierCode.trim() },
     });
 
     if (!supplier || supplier.status !== 'ACTIVE') {
@@ -128,11 +193,14 @@ export class ReceiptApi {
 
     // Tìm chi nhánh theo mã
     const branch = await tx.branch.findUnique({
-      where: { code: dto.branchCode },
+      where: { code: dto.branchCode.trim() },
     });
 
     if (!branch || !branch.isActive) {
       throw new BadRequestException('Chi nhánh không hợp lệ');
+    }
+    if (dto.branchId && dto.branchId !== branch.id) {
+      throw new BadRequestException('Mã và định danh chi nhánh không khớp');
     }
 
     return { supplier, branch };
@@ -148,7 +216,7 @@ export class ReceiptApi {
   ) {
     // 1. Tìm nguyên vật liệu theo mã
     const material = await tx.material.findUnique({
-      where: { code: item.materialCode },
+      where: { code: item.materialCode.trim() },
     });
 
     if (!material || material.status !== 'ACTIVE') {
@@ -156,17 +224,52 @@ export class ReceiptApi {
     }
 
     // 2. Tìm lô theo mã NVL và mã lô
-    const lot = await tx.materialLot.findUnique({
+    let lot = await tx.materialLot.findUnique({
       where: {
         materialId_lotCode: {
           materialId: material.id,
-          lotCode: item.lotCode,
+          lotCode: item.lotCode.trim(),
         },
       },
     });
 
-    if (!lot || lot.status !== 'ACTIVE') {
-      throw new BadRequestException('Lô NVL không hợp lệ');
+    const expiryDate = item.expiryDate
+      ? this.parseDate(item.expiryDate, 'hạn sử dụng', true)
+      : null;
+    const today = new Intl.DateTimeFormat('sv-SE', {
+      timeZone: 'Asia/Ho_Chi_Minh',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(new Date());
+
+    if (expiryDate && item.expiryDate! < today) {
+      throw new BadRequestException('Không thể nhập lô đã hết hạn');
+    }
+
+    if (!lot) {
+      lot = await tx.materialLot.create({
+        data: {
+          materialId: material.id,
+          lotCode: item.lotCode.trim(),
+          expiryDate,
+        },
+      });
+    } else if (lot.status !== 'ACTIVE') {
+      throw new BadRequestException('Lô NVL không hoạt động');
+    } else if (lot.expiryDate && lot.expiryDate.toISOString().slice(0, 10) < today) {
+      throw new BadRequestException('Không thể nhập lô đã hết hạn');
+    } else if (expiryDate && lot.expiryDate) {
+      const existingExpiry = lot.expiryDate.toISOString().slice(0, 10);
+
+      if (existingExpiry !== item.expiryDate) {
+        throw new ConflictException('Hạn sử dụng không khớp với mã lô đã có');
+      }
+    } else if (expiryDate && !lot.expiryDate) {
+      lot = await tx.materialLot.update({
+        where: { id: lot.id },
+        data: { expiryDate },
+      });
     }
 
     // 3. Tìm vị trí trong đúng chi nhánh
@@ -174,18 +277,18 @@ export class ReceiptApi {
       where: {
         branchId_name: {
           branchId,
-          name: item.locationName,
+          name: item.locationName.trim(),
         },
       },
     });
 
-    if (!location) {
+    if (!location || (item.locationId && item.locationId !== location.id)) {
       throw new BadRequestException('Vị trí kho không hợp lệ');
     }
 
     // 4. Tìm đơn vị tính theo tên
     const unit = await tx.unit.findUnique({
-      where: { name: item.unitName },
+      where: { name: item.unitName.trim() },
     });
 
     if (!unit || unit.status !== 'ACTIVE') {
@@ -198,7 +301,7 @@ export class ReceiptApi {
     let stockQuantity = quantity;
 
     if (unit.id !== material.unitId) {
-      if (unit.baseUnitId !== material.unitId) {
+      if (unit.baseUnitId !== material.unitId || unit.conversionFactor.lte(0)) {
         throw new BadRequestException('Không thể quy đổi đơn vị tính');
       }
 
@@ -253,7 +356,7 @@ export class ReceiptApi {
       },
     });
   }
-//lấy chiet tiết phiếu nhập theo mã
+  //lấy chiet tiết phiếu nhập theo mã
   async getReceiptByCode(code: string) {
     // 1. Tìm phiếu nhập theo mã
     const receipt = await this.prisma.goodsReceipt.findUnique({

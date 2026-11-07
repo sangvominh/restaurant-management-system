@@ -8,8 +8,6 @@ FROM base AS dependencies
 COPY package.json package-lock.json ./
 COPY backend/package.json ./backend/package.json
 COPY frontend/web-admin-system/package.json ./frontend/web-admin-system/package.json
-COPY frontend/warehouse-web/package.json ./frontend/warehouse-web/package.json
-COPY frontend/restaurant-web/package.json ./frontend/restaurant-web/package.json
 COPY frontend/staff-app/package.json ./frontend/staff-app/package.json
 COPY frontend/guest-web/package.json ./frontend/guest-web/package.json
 RUN --mount=type=cache,target=/root/.npm \
@@ -29,8 +27,6 @@ FROM base AS production-dependencies
 COPY package.json package-lock.json ./
 COPY backend/package.json ./backend/package.json
 COPY frontend/web-admin-system/package.json ./frontend/web-admin-system/package.json
-COPY frontend/warehouse-web/package.json ./frontend/warehouse-web/package.json
-COPY frontend/restaurant-web/package.json ./frontend/restaurant-web/package.json
 COPY frontend/staff-app/package.json ./frontend/staff-app/package.json
 COPY frontend/guest-web/package.json ./frontend/guest-web/package.json
 RUN --mount=type=cache,target=/root/.npm \

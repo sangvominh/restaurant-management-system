@@ -1,3 +1,5 @@
+> Tài liệu lịch sử trước chuẩn hóa. Chuẩn hiện tại: [FOUNDATION](FOUNDATION.md); cách chạy theo README gốc.
+
 # System Admin: Prisma + ESM
 
 Nền tương thích `develop` tại commit `7c70254`: NestJS, PostgreSQL, Prisma 7.10.1, ESM/NodeNext và Vitest. Bản tích hợp đã bổ sung module kho/nhà hàng từ 797f8d6; xem [tài liệu tích hợp hiện tại](integration.md) và ma trận API. Phần dưới mô tả nền System Admin và cách giữ dữ liệu cũ.

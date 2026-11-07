@@ -14,15 +14,40 @@ import {
   Min,
   MinLength,
   ValidateIf,
+  ValidateNested,
+  IsUUID,
+  IsBoolean,
 } from 'class-validator';
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import { ALL_PERMISSION_KEYS } from '../../../common/permissions.js';
 
 const trim = ({ value }: { value: unknown }) =>
   typeof value === 'string' ? value.trim() : value;
 
 /* ---------------- Accounts ---------------- */
+export class StaffProfileDto {
+  @Transform(trim)
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(50)
+  code: string;
+
+  @IsUUID()
+  branchId: string;
+
+  @IsIn(['SERVICE', 'KITCHEN', 'BARISTA', 'CASHIER', 'SUPERVISOR'])
+  role: 'SERVICE' | 'KITCHEN' | 'BARISTA' | 'CASHIER' | 'SUPERVISOR';
+
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
+}
+
 export class CreateAccountDto {
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => StaffProfileDto)
+  staffProfile?: StaffProfileDto;
   @Transform(trim)
   @IsString()
   @IsNotEmpty({ message: 'Họ tên không được để trống' })
@@ -58,6 +83,10 @@ export class CreateAccountDto {
 }
 
 export class UpdateAccountDto {
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => StaffProfileDto)
+  staffProfile?: StaffProfileDto;
   @IsOptional()
   @Transform(trim)
   @IsString()
