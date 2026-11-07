@@ -43,6 +43,8 @@ Ba migration mới chạy trong transaction:
 - `20261107000100_canonical_recipes`: giữ công thức cũ bằng Product/BOM/BomDetail và liên kết MenuItem. Mã chuyển đổi `MENU-<uuid>`, không tự ghép sản phẩm chỉ vì tên giống nhau. Bỏ bảng công thức demo sau khi sao chép.
 - `20261107000200_business_reports`: thay view báo cáo bằng payment và ledger kho thật. Các bảng demo báo cáo cũ nếu còn được giữ nguyên trong DB; không còn nguồn runtime nào sử dụng chúng.
 
+Đợt rà soát tiếp theo bổ sung `20261107000300_remove_legacy_report_demo`: chỉ xóa ba bảng báo cáo mẫu có marker `system-admin-demo-v1`, trong transaction và không CASCADE. Bảng cùng tên không có marker được giữ nguyên; checkpoint DB được tạo trước khi áp dụng. Xem [rà soát tài nguyên](RESOURCE_AUDIT.md).
+
 Hash scrypt cũ được hỗ trợ để không mất mật khẩu; tài khoản mới/đổi mật khẩu dùng bcrypt. Sao lưu quản trị đọc được cả hai định dạng. `db:backup` dùng pg_dump đầy đủ; phải giữ dump trước khi nâng cấp. Migration cũ đã áp dụng không chỉnh sửa checksum.
 
 ## Giới hạn của vòng này
@@ -70,3 +72,5 @@ Các test integration cũ phụ thuộc fixture DB riêng vẫn được giữ v
 - Edge headless: 3 ca đạt cho phiên chung Admin/Kho/Nhà hàng, ranh giới quyền kho và form hồ sơ nhân viên.
 - Cấu hình PostCSS của Admin đã dùng cùng plugin với Staff, không còn cảnh báo `Unknown at rule: @theme` trong smoke test. Còn một số cảnh báo deprecated props từ Ant Design và pg; chưa nâng version thư viện trong vòng này.
 - Sau khi leader duyệt phạm vi, đã xóa 30 đường dẫn cũ; danh sách chính xác được giữ trong CLEANUP_PENDING.md. DB/volume, backups, `.env`, migration active và tài nguyên Guest được giữ nguyên.
+
+Hướng dẫn nghiệm thu hiện tại: [TESTING.md](TESTING.md). Sau khi thêm migration dọn bảng demo, `npm run check` đạt 52 unit và 50 E2E, còn 18 ca integration legacy skip.

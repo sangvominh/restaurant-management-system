@@ -2,6 +2,8 @@
 
 Backend NestJS chia module, một PostgreSQL và một hệ tài khoản. Backend + DB chạy Docker; frontend chạy local. Nguồn chuẩn về kiến trúc và dữ liệu: [FOUNDATION.md](docs/FOUNDATION.md).
 
+Hướng dẫn test từ đầu, checklist từng phân hệ và giới hạn UI: [TESTING.md](docs/TESTING.md). Kết quả rà soát DB/volume, backup, env và tài nguyên Guest: [RESOURCE_AUDIT.md](docs/RESOURCE_AUDIT.md).
+
 ## Chạy môi trường phát triển
 
 Cần Node.js 24 LTS, npm và Docker Desktop dùng Linux engine. Chạy lệnh từ root repository.
@@ -86,6 +88,7 @@ Khởi động lại frontend sau khi đổi env. Xóa hai file local này hoặ
 | `npm run db:backup` | Sao lưu đầy đủ DB phát triển vào `backups/*.dump` |
 | `npm run demo:rebuild` | Dựng lại môi trường demo riêng |
 | `npm run demo:stop` | Dừng demo, giữ volume |
+| `npm run demo:clean` | Xóa container/network/volume chỉ của demo; dựng lại bằng demo:rebuild |
 | `npm run check` | Build, unit/E2E, TypeScript các frontend chính thức |
 
 Frontend dừng bằng Ctrl+C. Kiểm tra API bằng `Invoke-RestMethod http://localhost:3000/`. Nếu migration lỗi, xem `dev:logs`; không tự reset DB hoặc đánh dấu migration đã chạy. Backup JSON trong giao diện chỉ phục vụ dữ liệu quản trị; bản dump từ `db:backup` mới gồm toàn bộ nghiệp vụ.

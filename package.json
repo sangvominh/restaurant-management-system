@@ -15,6 +15,7 @@
     "db:backup": "node scripts/project.mjs backup",
     "demo:rebuild": "node scripts/project.mjs demo-rebuild",
     "demo:stop": "node scripts/project.mjs demo-stop",
+    "demo:clean": "node scripts/project.mjs demo-clean",
     "check": "node scripts/check.mjs"
   },
   "workspaces": [

@@ -48,6 +48,7 @@ const commands = {
     "bootstrap",
   ],
   "demo-stop": ["stop"],
+  "demo-clean": ["down", "--volumes"],
 };
 if (action === "backup") {
   const directory = join(root, "backups");
