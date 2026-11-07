@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { StaffProductionController } from './production.controller.js';
 import type { PrismaService } from '../prisma/prisma.service.js';
 import type { FinishedGoodsApi } from '../warehouse/api/finished-goods.api.js';
-import type { StaffRequest } from '../auth/auth.guard.js';
+import type { StaffRequest } from '../auth/staff-auth.guard.js';
 
 const req = { staff: { branchId:'branch', code:'staff' } } as StaffRequest;
 describe('warehouse-issued production lot expiry', () => {

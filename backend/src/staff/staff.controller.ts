@@ -1,6 +1,8 @@
+import { Public } from '../common/auth.decorators.js';
 import { Body, Controller, Get, Param, Patch, Post, Req, UseGuards, NotImplementedException } from '@nestjs/common';
-import { AuthGuard, Roles, type StaffRequest } from '../auth/auth.guard.js';
+import { AuthGuard, Roles, type StaffRequest } from '../auth/staff-auth.guard.js';
 import { StaffService } from './staff.service.js';
+@Public()
 @Controller('api/staff')
 @UseGuards(AuthGuard)
 export class StaffController {

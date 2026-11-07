@@ -1,4 +1,4 @@
-# Bổ sung ứng dụng; file database docker-compose.yml của nhóm giữ nguyên.
+# Backend Docker; các frontend chạy local theo README.md.
 services:
   backend-init:
     build:
@@ -23,18 +23,18 @@ services:
       - ./backend/.env
     environment:
       NODE_ENV: production
-      PORT: "3001"
+      PORT: "3000"
       DATABASE_URL: postgresql://restaurant:local_dev_only@db:5432/restaurant_dev?schema=public
-      CORS_ORIGIN: ${WEB_ORIGIN:-http://localhost:3000}
+      CORS_ORIGIN: http://localhost:3001,http://localhost:3002,http://localhost:3003,http://localhost:3004,http://localhost:3005
     ports:
-      - "127.0.0.1:${API_PORT:-3001}:3001"
+      - "127.0.0.1:${API_PORT:-3000}:3000"
     depends_on:
       db:
         condition: service_healthy
       backend-init:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3001/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 5s
       timeout: 3s
       retries: 12
@@ -43,6 +43,7 @@ services:
     init: true
 
   frontend:
+    profiles: ["legacy-frontend"]
     build:
       context: .
       dockerfile: frontend/web-admin-system/Dockerfile

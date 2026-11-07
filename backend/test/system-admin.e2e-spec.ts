@@ -7,6 +7,7 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import request from 'supertest';
+import { hashPassword } from '../src/auth/password.js';
 
 // Test bản ESM đã biên dịch bằng tsc, bao gồm decorator metadata như khi chạy thật.
 type Database = InstanceType<
@@ -22,6 +23,24 @@ const password = 'TestAdmin@123';
 const adminEmail = 'admin@example.com';
 
 const api = () => request(app.getHttpServer());
+
+it('giữ đăng nhập cookie nhân viên tách biệt với JWT quản trị sau tích hợp', async () => {
+  const branch = await db.branch.create({ data: { code: 'STAFF-AUTH', name: 'Chi nhánh kiểm thử' } });
+  await db.staffUser.create({ data: {
+    code: 'STAFF-AUTH-TEST', name: 'Nhân viên kiểm thử', role: 'SERVICE',
+    branchId: branch.id, passwordHash: hashPassword(password),
+  } });
+  await api().get('/api/staff/tables').expect(401);
+  await api().post('/api/staff-auth/login').send({ code: 'STAFF-AUTH-TEST', password }).expect(403);
+  const response = await api().post('/api/staff-auth/login').set('X-Staff-Request', '1')
+    .send({ code: 'STAFF-AUTH-TEST', password }).expect(201);
+  const cookie = response.headers['set-cookie'];
+  await api().get('/api/staff-auth/me').set('Cookie', cookie).expect(200);
+  await api().get('/api/staff/tables').set('Cookie', cookie).expect(200);
+  await api().get('/api/admin/accounts').set('Cookie', cookie).expect(401);
+  await api().post('/api/staff-auth/logout').set('Cookie', cookie).set('X-Staff-Request', '1').expect(201);
+  await api().get('/api/staff/tables').set('Cookie', cookie).expect(401);
+});
 async function login(email = adminEmail, secret = password) {
   const response = await api()
     .post(email === adminEmail ? '/api/auth/system-admin/login' : '/api/auth/login')
@@ -1119,7 +1138,7 @@ describe('tích hợp A System Admin — B Kho — C Nhà hàng', () => {
     const branch = await db.branch.create({data:{code:'INTEGRATION-CN01',name:'Chi nhánh thử'}});
     const location = await db.warehouseLocation.create({data:{branchId:branch.id,name:'Kho thử',locationType:'NORMAL'}});
     const unit = await db.unit.create({data:{name:'kg'}});
-    const category = await db.category.create({data:{name:'Nguyên liệu thử',categoryType:'MATERIAL'}});
+    const category = await db.category.create({data:{code:'DM-TEST',name:'Nguyên liệu thử',categoryType:'MATERIAL'}});
     const material = await db.material.create({data:{code:'INTEGRATION-NVL01',name:'Bột thử',unitId:unit.id,categoryId:category.id}});
     const lot = await db.materialLot.create({data:{materialId:material.id,lotCode:'LO-01'}});
     await db.materialBalance.create({data:{locationId:location.id,materialLotId:lot.id,quantity:20}});

@@ -174,7 +174,7 @@ export class WasteApi {
         orderCode: item.receipt.productionOrder.code,
         productCode: item.receipt.productionOrder.bom.productCode,
         productName:
-          item.receipt.productionOrder.bom.product.name ||
+          item.receipt.productionOrder.bom.product?.name ||
           item.receipt.productionOrder.bom.productName ||
           item.receipt.productionOrder.bom.productCode,
         branchCode: item.receipt.productionOrder.branch.code,

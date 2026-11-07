@@ -1,7 +1,7 @@
 import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException, NotImplementedException } from '@nestjs/common';
 import { Prisma } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
-import type { StaffIdentity } from '../auth/auth.service.js';
+import type { StaffIdentity } from '../auth/staff-auth.service.js';
 import { integer, object, text, uuid } from './input.js';
 import { randomUUID } from 'node:crypto';
 const invoiceInclude = { table: true, orders: { orderBy: { createdAt: 'asc' as const }, include: { lines: true } }, payment: true };

@@ -8,6 +8,10 @@ FROM base AS dependencies
 COPY package.json package-lock.json ./
 COPY backend/package.json ./backend/package.json
 COPY frontend/web-admin-system/package.json ./frontend/web-admin-system/package.json
+COPY frontend/warehouse-web/package.json ./frontend/warehouse-web/package.json
+COPY frontend/restaurant-web/package.json ./frontend/restaurant-web/package.json
+COPY frontend/staff-app/package.json ./frontend/staff-app/package.json
+COPY frontend/guest-web/package.json ./frontend/guest-web/package.json
 RUN --mount=type=cache,target=/root/.npm \
     npm ci --workspace backend --include-workspace-root --no-audit --no-fund
 
@@ -25,17 +29,21 @@ FROM base AS production-dependencies
 COPY package.json package-lock.json ./
 COPY backend/package.json ./backend/package.json
 COPY frontend/web-admin-system/package.json ./frontend/web-admin-system/package.json
+COPY frontend/warehouse-web/package.json ./frontend/warehouse-web/package.json
+COPY frontend/restaurant-web/package.json ./frontend/restaurant-web/package.json
+COPY frontend/staff-app/package.json ./frontend/staff-app/package.json
+COPY frontend/guest-web/package.json ./frontend/guest-web/package.json
 RUN --mount=type=cache,target=/root/.npm \
     npm ci --omit=dev --workspace backend --include-workspace-root --no-audit --no-fund \
     && mkdir -p backend/node_modules
 
 FROM base AS runtime
-ENV NODE_ENV=production PORT=3001
+ENV NODE_ENV=production PORT=3000
 COPY --from=production-dependencies --chown=node:node /app/node_modules ./node_modules
 COPY --from=production-dependencies --chown=node:node /app/backend/node_modules ./backend/node_modules
 COPY --from=build --chown=node:node /app/backend/package.json ./backend/package.json
 COPY --from=build --chown=node:node /app/backend/dist ./backend/dist
 WORKDIR /app/backend
 USER node
-EXPOSE 3001
+EXPOSE 3000
 CMD ["node", "dist/main.js"]

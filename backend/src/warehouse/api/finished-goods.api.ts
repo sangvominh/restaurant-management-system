@@ -19,13 +19,13 @@ export class FinishedGoodsApi {
     const reportedQuantity = new Prisma.Decimal(dto.reportedQuantity);
     if (reportedQuantity.lte(0)) throw new BadRequestException('Số lượng hoàn thành phải lớn hơn 0');
     return this.prisma.$transaction(async (tx) => {
-      const order = await tx.productionOrder.findUnique({ where: { code: orderCode.trim() }, include: { finishedGoodsReceipt: true } });
+      const order = await tx.productionOrder.findUnique({ where: { code: orderCode.trim() }, include: { finishedGoodsReceipts: { orderBy: { createdAt: 'desc' }, take: 1 } } });
       if (!order) throw new NotFoundException('Không tìm thấy lệnh sản xuất');
       if (order.status !== 'IN_PROGRESS' || order.materialStatus !== 'ISSUED') throw new ConflictException('Lệnh chưa ở trạng thái đang sản xuất');
       if (reportedQuantity.gt(order.quantity)) throw new BadRequestException('Số lượng hoàn thành không được vượt số lượng kế hoạch');
       const now = new Date();
-      const receipt = order.finishedGoodsReceipt
-        ? await tx.finishedGoodsReceipt.update({ where: { id: order.finishedGoodsReceipt.id }, data: { reportedQuantity, acceptedQuantity: null, rejectedQuantity: null, status: 'PENDING', note: dto.note?.trim() ?? null, inspectionNote: null, inspectedAt: null, approvedAt: null } })
+      const receipt = order.finishedGoodsReceipts[0]
+        ? await tx.finishedGoodsReceipt.update({ where: { id: order.finishedGoodsReceipts[0].id }, data: { reportedQuantity, acceptedQuantity: null, rejectedQuantity: null, status: 'PENDING', note: dto.note?.trim() ?? null, inspectionNote: null, inspectedAt: null, approvedAt: null } })
         : await tx.finishedGoodsReceipt.create({ data: { code: `NTP-${Date.now()}`, productionOrderId: order.id, reportedQuantity, note: dto.note?.trim() ?? null } });
       const changed = await tx.productionOrder.updateMany({ where: { id: order.id, status: 'IN_PROGRESS' }, data: { status: 'WAITING_APPROVAL' } });
       if (changed.count !== 1) throw new ConflictException('Trạng thái lệnh đã thay đổi');
@@ -510,14 +510,14 @@ export class FinishedGoodsApi {
             }
           : null,
         movements: movements.map((item) => ({
-          receiptCode: item.receipt.code,
-          orderCode: item.receipt.productionOrder.code,
+          receiptCode: item.receipt?.code ?? null,
+          orderCode: item.receipt?.productionOrder.code ?? null,
           locationName: item.location.name,
           quantityBefore: item.quantityBefore.toString(),
           quantityChange: item.quantityChange.toString(),
           quantityAfter: item.quantityAfter.toString(),
-          inspectionNote: item.receipt.inspectionNote,
-          approvedAt: item.receipt.approvedAt,
+          inspectionNote: item.receipt?.inspectionNote ?? null,
+          approvedAt: item.receipt?.approvedAt ?? null,
           createdAt: item.createdAt,
         })),
       },

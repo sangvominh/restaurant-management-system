@@ -1,9 +1,11 @@
+import { Public } from '../common/auth.decorators.js';
 import { BadRequestException, Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { Prisma } from '../generated/prisma/client.js';
-import { AuthGuard, Roles, type StaffRequest } from '../auth/auth.guard.js';
+import { AuthGuard, Roles, type StaffRequest } from '../auth/staff-auth.guard.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { object, text } from './input.js';
+@Public()
 @Controller('api/staff/finished-issues')
 @UseGuards(AuthGuard)
 @Roles('KITCHEN', 'BARISTA', 'SUPERVISOR')

@@ -1,3 +1,4 @@
+import { StaffModule } from './staff/staff.module.js';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module.js';
@@ -20,6 +21,7 @@ import { BrandingController } from './branding/branding.controller.js';
     BackupModule,
     ReportModule,
     WarehouseModule,
+    StaffModule,
     ProductsModule,
   ],
   controllers: [AppController, BrandingController],

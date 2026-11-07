@@ -1,11 +1,13 @@
+import { Public } from '../common/auth.decorators.js';
 import { Controller, Get, Post, Param, Req, Body, Query, UseGuards, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
-import { AuthGuard, Roles, type StaffRequest } from '../auth/auth.guard.js';
+import { AuthGuard, Roles, type StaffRequest } from '../auth/staff-auth.guard.js';
 import { randomUUID } from 'node:crypto';
 import { Prisma } from '../generated/prisma/client.js';
 import { object, uuid } from './input.js';
 import { FinishedGoodsApi } from '../warehouse/api/finished-goods.api.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { isUsableLotExpiry } from '../warehouse/lot-expiry.js';
+@Public()
 @Controller('api/staff/production-orders')
 @UseGuards(AuthGuard)
 @Roles('KITCHEN', 'BARISTA', 'SUPERVISOR')

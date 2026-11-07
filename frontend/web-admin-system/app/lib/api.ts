@@ -5,7 +5,7 @@
  * Lưu ý bảo mật: token lưu ở localStorage nên script chèn vào trang (XSS) đọc được.
  * Chấp nhận được cho đồ án; bản thật nên dùng cookie httpOnly.
  */
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 export type SessionScope = 'system-admin' | 'warehouse';
 const SESSION_KEYS = {

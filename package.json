@@ -2,6 +2,11 @@
   "name": "restaurant-management-system",
   "private": true,
   "scripts": {
+    "dev:system": "npm run dev --workspace web-admin-system -- --port 3004",
+    "dev:warehouse": "npm run dev --workspace warehouse-web",
+    "dev:restaurant": "npm run dev --workspace restaurant-web",
+    "dev:staff": "npm run dev --workspace restaurant-staff",
+    "dev:guest": "npm run dev --workspace guest-web -- --port 3005",
     "docker:up": "node scripts/docker-apps.mjs up",
     "docker:stop": "node scripts/docker-apps.mjs stop",
     "docker:down": "node scripts/docker-apps.mjs down",

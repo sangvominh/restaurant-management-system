@@ -7,7 +7,7 @@ import { StaffMaterialReturnController } from './material-return.controller.js';
 import { KitchenReturnDecisionService } from './kitchen-return-decision.service.js';
 import { StaffService } from './staff.service.js';
 import { KitchenWasteDecisionService } from './kitchen-waste-decision.service.js';
-import type { StaffRequest } from '../auth/auth.guard.js';
+import type { StaffRequest } from '../auth/staff-auth.guard.js';
 
 describe.skipIf(!process.env.TEST_KITCHEN_DATABASE)('kitchen waste reservation (PostgreSQL)', () => {
  let db: PrismaService; let controller: StaffMaterialWasteController; let kitchen: StaffRequest; let decisions: KitchenWasteDecisionService;

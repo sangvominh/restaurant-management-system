@@ -1,8 +1,4 @@
 -- Preserve System Admin data and existing migration history before adding warehouse tables.
-ALTER TABLE "categories" RENAME TO "system_admin_categories";
-ALTER INDEX "categories_pkey" RENAME TO "system_admin_categories_pkey";
-ALTER INDEX "categories_type_name_key" RENAME TO "system_admin_categories_type_name_key";
-ALTER SEQUENCE "categories_id_seq" RENAME TO "system_admin_categories_id_seq";
 ALTER TABLE "roles" ADD COLUMN "portal" VARCHAR(20) NOT NULL DEFAULT 'warehouse';
 UPDATE "roles" SET "portal" = CASE WHEN "is_system" THEN 'system'
  WHEN "name" IN ('Nhân viên', 'Thu ngân') THEN 'employee'

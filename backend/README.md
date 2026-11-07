@@ -1,3 +1,5 @@
+> Bản tích hợp hiện tại: backend + DB dùng Docker Compose, frontend chạy local. Xem [README gốc](../README.md) để dùng đúng lệnh, cổng và lưu ý migration. Phần dưới là tài liệu bàn giao trước tích hợp.
+
 # Backend System Admin
 
 NestJS + Prisma 7.10.1 + PostgreSQL, ESM/NodeNext và Vitest; tương thích nền develop tại `7c70254`.

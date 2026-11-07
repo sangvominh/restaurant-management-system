@@ -7,7 +7,7 @@ import { StaffMaterialWasteController } from './material-waste.controller.js';
 import { KitchenWasteDecisionService } from './kitchen-waste-decision.service.js';
 import { StaffMaterialReturnController } from './material-return.controller.js';
 import { KitchenReturnDecisionService } from './kitchen-return-decision.service.js';
-import type { StaffRequest } from '../auth/auth.guard.js';
+import type { StaffRequest } from '../auth/staff-auth.guard.js';
 
 describe.skipIf(!process.env.TEST_KITCHEN_DATABASE)('FIFO source allocation (PostgreSQL)',()=>{
  let db:PrismaService; let req:StaffRequest; let first:string; let second:string; let lotId:string;

@@ -64,14 +64,14 @@ CREATE TABLE "audit_logs" (
 );
 
 -- CreateTable
-CREATE TABLE "categories" (
+CREATE TABLE "system_admin_categories" (
     "id" SERIAL NOT NULL,
     "type" VARCHAR(100) NOT NULL,
     "name" VARCHAR(150) NOT NULL,
     "status" "CategoryStatus" NOT NULL DEFAULT 'active',
     "created_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "categories_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "system_admin_categories_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -118,7 +118,7 @@ CREATE INDEX "audit_logs_entity_name_idx" ON "audit_logs"("entity_name");
 CREATE INDEX "audit_logs_created_at_idx" ON "audit_logs"("created_at");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "categories_type_name_key" ON "categories"("type", "name");
+CREATE UNIQUE INDEX "system_admin_categories_type_name_key" ON "system_admin_categories"("type", "name");
 
 -- AddForeignKey
 ALTER TABLE "accounts" ADD CONSTRAINT "accounts_role_id_fkey" FOREIGN KEY ("role_id") REFERENCES "roles"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

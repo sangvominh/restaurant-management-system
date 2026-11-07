@@ -1,3 +1,5 @@
+> Bản tích hợp hiện tại: backend + DB dùng Docker Compose, frontend chạy local. Xem [README gốc](../README.md) để dùng đúng lệnh, cổng và lưu ý migration. Phần dưới là tài liệu bàn giao trước tích hợp.
+
 # Chạy System Admin + Kho / Nhà hàng bằng Docker
 
 `docker-compose.yml` giữ nguyên database của nhóm. `docker-compose.apps.yml` bổ sung backend, frontend và job `backend-init`. Script chạy tự ghép cả hai file và thêm override riêng nếu máy có, để giữ đúng volume dữ liệu hiện tại.

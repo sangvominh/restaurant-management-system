@@ -4,6 +4,10 @@ const config: NextConfig = {
   devIndicators: false,
   async rewrites() {
     return [
+      {
+        source: "/api/auth/:path*",
+        destination: `${process.env.API_INTERNAL_URL || "http://127.0.0.1:3000"}/api/staff-auth/:path*`,
+      },
       ...(process.env.MRP_DEMO_URL ? [{ source: "/api/mrp/:path*", destination: `${process.env.MRP_DEMO_URL}/warehouse/:path*` }] : []),
       {
         source: "/api/:path*",
