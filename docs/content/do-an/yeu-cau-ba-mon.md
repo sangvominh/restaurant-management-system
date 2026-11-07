@@ -1,10 +1,6 @@
 ---
-id: BASE-5
-specStatus: Nền tảng
-codeStatus: Không biểu thị tiến độ code
-owner: Nhóm dự án
-reviewed: "2026-10-08"
-summary: Yêu cầu ba môn
+title: Yêu cầu ba môn
+description: Yêu cầu chức năng, báo cáo và minh chứng cần nộp theo đề môn học.
 ---
 
 # Yêu cầu ba môn
@@ -15,7 +11,7 @@ Mục tiêu là sản phẩm phần mềm tốt; chưa có đề riêng để đ
 
 ## HTTTDN — MRP
 
-Theo đề: nhóm tối đa 5 người. Lịch chấm ghi trong đề là 09–22/11/2026, cần xác nhận nếu giảng viên thay đổi.
+Theo đề: nhóm tối đa 5 người.
 
 | Phần          | Điểm | Cần có                                                                  |
 | ------------- | ---: | ----------------------------------------------------------------------- |
@@ -34,7 +30,7 @@ Hồ sơ cần có khảo sát ít nhất 15 câu hỏi và kết quả thực t
 
 ## Big Data
 
-Nhóm dự kiến chọn **Processing → Analytics**. Cần:
+Các yêu cầu cần đối chiếu khi thực hiện bài môn học:
 
 - Xác định quy trình con và quan hệ với bước trước/sau.
 - Mô tả nguồn, schema, định dạng, quy mô dữ liệu và ví dụ input/output.

@@ -1,26 +1,29 @@
 ---
-id: BASE-7
-specStatus: Nền tảng
-codeStatus: Không biểu thị tiến độ code
-owner: Nhóm dự án
-reviewed: '2026-10-08'
-summary: Xuất bản tài liệu
+title: Duy trì website
+description: Sửa tài liệu, kiểm tra và build website đã triển khai trên Cloudflare.
 ---
 
-# Xuất bản tài liệu
+# Duy trì website
 
-Website được build từ thư mục `docs/`. Chạy `npm run build` trước khi push lên branch triển khai.
+## Cập nhật nội dung
 
-| Cấu hình | Cloudflare Pages | Cloudflare Workers Builds |
-|---|---|---|
-| Root directory | `docs` | `docs` |
-| Build command | `npm run build` | `npm run build` |
-| Output | `.vitepress/dist` | Theo `wrangler.jsonc` |
-| Deploy command | Pages tự triển khai | `npx wrangler deploy` |
-| Node | `NODE_VERSION=22` | `NODE_VERSION=22` |
+Sửa trang trong `docs/content/`. Riêng [Chạy dự án](/bat-dau/chay-du-an) lấy trực tiếp từ `README.md` ở root repository bằng Markdown include; sửa README để cập nhật cả hai nơi.
 
-Kết nối repo và chọn branch `main` trên Cloudflare. Nếu dùng Workers, tên Worker phải khớp `docs/wrangler.jsonc`. Chỉ ghi nhận URL công khai sau khi deployment thành công.
+Mỗi trang có frontmatter `title` và `description`. Khi thêm hoặc xóa trang, cập nhật `docs/navigation.json` và các liên kết liên quan. Chỉ ghi nội dung đang cần và có căn cứ trong code hoặc đề môn học; không dùng tài liệu như kho lưu kế hoạch chưa chốt.
 
-Sau khi triển khai, kiểm tra trang chủ, trang con và tìm kiếm. Nếu lỗi, xem log build/deploy; kiểm tra root directory, metadata, mục lục và liên kết.
+Trong thư mục `docs`:
 
-Chỉ đặt nội dung được phép công khai trong `content/`.
+```sh
+npm ci
+npm run dev
+npm run build
+npm run preview
+```
+
+`build` kiểm tra metadata và mục lục, sau đó VitePress kiểm tra liên kết và xuất website vào `.vitepress/dist`. CI cũng chạy build khi nội dung docs hoặc README gốc thay đổi.
+
+## Cấu hình Cloudflare hiện có
+
+Giữ root directory là `docs`, build command là `npm run build`, Node.js 22 theo `.node-version`. Với Pages, output directory là `.vitepress/dist`. Với Workers Builds, cấu hình assets và tên Worker `restaurant-project-docs` nằm trong `wrangler.jsonc`; deploy command là `npx wrangler deploy`.
+
+Sau khi deployment hoàn tất, kiểm tra trang chủ, trang con, menu và tìm kiếm. Nội dung đưa vào `content/` sẽ được xuất bản; không đưa `.env`, mật khẩu hoặc dữ liệu backup vào đây.

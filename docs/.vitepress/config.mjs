@@ -2,17 +2,10 @@ import { defineConfig } from "vitepress";
 import { readFileSync } from "node:fs";
 const pages = JSON.parse(readFileSync(new URL("../navigation.json", import.meta.url), "utf8"));
 const groups = [...new Set(pages.map((p) => p.group))];
-const labels = new Map([
-  ["CHỐT", "confirmed"],
-  ["ĐỀ MÔN", "course"],
-  ["KẾ HOẠCH", "planned"],
-  ["ĐỀ XUẤT", "proposed"],
-  ["MỞ", "open"],
-]);
 export default defineConfig({
   lang: "vi-VN",
   title: "Restaurant OS",
-  description: "Cổng tài liệu chung cho SE, HTTTDN và Big Data",
+  description: "Hướng dẫn chạy, kiến trúc, nghiệp vụ và kiểm thử hệ thống quản lý nhà hàng",
   srcDir: "content",
   cleanUrls: true,
   lastUpdated: true,
@@ -20,13 +13,14 @@ export default defineConfig({
     siteTitle: "Restaurant OS",
     nav: [
       { text: "Trang chủ", link: "/" },
+      { text: "Chạy dự án", link: "/bat-dau/chay-du-an" },
       { text: "Luồng chính", link: "/nghiep-vu/luong-nghiep-vu" },
       { text: "Yêu cầu ba môn", link: "/do-an/yeu-cau-ba-mon" },
-      { text: "Viết tài liệu", link: "/duy-tri/cap-nhat-tai-lieu" },
+      { text: "Duy trì website", link: "/duy-tri/xuat-ban" },
     ],
     sidebar: groups.map((group) => ({
       text: group,
-      collapsed: group !== "Nền tảng",
+      collapsed: group !== "Bắt đầu",
       items: pages
         .filter((p) => p.group === group)
         .map((p) => ({ text: p.title, link: p.path === "index.md" ? "/" : "/" + p.path.replace(/\.md$/, "") })),
@@ -55,18 +49,7 @@ export default defineConfig({
     returnToTopLabel: "Lên đầu trang",
     darkModeSwitchLabel: "Giao diện tối",
     footer: {
-      message: "Một nguồn nội dung · Một nhóm · Ba đồ án",
-      copyright: "Đặc tả đã chốt không đồng nghĩa code đã hoàn thành.",
-    },
-  },
-  markdown: {
-    config(md) {
-      const original = md.renderer.rules.text || ((tokens, i) => md.utils.escapeHtml(tokens[i].content));
-      md.renderer.rules.text = (tokens, i, options, env, self) =>
-        original(tokens, i, options, env, self).replace(
-          /\[(CHỐT|ĐỀ MÔN|KẾ HOẠCH|ĐỀ XUẤT|MỞ)\]/g,
-          (_, label) => `<span class="doc-badge ${labels.get(label)}">${label}</span>`,
-        );
+      message: "Tài liệu hệ thống quản lý nhà hàng",
     },
   },
 });

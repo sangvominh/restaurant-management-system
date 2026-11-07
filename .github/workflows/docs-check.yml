@@ -2,9 +2,9 @@ name: Check documentation
 on:
   push:
     branches: [main]
-    paths: ['docs/**', '.github/workflows/docs-check.yml']
+    paths: ['docs/**', 'README.md', '.github/workflows/docs-check.yml']
   pull_request:
-    paths: ['docs/**', '.github/workflows/docs-check.yml']
+    paths: ['docs/**', 'README.md', '.github/workflows/docs-check.yml']
 permissions:
   contents: read
 jobs:
@@ -21,5 +21,3 @@ jobs:
         working-directory: docs
       - run: npm run build
         working-directory: docs
-      - name: Verify handbook is synchronized
-        run: git diff --exit-code -- docs/PROJECT_HANDBOOK.md

@@ -1,21 +1,21 @@
 # Tài liệu dự án
 
-Đọc theo thứ tự:
+Nội dung website nằm trong `content/`, mục lục nằm trong `navigation.json`.
 
-1. [README gốc](../README.md): dự án hiện ở đâu, đã thay đổi gì, cách chạy.
-2. [TESTING.md](TESTING.md): tài khoản demo, lệnh test, checklist và phần còn thiếu.
-3. [FOUNDATION.md](FOUNDATION.md): quy tắc dữ liệu, tài khoản, quyền và ranh giới module để giao việc.
+- [Phạm vi hiện tại](content/bat-dau/pham-vi.md).
+- [Chạy dự án](../README.md): website lấy trực tiếp nội dung README này.
+- [Kiến trúc và dữ liệu](content/bat-dau/kien-truc.md).
+- [Luồng nghiệp vụ](content/nghiep-vu/luong-nghiep-vu.md).
+- [Yêu cầu ba môn](content/do-an/yeu-cau-ba-mon.md).
+- [Kiểm thử](content/duy-tri/kiem-thu.md).
+- [Duy trì website và Cloudflare](content/duy-tri/xuat-ban.md).
 
-RESOURCE_AUDIT.md và CLEANUP_PENDING.md là nhật ký dọn dẹp, không cần đọc để bắt đầu. PROJECT_STATUS.md là báo cáo lịch sử trước chuẩn hóa.
-
-## Website handbook
-
-Phần dưới chỉ dành cho người chỉnh website tài liệu, không phải lệnh chạy ứng dụng nhà hàng.
+Trong thư mục `docs`:
 
 ```sh
-cd docs
 npm ci
 npm run dev
+npm run build
 ```
 
-Chạy `npm run build` trong `docs` trước khi push.
+Build tạo website tại `.vitepress/dist`. Cấu hình Cloudflare Workers hiện có nằm trong `wrangler.jsonc`.

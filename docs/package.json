@@ -5,8 +5,7 @@
   "scripts": {
     "dev": "vitepress dev --host 127.0.0.1",
     "check": "node tools/check.mjs",
-    "export": "node tools/export-handbook.mjs",
-    "build": "npm run check && npm run export && vitepress build",
+    "build": "npm run check && vitepress build",
     "preview": "vitepress preview --host 127.0.0.1"
   },
   "devDependencies": {

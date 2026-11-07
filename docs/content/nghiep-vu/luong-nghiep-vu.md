@@ -1,35 +1,42 @@
 ---
-id: BASE-3
-specStatus: Nền tảng
-codeStatus: Không biểu thị tiến độ code
-owner: Nhóm dự án
-reviewed: '2026-10-08'
-summary: Luồng nghiệp vụ chính
+title: Luồng nghiệp vụ
+description: Luồng nhập kho, cấp bếp, chế biến, thành phẩm và thanh toán trong code hiện tại.
 ---
 
-# Luồng nghiệp vụ chính
+# Luồng nghiệp vụ
 
-## Phục vụ khách
+Các bước dưới đây mô tả cách backend xử lý dữ liệu. Mức hoàn thiện của từng giao diện được ghi riêng ở [Phạm vi hiện tại](/bat-dau/pham-vi).
 
-1. Khách đặt bàn theo chi nhánh và khung giờ, hoặc đến trực tiếp.
-2. Nhân viên hướng dẫn khách vào bàn. Khách quét QR, xem menu và gửi món.
-3. Nhân viên tiếp nhận và xác nhận đơn.
-4. Bếp chế biến; ghi nhận nguyên liệu sử dụng và giảm tồn theo lô.
-5. Khách gọi thêm vào hóa đơn của mình chưa thanh toán; đơn mới vẫn qua xác nhận.
-6. Thu ngân kiểm tra hóa đơn và ghi nhận thanh toán.
+## Nhập nguyên liệu và cấp bếp
 
-Mỗi hóa đơn phải nhận diện đúng khách, kể cả khi nhiều khách ngồi chung bàn. Cách nhận diện khách vãng lai và thao tác ghi nhận chế biến sẽ được thiết kế khi làm tính năng.
+1. Kho lập phiếu nhập theo chi nhánh, nhà cung cấp, nguyên liệu, lô, hạn sử dụng, số lượng và đơn vị.
+2. Staff đề nghị lĩnh từ tồn phù hợp; phiếu bắt đầu ở `PENDING`.
+3. Khi kho duyệt, tồn kho chính giảm. Trigger ghi nhận lần nhận theo chi tiết phiếu và cộng tồn bếp trong cùng giao dịch, tránh cộng lại khi xử lý lặp.
+4. Tồn bếp được theo dõi theo chi nhánh và lô; sổ nguồn lĩnh lưu lượng còn lại để phân bổ và hoàn trả.
 
-## Kho và sản xuất
+Lô còn hiệu lực đến hết ngày hết hạn theo giờ Việt Nam. Lô hết hạn hoặc chưa có hạn vẫn có thể xuất hiện để đối chiếu, nhưng không được tính vào nguyên liệu dùng chế biến. Không tự suy đoán hạn còn thiếu.
 
-1. Nhận nguyên liệu, lập phiếu nhập theo chi nhánh, số lượng, lô và hạn sử dụng.
-2. Quản lý lập công thức, đề nghị sản xuất và giao nhân viên.
-3. Nhân viên kiểm tra nguyên liệu, lập đề nghị xuất; quản lý duyệt theo nghiệp vụ MRP.
-4. Ghi nhận nguyên liệu dùng khi chế biến và thành phẩm tạo ra.
-5. Nhân viên đề nghị xuất thành phẩm để bán; quản lý duyệt và xem báo cáo kho.
+## Đơn món và hóa đơn
 
-Một lượng nguyên liệu chỉ được trừ một lần giữa luồng gọi món và MRP. Không trừ kho khi gửi đơn, xác nhận đơn hoặc thanh toán.
+1. Nhân viên tạo hóa đơn gắn với bàn và nhãn nhận diện khách; khách vãng lai không bắt buộc có tài khoản.
+2. Gọi món tạo đơn và dòng món theo menu của chi nhánh. Tạo đơn chưa trừ nguyên liệu.
+3. Dòng món chuyển `QUEUED → COOKING → READY → SERVED`. Trước khi bắt đầu, backend kiểm tra định lượng BOM và tồn khả dụng tại bếp.
+4. Khi báo `READY`, backend kiểm tra lại và trừ nguyên liệu theo BOM, đơn vị quy đổi và lô hợp lệ trong cùng giao dịch. Nếu thiếu nguyên liệu, giao dịch không hoàn thành.
+5. Thu ngân ghi nhận thanh toán hóa đơn. Thanh toán không trừ nguyên liệu lần nữa; báo cáo doanh thu đọc giao dịch đã thanh toán.
 
-## Phân tích dữ liệu
+## Sản xuất và thành phẩm
 
-Dữ liệu bán hàng và kho → xử lý → tính KPI → trình bày kết quả và đo thực nghiệm. Bắt đầu với doanh thu, món bán và lượng nguyên liệu sử dụng; công nghệ và quy mô dữ liệu chọn theo yêu cầu môn.
+Lệnh sản xuất liên kết BOM và số lượng kế hoạch. Staff kiểm tra nguyên liệu, bắt đầu và báo số lượng hoàn thành. Phiếu báo thành phẩm ở `PENDING` chưa làm tăng tồn thành phẩm; chỉ lượng được duyệt mới nhập tồn.
+
+Backend có cơ chế báo theo nhiều đợt, nhưng luồng kiểm tra và duyệt phía quản lý vẫn cần đối chiếu khi nghiệm thu. Không coi cả luồng đã hoàn thiện chỉ vì Staff gửi được phiếu.
+
+Lệnh dùng tồn bếp ghi tiêu hao theo phiếu báo. Lệnh được cấp nguyên liệu trực tiếp từ kho không trừ lại cùng lượng đó ở tồn bếp.
+
+## Hao hụt, sự cố và hoàn trả
+
+- Hao hụt và hoàn trả mới giữ lượng chờ xử lý ở `reserved_waste` hoặc `reserved_return`. Lượng giữ không được tính vào tồn khả dụng.
+- Duyệt hao hụt mới giảm tồn; từ chối giải phóng lượng giữ. Sự cố chế biến và các dòng nguyên liệu liên quan được quyết định trong cùng giao dịch.
+- Duyệt hoàn trả giảm tồn bếp và tăng lại tồn ở vị trí xuất gốc, ghi biến động `RETURN`.
+- `staff_kitchen_sources` và `staff_kitchen_source_allocations` theo dõi lượng thuộc từng nguồn lĩnh. Dữ liệu cũ không đủ nguồn không được tự gán vào phiếu mới.
+
+Các service quyết định nằm trong module Staff và được backend quản lý gọi sau khi kiểm tra quyền. Không cập nhật trạng thái hoặc số dư trực tiếp để bỏ qua nghiệp vụ.

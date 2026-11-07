@@ -1,35 +1,10 @@
 [
-  {
-    "path": "index.md",
-    "title": "Trang chủ",
-    "group": "Nền tảng"
-  },
-  {
-    "path": "bat-dau/pham-vi.md",
-    "title": "Phạm vi sản phẩm",
-    "group": "Nền tảng",
-    "handbookOrder": 0
-  },
-  {
-    "path": "nghiep-vu/luong-nghiep-vu.md",
-    "title": "Luồng nghiệp vụ chính",
-    "group": "Nền tảng",
-    "handbookOrder": 1
-  },
-  {
-    "path": "do-an/yeu-cau-ba-mon.md",
-    "title": "Yêu cầu ba môn",
-    "group": "Đồ án",
-    "handbookOrder": 2
-  },
-  {
-    "path": "duy-tri/cap-nhat-tai-lieu.md",
-    "title": "Cập nhật tài liệu",
-    "group": "Duy trì"
-  },
-  {
-    "path": "duy-tri/xuat-ban.md",
-    "title": "Xuất bản tài liệu",
-    "group": "Duy trì"
-  }
+  { "path": "index.md", "title": "Trang chủ", "group": "Bắt đầu" },
+  { "path": "bat-dau/pham-vi.md", "title": "Phạm vi hiện tại", "group": "Bắt đầu" },
+  { "path": "bat-dau/chay-du-an.md", "title": "Chạy dự án", "group": "Bắt đầu" },
+  { "path": "bat-dau/kien-truc.md", "title": "Kiến trúc và dữ liệu", "group": "Bắt đầu" },
+  { "path": "nghiep-vu/luong-nghiep-vu.md", "title": "Luồng nghiệp vụ", "group": "Nghiệp vụ" },
+  { "path": "do-an/yeu-cau-ba-mon.md", "title": "Yêu cầu ba môn", "group": "Đồ án" },
+  { "path": "duy-tri/kiem-thu.md", "title": "Kiểm thử", "group": "Duy trì" },
+  { "path": "duy-tri/xuat-ban.md", "title": "Duy trì website", "group": "Duy trì" }
 ]

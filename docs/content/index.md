@@ -1,11 +1,6 @@
 ---
-id: TRANG-CHU
-specStatus: Nền tảng
-codeStatus: Không biểu thị tiến độ code
-owner: Nhóm dự án
-reviewed: '2026-10-08'
-summary: Trang đầu và lối vào các tài liệu dự án.
 title: Trang chủ
+description: Hướng dẫn chạy, kiến trúc, nghiệp vụ và kiểm thử hệ thống quản lý nhà hàng.
 ---
 
 <div class="home-hero">
@@ -13,12 +8,14 @@ title: Trang chủ
   <h1>Restaurant OS</h1>
 </div>
 
-## Chọn nội dung để xem
+Một backend, một PostgreSQL và sáu frontend độc lập. Tài liệu mô tả code hiện có và ghi rõ những màn hình chưa hoàn thiện.
+
+## Bắt đầu từ đây
 
 <div class="read-path">
-  <a href="/bat-dau/pham-vi"><strong>Phạm vi sản phẩm</strong><span>Các phần chính của hệ thống và nguyên tắc nhóm đã thống nhất.</span></a>
-  <a href="/do-an/yeu-cau-ba-mon"><strong>Yêu cầu ba môn</strong><span>Những chức năng và hồ sơ cần chuẩn bị cho đồ án.</span></a>
-  <a href="/duy-tri/cap-nhat-tai-lieu"><strong>Cập nhật tài liệu</strong><span>Cách thêm trang hoặc sửa nội dung dự án.</span></a>
+  <a href="/bat-dau/chay-du-an"><strong>Chạy dự án</strong><span>Cài đặt, bật backend và chạy riêng frontend cần làm.</span></a>
+  <a href="/bat-dau/kien-truc"><strong>Kiến trúc và dữ liệu</strong><span>Ranh giới ứng dụng, tài khoản, Prisma và database.</span></a>
+  <a href="/duy-tri/kiem-thu"><strong>Kiểm thử</strong><span>Lệnh kiểm tra và các luồng cần đối chiếu.</span></a>
 </div>
 
-Chi tiết sẽ được bổ sung trong quá trình triển khai. <a href="/handbook.md" download>Tải bản tổng hợp</a>.
+Xem [phạm vi hiện tại](/bat-dau/pham-vi), [luồng nghiệp vụ](/nghiep-vu/luong-nghiep-vu) và [yêu cầu ba môn](/do-an/yeu-cau-ba-mon). Cách cập nhật và triển khai website nằm ở [Duy trì website](/duy-tri/xuat-ban).
