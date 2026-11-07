@@ -1,8 +1,8 @@
-# Danh sách chờ xóa sau chuẩn hóa
+# Nhật ký xóa file sau chuẩn hóa
 
-Bộ duyệt tự động đã từ chối lệnh xóa diện rộng. **Chưa xóa các đường dẫn dưới đây.** Các ứng dụng cũ đã bị loại khỏi npm workspaces, các lệnh seed cũ bị bỏ khỏi package.json; quy trình chính thức chỉ dùng README gốc. Không dùng các file cũ để chạy hoặc nạp dữ liệu.
+**Đã hoàn tất ngày 07/11/2026:** xóa đúng 30 đường dẫn dưới đây sau khi leader duyệt rõ phạm vi. Quy trình chính thức chỉ dùng README gốc. Tài liệu này giữ tên file cũ để các liên kết duyệt trước đó vẫn hoạt động.
 
-Phạm vi xin xóa chỉ là mã nguồn/tài liệu cũ trong repository; không gồm database/volume đang dùng, backups, `.env`, `.git` hoặc tài nguyên thiết kế của Guest. Git giữ lịch sử mã nguồn.
+Phạm vi đã xóa chỉ là mã nguồn/tài liệu cũ trong repository; không gồm database/volume đang dùng, backups, `.env`, `.git` hoặc tài nguyên thiết kế của Guest. Git giữ lịch sử mã nguồn.
 
 ## Ứng dụng/bản đóng gói trùng
 
@@ -10,7 +10,7 @@ Phạm vi xin xóa chỉ là mã nguồn/tài liệu cũ trong repository; khôn
 - `frontend/restaurant-web/` (toàn bộ thư mục; màn hình mới đã chuyển vào web-admin-system/app/warehouse/restaurant).
 - `frontend/web-admin-system/Dockerfile` (frontend chạy local).
 - `frontend/web-admin-system/app.zip` (bản đóng gói trùng source).
-- `backend/tsconfig.build.tsbuildinfo` (artifact build đã có trong gitignore).
+- `backend/tsconfig.build.tsbuildinfo` (bỏ khỏi Git; compiler có thể tạo lại file cache local, đã được gitignore).
 
 ## Đường chạy Docker và seed cũ
 
@@ -39,4 +39,4 @@ Phạm vi xin xóa chỉ là mã nguồn/tài liệu cũ trong repository; khôn
 - `scripts/project.mjs`, `scripts/check.mjs`: giao diện vận hành/check chính thức.
 - Test và tài liệu nghiệp vụ/handbook có nội dung riêng: không xóa chỉ vì không được runtime import.
 
-Việc xóa file chờ duyệt không thay đổi dữ liệu trong PostgreSQL. Các bảng demo báo cáo cũ trong DB phát triển cũng chưa bị xóa; đã ngừng sử dụng để tránh nhầm với báo cáo giao dịch thật.
+Việc xóa file không thay đổi dữ liệu trong PostgreSQL. Các bảng demo báo cáo cũ trong DB phát triển chưa bị xóa; đã ngừng sử dụng để tránh nhầm với báo cáo giao dịch thật.

@@ -96,6 +96,6 @@ Frontend dừng bằng Ctrl+C. Kiểm tra API bằng `Invoke-RestMethod http://l
 - Test tự tạo fixture; bộ E2E nền tảng dùng PostgreSQL nhúng PGlite, không dùng DB Compose. Một số test integration cũ có điều kiện skip khi không có DB test riêng; xem [giới hạn và kiểm chứng](docs/FOUNDATION.md).
 - Không nạp demo qua HTTP hoặc trang Báo cáo. Báo cáo đọc thanh toán và sổ biến động kho thật.
 - Thay đổi schema có migration; thay đổi API cập nhật nơi gọi và test trong cùng thay đổi. Không seed/reset DB dùng chung từ nhánh cá nhân.
-- Chỉ có 3 frontend trong npm workspace. Các bản standalone kho/nhà hàng và script cũ đang chờ xóa theo [danh sách đã kiểm kê](docs/CLEANUP_PENDING.md); không dùng để vận hành.
+- Chỉ có 3 frontend trong npm workspace. Các bản standalone kho/nhà hàng và script cũ đã được xóa theo [nhật ký dọn dẹp](docs/CLEANUP_PENDING.md).
 
 Tài liệu bàn giao trước đợt chuẩn hóa là tài liệu lịch sử. Dùng README này làm nguồn duy nhất cho cách chạy hiện tại.

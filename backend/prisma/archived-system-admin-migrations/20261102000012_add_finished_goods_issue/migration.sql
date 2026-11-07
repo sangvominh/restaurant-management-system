@@ -1,2 +1,0 @@
--- Intentionally empty placeholder from an earlier unfinished schema change.
--- Finished goods issue tables are created by 20261101090000_finished_goods_issue_by_shift.

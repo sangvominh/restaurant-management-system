@@ -69,4 +69,4 @@ Các test integration cũ phụ thuộc fixture DB riêng vẫn được giữ v
 - Kiểm tra HTTP thực: chủ cũ login 200, chủ truy cập kho 200, demo login 200, token demo gọi API phát triển trả 401.
 - Edge headless: 3 ca đạt cho phiên chung Admin/Kho/Nhà hàng, ranh giới quyền kho và form hồ sơ nhân viên.
 - Cấu hình PostCSS của Admin đã dùng cùng plugin với Staff, không còn cảnh báo `Unknown at rule: @theme` trong smoke test. Còn một số cảnh báo deprecated props từ Ant Design và pg; chưa nâng version thư viện trong vòng này.
-- File cũ chưa bị xóa diện rộng vì bộ duyệt tự động từ chối; danh sách và phạm vi chính xác ở CLEANUP_PENDING.md.
+- Sau khi leader duyệt phạm vi, đã xóa 30 đường dẫn cũ; danh sách chính xác được giữ trong CLEANUP_PENDING.md. DB/volume, backups, `.env`, migration active và tài nguyên Guest được giữ nguyên.
