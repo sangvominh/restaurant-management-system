@@ -36,7 +36,7 @@ export class FinishedGoodsApi {
   // Lấy danh sách phiếu thành phẩm theo trạng thái
   async getReceipts(status = 'PENDING') {
     // 1. Kiểm tra trạng thái
-    const validStatus = ['PENDING', 'APPROVED', 'REJECTED'];
+    const validStatus = ['PENDING', 'APPROVED', 'REJECTED', 'ALL'];
 
     if (!validStatus.includes(status)) {
       throw new BadRequestException('Trạng thái không hợp lệ');
@@ -44,17 +44,23 @@ export class FinishedGoodsApi {
 
     // 2. Lấy dữ liệu từ PostgreSQL
     const receipts = await this.prisma.finishedGoodsReceipt.findMany({
-      where: { status },
+      where: status === 'ALL' ? {} : { status },
       include: {
         productionOrder: {
           include: {
-            bom: true,
+            bom: {
+              include: { product: true },
+            },
             branch: true,
           },
         },
+        wasteRequest: true,
+        movement: {
+          include: { location: true },
+        },
       },
       orderBy: { createdAt: 'desc' },
-      take: 50,
+      take: 100,
     });
 
     // 3. Trả kết quả
@@ -64,15 +70,33 @@ export class FinishedGoodsApi {
         receiptCode: item.code,
         orderCode: item.productionOrder.code,
         productCode: item.productionOrder.bom.productCode,
+        productName:
+          item.productionOrder.bom.product?.name ||
+          item.productionOrder.bom.productName ||
+          item.productionOrder.bom.productCode,
         branchCode: item.productionOrder.branch.code,
 
         plannedQuantity: item.productionOrder.quantity.toString(),
         reportedQuantity: item.reportedQuantity.toString(),
         acceptedQuantity: item.acceptedQuantity?.toString() ?? null,
+        rejectedQuantity: item.rejectedQuantity?.toString() ?? null,
 
         productionStatus: item.productionOrder.status,
         status: item.status,
         note: item.note,
+        inspectionNote: item.inspectionNote,
+        inspectedAt: item.inspectedAt,
+        approvedAt: item.approvedAt,
+        locationName: item.movement?.location?.name ?? null,
+        wasteRequest: item.wasteRequest
+          ? {
+              code: item.wasteRequest.code,
+              quantity: item.wasteRequest.quantity.toString(),
+              reason: item.wasteRequest.reason,
+              status: item.wasteRequest.status,
+              decisionNote: item.wasteRequest.decisionNote,
+            }
+          : null,
         createdAt: item.createdAt,
       })),
     };
@@ -387,6 +411,119 @@ export class FinishedGoodsApi {
     };
   }
 
+  // Lấy chi tiết tồn kho một thành phẩm theo chi nhánh
+  async getInventoryDetail(productCode: string, branchCode: string) {
+    // 1. Kiểm tra tham số
+    if (!branchCode?.trim()) {
+      throw new BadRequestException('Thiếu mã chi nhánh');
+    }
+
+    if (!productCode?.trim()) {
+      throw new BadRequestException('Thiếu mã thành phẩm');
+    }
+
+    const branch = await this.prisma.branch.findUnique({
+      where: { code: branchCode.trim() },
+    });
+
+    if (!branch) {
+      throw new NotFoundException('Không tìm thấy chi nhánh');
+    }
+
+    const code = productCode.trim();
+
+    // 2. Lấy thông tin thành phẩm
+    const product = await this.prisma.product.findUnique({
+      where: { code },
+    });
+
+    const balances = await this.prisma.finishedGoodsBalance.findMany({
+      where: {
+        productCode: code,
+        location: { branchId: branch.id },
+      },
+      include: { location: true },
+      orderBy: { location: { name: 'asc' } },
+    });
+
+    if (!product && !balances.length) {
+      throw new NotFoundException('Không tìm thấy thành phẩm trong kho');
+    }
+
+    // 3. Lấy công thức đang áp dụng
+    const activeBom = await this.prisma.bom.findFirst({
+      where: { productCode: code, status: 'ACTIVE' },
+      include: {
+        details: { include: { material: true, unit: true } },
+      },
+      orderBy: { version: 'desc' },
+    });
+
+    // 4. Lấy lịch sử nhập kho gần đây của thành phẩm
+    const movements = await this.prisma.finishedGoodsMovement.findMany({
+      where: {
+        productCode: code,
+        location: { branchId: branch.id },
+      },
+      include: {
+        receipt: { include: { productionOrder: true } },
+        location: true,
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+    });
+
+    const totalQuantity = balances.reduce(
+      (sum, item) => sum.plus(item.quantity),
+      new Prisma.Decimal(0),
+    );
+
+    // 5. Trả kết quả
+    return {
+      message: 'Lấy chi tiết tồn kho thành phẩm thành công',
+      data: {
+        productCode: code,
+        productName: product?.name || code,
+        category: product?.category ?? null,
+        unit: product?.unit ?? 'phần',
+        price: product?.price?.toString() ?? null,
+        description: product?.description ?? null,
+        productStatus: product?.status ?? null,
+        branchCode: branch.code,
+        totalQuantity: totalQuantity.toString(),
+        balances: balances.map((item) => ({
+          locationName: item.location.name,
+          quantity: item.quantity.toString(),
+        })),
+        activeBom: activeBom
+          ? {
+              code: activeBom.code,
+              version: activeBom.version,
+              outputQuantity: activeBom.outputQuantity.toString(),
+              totalMaterials: activeBom.details.length,
+              details: activeBom.details.map((item) => ({
+                materialCode: item.material.code,
+                materialName: item.material.name,
+                unitName: item.unit.name,
+                quantity: item.quantity.toString(),
+              })),
+            }
+          : null,
+        movements: movements.map((item) => ({
+          receiptCode: item.receipt.code,
+          orderCode: item.receipt.productionOrder.code,
+          locationName: item.location.name,
+          quantityBefore: item.quantityBefore.toString(),
+          quantityChange: item.quantityChange.toString(),
+          quantityAfter: item.quantityAfter.toString(),
+          inspectionNote: item.receipt.inspectionNote,
+          approvedAt: item.receipt.approvedAt,
+          createdAt: item.createdAt,
+        })),
+      },
+    };
+  }
+
   // Lấy chi tiết phiếu thành phẩm theo mã
   async getReceiptByCode(code: string) {
     // 1. Tìm phiếu thành phẩm
@@ -395,13 +532,16 @@ export class FinishedGoodsApi {
       include: {
         productionOrder: {
           include: {
-            bom: true,
+            bom: {
+              include: { product: true },
+            },
             branch: true,
           },
         },
         movement: {
           include: { location: true },
         },
+        wasteRequest: true,
       },
     });
 
@@ -419,6 +559,10 @@ export class FinishedGoodsApi {
         receiptCode: receipt.code,
         orderCode: order.code,
         productCode: order.bom.productCode,
+        productName:
+          order.bom.product?.name ||
+          order.bom.productName ||
+          order.bom.productCode,
         branchCode: order.branch.code,
 
         plannedQuantity: order.quantity.toString(),
@@ -427,12 +571,16 @@ export class FinishedGoodsApi {
         rejectedQuantity: receipt.rejectedQuantity?.toString() ?? null,
 
         receiptStatus: receipt.status,
+        status: receipt.status,
         productionStatus: order.status,
 
         employeeNote: receipt.note,
+        note: receipt.note,
         inspectionNote: receipt.inspectionNote,
         inspectedAt: receipt.inspectedAt,
         approvedAt: receipt.approvedAt,
+        createdAt: receipt.createdAt,
+        locationName: movement?.location?.name ?? null,
 
         inventoryMovement: movement
           ? {
@@ -441,6 +589,15 @@ export class FinishedGoodsApi {
               quantityChange: movement.quantityChange.toString(),
               quantityAfter: movement.quantityAfter.toString(),
               createdAt: movement.createdAt,
+            }
+          : null,
+        wasteRequest: receipt.wasteRequest
+          ? {
+              code: receipt.wasteRequest.code,
+              quantity: receipt.wasteRequest.quantity.toString(),
+              reason: receipt.wasteRequest.reason,
+              status: receipt.wasteRequest.status,
+              decisionNote: receipt.wasteRequest.decisionNote,
             }
           : null,
       },

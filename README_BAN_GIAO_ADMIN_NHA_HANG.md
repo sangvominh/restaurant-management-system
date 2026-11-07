@@ -3,6 +3,7 @@
 ## 1. Tồn kho và phiếu thành phẩm
 
 - `GET /warehouse/finished-goods-inventory`
+- `GET /warehouse/finished-goods-inventory/:productCode?branchCode=BR001`
 - `GET /warehouse/finished-goods-movements`
 - `GET /warehouse/finished-goods-receipts`
 - `GET /warehouse/finished-goods-receipts/:code`

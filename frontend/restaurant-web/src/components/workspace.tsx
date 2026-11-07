@@ -14,6 +14,7 @@ import {
   X,
   ClipboardCheck,
   PackageCheck,
+  History,
 } from "lucide-react";
 
 type Inventory = {
@@ -37,17 +38,65 @@ type Movement = {
   approvedAt: string | null;
   createdAt: string;
 };
+type InventoryDetail = {
+  productCode: string;
+  productName: string;
+  category?: string | null;
+  unit?: string;
+  price?: string | null;
+  description?: string | null;
+  productStatus?: string | null;
+  branchCode: string;
+  totalQuantity: string;
+  balances: { locationName: string; quantity: string }[];
+  activeBom?: {
+    code: string;
+    version: number;
+    outputQuantity: string;
+    totalMaterials: number;
+    details: {
+      materialCode: string;
+      materialName: string;
+      unitName: string;
+      quantity: string;
+    }[];
+  } | null;
+  movements: {
+    receiptCode: string;
+    orderCode: string;
+    locationName: string;
+    quantityBefore: string;
+    quantityChange: string;
+    quantityAfter: string;
+    inspectionNote: string | null;
+    approvedAt: string | null;
+    createdAt: string;
+  }[];
+};
 type Receipt = {
   receiptCode: string;
   orderCode: string;
   productCode: string;
+  productName?: string;
   branchCode: string;
   plannedQuantity: string;
   reportedQuantity: string;
   acceptedQuantity: string | null;
+  rejectedQuantity?: string | null;
   status: string;
   note: string | null;
+  inspectionNote?: string | null;
+  approvedAt?: string | null;
+  inspectedAt?: string | null;
+  locationName?: string | null;
   createdAt: string;
+  wasteRequest?: {
+    code: string;
+    quantity: string;
+    reason: string;
+    status: string;
+    decisionNote?: string | null;
+  } | null;
 };
 type Waste = {
   code: string;
@@ -62,6 +111,10 @@ type Waste = {
   decisionNote: string | null;
   createdAt: string;
   processedAt?: string | null;
+  locationName?: string | null;
+  reportedQuantity?: string;
+  acceptedQuantity?: string | null;
+  receiptStatus?: string;
 };
 type BomVersion = {
   code: string;
@@ -102,7 +155,14 @@ type Modal =
   | { kind: "approve" | "reject"; item: Receipt | Waste }
   | { kind: "bom" }
   | { kind: "dish"; bom: Bom }
-  | { kind: "deactivate"; bom: Bom };
+  | { kind: "deactivate"; bom: Bom }
+  | { kind: "receipt-detail"; receipt: Receipt }
+  | { kind: "waste-detail"; waste: Waste }
+  | { kind: "inventory-detail"; detail: InventoryDetail }
+  | { kind: "materials" }
+  | { kind: "stock-history" }
+  | { kind: "waste-history" }
+  | { kind: "exports-history" };
 
 function unitsForMaterial(
   materialCode: string,
@@ -145,14 +205,18 @@ const money = (v: string | number) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(
     Number(v),
   );
-const date = (v: string) =>
-  new Intl.DateTimeFormat("vi-VN", {
+const date = (v?: string | Date | null) => {
+  if (!v) return "—";
+  const d = new Date(v);
+  if (isNaN(d.getTime())) return "—";
+  return new Intl.DateTimeFormat("vi-VN", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
-  }).format(new Date(v));
+  }).format(d);
+};
 const isReceipt = (item: Receipt | Waste): item is Receipt =>
   "reportedQuantity" in item;
 const bomLabel = (status: string) =>
@@ -193,6 +257,7 @@ export default function AdminWorkspace() {
   const [inventory, setInventory] = useState<Inventory[]>([]);
   const [movements, setMovements] = useState<Movement[]>([]);
   const [receipts, setReceipts] = useState<Receipt[]>([]);
+  const [receiptHistory, setReceiptHistory] = useState<Receipt[]>([]);
   const [wastes, setWastes] = useState<Waste[]>([]);
   const [wasteHistory, setWasteHistory] = useState<Waste[]>([]);
   const [boms, setBoms] = useState<Bom[]>([]);
@@ -226,9 +291,12 @@ export default function AdminWorkspace() {
         setInventory(data.items ?? []);
         setMovements(history);
       } else if (section === "exports") {
-        setReceipts(
-          await api<Receipt[]>(`/finished-goods-receipts?status=${status}`),
-        );
+        const [rows, allRows] = await Promise.all([
+          api<Receipt[]>(`/finished-goods-receipts?status=${status}`),
+          api<Receipt[]>("/finished-goods-receipts?status=ALL"),
+        ]);
+        setReceipts(rows);
+        setReceiptHistory(allRows);
       } else if (section === "waste") {
         const [rows, history] = await Promise.all([
           api<Waste[]>(`/waste-requests?status=${status}`),
@@ -304,6 +372,17 @@ export default function AdminWorkspace() {
       ),
     [wasteHistory, query],
   );
+  const exportApprovalHistory = useMemo(
+    () =>
+      receiptHistory.filter(
+        (x) =>
+          x.status !== "PENDING" &&
+          `${x.receiptCode} ${x.orderCode} ${x.productCode} ${x.productName ?? ""} ${x.branchCode} ${x.inspectionNote ?? ""}`
+            .toLowerCase()
+            .includes(query.toLowerCase()),
+      ),
+    [receiptHistory, query],
+  );
 
   const close = () => {
     setModal(null);
@@ -352,6 +431,81 @@ export default function AdminWorkspace() {
       setError(e instanceof Error ? e.message : "Không mở được món");
     } finally {
       setBusy(false);
+    }
+  };
+
+  const openReceiptDetail = async (item: Receipt | string) => {
+    setError("");
+    const code = typeof item === "string" ? item : item.receiptCode;
+    try {
+      const detail = await api<Receipt>(
+        `/finished-goods-receipts/${encodeURIComponent(code)}`,
+      );
+      setModal({ kind: "receipt-detail", receipt: detail });
+    } catch {
+      if (typeof item !== "string") {
+        setModal({ kind: "receipt-detail", receipt: item });
+      } else {
+        setError("Không thể tải chi tiết phiếu hoàn thành");
+      }
+    }
+  };
+
+  const openWasteDetail = async (item: Waste | string) => {
+    setError("");
+    const code = typeof item === "string" ? item : item.code;
+    try {
+      const detail = await api<Waste>(
+        `/waste-requests/${encodeURIComponent(code)}`,
+      );
+      setModal({ kind: "waste-detail", waste: detail });
+    } catch {
+      if (typeof item !== "string") {
+        setModal({ kind: "waste-detail", waste: item });
+      } else {
+        setError("Không thể tải chi tiết phiếu hủy");
+      }
+    }
+  };
+
+  const openInventoryDetail = async (item: Inventory) => {
+    setError("");
+    try {
+      const detail = await api<InventoryDetail>(
+        `/finished-goods-inventory/${encodeURIComponent(item.productCode)}?branchCode=${encodeURIComponent(branch)}`,
+      );
+      setModal({ kind: "inventory-detail", detail });
+    } catch {
+      setModal({
+        kind: "inventory-detail",
+        detail: {
+          productCode: item.productCode,
+          productName: item.productName || item.productCode,
+          branchCode: branch,
+          totalQuantity: item.quantity,
+          balances: [
+            { locationName: item.locationName, quantity: item.quantity },
+          ],
+          activeBom: null,
+          movements: movements
+            .filter(
+              (movement) =>
+                movement.productCode === item.productCode &&
+                movement.branchCode === branch,
+            )
+            .map((movement) => ({
+              receiptCode: movement.receiptCode,
+              orderCode: movement.orderCode,
+              locationName: movement.locationName,
+              quantityBefore: movement.quantityBefore,
+              quantityChange: movement.quantityChange,
+              quantityAfter: movement.quantityAfter,
+              inspectionNote: movement.inspectionNote,
+              approvedAt: movement.approvedAt,
+              createdAt: movement.createdAt,
+            })),
+        },
+      });
     }
   };
 
@@ -594,15 +748,47 @@ export default function AdminWorkspace() {
           <strong>{branch}</strong>
           <small>Dữ liệu dùng chung từ Backend</small>
         </div>
-        <div className="stat">
+        <div
+          className="stat"
+          style={{
+            cursor:
+              section === "products" ||
+              section === "waste" ||
+              section === "exports"
+                ? "pointer"
+                : "default",
+          }}
+          onClick={() => {
+            if (section === "products") setModal({ kind: "stock-history" });
+            if (section === "waste") setModal({ kind: "waste-history" });
+            if (section === "exports") setModal({ kind: "exports-history" });
+          }}
+          title={
+            section === "products"
+              ? "Bấm để xem lịch sử duyệt nhập kho"
+              : section === "waste"
+                ? "Bấm để xem lịch sử duyệt hủy"
+                : section === "exports"
+                  ? "Bấm để xem lịch sử duyệt xuất thành phẩm"
+                  : undefined
+          }
+        >
           <div className="stat-top">
             <span>
-              {section === "products" || section === "waste"
-                ? "Lịch sử duyệt"
+              {section === "products" ||
+              section === "waste" ||
+              section === "exports"
+                ? "Lịch sử duyệt (Bấm xem)"
                 : "Đồng bộ dữ liệu"}
             </span>
             <i className="stat-icon">
-              <RefreshCw size={15} />
+              {section === "products" ||
+              section === "waste" ||
+              section === "exports" ? (
+                <History size={15} />
+              ) : (
+                <RefreshCw size={15} />
+              )}
             </i>
           </div>
           <strong style={{ fontSize: 16 }}>
@@ -610,14 +796,18 @@ export default function AdminWorkspace() {
               ? stockHistory.length
               : section === "waste"
                 ? approvalHistory.length
-                : "Trực tiếp"}
+                : section === "exports"
+                  ? exportApprovalHistory.length
+                  : "Trực tiếp"}
           </strong>
           <small>
             {section === "products"
               ? "Lần nhập kho đã duyệt"
               : section === "waste"
-                ? "Phiếu đã xử lý"
-                : "API warehouse · không dùng dữ liệu mẫu"}
+                ? "Phiếu hủy đã xử lý"
+                : section === "exports"
+                  ? "Phiếu xuất/hoàn thành đã xử lý"
+                  : "API warehouse · không dùng dữ liệu mẫu"}
           </small>
         </div>
       </div>
@@ -632,6 +822,12 @@ export default function AdminWorkspace() {
                 onChange={(e) => setQuery(e.target.value)}
               />
             </div>
+            <button
+              className="action"
+              onClick={() => setModal({ kind: "materials" })}
+            >
+              <Package size={15} /> Nguyên vật liệu hiện có ({materials.length})
+            </button>
             <button
               className="action primary push"
               onClick={() => openCreate()}
@@ -701,54 +897,6 @@ export default function AdminWorkspace() {
           </div>
         </div>
       )}
-      {section === "dishes" && (
-        <div className="panel">
-          <div className="panel-head">
-            <div>
-              <h2>Nguyên vật liệu hiện có</h2>
-              <p>Chọn một nguyên liệu để bắt đầu tạo món và định mức BOM.</p>
-            </div>
-            <span className="pill">{materials.length} nguyên liệu</span>
-          </div>
-          {materials.length ? (
-            <div className="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>MÃ NGUYÊN LIỆU</th>
-                    <th>TÊN NGUYÊN LIỆU</th>
-                    <th>ĐƠN VỊ</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {materials.map((m) => (
-                    <tr key={m.code}>
-                      <td className="code">{m.code}</td>
-                      <td>{m.name}</td>
-                      <td>{m.unitName}</td>
-                      <td>
-                        <button
-                          className="action"
-                          onClick={() => openCreate(m.code)}
-                        >
-                          <Plus size={14} /> Dùng để tạo món & BOM
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className="empty">
-              <CircleAlert size={22} />
-              <strong>Chưa có nguyên vật liệu</strong>Thêm nguyên vật liệu trong
-              hệ thống kho để chọn khi lập BOM.
-            </div>
-          )}
-        </div>
-      )}
       {section === "products" && (
         <div className="panel">
           <div className="toolbar">
@@ -773,73 +921,19 @@ export default function AdminWorkspace() {
             >
               <Filter size={14} /> Xóa lọc
             </button>
+            <button
+              className="action push"
+              onClick={() => setModal({ kind: "stock-history" })}
+              title="Bấm để xem lịch sử duyệt nhập kho"
+            >
+              <History size={14} /> Lịch sử duyệt ({stockHistory.length})
+            </button>
           </div>
-          <InventoryTable rows={filteredInventory} error={error} />
-        </div>
-      )}
-      {section === "products" && (
-        <div className="panel" style={{ marginTop: 14 }}>
-          <div className="panel-head">
-            <div>
-              <h2>Lịch sử duyệt nhập kho</h2>
-              <p>
-                Các lần nghiệm thu đã duyệt và cộng tồn tại chi nhánh {branch}.
-              </p>
-            </div>
-            <span className="pill">{stockHistory.length} lần duyệt</span>
-          </div>
-          {stockHistory.length ? (
-            <div className="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>THỜI ĐIỂM DUYỆT</th>
-                    <th>TÊN THÀNH PHẨM</th>
-                    <th>MÃ</th>
-                    <th>PHIẾU / LỆNH</th>
-                    <th>VỊ TRÍ</th>
-                    <th>TRƯỚC</th>
-                    <th>NHẬP</th>
-                    <th>SAU</th>
-                    <th>GHI CHÚ DUYỆT</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {stockHistory.map((x) => (
-                    <tr key={x.receiptCode}>
-                      <td>{date(x.approvedAt || x.createdAt)}</td>
-                      <td>
-                        <b>{x.productName || x.productCode}</b>
-                      </td>
-                      <td className="code">{x.productCode}</td>
-                      <td>
-                        <span className="code">{x.receiptCode}</span>
-                        <small
-                          className="muted"
-                          style={{ display: "block", marginTop: 4 }}
-                        >
-                          {x.orderCode}
-                        </small>
-                      </td>
-                      <td>{x.locationName}</td>
-                      <td>{num(x.quantityBefore)}</td>
-                      <td>
-                        <b>+{num(x.quantityChange)}</b>
-                      </td>
-                      <td>{num(x.quantityAfter)}</td>
-                      <td>{x.inspectionNote || "Đạt, không ghi chú lệch"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className="empty">
-              <CircleAlert size={22} />
-              <strong>Chưa có lần duyệt nhập kho</strong>Lịch sử xuất hiện sau
-              khi phiếu thành phẩm được duyệt.
-            </div>
-          )}
+          <InventoryTable
+            rows={filteredInventory}
+            error={error}
+            onView={(x) => void openInventoryDetail(x)}
+          />
         </div>
       )}
       {(section === "exports" || section === "waste") && (
@@ -858,25 +952,38 @@ export default function AdminWorkspace() {
               <option value="APPROVED">Đã duyệt</option>
               <option value="REJECTED">Đã từ chối</option>
             </select>
-            <span className="push muted">
-              {section === "exports"
-                ? "Phiếu hoàn thành ca"
-                : "Phiếu báo thành phẩm lỗi"}
-            </span>
+            {section === "exports" ? (
+              <button
+                className="action push"
+                onClick={() => setModal({ kind: "exports-history" })}
+                title="Bấm để xem lịch sử duyệt xuất thành phẩm"
+              >
+                <History size={14} /> Lịch sử duyệt ({exportApprovalHistory.length})
+              </button>
+            ) : (
+              <button
+                className="action push"
+                onClick={() => setModal({ kind: "waste-history" })}
+                title="Bấm để xem lịch sử duyệt hủy thành phẩm"
+              >
+                <History size={14} /> Lịch sử duyệt ({approvalHistory.length})
+              </button>
+            )}
           </div>
           {section === "exports" ? (
             <ReceiptTable
               rows={receipts.filter((x) =>
-                `${x.receiptCode} ${x.orderCode} ${x.productCode}`
+                `${x.receiptCode} ${x.orderCode} ${x.productCode} ${x.productName ?? ""}`
                   .toLowerCase()
                   .includes(query.toLowerCase()),
               )}
               error={error}
+              onView={(x) => void openReceiptDetail(x)}
               onApprove={(x) => {
                 setError("");
                 setForm({
                   acceptedQuantity: x.reportedQuantity,
-                  locationName: "Kho thành phẩm",
+                  locationName: x.locationName || "Kho thành phẩm",
                 });
                 setModal({ kind: "approve", item: x });
               }}
@@ -894,6 +1001,7 @@ export default function AdminWorkspace() {
                   .includes(query.toLowerCase()),
               )}
               error={error}
+              onView={(x) => void openWasteDetail(x)}
               onApprove={(x) => {
                 setError("");
                 setForm({});
@@ -905,74 +1013,6 @@ export default function AdminWorkspace() {
                 setModal({ kind: "reject", item: x });
               }}
             />
-          )}
-        </div>
-      )}
-      {section === "waste" && (
-        <div className="panel" style={{ marginTop: 14 }}>
-          <div className="panel-head">
-            <div>
-              <h2>Lịch sử duyệt hủy thành phẩm</h2>
-              <p>Phiếu đã ghi nhận hoặc đã từ chối, kèm lý do xử lý.</p>
-            </div>
-            <span className="pill">
-              {approvalHistory.length} phiếu đã xử lý
-            </span>
-          </div>
-          {approvalHistory.length ? (
-            <div className="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>THỜI ĐIỂM</th>
-                    <th>PHIẾU</th>
-                    <th>TÊN THÀNH PHẨM</th>
-                    <th>MÃ</th>
-                    <th>SỐ LƯỢNG</th>
-                    <th>KẾT QUẢ</th>
-                    <th>LÝ DO BÁO LỖI</th>
-                    <th>QUYẾT ĐỊNH DUYỆT</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {approvalHistory.map((x) => (
-                    <tr key={x.code}>
-                      <td>
-                        {x.processedAt
-                          ? date(x.processedAt)
-                          : date(x.createdAt)}
-                      </td>
-                      <td className="code">{x.code}</td>
-                      <td>
-                        <b>{x.productName || x.productCode}</b>
-                      </td>
-                      <td className="code">{x.productCode}</td>
-                      <td>{num(x.quantity)}</td>
-                      <td>
-                        <span
-                          className={`pill ${x.status === "APPROVED" ? "ok" : "bad"}`}
-                        >
-                          {x.status === "APPROVED" ? "Đã ghi nhận" : "Từ chối"}
-                        </span>
-                      </td>
-                      <td>{x.reason}</td>
-                      <td>
-                        {x.decisionNote ||
-                          (x.status === "APPROVED"
-                            ? "Chấp thuận ghi nhận hao hụt"
-                            : "Không có ghi chú")}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className="empty">
-              <CircleAlert size={22} />
-              <strong>Chưa có lịch sử duyệt</strong>Sau khi duyệt hoặc từ chối
-              phiếu hủy, quyết định sẽ hiện ở đây.
-            </div>
           )}
         </div>
       )}
@@ -1001,7 +1041,7 @@ export default function AdminWorkspace() {
           }}
         >
           <div
-            className={`modal ${modal.kind === "dish" || modal.kind === "bom" ? "wide" : ""}`}
+            className={`modal ${modal.kind === "dish" || modal.kind === "bom" || modal.kind === "receipt-detail" || modal.kind === "waste-detail" || modal.kind === "inventory-detail" || modal.kind === "materials" || modal.kind === "stock-history" || modal.kind === "waste-history" || modal.kind === "exports-history" ? "wide" : ""}`}
           >
             <div className="modal-head">
               <h2>
@@ -1011,15 +1051,113 @@ export default function AdminWorkspace() {
                     ? "Chi tiết món"
                     : modal.kind === "deactivate"
                       ? "Ngừng áp dụng công thức"
-                      : modal.kind === "reject"
-                        ? "Từ chối phiếu"
-                        : "Xác nhận duyệt phiếu"}
+                      : modal.kind === "receipt-detail"
+                        ? `Chi tiết phiếu hoàn thành ca · ${modal.receipt.receiptCode}`
+                        : modal.kind === "waste-detail"
+                          ? `Chi tiết phiếu hủy thành phẩm · ${modal.waste.code}`
+                          : modal.kind === "inventory-detail"
+                            ? `Chi tiết thành phẩm · ${modal.detail.productCode}`
+                            : modal.kind === "materials"
+                              ? "Nguyên vật liệu hiện có"
+                              : modal.kind === "stock-history"
+                                ? `Lịch sử duyệt nhập kho · Chi nhánh ${branch}`
+                                : modal.kind === "waste-history"
+                                  ? "Lịch sử duyệt hủy thành phẩm"
+                                  : modal.kind === "exports-history"
+                                    ? "Lịch sử duyệt xuất thành phẩm"
+                                    : modal.kind === "reject"
+                                      ? "Từ chối phiếu"
+                                      : "Xác nhận duyệt phiếu"}
               </h2>
               <button onClick={close}>
                 <X size={18} />
               </button>
             </div>
             {error && <div className="error">{error}</div>}
+            {modal.kind === "exports-history" && (
+              <ReceiptHistoryModal
+                rows={exportApprovalHistory}
+                onOpenReceipt={(item) => void openReceiptDetail(item)}
+                onClose={close}
+              />
+            )}
+            {modal.kind === "stock-history" && (
+              <StockHistoryModal
+                rows={stockHistory}
+                branch={branch}
+                onOpenReceipt={(code) => void openReceiptDetail(code)}
+                onClose={close}
+              />
+            )}
+            {modal.kind === "waste-history" && (
+              <WasteHistoryModal
+                rows={approvalHistory}
+                onOpenWaste={(item) => void openWasteDetail(item)}
+                onClose={close}
+              />
+            )}
+            {modal.kind === "receipt-detail" && (
+              <ReceiptDetail
+                receipt={modal.receipt}
+                onClose={close}
+                onApprove={
+                  modal.receipt.status === "PENDING"
+                    ? () => {
+                        setError("");
+                        setForm({
+                          acceptedQuantity: modal.receipt.reportedQuantity,
+                          locationName:
+                            modal.receipt.locationName || "Kho thành phẩm",
+                        });
+                        setModal({ kind: "approve", item: modal.receipt });
+                      }
+                    : undefined
+                }
+                onReject={
+                  modal.receipt.status === "PENDING"
+                    ? () => {
+                        setError("");
+                        setForm({});
+                        setModal({ kind: "reject", item: modal.receipt });
+                      }
+                    : undefined
+                }
+              />
+            )}
+            {modal.kind === "waste-detail" && (
+              <WasteDetail
+                waste={modal.waste}
+                onClose={close}
+                onApprove={
+                  modal.waste.status === "PENDING"
+                    ? () => {
+                        setError("");
+                        setForm({});
+                        setModal({ kind: "approve", item: modal.waste });
+                      }
+                    : undefined
+                }
+                onReject={
+                  modal.waste.status === "PENDING"
+                    ? () => {
+                        setError("");
+                        setForm({});
+                        setModal({ kind: "reject", item: modal.waste });
+                      }
+                    : undefined
+                }
+              />
+            )}
+            {modal.kind === "inventory-detail" && (
+              <InventoryDetail detail={modal.detail} onClose={close} />
+            )}
+            {modal.kind === "materials" && (
+              <MaterialsModal
+                materials={materials}
+                onUse={(code) => openCreate(code)}
+                onClose={close}
+              />
+            )}
             {modal.kind === "dish" && (
               <DishDetail
                 bom={modal.bom}
@@ -1482,7 +1620,26 @@ function Empty({ error }: { error: string }) {
     </div>
   );
 }
-function InventoryTable({ rows, error }: { rows: Inventory[]; error: string }) {
+function InventoryTable({
+  rows,
+  error,
+  onView,
+}: {
+  rows: Inventory[];
+  error: string;
+  onView: (x: Inventory) => void;
+}) {
+  const [page, setPage] = useState(1);
+  const pageSize = 8;
+
+  const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+
+  const paginatedRows = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return rows.slice(start, start + pageSize);
+  }, [rows, currentPage, pageSize]);
+
   return (
     <div className="table-wrap">
       <table>
@@ -1493,38 +1650,146 @@ function InventoryTable({ rows, error }: { rows: Inventory[]; error: string }) {
             <th>VỊ TRÍ KHO</th>
             <th>SỐ LƯỢNG TỒN</th>
             <th>TÌNH TRẠNG</th>
+            <th>THAO TÁC</th>
           </tr>
         </thead>
         <tbody>
-          {rows.map((x, i) => (
-            <tr key={`${x.productCode}-${x.locationName}-${i}`}>
-              <td>
-                <b>{x.productName || x.productCode}</b>
-              </td>
-              <td className="code">{x.productCode}</td>
-              <td>{x.locationName}</td>
-              <td>
-                <b>{num(x.quantity)}</b> <span className="muted">đv</span>
-              </td>
-              <td>
-                <span className="pill ok">Đang có hàng</span>
-              </td>
-            </tr>
-          ))}
+          {paginatedRows.map((x, i) => {
+            const qty = Number(x.quantity);
+            const isOutOfStock = !Number.isFinite(qty) || qty <= 0;
+            const isLowStock = qty > 0 && qty <= 5;
+
+            return (
+              <tr key={`${x.productCode}-${x.locationName}-${i}`}>
+                <td>
+                  <b>{x.productName || x.productCode}</b>
+                </td>
+                <td className="code">{x.productCode}</td>
+                <td>{x.locationName}</td>
+                <td>
+                  <b
+                    style={{
+                      color: isOutOfStock
+                        ? "#b91c1c"
+                        : isLowStock
+                          ? "#d97706"
+                          : "inherit",
+                    }}
+                  >
+                    {num(x.quantity)}
+                  </b>{" "}
+                  <span className="muted">đv</span>
+                </td>
+                <td>
+                  {isOutOfStock ? (
+                    <span className="pill bad">
+                      <span
+                        style={{
+                          width: 6,
+                          height: 6,
+                          borderRadius: "50%",
+                          background: "#ef4444",
+                          display: "inline-block",
+                        }}
+                      />
+                      Hết hàng
+                    </span>
+                  ) : isLowStock ? (
+                    <span className="pill wait">
+                      <span
+                        style={{
+                          width: 6,
+                          height: 6,
+                          borderRadius: "50%",
+                          background: "#f59e0b",
+                          display: "inline-block",
+                        }}
+                      />
+                      Sắp hết hàng
+                    </span>
+                  ) : (
+                    <span className="pill ok">
+                      <span
+                        style={{
+                          width: 6,
+                          height: 6,
+                          borderRadius: "50%",
+                          background: "#10b981",
+                          display: "inline-block",
+                        }}
+                      />
+                      Đang có hàng
+                    </span>
+                  )}
+                </td>
+                <td>
+                  <button
+                    title="Xem chi tiết thành phẩm"
+                    className="icon-action"
+                    onClick={() => onView(x)}
+                  >
+                    <Eye size={15} />
+                  </button>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
       {!rows.length && <Empty error={error} />}
+
+      {rows.length > 0 && (
+        <div className="table-pagination">
+          <span>
+            Hiển thị{" "}
+            <b>
+              {(currentPage - 1) * pageSize + 1}–
+              {Math.min(currentPage * pageSize, rows.length)}
+            </b>{" "}
+            trong <b>{rows.length}</b> thành phẩm
+          </span>
+          <div className="pagination-controls">
+            <button
+              className="page-btn"
+              disabled={currentPage <= 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              title="Trang trước"
+            >
+              ‹
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+              <button
+                key={p}
+                className={`page-btn ${p === currentPage ? "active" : ""}`}
+                onClick={() => setPage(p)}
+              >
+                {p}
+              </button>
+            ))}
+            <button
+              className="page-btn"
+              disabled={currentPage >= totalPages}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              title="Trang sau"
+            >
+              ›
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 function ReceiptTable({
   rows,
   error,
+  onView,
   onApprove,
   onReject,
 }: {
   rows: Receipt[];
   error: string;
+  onView: (x: Receipt) => void;
   onApprove: (x: Receipt) => void;
   onReject: (x: Receipt) => void;
 }) {
@@ -1534,20 +1799,27 @@ function ReceiptTable({
         <thead>
           <tr>
             <th>PHIẾU / LỆNH</th>
-            <th>THÀNH PHẨM</th>
+            <th>TÊN THÀNH PHẨM</th>
+            <th>MÃ</th>
             <th>CHI NHÁNH</th>
             <th>KẾ HOẠCH</th>
             <th>BÁO HOÀN THÀNH</th>
             <th>NGÀY GỬI</th>
             <th>TRẠNG THÁI</th>
-            <th></th>
+            <th>THAO TÁC</th>
           </tr>
         </thead>
         <tbody>
           {rows.map((x) => (
             <tr key={x.receiptCode}>
               <td>
-                <span className="code">{x.receiptCode}</span>
+                <button
+                  className="code-btn"
+                  onClick={() => onView(x)}
+                  title="Bấm để xem chi tiết phiếu"
+                >
+                  {x.receiptCode}
+                </button>
                 <small
                   style={{ display: "block", marginTop: 4 }}
                   className="muted"
@@ -1555,7 +1827,10 @@ function ReceiptTable({
                   {x.orderCode}
                 </small>
               </td>
-              <td>{x.productCode}</td>
+              <td>
+                <b>{x.productName || x.productCode}</b>
+              </td>
+              <td className="code">{x.productCode}</td>
               <td>{x.branchCode}</td>
               <td>{num(x.plannedQuantity)}</td>
               <td>
@@ -1574,24 +1849,33 @@ function ReceiptTable({
                 </span>
               </td>
               <td>
-                {x.status === "PENDING" && (
-                  <div className="row-actions">
-                    <button
-                      title="Duyệt phiếu"
-                      className="icon-action"
-                      onClick={() => onApprove(x)}
-                    >
-                      <Check size={15} />
-                    </button>
-                    <button
-                      title="Từ chối"
-                      className="icon-action"
-                      onClick={() => onReject(x)}
-                    >
-                      <X size={15} />
-                    </button>
-                  </div>
-                )}
+                <div className="row-actions">
+                  <button
+                    title="Xem chi tiết phiếu"
+                    className="icon-action"
+                    onClick={() => onView(x)}
+                  >
+                    <Eye size={15} />
+                  </button>
+                  {x.status === "PENDING" && (
+                    <>
+                      <button
+                        title="Duyệt phiếu"
+                        className="icon-action"
+                        onClick={() => onApprove(x)}
+                      >
+                        <Check size={15} />
+                      </button>
+                      <button
+                        title="Từ chối"
+                        className="icon-action"
+                        onClick={() => onReject(x)}
+                      >
+                        <X size={15} />
+                      </button>
+                    </>
+                  )}
+                </div>
               </td>
             </tr>
           ))}
@@ -1601,14 +1885,17 @@ function ReceiptTable({
     </div>
   );
 }
+
 function WasteTable({
   rows,
   error,
+  onView,
   onApprove,
   onReject,
 }: {
   rows: Waste[];
   error: string;
+  onView: (x: Waste) => void;
   onApprove: (x: Waste) => void;
   onReject: (x: Waste) => void;
 }) {
@@ -1626,13 +1913,21 @@ function WasteTable({
             <th>PHIẾU NGHIỆM THU</th>
             <th>NGÀY GỬI</th>
             <th>TRẠNG THÁI</th>
-            <th></th>
+            <th>THAO TÁC</th>
           </tr>
         </thead>
         <tbody>
           {rows.map((x) => (
             <tr key={x.code}>
-              <td className="code">{x.code}</td>
+              <td>
+                <button
+                  className="code-btn"
+                  onClick={() => onView(x)}
+                  title="Bấm để xem chi tiết phiếu hủy"
+                >
+                  {x.code}
+                </button>
+              </td>
               <td>
                 <b>{x.productName || x.productCode}</b>
               </td>
@@ -1656,30 +1951,1072 @@ function WasteTable({
                 </span>
               </td>
               <td>
-                {x.status === "PENDING" && (
-                  <div className="row-actions">
-                    <button
-                      title="Ghi nhận hao hụt"
-                      className="icon-action"
-                      onClick={() => onApprove(x)}
-                    >
-                      <Check size={15} />
-                    </button>
-                    <button
-                      title="Từ chối"
-                      className="icon-action"
-                      onClick={() => onReject(x)}
-                    >
-                      <X size={15} />
-                    </button>
-                  </div>
-                )}
+                <div className="row-actions">
+                  <button
+                    title="Xem chi tiết phiếu hủy"
+                    className="icon-action"
+                    onClick={() => onView(x)}
+                  >
+                    <Eye size={15} />
+                  </button>
+                  {x.status === "PENDING" && (
+                    <>
+                      <button
+                        title="Ghi nhận hao hụt"
+                        className="icon-action"
+                        onClick={() => onApprove(x)}
+                      >
+                        <Check size={15} />
+                      </button>
+                      <button
+                        title="Từ chối"
+                        className="icon-action"
+                        onClick={() => onReject(x)}
+                      >
+                        <X size={15} />
+                      </button>
+                    </>
+                  )}
+                </div>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
       {!rows.length && <Empty error={error} />}
+    </div>
+  );
+}
+
+function ReceiptDetail({
+  receipt,
+  onApprove,
+  onReject,
+  onClose,
+}: {
+  receipt: Receipt;
+  onApprove?: () => void;
+  onReject?: () => void;
+  onClose: () => void;
+}) {
+  const st =
+    receipt.status ||
+    (receipt as { receiptStatus?: string }).receiptStatus ||
+    "PENDING";
+  const isPending = st === "PENDING";
+  const isApproved = st === "APPROVED";
+  const isRejected = st === "REJECTED";
+
+  return (
+    <div className="dish-detail">
+      <div className="detail-grid">
+        <div>
+          <small>MÃ PHIẾU HOÀN THÀNH</small>
+          <b className="code" style={{ fontSize: 15 }}>
+            {receipt.receiptCode}
+          </b>
+        </div>
+        <div>
+          <small>TRẠNG THÁI XỬ LÝ</small>
+          <span
+            className={`pill ${isPending ? "wait" : isApproved ? "ok" : "bad"}`}
+          >
+            {isPending
+              ? "Chờ duyệt"
+              : isApproved
+                ? "Đã duyệt hoàn thành"
+                : "Đã từ chối"}
+          </span>
+        </div>
+        <div>
+          <small>TÊN THÀNH PHẨM</small>
+          <b>{receipt.productName || receipt.productCode}</b>
+        </div>
+        <div>
+          <small>MÃ THÀNH PHẨM</small>
+          <span className="code">{receipt.productCode}</span>
+        </div>
+        <div>
+          <small>LỆNH SẢN XUẤT</small>
+          <b className="code">{receipt.orderCode}</b>
+        </div>
+        <div>
+          <small>CHI NHÁNH</small>
+          <b>{receipt.branchCode}</b>
+        </div>
+        <div>
+          <small>KẾ HOẠCH SẢN XUẤT</small>
+          <b>{num(receipt.plannedQuantity)} thành phẩm</b>
+        </div>
+        <div>
+          <small>BÁO HOÀN THÀNH TRONG CA</small>
+          <b>{num(receipt.reportedQuantity)} thành phẩm</b>
+        </div>
+        <div>
+          <small>THỜI ĐIỂM GỬI PHIẾU</small>
+          <span>{date(receipt.createdAt)}</span>
+        </div>
+        <div>
+          <small>GHI CHÚ CA SẢN XUẤT</small>
+          <span>{receipt.note || "Không có ghi chú"}</span>
+        </div>
+      </div>
+
+      <div
+        style={{
+          marginTop: 14,
+          padding: 14,
+          borderRadius: 9,
+          background: "#f8faf8",
+          border: "1px solid var(--line)",
+        }}
+      >
+        <h4
+          style={{
+            margin: "0 0 10px",
+            fontSize: 13,
+            textTransform: "uppercase",
+            letterSpacing: "0.5px",
+            color: "#374151",
+          }}
+        >
+          Kết quả & Lý do xử lý
+        </h4>
+        <div className="detail-grid" style={{ marginBottom: 0 }}>
+          <div>
+            <small>SỐ LƯỢNG ĐẠT NHẬP KHO</small>
+            <b style={{ color: isApproved ? "#276241" : "inherit" }}>
+              {receipt.acceptedQuantity
+                ? `${num(receipt.acceptedQuantity)} phần`
+                : isPending
+                  ? "Chờ duyệt"
+                  : "0 phần"}
+            </b>
+          </div>
+          <div>
+            <small>SỐ LƯỢNG HÀNG LỖI / HỦY</small>
+            <b
+              style={{
+                color:
+                  Number(receipt.rejectedQuantity) > 0 ? "#b91c1c" : "inherit",
+              }}
+            >
+              {receipt.rejectedQuantity
+                ? `${num(receipt.rejectedQuantity)} phần`
+                : "0 phần"}
+            </b>
+          </div>
+          <div>
+            <small>VỊ TRÍ KHO LƯU TRỮ</small>
+            <b>{receipt.locationName || "Kho thành phẩm"}</b>
+          </div>
+          <div>
+            <small>THỜI ĐIỂM DUYỆT / XỬ LÝ</small>
+            <span>
+              {receipt.approvedAt
+                ? date(receipt.approvedAt)
+                : receipt.inspectedAt
+                  ? date(receipt.inspectedAt)
+                  : "Chưa xử lý"}
+            </span>
+          </div>
+          <div style={{ gridColumn: "1 / -1" }}>
+            <small>LÝ DO XỬ LÝ / GHI CHÚ KIỂM TRA</small>
+            <p
+              style={{
+                margin: "3px 0 0",
+                color: "#1f2937",
+                lineHeight: 1.5,
+              }}
+            >
+              {receipt.inspectionNote ||
+                (isApproved
+                  ? "Đạt chuẩn cảm quan và định lượng, không có ghi chú chênh lệch."
+                  : isRejected
+                    ? "Phiếu bị từ chối kiểm tra."
+                    : "Chờ người quản lý kiểm tra và duyệt nhập kho.")}
+            </p>
+          </div>
+        </div>
+
+        {receipt.wasteRequest && (
+          <div
+            style={{
+              marginTop: 12,
+              padding: 10,
+              borderRadius: 6,
+              background: "#fef2f2",
+              border: "1px solid #fecaca",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <span
+                style={{ fontSize: 12, fontWeight: 600, color: "#991b1b" }}
+              >
+                Phát sinh phiếu hủy thành phẩm: {receipt.wasteRequest.code}
+              </span>
+              <span
+                className={`pill ${receipt.wasteRequest.status === "APPROVED" ? "ok" : receipt.wasteRequest.status === "REJECTED" ? "bad" : "wait"}`}
+              >
+                {receipt.wasteRequest.status === "APPROVED"
+                  ? "Đã duyệt hủy"
+                  : receipt.wasteRequest.status === "REJECTED"
+                    ? "Từ chối hủy"
+                    : "Chờ duyệt hủy"}
+              </span>
+            </div>
+            <p style={{ margin: "5px 0 0", fontSize: 12, color: "#7f1d1d" }}>
+              Số lượng lỗi: <b>{num(receipt.wasteRequest.quantity)} phần</b> · Lý
+              do: {receipt.wasteRequest.reason}
+            </p>
+            {receipt.wasteRequest.decisionNote && (
+              <p style={{ margin: "3px 0 0", fontSize: 12, color: "#450a0a" }}>
+                Quyết định duyệt: {receipt.wasteRequest.decisionNote}
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+
+      <div className="form-footer" style={{ marginTop: 16 }}>
+        <button className="action" onClick={onClose}>
+          Đóng
+        </button>
+        {isPending && onReject && (
+          <button className="action" onClick={onReject}>
+            Từ chối
+          </button>
+        )}
+        {isPending && onApprove && (
+          <button className="action primary" onClick={onApprove}>
+            <Check size={14} /> Duyệt phiếu này
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function WasteDetail({
+  waste,
+  onApprove,
+  onReject,
+  onClose,
+}: {
+  waste: Waste;
+  onApprove?: () => void;
+  onReject?: () => void;
+  onClose: () => void;
+}) {
+  const isPending = waste.status === "PENDING";
+  const isApproved = waste.status === "APPROVED";
+  const isRejected = waste.status === "REJECTED";
+
+  return (
+    <div className="dish-detail">
+      <div className="detail-grid">
+        <div>
+          <small>MÃ PHIẾU HỦY</small>
+          <b className="code" style={{ fontSize: 15 }}>
+            {waste.code}
+          </b>
+        </div>
+        <div>
+          <small>TRẠNG THÁI XỬ LÝ</small>
+          <span
+            className={`pill ${isPending ? "wait" : isApproved ? "ok" : "bad"}`}
+          >
+            {isPending
+              ? "Chờ duyệt hủy"
+              : isApproved
+                ? "Đã ghi nhận hao hụt"
+                : "Từ chối hủy"}
+          </span>
+        </div>
+        <div>
+          <small>TÊN THÀNH PHẨM</small>
+          <b>{waste.productName || waste.productCode}</b>
+        </div>
+        <div>
+          <small>MÃ THÀNH PHẨM</small>
+          <span className="code">{waste.productCode}</span>
+        </div>
+        <div>
+          <small>PHIẾU NGHIỆM THU GỐC</small>
+          <b className="code">{waste.receiptCode}</b>
+        </div>
+        <div>
+          <small>LỆNH SẢN XUẤT</small>
+          <span className="code">{waste.orderCode}</span>
+        </div>
+        <div>
+          <small>CHI NHÁNH</small>
+          <b>{waste.branchCode}</b>
+        </div>
+        <div>
+          <small>THỜI ĐIỂM TẠO PHIẾU</small>
+          <span>{date(waste.createdAt)}</span>
+        </div>
+        <div>
+          <small>SỐ LƯỢNG YÊU CẦU HỦY</small>
+          <b style={{ color: "#b91c1c", fontSize: 15 }}>
+            {num(waste.quantity)} thành phẩm
+          </b>
+        </div>
+        <div>
+          <small>LÝ DO BÁO HỎNG BAN ĐẦU</small>
+          <span>{waste.reason}</span>
+        </div>
+      </div>
+
+      <div
+        style={{
+          marginTop: 14,
+          padding: 14,
+          borderRadius: 9,
+          background: "#f8faf8",
+          border: "1px solid var(--line)",
+        }}
+      >
+        <h4
+          style={{
+            margin: "0 0 10px",
+            fontSize: 13,
+            textTransform: "uppercase",
+            letterSpacing: "0.5px",
+            color: "#374151",
+          }}
+        >
+          Kết quả & Lý do xử lý của Quản lý
+        </h4>
+        <div className="detail-grid" style={{ marginBottom: 0 }}>
+          <div>
+            <small>KẾT QUẢ DUYỆT</small>
+            <b
+              style={{
+                color: isApproved
+                  ? "#276241"
+                  : isRejected
+                    ? "#b91c1c"
+                    : "inherit",
+              }}
+            >
+              {isApproved
+                ? "Đã chấp thuận ghi nhận hao hụt"
+                : isRejected
+                  ? "Từ chối yêu cầu hủy"
+                  : "Đang chờ quản lý phê duyệt"}
+            </b>
+          </div>
+          <div>
+            <small>THỜI ĐIỂM DUYỆT / XỬ LÝ</small>
+            <span>
+              {waste.processedAt ? date(waste.processedAt) : "Chưa xử lý"}
+            </span>
+          </div>
+          <div style={{ gridColumn: "1 / -1" }}>
+            <small>QUYẾT ĐỊNH & LÝ DO XỬ LÝ</small>
+            <p
+              style={{
+                margin: "3px 0 0",
+                color: "#1f2937",
+                lineHeight: 1.5,
+                fontWeight: waste.decisionNote ? 500 : 400,
+              }}
+            >
+              {waste.decisionNote ||
+                (isApproved
+                  ? "Chấp thuận ghi nhận hao hụt vào chi phí sản xuất của ca."
+                  : isRejected
+                    ? "Yêu cầu hủy không được chấp thuận."
+                    : "Chờ người quản lý xem xét và phê duyệt.")}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="form-footer" style={{ marginTop: 16 }}>
+        <button className="action" onClick={onClose}>
+          Đóng
+        </button>
+        {isPending && onReject && (
+          <button className="action" onClick={onReject}>
+            Từ chối
+          </button>
+        )}
+        {isPending && onApprove && (
+          <button className="action primary" onClick={onApprove}>
+            <Check size={14} /> Chấp thuận hủy
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function InventoryDetail({
+  detail,
+  onClose,
+}: {
+  detail: InventoryDetail;
+  onClose: () => void;
+}) {
+  const qty = Number(detail.totalQuantity);
+  const isOutOfStock = !Number.isFinite(qty) || qty <= 0;
+  const isLowStock = qty > 0 && qty <= 5;
+  const unit = detail.unit || "phần";
+
+  return (
+    <div className="dish-detail">
+      <div className="detail-grid">
+        <div>
+          <small>TÊN THÀNH PHẨM</small>
+          <b>{detail.productName}</b>
+        </div>
+        <div>
+          <small>MÃ THÀNH PHẨM</small>
+          <span className="code">{detail.productCode}</span>
+        </div>
+        <div>
+          <small>NHÓM MÓN</small>
+          <span>{detail.category || "Chưa phân nhóm"}</span>
+        </div>
+        <div>
+          <small>ĐƠN VỊ TÍNH</small>
+          <span>{unit}</span>
+        </div>
+        <div>
+          <small>GIÁ BÁN</small>
+          <span>{detail.price ? money(detail.price) : "Chưa cập nhật"}</span>
+        </div>
+        <div>
+          <small>TRẠNG THÁI SẢN PHẨM</small>
+          <span
+            className={`pill ${detail.productStatus === "ACTIVE" ? "ok" : "bad"}`}
+          >
+            {detail.productStatus === "ACTIVE"
+              ? "Đang kinh doanh"
+              : detail.productStatus || "Không rõ"}
+          </span>
+        </div>
+        <div>
+          <small>CHI NHÁNH</small>
+          <b>{detail.branchCode}</b>
+        </div>
+        <div>
+          <small>TỔNG TỒN KHO</small>
+          <b style={{ fontSize: 16 }}>
+            {num(detail.totalQuantity)} {unit}
+          </b>
+        </div>
+        <div>
+          <small>TÌNH TRẠNG TỒN</small>
+          <span
+            className={`pill ${isOutOfStock ? "bad" : isLowStock ? "wait" : "ok"}`}
+          >
+            {isOutOfStock
+              ? "Hết hàng"
+              : isLowStock
+                ? "Sắp hết hàng"
+                : "Đang có hàng"}
+          </span>
+        </div>
+        <div style={{ gridColumn: "1 / -1" }}>
+          <small>MÔ TẢ</small>
+          <p className="detail-description">
+            {detail.description || "Chưa có mô tả cho thành phẩm này."}
+          </p>
+        </div>
+      </div>
+
+      <div className="detail-block">
+        <h4>Tồn kho theo vị trí</h4>
+        {detail.balances.length ? (
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>VỊ TRÍ KHO</th>
+                  <th>SỐ LƯỢNG TỒN</th>
+                  <th>ĐƠN VỊ</th>
+                </tr>
+              </thead>
+              <tbody>
+                {detail.balances.map((item) => (
+                  <tr key={item.locationName}>
+                    <td>{item.locationName}</td>
+                    <td>
+                      <b>{num(item.quantity)}</b>
+                    </td>
+                    <td>{unit}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="empty" style={{ padding: "28px 16px" }}>
+            <CircleAlert size={20} />
+            <strong>Chưa có tồn kho</strong>
+            Thành phẩm này chưa được nhập vào kho của chi nhánh.
+          </div>
+        )}
+      </div>
+
+      <div className="detail-block">
+        <h4>
+          Công thức đang áp dụng
+          {detail.activeBom
+            ? ` · ${detail.activeBom.code} (v${detail.activeBom.version})`
+            : ""}
+        </h4>
+        {detail.activeBom ? (
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>NGUYÊN VẬT LIỆU</th>
+                  <th>MÃ</th>
+                  <th>ĐỊNH LƯỢNG</th>
+                </tr>
+              </thead>
+              <tbody>
+                {detail.activeBom.details.map((item) => (
+                  <tr key={item.materialCode}>
+                    <td>{item.materialName}</td>
+                    <td className="code">{item.materialCode}</td>
+                    <td>
+                      {num(item.quantity)} {item.unitName}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="empty" style={{ padding: "28px 16px" }}>
+            <CircleAlert size={20} />
+            <strong>Chưa có công thức</strong>
+            Thành phẩm này chưa có BOM đang áp dụng.
+          </div>
+        )}
+      </div>
+
+      <div className="detail-block">
+        <h4>Lịch sử nhập kho gần đây</h4>
+        {detail.movements.length ? (
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>THỜI ĐIỂM</th>
+                  <th>PHIẾU / LỆNH</th>
+                  <th>VỊ TRÍ</th>
+                  <th>TRƯỚC</th>
+                  <th>NHẬP</th>
+                  <th>SAU</th>
+                  <th>GHI CHÚ DUYỆT</th>
+                </tr>
+              </thead>
+              <tbody>
+                {detail.movements.map((item) => (
+                  <tr key={`${item.receiptCode}-${item.createdAt}`}>
+                    <td>{date(item.approvedAt || item.createdAt)}</td>
+                    <td>
+                      <span className="code">{item.receiptCode}</span>
+                      <small
+                        className="muted"
+                        style={{ display: "block", marginTop: 4 }}
+                      >
+                        {item.orderCode}
+                      </small>
+                    </td>
+                    <td>{item.locationName}</td>
+                    <td>{num(item.quantityBefore)}</td>
+                    <td>
+                      <b style={{ color: "#276241" }}>
+                        +{num(item.quantityChange)}
+                      </b>
+                    </td>
+                    <td>{num(item.quantityAfter)}</td>
+                    <td>{item.inspectionNote || "Đạt, không ghi chú lệch"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="empty" style={{ padding: "28px 16px" }}>
+            <CircleAlert size={20} />
+            <strong>Chưa có lịch sử nhập kho</strong>
+            Lịch sử xuất hiện sau khi phiếu thành phẩm được duyệt.
+          </div>
+        )}
+      </div>
+
+      <div className="form-footer" style={{ marginTop: 16 }}>
+        <button className="action primary" onClick={onClose}>
+          Đóng
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function MaterialsModal({
+  materials,
+  onUse,
+  onClose,
+}: {
+  materials: Material[];
+  onUse: (materialCode: string) => void;
+  onClose: () => void;
+}) {
+  const [filter, setFilter] = useState("");
+  const filtered = useMemo(
+    () =>
+      materials.filter((item) =>
+        `${item.code} ${item.name} ${item.unitName}`
+          .toLowerCase()
+          .includes(filter.toLowerCase()),
+      ),
+    [materials, filter],
+  );
+
+  return (
+    <div className="dish-detail">
+      <div className="toolbar" style={{ padding: "0 0 12px" }}>
+        <div className="search" style={{ width: "100%", maxWidth: "none" }}>
+          <Search size={15} />
+          <input
+            placeholder="Tìm mã hoặc tên nguyên vật liệu…"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+          />
+        </div>
+      </div>
+      {filtered.length ? (
+        <div
+          className="table-wrap"
+          style={{ maxHeight: "60vh", overflowY: "auto" }}
+        >
+          <table>
+            <thead>
+              <tr>
+                <th>MÃ NGUYÊN LIỆU</th>
+                <th>TÊN NGUYÊN LIỆU</th>
+                <th>ĐƠN VỊ</th>
+                <th>THAO TÁC</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((item) => (
+                <tr key={item.code}>
+                  <td className="code">{item.code}</td>
+                  <td>{item.name}</td>
+                  <td>{item.unitName}</td>
+                  <td>
+                    <button
+                      className="action"
+                      onClick={() => onUse(item.code)}
+                    >
+                      <Plus size={14} /> Dùng để tạo món & BOM
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="empty">
+          <CircleAlert size={22} />
+          <strong>
+            {filter ? "Không tìm thấy nguyên vật liệu" : "Chưa có nguyên vật liệu"}
+          </strong>
+          {filter
+            ? "Thử từ khóa khác hoặc xóa bộ lọc."
+            : "Thêm nguyên vật liệu trong hệ thống kho để chọn khi lập BOM."}
+        </div>
+      )}
+      <div className="form-footer" style={{ marginTop: 14 }}>
+        <span className="muted push">
+          {materials.length} nguyên liệu · {filtered.length} đang hiển thị
+        </span>
+        <button className="action primary" onClick={onClose}>
+          Đóng
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function StockHistoryModal({
+  rows,
+  branch,
+  onOpenReceipt,
+  onClose,
+}: {
+  rows: Movement[];
+  branch: string;
+  onOpenReceipt: (code: string) => void;
+  onClose: () => void;
+}) {
+  const [filter, setFilter] = useState("");
+  const filtered = useMemo(
+    () =>
+      rows.filter((x) =>
+        `${x.receiptCode} ${x.orderCode} ${x.productCode} ${x.productName ?? ""} ${x.locationName}`
+          .toLowerCase()
+          .includes(filter.toLowerCase()),
+      ),
+    [rows, filter],
+  );
+
+  return (
+    <div className="dish-detail">
+      <div className="toolbar" style={{ padding: "0 0 12px" }}>
+        <div className="search" style={{ width: "100%" }}>
+          <Search size={15} />
+          <input
+            placeholder="Tìm mã phiếu, lệnh, tên món, vị trí kho…"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+          />
+        </div>
+      </div>
+      {filtered.length ? (
+        <div
+          className="table-wrap"
+          style={{ maxHeight: "60vh", overflowY: "auto" }}
+        >
+          <table>
+            <thead>
+              <tr>
+                <th>THỜI ĐIỂM DUYỆT</th>
+                <th>TÊN THÀNH PHẨM</th>
+                <th>MÃ</th>
+                <th>PHIẾU / LỆNH</th>
+                <th>VỊ TRÍ</th>
+                <th>TRƯỚC</th>
+                <th>NHẬP</th>
+                <th>SAU</th>
+                <th>GHI CHÚ DUYỆT</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((x) => (
+                <tr key={`${x.receiptCode}-${x.createdAt}`}>
+                  <td>{date(x.approvedAt || x.createdAt)}</td>
+                  <td>
+                    <b>{x.productName || x.productCode}</b>
+                  </td>
+                  <td className="code">{x.productCode}</td>
+                  <td>
+                    <button
+                      className="code-btn"
+                      onClick={() => onOpenReceipt(x.receiptCode)}
+                      title="Bấm để xem chi tiết phiếu hoàn thành"
+                    >
+                      {x.receiptCode}
+                    </button>
+                    <small
+                      className="muted"
+                      style={{ display: "block", marginTop: 4 }}
+                    >
+                      {x.orderCode}
+                    </small>
+                  </td>
+                  <td>{x.locationName}</td>
+                  <td>{num(x.quantityBefore)}</td>
+                  <td>
+                    <b style={{ color: "#276241" }}>+{num(x.quantityChange)}</b>
+                  </td>
+                  <td>{num(x.quantityAfter)}</td>
+                  <td>{x.inspectionNote || "Đạt, không ghi chú lệch"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="empty">
+          <CircleAlert size={22} />
+          <strong>Chưa có lần duyệt nhập kho</strong>
+          {filter
+            ? "Không có kết quả khớp với tìm kiếm."
+            : `Lịch sử xuất hiện sau khi phiếu thành phẩm tại ${branch} được duyệt.`}
+        </div>
+      )}
+      <div className="form-footer" style={{ marginTop: 14 }}>
+        <button className="action primary" onClick={onClose}>
+          Đóng
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ReceiptHistoryModal({
+  rows,
+  onOpenReceipt,
+  onClose,
+}: {
+  rows: Receipt[];
+  onOpenReceipt: (x: Receipt) => void;
+  onClose: () => void;
+}) {
+  const [filter, setFilter] = useState("");
+  const filtered = useMemo(
+    () =>
+      rows.filter((x) =>
+        `${x.receiptCode} ${x.orderCode} ${x.productCode} ${x.productName ?? ""} ${x.branchCode} ${x.inspectionNote ?? ""}`
+          .toLowerCase()
+          .includes(filter.toLowerCase()),
+      ),
+    [rows, filter],
+  );
+
+  return (
+    <div className="dish-detail">
+      <div className="toolbar" style={{ padding: "0 0 12px" }}>
+        <div className="search" style={{ width: "100%" }}>
+          <Search size={15} />
+          <input
+            placeholder="Tìm mã phiếu, lệnh, tên món, kết quả, ghi chú…"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+          />
+        </div>
+      </div>
+      {filtered.length ? (
+        <div
+          className="table-wrap"
+          style={{ maxHeight: "60vh", overflowY: "auto" }}
+        >
+          <table>
+            <thead>
+              <tr>
+                <th>THỜI ĐIỂM DUYỆT</th>
+                <th>PHIẾU / LỆNH</th>
+                <th>TÊN THÀNH PHẨM</th>
+                <th>MÃ</th>
+                <th>CHI NHÁNH</th>
+                <th>KẾ HOẠCH</th>
+                <th>BÁO HOÀN THÀNH</th>
+                <th>ĐẠT NHẬP KHO</th>
+                <th>KẾT QUẢ</th>
+                <th>GHI CHÚ / LÝ DO DUYỆT</th>
+                <th>THAO TÁC</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((x) => (
+                <tr key={x.receiptCode}>
+                  <td>
+                    {x.approvedAt
+                      ? date(x.approvedAt)
+                      : x.inspectedAt
+                        ? date(x.inspectedAt)
+                        : date(x.createdAt)}
+                  </td>
+                  <td>
+                    <button
+                      className="code-btn"
+                      onClick={() => onOpenReceipt(x)}
+                      title="Bấm để xem chi tiết phiếu hoàn thành"
+                    >
+                      {x.receiptCode}
+                    </button>
+                    <small
+                      className="muted"
+                      style={{ display: "block", marginTop: 4 }}
+                    >
+                      {x.orderCode}
+                    </small>
+                  </td>
+                  <td>
+                    <b>{x.productName || x.productCode}</b>
+                  </td>
+                  <td className="code">{x.productCode}</td>
+                  <td>{x.branchCode}</td>
+                  <td>{num(x.plannedQuantity)}</td>
+                  <td>{num(x.reportedQuantity)}</td>
+                  <td>
+                    <b
+                      style={{
+                        color: x.status === "APPROVED" ? "#276241" : "inherit",
+                      }}
+                    >
+                      {x.acceptedQuantity
+                        ? `${num(x.acceptedQuantity)} đv`
+                        : "0"}
+                    </b>
+                  </td>
+                  <td>
+                    <span
+                      className={`pill ${x.status === "APPROVED" ? "ok" : "bad"}`}
+                    >
+                      {x.status === "APPROVED" ? "Đã duyệt" : "Từ chối"}
+                    </span>
+                  </td>
+                  <td>
+                    {x.inspectionNote ||
+                      (x.status === "APPROVED"
+                        ? "Đạt chuẩn, không ghi chú lệch"
+                        : "Từ chối nghiệm thu")}
+                  </td>
+                  <td>
+                    <button
+                      title="Xem chi tiết phiếu hoàn thành"
+                      className="icon-action"
+                      onClick={() => onOpenReceipt(x)}
+                    >
+                      <Eye size={14} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="empty">
+          <CircleAlert size={22} />
+          <strong>Chưa có lịch sử duyệt xuất thành phẩm</strong>
+          {filter
+            ? "Không có kết quả khớp với tìm kiếm."
+            : "Sau khi phê duyệt hoặc từ chối phiếu xuất thành phẩm, kết quả sẽ hiện ở đây."}
+        </div>
+      )}
+      <div className="form-footer" style={{ marginTop: 14 }}>
+        <button className="action primary" onClick={onClose}>
+          Đóng
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function WasteHistoryModal({
+  rows,
+  onOpenWaste,
+  onClose,
+}: {
+  rows: Waste[];
+  onOpenWaste: (x: Waste) => void;
+  onClose: () => void;
+}) {
+  const [filter, setFilter] = useState("");
+  const filtered = useMemo(
+    () =>
+      rows.filter((x) =>
+        `${x.code} ${x.productCode} ${x.productName ?? ""} ${x.reason} ${x.decisionNote ?? ""}`
+          .toLowerCase()
+          .includes(filter.toLowerCase()),
+      ),
+    [rows, filter],
+  );
+
+  return (
+    <div className="dish-detail">
+      <div className="toolbar" style={{ padding: "0 0 12px" }}>
+        <div className="search" style={{ width: "100%" }}>
+          <Search size={15} />
+          <input
+            placeholder="Tìm mã phiếu, tên món, lý do lỗi, quyết định duyệt…"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+          />
+        </div>
+      </div>
+      {filtered.length ? (
+        <div
+          className="table-wrap"
+          style={{ maxHeight: "60vh", overflowY: "auto" }}
+        >
+          <table>
+            <thead>
+              <tr>
+                <th>THỜI ĐIỂM</th>
+                <th>PHIẾU</th>
+                <th>TÊN THÀNH PHẨM</th>
+                <th>MÃ</th>
+                <th>SỐ LƯỢNG</th>
+                <th>KẾT QUẢ</th>
+                <th>LÝ DO BÁO LỖI</th>
+                <th>QUYẾT ĐỊNH DUYỆT</th>
+                <th>THAO TÁC</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((x) => (
+                <tr key={x.code}>
+                  <td>
+                    {x.processedAt ? date(x.processedAt) : date(x.createdAt)}
+                  </td>
+                  <td>
+                    <button
+                      className="code-btn"
+                      onClick={() => onOpenWaste(x)}
+                      title="Bấm để xem chi tiết phiếu hủy"
+                    >
+                      {x.code}
+                    </button>
+                  </td>
+                  <td>
+                    <b>{x.productName || x.productCode}</b>
+                  </td>
+                  <td className="code">{x.productCode}</td>
+                  <td>{num(x.quantity)}</td>
+                  <td>
+                    <span
+                      className={`pill ${x.status === "APPROVED" ? "ok" : "bad"}`}
+                    >
+                      {x.status === "APPROVED" ? "Đã ghi nhận" : "Từ chối"}
+                    </span>
+                  </td>
+                  <td>{x.reason}</td>
+                  <td>
+                    {x.decisionNote ||
+                      (x.status === "APPROVED"
+                        ? "Chấp thuận ghi nhận hao hụt"
+                        : "Không có ghi chú")}
+                  </td>
+                  <td>
+                    <button
+                      title="Xem chi tiết phiếu hủy"
+                      className="icon-action"
+                      onClick={() => onOpenWaste(x)}
+                    >
+                      <Eye size={14} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="empty">
+          <CircleAlert size={22} />
+          <strong>Chưa có lịch sử duyệt</strong>
+          {filter
+            ? "Không có kết quả khớp với tìm kiếm."
+            : "Sau khi duyệt hoặc từ chối phiếu hủy, quyết định sẽ hiện ở đây."}
+        </div>
+      )}
+      <div className="form-footer" style={{ marginTop: 14 }}>
+        <button className="action primary" onClick={onClose}>
+          Đóng
+        </button>
+      </div>
     </div>
   );
 }
