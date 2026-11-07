@@ -4,7 +4,6 @@ import {
   ConflictException,
   NotFoundException,
 } from '@nestjs/common';
-import { randomUUID } from 'node:crypto';
 
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { Prisma } from '../../generated/prisma/client.js';
@@ -20,13 +19,14 @@ export class FinishedGoodsApi {
     const reportedQuantity = new Prisma.Decimal(dto.reportedQuantity);
     if (reportedQuantity.lte(0)) throw new BadRequestException('Số lượng hoàn thành phải lớn hơn 0');
     return this.prisma.$transaction(async (tx) => {
-      const order = await tx.productionOrder.findUnique({ where: { code: orderCode.trim() }, include: { finishedGoodsReceipts: { select: { reportedQuantity: true } } } });
+      const order = await tx.productionOrder.findUnique({ where: { code: orderCode.trim() }, include: { finishedGoodsReceipt: true } });
       if (!order) throw new NotFoundException('Không tìm thấy lệnh sản xuất');
       if (order.status !== 'IN_PROGRESS' || order.materialStatus !== 'ISSUED') throw new ConflictException('Lệnh chưa ở trạng thái đang sản xuất');
-      const reportedBefore = order.finishedGoodsReceipts.reduce((sum, receipt) => sum.plus(receipt.reportedQuantity), new Prisma.Decimal(0));
-      if (reportedBefore.plus(reportedQuantity).gt(order.quantity)) throw new BadRequestException('Tổng số lượng đã báo không được vượt số lượng kế hoạch');
+      if (reportedQuantity.gt(order.quantity)) throw new BadRequestException('Số lượng hoàn thành không được vượt số lượng kế hoạch');
       const now = new Date();
-      const receipt = await tx.finishedGoodsReceipt.create({ data: { code: `NTP-${randomUUID().replaceAll('-', '').slice(0, 12).toUpperCase()}`, productionOrderId: order.id, reportedQuantity, note: dto.note?.trim() ?? null } });
+      const receipt = order.finishedGoodsReceipt
+        ? await tx.finishedGoodsReceipt.update({ where: { id: order.finishedGoodsReceipt.id }, data: { reportedQuantity, acceptedQuantity: null, rejectedQuantity: null, status: 'PENDING', note: dto.note?.trim() ?? null, inspectionNote: null, inspectedAt: null, approvedAt: null } })
+        : await tx.finishedGoodsReceipt.create({ data: { code: `NTP-${Date.now()}`, productionOrderId: order.id, reportedQuantity, note: dto.note?.trim() ?? null } });
       const changed = await tx.productionOrder.updateMany({ where: { id: order.id, status: 'IN_PROGRESS' }, data: { status: 'WAITING_APPROVAL' } });
       if (changed.count !== 1) throw new ConflictException('Trạng thái lệnh đã thay đổi');
       return { message: 'Đã gửi số lượng thành phẩm chờ quản lý duyệt', data: { receiptCode: receipt.code, orderCode: order.code, reportedQuantity: reportedQuantity.toString(), status: 'PENDING', productionStatus: 'WAITING_APPROVAL', submittedAt: now } };
@@ -120,14 +120,7 @@ export class FinishedGoodsApi {
           }
 
           const rejected = reported.minus(accepted);
-          const reportTotals = await tx.finishedGoodsReceipt.aggregate({
-            where: { productionOrderId: order.id },
-            _sum: { reportedQuantity: true },
-          });
-          const totalReported = reportTotals._sum.reportedQuantity ?? new Prisma.Decimal(0);
-          const shortfall = totalReported.gte(order.quantity)
-            ? Prisma.Decimal.max(order.quantity.minus(totalReported), 0)
-            : new Prisma.Decimal(0);
+          const shortfall = order.quantity.minus(reported);
           const reason = dto.reason?.trim() || null;
 
           if ((rejected.gt(0) || shortfall.gt(0)) && !reason) {
@@ -172,18 +165,14 @@ export class FinishedGoodsApi {
             throw new ConflictException('Phiếu đã được xử lý');
           }
 
-          // 6. Hoàn thành lệnh khi đã báo đủ kế hoạch; nếu chưa, cho phép staff
-          // tiếp tục sản xuất và gửi đợt kế tiếp sau khi phiếu hiện tại được duyệt.
-          const productionStatus = totalReported.gte(order.quantity)
-            ? 'COMPLETED'
-            : 'IN_PROGRESS';
+          // 6. Hoàn thành lệnh sản xuất
           const completed = await tx.productionOrder.updateMany({
             where: {
               id: order.id,
               status: 'WAITING_APPROVAL',
               materialStatus: 'ISSUED',
             },
-            data: { status: productionStatus },
+            data: { status: 'COMPLETED' },
           });
 
           if (completed.count !== 1) {
@@ -246,7 +235,7 @@ export class FinishedGoodsApi {
               productionShortfall: shortfall.toString(),
               totalStock: balance.quantity.toString(),
               receiptStatus: 'APPROVED',
-              productionStatus,
+              productionStatus: 'COMPLETED',
             },
           };
         },
@@ -310,20 +299,13 @@ export class FinishedGoodsApi {
             throw new ConflictException('Phiếu đã được xử lý');
           }
 
-          // 4. Cho phép báo phần còn lại; nếu đã báo đủ kế hoạch thì đóng lệnh.
-          const totals = await tx.finishedGoodsReceipt.aggregate({
-            where: { productionOrderId: receipt.productionOrderId },
-            _sum: { reportedQuantity: true },
-          });
-          const productionStatus = (totals._sum.reportedQuantity ?? new Prisma.Decimal(0)).gte(receipt.productionOrder.quantity)
-            ? 'COMPLETED'
-            : 'IN_PROGRESS';
+          // 4. Trả lệnh về trạng thái xử lý
           const result = await tx.productionOrder.updateMany({
             where: {
               id: receipt.productionOrderId,
               status: 'WAITING_APPROVAL',
             },
-            data: { status: productionStatus },
+            data: { status: 'IN_PROGRESS' },
           });
 
           if (result.count !== 1) {
@@ -336,7 +318,7 @@ export class FinishedGoodsApi {
               receiptCode: receipt.code,
               orderCode: receipt.productionOrder.code,
               receiptStatus: 'REJECTED',
-              productionStatus,
+              productionStatus: 'IN_PROGRESS',
               reason,
             },
           };
@@ -387,16 +369,8 @@ export class FinishedGoodsApi {
       },
       include: { location: true },
       orderBy: { productCode: 'asc' },
-      take: 200,
+      take: 100,
     });
-
-    const products = await this.prisma.product.findMany({
-      where: { code: { in: balances.map((item) => item.productCode) } },
-      select: { code: true, name: true },
-    });
-    const productNames = new Map(
-      products.map((item) => [item.code, item.name]),
-    );
 
     // 3. Trả kết quả
     return {
@@ -406,7 +380,6 @@ export class FinishedGoodsApi {
         totalItems: balances.length,
         items: balances.map((item) => ({
           productCode: item.productCode,
-          productName: productNames.get(item.productCode) ?? item.productCode,
           locationName: item.location.name,
           quantity: item.quantity.toString(),
         })),
@@ -480,17 +453,14 @@ export class FinishedGoodsApi {
       include: {
         receipt: {
           include: {
-            productionOrder: {
-              include: {
-                bom: { include: { product: true } },
-              },
-            },
+            productionOrder: true,
           },
         },
-        location: { include: { branch: true } },
+        issueDetail: { include: { issue: true } },
+        location: true,
       },
       orderBy: { createdAt: 'desc' },
-      take: 200,
+      take: 100,
     });
 
     return {
@@ -501,18 +471,10 @@ export class FinishedGoodsApi {
         issueCode: item.issueDetail?.issue.code ?? null,
         shiftCode: item.issueDetail?.issue.shiftCode ?? null,
         productCode: item.productCode,
-        productName:
-          item.receipt.productionOrder.bom.product.name ||
-          item.receipt.productionOrder.bom.productName ||
-          item.productCode,
-        branchCode: item.location.branch.code,
         locationName: item.location.name,
         quantityBefore: item.quantityBefore.toString(),
         quantityChange: item.quantityChange.toString(),
         quantityAfter: item.quantityAfter.toString(),
-        receiptStatus: item.receipt.status,
-        inspectionNote: item.receipt.inspectionNote,
-        approvedAt: item.receipt.approvedAt,
         createdAt: item.createdAt,
       })),
     };

@@ -1,17 +1,72 @@
-import { Body, Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
-import type { Request, Response } from 'express';
+import { Body, Controller, Get, HttpCode, Ip, Post } from '@nestjs/common';
+import {
+  IsByteLength,
+  IsEmail,
+  IsNotEmpty,
+  IsString,
+  MinLength,
+} from 'class-validator';
+import { AuthUser, CurrentUser, Public } from '../common/auth.decorators.js';
 import { AuthService } from './auth.service.js';
-import { AuthGuard, readToken, type StaffRequest } from './auth.guard.js';
+
+class LoginDto {
+  @IsEmail({}, { message: 'Email không đúng định dạng' })
+  email: string;
+
+  @IsString()
+  @IsNotEmpty({ message: 'Vui lòng nhập mật khẩu' })
+  @IsByteLength(0, 72)
+  password: string;
+}
+
+class ChangePasswordDto {
+  @IsString()
+  @IsNotEmpty()
+  @IsByteLength(0, 72)
+  oldPassword: string;
+
+  @IsString()
+  @MinLength(8, { message: 'Mật khẩu mới tối thiểu 8 ký tự' })
+  @IsByteLength(0, 72)
+  newPassword: string;
+}
+
 @Controller('api/auth')
 export class AuthController {
-  constructor(private auth: AuthService) {}
-  @Post('login') async login(@Body() body: unknown, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
-    const token = await this.auth.login(body, req.ip || 'unknown');
-    res.cookie('staff_session', token, { httpOnly: true, sameSite: 'lax', secure: process.env.COOKIE_SECURE === 'true', maxAge: 8 * 60 * 60_000, path: '/' });
-    return { message: 'Đăng nhập thành công.' };
+  constructor(private readonly auth: AuthService) {}
+
+  @Public()
+  @Post('login')
+  @HttpCode(200)
+  login(@Body() dto: LoginDto, @Ip() ip: string) {
+    return this.auth.login(dto.email, dto.password, ip);
   }
-  @Get('me') @UseGuards(AuthGuard) me(@Req() req: StaffRequest) { return req.staff; }
-  @Post('logout') @UseGuards(AuthGuard) async logout(@Req() req: StaffRequest, @Res({ passthrough: true }) res: Response) {
-    await this.auth.logout(readToken(req)); res.clearCookie('staff_session', { path: '/' }); return { message: 'Đã đăng xuất.' };
+
+  @Public()
+  @Post('system-admin/login')
+  @HttpCode(200)
+  loginSystemAdmin(@Body() dto: LoginDto, @Ip() ip: string) {
+    return this.auth.login(dto.email, dto.password, ip, true);
+  }
+
+  @Post('logout')
+  @HttpCode(200)
+  logout(@CurrentUser() user: AuthUser) {
+    return this.auth.logout(user);
+  }
+
+  /** Mọi người dùng đã đăng nhập đều gọi được (không yêu cầu quyền cụ thể). */
+  @Get('me')
+  me(@CurrentUser() user: AuthUser) {
+    return user;
+  }
+
+  @Post('change-password')
+  @HttpCode(200)
+  changePassword(
+    @CurrentUser() user: AuthUser,
+    @Body() dto: ChangePasswordDto,
+  ) {
+    return this.auth.changePassword(user.id, dto.oldPassword, dto.newPassword);
   }
 }

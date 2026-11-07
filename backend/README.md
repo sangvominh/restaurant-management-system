@@ -1,124 +1,69 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Backend System Admin
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+NestJS + Prisma 7.10.1 + PostgreSQL, ESM/NodeNext và Vitest; tương thích nền develop tại `7c70254`.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+Hướng dẫn migration, phân quyền và hợp đồng báo cáo: [System Admin Prisma](../docs/system-admin-prisma.md).
 
-## Description
+## Chạy cả backend, frontend và database bằng Docker
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Mở Docker Desktop, chuẩn bị `backend/.env` nếu chưa có (xem [hướng dẫn Docker](../docs/docker.md)), dừng backend/frontend npm cũ rồi chạy tại thư mục gốc:
 
-## Project setup
-
-```bash
-$ npm install
+```powershell
+npm.cmd run docker:up
 ```
 
-## Compile and run the project
+Mở http://localhost:3000/login. Lệnh tự dùng override giữ dữ liệu trên máy nếu có, áp dụng migration và chỉ seed khi chưa có Admin dùng được. Không cần mở hai terminal chạy backend/frontend nữa. Xem trạng thái bằng `npm.cmd run docker:ps`, dừng bằng `npm.cmd run docker:stop`.
 
-```bash
-# development
-$ npm run start
+## Chạy phát triển bằng npm trên máy
 
-# watch mode
-$ npm run start:dev
+`docker-compose.yml` dùng nguyên cấu hình nhóm: PostgreSQL 17.11, service `db`, cổng `127.0.0.1:5433`, database `restaurant_dev`. File chính này chỉ chạy database; cách dưới đây chạy backend/frontend bằng npm. Bản Docker đầy đủ dùng thêm `docker-compose.apps.yml` qua các script ở trên.
 
-# production mode
-$ npm run start:prod
+Nếu đã có volume PostgreSQL 16 từ bản cũ hoặc dữ liệu System Admin PostgreSQL 17 cần giữ, xem mục Docker trong [hướng dẫn](../docs/system-admin-prisma.md#docker-dùng-chung-với-nhóm) trước khi chạy. Không dùng dữ liệu PostgreSQL 16 để khởi động PostgreSQL 17. Máy đã có dữ liệu 17 có thể dùng `docker-compose.override.yml` riêng để giữ đúng volume; file này không được commit.
+
+Tại thư mục gốc:
+
+```sh
+npm ci
+docker compose up -d --wait
 ```
 
-## Run tests
+Nếu chưa có `backend/.env`, sao chép từ `backend/.env.example`, đặt `JWT_SECRET`, `SEED_ADMIN_EMAIL` và `SEED_DEFAULT_PASSWORD` riêng. Kết nối database từ backend chạy trên máy:
 
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+```env
+DATABASE_URL=postgresql://restaurant:local_dev_only@127.0.0.1:5433/restaurant_dev?schema=public
 ```
 
-## Deployment
+Nếu đã có `.env`, giữ các thiết lập riêng và chỉ kiểm tra kết nối; không chép đè file đang dùng.
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+Trong `backend/`, với database Prisma mới:
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+```sh
+npm run db:migrate
+npm run prisma:generate
+npm run db:seed
+npm run start:dev
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Backend cổng 3001; frontend cổng 3000. Trong PowerShell dùng `npm.cmd` nếu execution policy chặn `npm.ps1`.
 
-## Observability
+Portal và mọi API `/api/admin/*` chỉ dành cho System Admin. `/login` gọi `POST /api/auth/system-admin/login`, từ chối vai trò thường trước khi cấp phiên. Login Warehouse riêng do nhóm phụ trách, chưa tạo trong đợt này. Vẫn giữ tài khoản và checkbox nghiệp vụ dùng chung; các vai trò portal warehouse dùng đúng quyền đã tick, System Admin không gọi được API kho dù có wildcard. API `/api/auth/login`, `/me`, `/logout` hiện có được giữ làm điểm nối cho app riêng. Xem [hợp đồng tích hợp](../docs/integration.md#đăng-nhập-riêng-và-điểm-nối-warehouse).
 
-In production applications, observability is essential for understanding how your system behaves, detecting issues early, and maintaining reliable performance.
+Nếu đã chạy bản Prisma trước đó, dừng server, chạy `npm run db:migrate`, rồi khởi động lại và đăng nhập lại. Migration mới chuyển các mặc định cũ, bảo toàn quyền nghiệp vụ đã tùy chỉnh và thu hồi phiên cũ. Xem tài liệu để biết chi tiết chuyển khóa quyền.
 
-[NestJS Observe](https://observe.nestjs.com) automatically instruments your NestJS application, giving you deep visibility into your system with minimal setup:
+Không chạy migration mới trực tiếp lên database TypeORM cũ; xem hướng dẫn chuyển đổi trước. Database develop đã có bảng chi nhánh/bàn cần kiểm tra và đánh dấu baseline theo tài liệu.
 
-- **Distributed tracing:** Follow requests across services and understand how they flow through your system.
-- **Waterfall analysis:** Visualize request execution and identify slow operations, bottlenecks, and unexpected delays.
-- **Performance analysis:** Analyze application performance in real time and quickly pinpoint areas that need optimization.
-- **Metrics:** Track key application and infrastructure metrics to understand system health and performance trends.
-- **Logging:** Centralize and correlate logs with traces and other telemetry to make debugging easier.
-- **Error tracking:** Detect errors quickly and investigate their root causes with the surrounding context.
-- **SLA monitoring:** Track service-level objectives and identify when your application is approaching or exceeding defined thresholds.
-- **Alarms and alerts:** Set up alerts for critical errors, performance degradation, SLA violations, and other anomalies so your team can react quickly.
+## Kiểm tra
 
-To add it to this project:
-
-```bash
-$ npm install @nestjs/observe
+```sh
+npm run prisma:validate
+npm run build
+npm test
+npm run test:e2e
+npm run lint
 ```
 
-Then follow the [setup guide](https://docs.nestjs.com/observability/overview) - it takes a single import and an app key.
+E2E dùng PostgreSQL trong bộ nhớ, không cần Docker hay database thật. Bộ test kiểm tra tài khoản, quyền, thu hồi JWT, phục hồi quản trị và báo cáo từ hai view dùng chung.
 
-The free plan needs no payment details and covers 300,000 events a month. You can also browse the [live demo](https://www.observe-demo.nestjs.com/dashboard) first - the whole dashboard over a busy service's data, with nothing to install.
+## Báo cáo
 
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Auto-instrument your application with [NestJS Observe](https://observe.nestjs.com). Distributed tracing, metrics, and logging made easy. Error tracking and performance monitoring for your NestJS applications.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+`GET /api/admin/reports/revenue`, `/stock`, `/stock/materials` đọc `public.v_report_revenue` và `public.v_report_stock`. Khi chưa nối nguồn thật, API trả `ready:false`. Mẫu SQL nằm trong `scripts/report-views-contract.sql` ở thư mục gốc. Không tự nạp dữ liệu demo lúc khởi động.

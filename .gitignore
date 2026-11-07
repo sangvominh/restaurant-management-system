@@ -1,36 +1,16 @@
-# Dependencies
 node_modules/
-
-# Build
-dist/
-build/
-.next/
-out/
-*.tsbuildinfo
-
-# Tests
-coverage/
-.nyc_output/
-
-# Environment / secrets
 .env
-.env.*
-!.env.example
-!.env.*.example
-backend/.env
-# Logs
-logs/
-*.log
-
-# Database backups
-*.dump
-*.backup
-
-# OS
-.DS_Store
-Thumbs.db
-
-# IDE
-.idea/
-.vscode/
-stitch-screens
+.next/
+dist/
+backups/
+sao-luu-*.json
+tu-dong-truoc-khi-phuc-hoi-*.json
+*.tsbuildinfo
+.npm-cache/
+backend/src/generated/prisma/
+coverage/
+test-results/
+playwright-report/
+# Chỉ định volume/cấu hình riêng của từng máy; file Docker chính dùng chung với nhóm.
+docker-compose.override.yml
+docker-compose.override.yaml

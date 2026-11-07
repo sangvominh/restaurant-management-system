@@ -9,7 +9,8 @@ import { PrismaService } from '../../prisma/prisma.service.js';
 import { Prisma } from '../../generated/prisma/client.js';
 import { CreateBomDto, BomDetailDto } from '../dto/create-bom.dto.js';
 import { CheckBomStockDto } from '../dto/check-bom-stock.dto.js';
-import { NewVersionBomDto, UpdateBomDto } from '../dto/update-bom.dto.js';
+import { UpdateBomDto } from '../dto/update-bom.dto.js';
+import { CreateBomVersionDto } from '../dto/create-bom-version.dto.js';
 
 @Injectable()
 export class BomApi {
@@ -78,7 +79,6 @@ export class BomApi {
   async createBom(dto: CreateBomDto) {
     const code = dto.code.trim();
     const productCode = dto.productCode.trim();
-    const productName = dto.productName?.trim() || null;
 
     if (!code || !productCode) {
       throw new BadRequestException('Mã BOM hoặc mã món ăn không hợp lệ');
@@ -91,34 +91,30 @@ export class BomApi {
     const preparedDetails = await this.validateAndPrepareDetails(dto.details);
 
     try {
-      const bom = await this.prisma.$transaction(async (tx) => {
-        await this.syncProduct(tx, productCode, {
-          productName: productName || productCode,
-          category: dto.category,
-          description: dto.description,
-          price: dto.price,
-        });
-
-        return tx.bom.create({
-          data: {
-            code,
-            productCode,
-            productName,
-            outputQuantity: new Prisma.Decimal(dto.outputQuantity),
-            details: {
-              create: details,
+      const bom = await this.prisma.bom.create({
+        data: {
+          code,
+          productCode,
+          outputQuantity: new Prisma.Decimal(dto.outputQuantity),
+          version: 1,
+          status: 'ACTIVE',
+          details: {
+            create: preparedDetails.map((d) => ({
+              material: { connect: { id: d.materialId } },
+              unit: { connect: { id: d.unitId } },
+              quantity: d.quantity,
+            })),
+          },
+        },
+        include: {
+          product: true,
+          details: {
+            include: {
+              material: true,
+              unit: true,
             },
           },
-          include: {
-            product: true,
-            details: {
-              include: {
-                material: true,
-                unit: true,
-              },
-            },
-          },
-        });
+        },
       });
 
       return {
@@ -126,7 +122,7 @@ export class BomApi {
         data: {
           code: bom.code,
           productCode: bom.productCode,
-          productName: bom.productName || bom.product.name,
+          productName: bom.product?.name ?? null,
           version: bom.version,
           outputQuantity: bom.outputQuantity.toString(),
           status: bom.status,
@@ -172,10 +168,11 @@ export class BomApi {
           },
         },
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
-      take: 200,
+      orderBy: [
+        { productCode: 'asc' },
+        { version: 'desc' },
+      ],
+      take: 100,
     });
 
     return {
@@ -183,15 +180,14 @@ export class BomApi {
       data: boms.map((bom) => ({
         code: bom.code,
         productCode: bom.productCode,
-        productName: bom.productName || bom.product.name,
+        productName: bom.product?.name ?? null,
+        productCategory: bom.product?.category ?? null,
+        productPrice: bom.product ? Number(bom.product.price) : null,
+        productImage: bom.product?.imageUrl ?? null,
         version: bom.version,
         outputQuantity: bom.outputQuantity.toString(),
         status: bom.status,
         createdAt: bom.createdAt,
-        category: bom.product.category,
-        description: bom.product.description,
-        price: bom.product.price.toString(),
-
         totalMaterials: bom.details.length,
         details: bom.details.map((item) => ({
           materialCode: item.material.code,
@@ -214,7 +210,6 @@ export class BomApi {
     const boms = await this.prisma.bom.findMany({
       where: { productCode: code },
       include: {
-        product: true,
         details: {
           include: {
             material: true,
@@ -292,25 +287,15 @@ export class BomApi {
       data: {
         code: bom.code,
         productCode: bom.productCode,
-        productName: bom.productName || bom.product.name,
+        productName: bom.product?.name ?? null,
+        productCategory: bom.product?.category ?? null,
+        productPrice: bom.product ? Number(bom.product.price) : null,
+        productUnit: bom.product?.unit ?? 'phần',
+        productImage: bom.product?.imageUrl ?? null,
         version: bom.version,
         outputQuantity: bom.outputQuantity.toString(),
         status: bom.status,
         createdAt: bom.createdAt,
-        category: bom.product.category,
-        description: bom.product.description,
-        price: bom.product.price.toString(),
-        versions: await this.prisma.bom.findMany({
-          where: { productCode: bom.productCode },
-          orderBy: { version: 'desc' },
-          select: {
-            code: true,
-            version: true,
-            status: true,
-            createdAt: true,
-          },
-        }),
-
         totalMaterials: bom.details.length,
         recentOrders: bom.productionOrders.map((o) => ({
           code: o.code,
@@ -328,199 +313,260 @@ export class BomApi {
     };
   }
 
+  // 5. Cập nhật / Sửa công thức BOM
   async updateBom(code: string, dto: UpdateBomDto) {
+    const bomCode = code.trim();
+
     const bom = await this.prisma.bom.findUnique({
-      where: { code: code.trim() },
-      include: { details: true },
-    });
-
-    if (!bom) {
-      throw new NotFoundException('Không tìm thấy công thức BOM');
-    }
-
-    if (bom.status !== 'ACTIVE') {
-      throw new ConflictException(
-        'Công thức đã ngừng áp dụng. Hãy tạo version mới.',
-      );
-    }
-
-    const outputQuantity = new Prisma.Decimal(dto.outputQuantity);
-    if (outputQuantity.lte(0)) {
-      throw new BadRequestException('Sản lượng phải lớn hơn 0');
-    }
-
-    const details = await this.resolveDetails(dto.details);
-    const openOrders = await this.prisma.productionOrder.count({
-      where: {
-        bomId: bom.id,
-        status: { notIn: ['COMPLETED', 'CANCELLED'] },
+      where: { code: bomCode },
+      include: {
+        productionOrders: {
+          where: { status: { in: ['CONFIRMED', 'IN_PROGRESS'] } },
+        },
       },
     });
 
-    if (openOrders > 0 && !this.sameRecipe(bom, outputQuantity, details)) {
+    if (!bom) {
+      throw new NotFoundException(`Không tìm thấy công thức BOM '${bomCode}'`);
+    }
+
+    // Nghiệp vụ: Cảnh báo nếu đang có lệnh sản xuất chạy
+    if (dto.details && bom.productionOrders.length > 0) {
       throw new BadRequestException(
-        'Công thức đang có lệnh sản xuất chưa xong. Hãy tạo version mới thay vì sửa định mức.',
+        `Không thể sửa trực tiếp danh sách NVL của BOM '${bomCode}' vì đang có ${bom.productionOrders.length} lệnh sản xuất đang chạy. Vui lòng tạo Version mới.`,
       );
     }
 
-    let updated;
-    try {
-      updated = await this.prisma.$transaction(async (tx) => {
-        await this.syncProduct(tx, bom.productCode, dto);
+    return this.prisma.$transaction(async (tx) => {
+      const updateData: Prisma.BomUpdateInput = {};
 
-        if (!this.sameRecipe(bom, outputQuantity, details)) {
-          await tx.bomDetail.deleteMany({ where: { bomId: bom.id } });
-          await tx.bomDetail.createMany({
-            data: details.map((item) => ({
-              bomId: bom.id,
-              materialId: item.materialId,
-              unitId: item.unitId,
-              quantity: item.quantity,
-            })),
-          });
+      if (dto.outputQuantity) {
+        const outQty = new Prisma.Decimal(dto.outputQuantity);
+        if (outQty.lte(0)) {
+          throw new BadRequestException('Sản lượng đầu ra phải lớn hơn 0');
         }
-
-        return tx.bom.update({
-          where: { id: bom.id },
-          data: {
-            productName: dto.productName.trim(),
-            outputQuantity,
-          },
-          include: {
-            product: true,
-            details: { include: { material: true, unit: true } },
-          },
-        });
-      });
-    } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === 'P2003'
-      ) {
-        throw new BadRequestException(
-          'Định mức đã gắn với lệnh sản xuất. Hãy tạo version mới.',
-        );
+        updateData.outputQuantity = outQty;
       }
 
-      throw error;
-    }
+      if (dto.status) {
+        updateData.status = dto.status;
+      }
 
-    return {
-      message: 'Cập nhật món và BOM thành công',
-      data: this.presentBom(updated),
-    };
-  }
+      // Nếu có cập nhật danh sách nguyên vật liệu
+      if (dto.details && dto.details.length > 0) {
+        const preparedDetails = await this.validateAndPrepareDetails(dto.details);
 
-  async createNewVersion(code: string, dto: NewVersionBomDto) {
-    const source = await this.prisma.bom.findUnique({
-      where: { code: code.trim() },
-    });
+        // Xóa các chi tiết cũ
+        await tx.bomDetail.deleteMany({
+          where: { bomId: bom.id },
+        });
 
-    if (!source) {
-      throw new NotFoundException('Không tìm thấy công thức BOM');
-    }
+        // Tạo các chi tiết mới
+        await tx.bomDetail.createMany({
+          data: preparedDetails.map((d) => ({
+            bomId: bom.id,
+            materialId: d.materialId,
+            unitId: d.unitId,
+            quantity: d.quantity,
+          })),
+        });
+      }
 
-    const outputQuantity = new Prisma.Decimal(dto.outputQuantity);
-    if (outputQuantity.lte(0)) {
-      throw new BadRequestException('Sản lượng phải lớn hơn 0');
-    }
-
-    const details = await this.resolveDetails(dto.details);
-    const latest = await this.prisma.bom.aggregate({
-      where: { productCode: source.productCode },
-      _max: { version: true },
-    });
-    const version = (latest._max.version ?? source.version) + 1;
-    const nextCode = await this.nextBomCode(
-      dto.code?.trim(),
-      source.productCode,
-      version,
-    );
-
-    try {
-      const bom = await this.prisma.$transaction(async (tx) => {
-        await this.syncProduct(tx, source.productCode, dto);
-
-        return tx.bom.create({
-          data: {
-            code: nextCode,
-            productCode: source.productCode,
-            productName: dto.productName.trim(),
-            version,
-            outputQuantity,
-            status: 'ACTIVE',
-            details: {
-              create: details.map((item) => ({
-                material: { connect: { id: item.materialId } },
-                unit: { connect: { id: item.unitId } },
-                quantity: item.quantity,
-              })),
+      const updated = await tx.bom.update({
+        where: { code: bomCode },
+        data: updateData,
+        include: {
+          product: true,
+          details: {
+            include: {
+              material: true,
+              unit: true,
             },
           },
-          include: {
-            product: true,
-            details: { include: { material: true, unit: true } },
-          },
-        });
+        },
       });
 
       return {
-        message: 'Đã tạo version mới của món',
-        data: this.presentBom(bom),
+        message: 'Cập nhật công thức BOM thành công',
+        data: {
+          code: updated.code,
+          productCode: updated.productCode,
+          version: updated.version,
+          outputQuantity: updated.outputQuantity.toString(),
+          status: updated.status,
+          details: updated.details.map((item) => ({
+            materialCode: item.material.code,
+            materialName: item.material.name,
+            unitName: item.unit.name,
+            quantity: item.quantity.toString(),
+          })),
+        },
       };
-    } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === 'P2002'
-      ) {
-        throw new ConflictException('Mã BOM hoặc phiên bản đã tồn tại');
-      }
-
-      throw error;
-    }
+    });
   }
 
-  async deactivateBom(code: string) {
-    const bom = await this.prisma.bom.findUnique({
+  // 6. Tạo Version mới cho công thức BOM
+  async createNextVersion(code: string, dto: CreateBomVersionDto) {
+    const baseBom = await this.prisma.bom.findUnique({
       where: { code: code.trim() },
-    });
-
-    if (!bom) {
-      throw new NotFoundException('Không tìm thấy công thức BOM');
-    }
-
-    if (bom.status !== 'ACTIVE') {
-      throw new ConflictException('Công thức đã ngừng áp dụng');
-    }
-
-    const openOrders = await this.prisma.productionOrder.count({
-      where: {
-        bomId: bom.id,
-        status: { notIn: ['COMPLETED', 'CANCELLED'] },
+      include: {
+        details: {
+          include: {
+            material: true,
+            unit: true,
+          },
+        },
       },
     });
 
-    if (openOrders > 0) {
-      throw new ConflictException(
-        'Còn lệnh sản xuất chưa hoàn thành. Hãy xử lý lệnh trước khi ngừng áp dụng.',
-      );
+    if (!baseBom) {
+      throw new NotFoundException(`Không tìm thấy công thức BOM gốc '${code}'`);
     }
 
-    const updated = await this.prisma.bom.updateMany({
-      where: { id: bom.id, status: 'ACTIVE' },
-      data: { status: 'INACTIVE' },
+    // Tìm version lớn nhất hiện tại của món ăn này
+    const maxBom = await this.prisma.bom.findFirst({
+      where: { productCode: baseBom.productCode },
+      orderBy: { version: 'desc' },
     });
 
-    if (updated.count !== 1) {
-      throw new ConflictException('Công thức đã được xử lý');
+    const nextVersion = (maxBom?.version ?? baseBom.version) + 1;
+
+    // Tự sinh mã BOM mới nếu không truyền
+    const cleanPrefix = baseBom.code.replace(/-v\d+$/i, '');
+    const newBomCode = dto.newCode?.trim() || `${cleanPrefix}-v${nextVersion}`;
+
+    // Kiểm tra trùng mã
+    const existingCode = await this.prisma.bom.findUnique({
+      where: { code: newBomCode },
+    });
+    if (existingCode) {
+      throw new ConflictException(`Mã BOM mới '${newBomCode}' đã tồn tại.`);
     }
 
-    return {
-      message: 'Đã ngừng áp dụng công thức',
-      data: { code: bom.code, status: 'INACTIVE' },
-    };
+    // Xác định chi tiết NVL: nếu dto có truyền thì dùng, nếu không thì clone từ BOM gốc
+    let detailsToCreate: { materialId: string; unitId: string; quantity: Prisma.Decimal }[] = [];
+
+    if (dto.details && dto.details.length > 0) {
+      detailsToCreate = await this.validateAndPrepareDetails(dto.details);
+    } else {
+      detailsToCreate = baseBom.details.map((d) => ({
+        materialId: d.materialId,
+        unitId: d.unitId,
+        quantity: d.quantity,
+      }));
+    }
+
+    const outputQuantity = dto.outputQuantity
+      ? new Prisma.Decimal(dto.outputQuantity)
+      : baseBom.outputQuantity;
+
+    if (outputQuantity.lte(0)) {
+      throw new BadRequestException('Sản lượng đầu ra phải lớn hơn 0');
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      // Nếu có tùy chọn ngừng áp dụng các phiên bản cũ
+      if (dto.deactivateOldVersion ?? true) {
+        await tx.bom.updateMany({
+          where: { productCode: baseBom.productCode, status: 'ACTIVE' },
+          data: { status: 'ARCHIVED' },
+        });
+      }
+
+      // Tạo BOM phiên bản mới
+      const newBom = await tx.bom.create({
+        data: {
+          code: newBomCode,
+          productCode: baseBom.productCode,
+          version: nextVersion,
+          outputQuantity,
+          status: 'ACTIVE',
+          details: {
+            create: detailsToCreate.map((d) => ({
+              material: { connect: { id: d.materialId } },
+              unit: { connect: { id: d.unitId } },
+              quantity: d.quantity,
+            })),
+          },
+        },
+        include: {
+          product: true,
+          details: {
+            include: {
+              material: true,
+              unit: true,
+            },
+          },
+        },
+      });
+
+      return {
+        message: `Đã tạo phiên bản mới v${nextVersion} cho công thức '${baseBom.productCode}' thành công`,
+        data: {
+          code: newBom.code,
+          productCode: newBom.productCode,
+          version: newBom.version,
+          outputQuantity: newBom.outputQuantity.toString(),
+          status: newBom.status,
+          previousVersion: baseBom.version,
+          details: newBom.details.map((item) => ({
+            materialCode: item.material.code,
+            materialName: item.material.name,
+            unitName: item.unit.name,
+            quantity: item.quantity.toString(),
+          })),
+        },
+      };
+    });
   }
-// Kiểm tra nguyên vật liệu theo BOM
+
+  // 7. Ngừng áp dụng / Thay đổi trạng thái BOM (ACTIVE <-> INACTIVE / ARCHIVED)
+  async updateStatus(code: string, status: string) {
+    const bomCode = code.trim();
+    const newStatus = status.trim().toUpperCase();
+
+    const bom = await this.prisma.bom.findUnique({
+      where: { code: bomCode },
+    });
+
+    if (!bom) {
+      throw new NotFoundException(`Không tìm thấy công thức BOM '${bomCode}'`);
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      // Nếu kích hoạt (ACTIVE) công thức này, chuyển các phiên bản khác của cùng món sang ARCHIVED/INACTIVE
+      if (newStatus === 'ACTIVE') {
+        await tx.bom.updateMany({
+          where: {
+            productCode: bom.productCode,
+            id: { not: bom.id },
+            status: 'ACTIVE',
+          },
+          data: { status: 'INACTIVE' },
+        });
+      }
+
+      const updated = await tx.bom.update({
+        where: { code: bomCode },
+        data: { status: newStatus },
+      });
+
+      return {
+        message:
+          newStatus === 'INACTIVE' || newStatus === 'ARCHIVED'
+            ? `Đã ngừng áp dụng công thức BOM '${bomCode}'`
+            : `Đã kích hoạt áp dụng công thức BOM '${bomCode}'`,
+        data: {
+          code: updated.code,
+          productCode: updated.productCode,
+          version: updated.version,
+          status: updated.status,
+        },
+      };
+    });
+  }
+
+  // 8. Kiểm tra nguyên vật liệu theo BOM
   async checkBomStock(dto: CheckBomStockDto) {
     const bom = await this.prisma.bom.findUnique({
       where: { code: dto.bomCode.trim() },
@@ -666,183 +712,6 @@ export class BomApi {
         canProduce,
         materials,
       },
-    };
-  }
-
-  private async resolveDetails(items: UpdateBomDto['details']) {
-    const details: {
-      materialId: string;
-      unitId: string;
-      quantity: Prisma.Decimal;
-    }[] = [];
-    const usedMaterials = new Set<string>();
-
-    for (const item of items) {
-      const materialCode = item.materialCode.trim();
-
-      if (usedMaterials.has(materialCode)) {
-        throw new BadRequestException('Nguyên vật liệu bị trùng');
-      }
-
-      usedMaterials.add(materialCode);
-
-      const material = await this.prisma.material.findUnique({
-        where: { code: materialCode },
-      });
-      const unit = await this.prisma.unit.findUnique({
-        where: { name: item.unitName.trim() },
-      });
-
-      if (!material || material.status !== 'ACTIVE') {
-        throw new BadRequestException(
-          `Nguyên vật liệu không hợp lệ: ${materialCode}`,
-        );
-      }
-
-      if (!unit || unit.status !== 'ACTIVE') {
-        throw new BadRequestException('Đơn vị tính không hợp lệ');
-      }
-
-      if (unit.id !== material.unitId && unit.baseUnitId !== material.unitId) {
-        throw new BadRequestException('Đơn vị tính không phù hợp');
-      }
-
-      const quantity = new Prisma.Decimal(item.quantity);
-
-      if (quantity.lte(0)) {
-        throw new BadRequestException('Số lượng NVL phải lớn hơn 0');
-      }
-
-      details.push({ materialId: material.id, unitId: unit.id, quantity });
-    }
-
-    return details;
-  }
-
-  private sameRecipe(
-    bom: {
-      outputQuantity: Prisma.Decimal;
-      details: {
-        materialId: string;
-        unitId: string;
-        quantity: Prisma.Decimal;
-      }[];
-    },
-    outputQuantity: Prisma.Decimal,
-    details: {
-      materialId: string;
-      unitId: string;
-      quantity: Prisma.Decimal;
-    }[],
-  ) {
-    if (
-      !bom.outputQuantity.equals(outputQuantity) ||
-      bom.details.length !== details.length
-    ) {
-      return false;
-    }
-
-    const current = [...bom.details].sort((a, b) =>
-      a.materialId.localeCompare(b.materialId),
-    );
-    const next = [...details].sort((a, b) =>
-      a.materialId.localeCompare(b.materialId),
-    );
-
-    return current.every(
-      (item, index) =>
-        item.materialId === next[index].materialId &&
-        item.unitId === next[index].unitId &&
-        item.quantity.equals(next[index].quantity),
-    );
-  }
-
-  private async syncProduct(
-    tx: Prisma.TransactionClient,
-    productCode: string,
-    dto: {
-      productName?: string | null;
-      category?: string;
-      description?: string;
-      price?: string;
-    },
-  ) {
-    const name = dto.productName?.trim() || productCode;
-    const existing = await tx.product.findUnique({
-      where: { code: productCode },
-    });
-
-    if (!existing) {
-      await tx.product.create({
-        data: {
-          code: productCode,
-          name,
-          category: dto.category?.trim() || 'Món ăn',
-          price: new Prisma.Decimal(dto.price || 0),
-          unit: 'phần',
-          description: dto.description?.trim() || null,
-        },
-      });
-      return;
-    }
-
-    await tx.product.update({
-      where: { code: productCode },
-      data: {
-        name,
-        ...(dto.category?.trim() ? { category: dto.category.trim() } : {}),
-        ...(dto.description !== undefined
-          ? { description: dto.description.trim() || null }
-          : {}),
-        ...(dto.price ? { price: new Prisma.Decimal(dto.price) } : {}),
-      },
-    });
-  }
-
-  private async nextBomCode(
-    requested: string | undefined,
-    productCode: string,
-    version: number,
-  ) {
-    const fallback = `${productCode}-V${version}`.slice(0, 50);
-    const code = requested || fallback;
-    const taken = await this.prisma.bom.findUnique({ where: { code } });
-
-    if (!taken) {
-      return code;
-    }
-
-    const generated = `${productCode}-V${version}-${Date.now()}`.slice(0, 50);
-    return generated;
-  }
-
-  private presentBom(bom: {
-    code: string;
-    productCode: string;
-    productName: string | null;
-    version: number;
-    outputQuantity: Prisma.Decimal;
-    status: string;
-    product: { name: string };
-    details: {
-      quantity: Prisma.Decimal;
-      material: { code: string; name: string };
-      unit: { name: string };
-    }[];
-  }) {
-    return {
-      code: bom.code,
-      productCode: bom.productCode,
-      productName: bom.productName || bom.product.name,
-      version: bom.version,
-      outputQuantity: bom.outputQuantity.toString(),
-      status: bom.status,
-      details: bom.details.map((item) => ({
-        materialCode: item.material.code,
-        materialName: item.material.name,
-        unitName: item.unit.name,
-        quantity: item.quantity.toString(),
-      })),
     };
   }
 }

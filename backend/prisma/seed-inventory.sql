@@ -6,12 +6,12 @@ ON CONFLICT (code) DO NOTHING;
 
 -- 2. Đơn vị tính
 INSERT INTO units (name, conversion_factor)
-VALUES ('kg', 1), ('lít', 1)
+VALUES ('kg', 1)
 ON CONFLICT (name) DO NOTHING;
 
 -- 3. Phân loại nguyên vật liệu
-INSERT INTO categories (code, name, category_type)
-VALUES ('DM-SEED-MEAT', 'Thịt', 'MATERIAL'), ('DM-SEED-VEG', 'Rau củ', 'MATERIAL'), ('DM-SEED-TEA', 'Trà', 'MATERIAL'), ('DM-SEED-MILK', 'Sữa', 'MATERIAL'), ('DM-SEED-SPICE', 'Gia vị', 'MATERIAL')
+INSERT INTO categories (name, category_type)
+VALUES ('Thịt', 'MATERIAL')
 ON CONFLICT (name, category_type) DO NOTHING;
 
 -- 4. Nguyên vật liệu

@@ -1,18 +1,106 @@
-import { CanActivate, ExecutionContext, Injectable, SetMetadata, ForbiddenException } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import type { Request } from 'express';
-import { AuthService, type StaffIdentity } from './auth.service.js';
-export const Roles = (...roles: StaffIdentity['role'][]) => SetMetadata('staffRoles', roles);
-export type StaffRequest = Request & { staff: StaffIdentity };
-export function readToken(req: Request) { return req.headers.cookie?.split(';').map(p => p.trim()).find(p => p.startsWith('staff_session='))?.slice(14) || ''; }
+import { JwtService } from '@nestjs/jwt';
+import {
+  AuthUser,
+  IS_PUBLIC_KEY,
+  PERMISSIONS_KEY,
+  SYSTEM_ADMIN_ONLY_KEY,
+  WAREHOUSE_ONLY_KEY,
+} from '../common/auth.decorators.js';
+import {
+  isSystemRole,
+  assertSystemAdmin,
+} from '../common/management-policy.js';
+import { WILDCARD } from '../common/permissions.js';
+import { PrismaService } from '../prisma/prisma.service.js';
+
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private auth: AuthService, private reflector: Reflector) {}
-  async canActivate(context: ExecutionContext) {
-    const req = context.switchToHttp().getRequest<StaffRequest>();
-    req.staff = await this.auth.identity(readToken(req));
-    const roles = this.reflector.getAllAndOverride<StaffIdentity['role'][] | undefined>('staffRoles', [context.getHandler(), context.getClass()]);
-    if (roles && !roles.includes(req.staff.role)) throw new ForbiddenException('Bạn không có quyền thực hiện thao tác này.');
+  constructor(
+    private readonly reflector: Reflector,
+    private readonly jwt: JwtService,
+    private readonly db: PrismaService,
+  ) {}
+
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const targets = [context.getHandler(), context.getClass()];
+    if (this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, targets))
+      return true;
+    const req = context.switchToHttp().getRequest();
+    const [type, token] = String(req.headers?.authorization ?? '').split(' ');
+    if (type !== 'Bearer' || !token)
+      throw new UnauthorizedException('Chưa đăng nhập');
+    let payload: { sub: number; sid: number; ver: number };
+    try {
+      payload = await this.jwt.verifyAsync(token);
+    } catch {
+      throw new UnauthorizedException(
+        'Phiên đăng nhập không hợp lệ hoặc đã hết hạn',
+      );
+    }
+    if (
+      !Number.isInteger(payload.sub) ||
+      payload.sub <= 0 ||
+      !Number.isInteger(payload.sid) ||
+      payload.sid <= 0 ||
+      !Number.isInteger(payload.ver)
+    )
+      throw new UnauthorizedException('Phiên đăng nhập không hợp lệ');
+    const session = await this.db.loginLog.findUnique({
+      where: { id: payload.sid },
+      include: { account: { include: { role: true } } },
+    });
+    const account = session?.account;
+    if (
+      !session ||
+      session.status !== 'success' ||
+      session.logoutAt ||
+      !account ||
+      session.accountId !== payload.sub ||
+      account.status !== 'active' ||
+      account.sessionVersion !== payload.ver
+    ) {
+      throw new UnauthorizedException(
+        'Phiên đăng nhập đã kết thúc hoặc tài khoản bị khóa',
+      );
+    }
+    const user: AuthUser = {
+      id: account.id,
+      name: account.name,
+      email: account.email,
+      role: account.role.name,
+      permissions: account.role.permissions,
+      isSystemAdmin: isSystemRole(account.role),
+      portal: isSystemRole(account.role) ? 'system' : account.role.portal,
+      sessionId: session.id,
+    };
+    req.user = user;
+    if (
+      this.reflector.getAllAndOverride<boolean>(SYSTEM_ADMIN_ONLY_KEY, targets)
+    )
+      assertSystemAdmin(user);
+    const required = this.reflector.getAllAndOverride<string[] | undefined>(
+      PERMISSIONS_KEY,
+      targets,
+    );
+    const warehouseOnly = this.reflector.getAllAndOverride<boolean>(WAREHOUSE_ONLY_KEY, targets);
+    if (warehouseOnly && (user.isSystemAdmin || user.portal !== 'warehouse'))
+      throw new ForbiddenException('Tài khoản không được truy cập khu vực Kho / Nhà hàng');
+    if (warehouseOnly && !required?.length)
+      throw new ForbiddenException('Chức năng chưa được mở quyền tích hợp');
+    if (
+      required?.length &&
+      !user.isSystemAdmin &&
+      !required.some((p) => p !== WILDCARD && user.permissions.includes(p))
+    )
+      throw new ForbiddenException('Bạn không có quyền thực hiện thao tác này');
     return true;
   }
 }

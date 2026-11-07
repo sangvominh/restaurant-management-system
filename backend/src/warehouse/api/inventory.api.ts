@@ -1,52 +1,79 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
-
-const inventoryInclude = {
-  unit: true,
-  category: true,
-  lots: {
-    include: {
-      balances: {
-        include: {
-          location: {
-            include: { branch: true },
-          },
-        },
-      },
-    },
-  },
-} satisfies Prisma.MaterialInclude;
-
-type InventoryMaterial = Prisma.MaterialGetPayload<{
-  include: typeof inventoryInclude;
-}>;
+// API quản lý tồn kho
 
 @Injectable()
 export class InventoryApi {
   constructor(private readonly prisma: PrismaService) {}
-
-  async getInventory(branchCode?: string) {
-    const branchId = await this.getBranchId(branchCode);
+  //Lấy danh sách tồn kho
+  async getInventory() {
     const materials = await this.prisma.material.findMany({
-      include: inventoryInclude,
-      orderBy: { name: 'asc' },
+      include: {
+        unit: true,
+        category: true,
+        lots: {
+          include: {
+            balances: true,
+          },
+        },
+      },
+      orderBy: {
+        name: 'asc',
+      },
     });
-    const today = this.getToday();
+
+    const data = materials.map((material) => {
+      const totalStock = material.lots.reduce(
+        (total, lot) =>
+          total +
+          lot.balances.reduce(
+            (sum, balance) => sum + Number(balance.quantity),
+            0,
+          ),
+        0,
+      );
+
+      return {
+        id: material.id,
+        code: material.code,
+        name: material.name,
+        category: material.category.name,
+        unit: material.unit.name,
+        minStock: Number(material.minStock),
+        totalStock,
+        stockStatus:
+          totalStock <= Number(material.minStock) ? 'LOW_STOCK' : 'AVAILABLE',
+      };
+    });
 
     return {
       message: 'Lấy danh sách tồn kho thành công',
-      data: materials.map((material) =>
-        this.toInventoryItem(material, today, branchId),
-      ),
+      data,
     };
   }
 
-  async getInventoryByCode(code: string, branchCode?: string) {
-    const branchId = await this.getBranchId(branchCode);
+  //Xem chi tiết tồn kho theo mã NVL
+
+  async getInventoryByCode(code: string) {
     const material = await this.prisma.material.findUnique({
-      where: { code: code.trim() },
-      include: inventoryInclude,
+      where: { code },
+      include: {
+        unit: true,
+        category: true,
+        lots: {
+          include: {
+            balances: {
+              include: {
+                location: {
+                  include: {
+                    branch: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!material) {
@@ -55,36 +82,48 @@ export class InventoryApi {
       );
     }
 
-    const today = this.getToday();
-    const item = this.toInventoryItem(material, today, branchId);
-    const lots = this.toLots(material, today, branchId);
+    const lots = material.lots.map((lot) => {
+      const locations = lot.balances.map((balance) => ({
+        branchName: balance.location.branch.name,
+        locationName: balance.location.name,
+        quantity: Number(balance.quantity),
+      }));
+
+      return {
+        lotCode: lot.lotCode,
+        expiryDate: lot.expiryDate,
+        locations,
+        totalStock: locations.reduce((sum, item) => sum + item.quantity, 0),
+      };
+    });
+
+    const totalStock = lots.reduce((sum, lot) => sum + lot.totalStock, 0);
 
     return {
       message: 'Lấy chi tiết tồn kho thành công',
-      data: { ...item, lots },
+      data: {
+        id: material.id,
+        code: material.code,
+        name: material.name,
+        category: material.category.name,
+        unit: material.unit.name,
+        minStock: Number(material.minStock),
+        totalStock,
+        stockStatus:
+          totalStock <= Number(material.minStock) ? 'LOW_STOCK' : 'AVAILABLE',
+        lots,
+      },
     };
   }
 
-  async getInventoryAlerts(branchCode?: string) {
-    const inventory = await this.getInventory(branchCode);
-
-    return {
-      message: 'Lấy cảnh báo tồn kho thành công',
-      data: inventory.data.filter(
-        (item) => item.status === 'ACTIVE' && item.stockStatus === 'LOW_STOCK',
-      ),
-    };
-  }
-
-  async getInventoryMovements(branchCode?: string) {
-    const branchId = await this.getBranchId(branchCode);
+  // Lấy lịch sử NVL
+  async getInventoryMovements() {
     const movements = await this.prisma.inventoryMovement.findMany({
-      where: branchId ? { location: { branchId } } : undefined,
       include: {
         materialLot: {
           include: { material: true },
         },
-        location: { include: { branch: true } },
+        location: true,
         productionOrder: true,
       },
       orderBy: { createdAt: 'desc' },
@@ -97,8 +136,6 @@ export class InventoryApi {
         materialCode: item.materialLot.material.code,
         lotCode: item.materialLot.lotCode,
         locationName: item.location.name,
-        branchCode: item.location.branch.code,
-        branchName: item.location.branch.name,
         orderCode: item.productionOrder?.code ?? null,
         movementType: item.movementType,
         quantityBefore: item.quantityBefore.toString(),
@@ -107,152 +144,5 @@ export class InventoryApi {
         createdAt: item.createdAt,
       })),
     };
-  }
-
-  private async getBranchId(branchCode?: string) {
-    const code = branchCode?.trim();
-
-    if (!code) {
-      return undefined;
-    }
-
-    const branch = await this.prisma.branch.findUnique({ where: { code } });
-
-    if (!branch) {
-      throw new NotFoundException(`Không tìm thấy chi nhánh ${code}`);
-    }
-
-    return branch.id;
-  }
-
-  private getToday() {
-    return new Intl.DateTimeFormat('sv-SE', {
-      timeZone: 'Asia/Ho_Chi_Minh',
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-    }).format(new Date());
-  }
-
-  private toInventoryItem(
-    material: InventoryMaterial,
-    today: string,
-    branchId?: string,
-  ) {
-    const totalStock = material.lots.reduce(
-      (total, lot) =>
-        total.plus(
-          lot.balances
-            .filter(
-              (balance) => !branchId || balance.location.branchId === branchId,
-            )
-            .reduce(
-              (sum, balance) => sum.plus(balance.quantity),
-              new Prisma.Decimal(0),
-            ),
-        ),
-      new Prisma.Decimal(0),
-    );
-    const availableStock =
-      material.status === 'ACTIVE'
-        ? material.lots.reduce((total, lot) => {
-            if (!this.isLotAvailable(lot, today)) {
-              return total;
-            }
-
-            return total.plus(
-              lot.balances
-                .filter(
-                  (balance) =>
-                    (!branchId || balance.location.branchId === branchId) &&
-                    balance.location.branch.isActive &&
-                    balance.quantity.gt(0),
-                )
-                .reduce(
-                  (sum, balance) => sum.plus(balance.quantity),
-                  new Prisma.Decimal(0),
-                ),
-            );
-          }, new Prisma.Decimal(0))
-        : new Prisma.Decimal(0);
-
-    return {
-      id: material.id,
-      code: material.code,
-      name: material.name,
-      category: material.category.name,
-      unit: material.unit.name,
-      status: material.status,
-      minStock: Number(material.minStock),
-      totalStock: totalStock.toNumber(),
-      availableStock: availableStock.toNumber(),
-      stockStatus: availableStock.lte(material.minStock)
-        ? 'LOW_STOCK'
-        : 'AVAILABLE',
-    };
-  }
-
-  private toLots(
-    material: InventoryMaterial,
-    today: string,
-    branchId?: string,
-  ) {
-    return material.lots.map((lot) => {
-      const balances = lot.balances.filter(
-        (balance) => !branchId || balance.location.branchId === branchId,
-      );
-      const totalStock = balances.reduce(
-        (sum, balance) => sum.plus(balance.quantity),
-        new Prisma.Decimal(0),
-      );
-      const lotAvailable =
-        material.status === 'ACTIVE' && this.isLotAvailable(lot, today) &&
-        balances.some((balance) => balance.location.branch.isActive);
-      const availableStock = lotAvailable
-        ? balances
-            .filter((balance) => balance.location.branch.isActive && balance.quantity.gt(0))
-            .reduce(
-              (sum, balance) => sum.plus(balance.quantity),
-              new Prisma.Decimal(0),
-            )
-        : new Prisma.Decimal(0);
-
-      return {
-        lotCode: lot.lotCode,
-        expiryDate: lot.expiryDate,
-        status: lot.status,
-        isAvailable: lotAvailable,
-        totalStock: totalStock.toNumber(),
-        availableStock: availableStock.toNumber(),
-        locations: balances.map((balance) => ({
-          branchCode: balance.location.branch.code,
-          branchName: balance.location.branch.name,
-          locationName: balance.location.name,
-          quantity: Number(balance.quantity),
-          availableQuantity:
-            lotAvailable && balance.location.branch.isActive && balance.quantity.gt(0)
-              ? Number(balance.quantity)
-              : 0,
-        })),
-      };
-    });
-  }
-
-  private isLotAvailable(
-    lot: InventoryMaterial['lots'][number],
-    today: string,
-  ) {
-    const expiry = lot.expiryDate;
-
-    return (
-      lot.status === 'ACTIVE' &&
-      (!expiry ||
-        new Intl.DateTimeFormat('sv-SE', {
-          timeZone: 'Asia/Ho_Chi_Minh',
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-        }).format(expiry) >= today)
-    );
   }
 }

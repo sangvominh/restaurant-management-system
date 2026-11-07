@@ -1,0 +1,62 @@
+{
+  "sourceCommit": "797f8d6",
+  "baseline": "Existing System Admin baseline already creates branches and restaurant_tables; do not replay warehouse init.",
+  "migrations": [
+    {
+      "source": "20261023030428_warehouse_inventory_init",
+      "integration": "20261102000001_warehouse_inventory_init"
+    },
+    {
+      "source": "20261023153759_warehouse_receipts_init",
+      "integration": "20261102000002_warehouse_receipts_init"
+    },
+    {
+      "source": "20261025154120_material_issue_init",
+      "integration": "20261102000003_material_issue_init"
+    },
+    {
+      "source": "20261027015443_warehouse_bom_init",
+      "integration": "20261102000004_warehouse_bom_init"
+    },
+    {
+      "source": "20261027031646_warehouse_production_order_init",
+      "integration": "20261102000005_warehouse_production_order_init"
+    },
+    {
+      "source": "20261027050000_inventory_movement_production_order",
+      "integration": "20261102000006_inventory_movement_production_order"
+    },
+    {
+      "source": "20261027155156_production_order_assignment",
+      "integration": "20261102000007_production_order_assignment"
+    },
+    {
+      "source": "20261028025922_warehouse_finished_goods_receipt",
+      "integration": "20261102000008_warehouse_finished_goods_receipt"
+    },
+    {
+      "source": "20261028032806_warehouse_finished_goods_approval",
+      "integration": "20261102000009_warehouse_finished_goods_approval"
+    },
+    {
+      "source": "20261029020910_warehouse_waste_request",
+      "integration": "20261102000010_warehouse_waste_request"
+    },
+    {
+      "source": "20261029200000_add_product_table",
+      "integration": "20261102000011_add_product_table"
+    },
+    {
+      "source": "20261031120000_add_finished_goods_issue",
+      "integration": "20261102000012_add_finished_goods_issue"
+    },
+    {
+      "source": "20261101090000_finished_goods_issue_by_shift",
+      "integration": "20261102000013_finished_goods_issue_by_shift"
+    },
+    {
+      "source": "20261101130000_finished_goods_defects",
+      "integration": "20261102000014_finished_goods_defects"
+    }
+  ]
+}

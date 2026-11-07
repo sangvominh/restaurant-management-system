@@ -1,36 +1,120 @@
-import { Injectable, UnauthorizedException, HttpException } from '@nestjs/common';
-import { randomBytes } from 'node:crypto';
+import {
+  Injectable,
+  UnauthorizedException,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcryptjs';
+import { AuditService } from '../audit/audit.service.js';
+import type { AuthUser } from '../common/auth.decorators.js';
+import { isSystemRole } from '../common/management-policy.js';
 import { PrismaService } from '../prisma/prisma.service.js';
-import { object, text } from '../staff/input.js';
-import { hashPassword, tokenHash, verifyPassword } from './password.js';
-export const staffSelect = { id: true, code: true, name: true, role: true, branchId: true, branch: { select: { name: true, code: true } } } as const;
-export type StaffIdentity = { id: string; code: string; name: string; role: 'SERVICE' | 'KITCHEN' | 'BARISTA' | 'CASHIER' | 'SUPERVISOR'; branchId: string };
+
+const DUMMY_HASH = bcrypt.hashSync('khong-ton-tai', 10);
+
 @Injectable()
 export class AuthService {
-  private attempts = new Map<string, { count: number; until: number }>();
-  private dummy = hashPassword(randomBytes(32).toString('hex'));
-  constructor(private readonly db: PrismaService) {}
-  async login(body: unknown, ip: string) {
-    const now = Date.now();
-    for (const [key, value] of this.attempts) if (value.until < now) this.attempts.delete(key);
-    const limit = this.attempts.get(ip) || { count: 0, until: now + 60_000 };
-    if (limit.count >= 10) throw new HttpException('Thử lại sau một phút.', 429);
-    limit.count++; this.attempts.set(ip, limit);
-    const data = object(body);
-    const code = text(data.code, 'Mã nhân viên', 50);
-    const password = text(data.password, 'Mật khẩu', 128);
-    const user = await this.db.staffUser.findUnique({ where: { code }, include: { branch: true } });
-    const valid = verifyPassword(password, user?.passwordHash || this.dummy);
-    if (!user || !valid || !user.isActive || !user.branch.isActive) throw new UnauthorizedException('Mã nhân viên hoặc mật khẩu không đúng.');
-    const token = randomBytes(32).toString('hex');
-    await this.db.staffSession.deleteMany({ where: { expiresAt: { lt: new Date() } } });
-    await this.db.staffSession.create({ data: { tokenHash: tokenHash(token), userId: user.id, expiresAt: new Date(now + 8 * 60 * 60_000) } });
-    return token;
+  constructor(
+    private readonly db: PrismaService,
+    private readonly jwt: JwtService,
+    private readonly audit: AuditService,
+  ) {}
+
+  async login(email: string, password: string, ip?: string, systemAdminOnly = false) {
+    const account = await this.db.account.findUnique({
+      where: { email: email.trim().toLowerCase() },
+      include: { role: true },
+    });
+    const ok = await bcrypt.compare(
+      password,
+      account?.passwordHash ?? DUMMY_HASH,
+    );
+    if (!account || !account.passwordHash || !ok) {
+      await this.audit.recordLogin({
+        accountId: account?.id ?? null,
+        email: email.trim(),
+        ip,
+        status: 'failed',
+      });
+      throw new UnauthorizedException('Email hoặc mật khẩu không đúng');
+    }
+    if (account.status === 'locked') {
+      await this.audit.recordLogin({
+        accountId: account.id,
+        email: account.email,
+        ip,
+        status: 'locked',
+      });
+      throw new UnauthorizedException(
+        'Tài khoản đã bị khóa, vui lòng liên hệ quản trị viên',
+      );
+    }
+    if (systemAdminOnly && !isSystemRole(account.role)) {
+      await this.audit.recordLogin({
+        accountId: account.id,
+        email: account.email,
+        ip,
+        status: 'failed',
+      });
+      throw new ForbiddenException(
+        'Trang đăng nhập này chỉ dành cho System Admin. Kho / Nhà hàng sử dụng trang đăng nhập riêng.',
+      );
+    }
+    const session = await this.audit.recordLogin({
+      accountId: account.id,
+      email: account.email,
+      ip,
+      status: 'success',
+    });
+    const accessToken = await this.jwt.signAsync({
+      sub: account.id,
+      sid: session.id,
+      ver: account.sessionVersion,
+    });
+    const user: AuthUser = {
+      id: account.id,
+      name: account.name,
+      email: account.email,
+      role: account.role.name,
+      permissions: account.role.permissions,
+      isSystemAdmin: isSystemRole(account.role),
+      portal: isSystemRole(account.role) ? 'system' : account.role.portal,
+    };
+    return { accessToken, user };
   }
-  async identity(token: string) {
-    const session = await this.db.staffSession.findUnique({ where: { tokenHash: tokenHash(token) }, include: { user: { include: { branch: true } } } });
-    if (!session || session.expiresAt <= new Date() || !session.user.isActive || !session.user.branch.isActive) throw new UnauthorizedException('Phiên đăng nhập hết hạn.');
-    return this.db.staffUser.findUniqueOrThrow({ where: { id: session.userId }, select: staffSelect });
+
+  async logout(user: AuthUser) {
+    await this.audit.recordLogout(user.sessionId);
+    return { message: 'Đã đăng xuất' };
   }
-  async logout(token: string) { await this.db.staffSession.deleteMany({ where: { tokenHash: tokenHash(token) } }); }
+
+  async changePassword(
+    userId: number,
+    oldPassword: string,
+    newPassword: string,
+  ) {
+    const hash = await bcrypt.hash(newPassword, 10);
+    await this.db.adminTransaction(async (tx) => {
+      const account = await tx.account.findUnique({ where: { id: userId } });
+      if (
+        !account?.passwordHash ||
+        !(await bcrypt.compare(oldPassword, account.passwordHash))
+      )
+        throw new BadRequestException('Mật khẩu hiện tại không đúng');
+      if (oldPassword === newPassword)
+        throw new BadRequestException(
+          'Mật khẩu mới phải khác mật khẩu hiện tại',
+        );
+      await tx.account.update({
+        where: { id: userId },
+        data: { passwordHash: hash, sessionVersion: { increment: 1 } },
+      });
+      await tx.loginLog.updateMany({
+        where: { accountId: userId, logoutAt: null },
+        data: { logoutAt: new Date() },
+      });
+    });
+    return { message: 'Đã đổi mật khẩu. Vui lòng đăng nhập lại.' };
+  }
 }
