@@ -9,6 +9,6 @@ Chạy từ root repository bằng `npm run dev:guest`, mở http://localhost:30
 - `app/`, `next.config.ts`, `package.json`, TypeScript và các cấu hình build: cần để phát triển ứng dụng.
 - `public/next.svg`, `public/vercel.svg`: trang template hiện tại còn dùng.
 
-`public/file.svg`, `public/globe.svg`, `public/window.svg` không có tham chiếu trong app hiện tại. Lockfile con là bản cũ; các workspace được cài từ package-lock.json ở root. Những file này đang chờ duyệt xóa, chưa bị xóa.
+Đã bỏ ba SVG mẫu không dùng và lockfile con. Cài các workspace bằng `npm ci` tại root, dùng package-lock.json chung.
 
 Không coi trang template hoặc ảnh thiết kế là tính năng đã chạy. Xem [hướng dẫn kiểm thử toàn hệ thống](../../docs/TESTING.md).

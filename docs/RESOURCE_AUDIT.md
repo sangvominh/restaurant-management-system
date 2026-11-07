@@ -12,12 +12,12 @@
 | `backups/*.dump` | Hai checkpoint khác nhau, không phải bản trùng | Giữ bản trước hợp nhất tài khoản và bản trước dọn bảng demo; tổng dung lượng dưới 1 MB |
 | `backend/.env` | Compose dùng cho khóa JWT và cấu hình/bootstrap local | Giữ; không in nội dung hoặc đưa vào Git |
 | `backend/.env.example` | Mẫu cấu hình cho thành viên mới | Giữ |
-| `.env.example` tại root | Rỗng 0 byte; quy trình chỉ dùng backend/.env.example | Có thể bỏ, nhưng đang chờ duyệt xóa cụ thể |
+| `.env.example` tại root | Rỗng 0 byte; quy trình chỉ dùng backend/.env.example | Đã xóa sau khi leader duyệt |
 | `backend/prisma/migrations/` | Toàn bộ chuỗi migration active, gồm 43 thư mục sau lần bổ sung này | Giữ; số lượng nhiều không phải lý do để xóa hoặc sửa checksum |
 | `Guest DESIGN.md` và `stitch-screens/` | Token thiết kế, 5 cặp HTML/ảnh có nội dung riêng | Giữ cho bước triển khai Guest; không tính là tính năng đang chạy |
 | Guest `public/next.svg`, `public/vercel.svg` | Trang template còn import trực tiếp | Giữ cho tới khi thay trang template |
-| Guest `file.svg`, `globe.svg`, `window.svg` | Không tìm thấy tham chiếu trong app hiện tại | Có thể bỏ, nhưng đang chờ duyệt xóa cụ thể |
-| Lockfile con Guest/Staff | Root package-lock.json đã quản lý các workspace | Có thể bỏ bản con, nhưng đang chờ duyệt xóa cụ thể |
+| Guest `file.svg`, `globe.svg`, `window.svg` | Không tìm thấy tham chiếu trong app hiện tại | Đã xóa sau khi leader duyệt |
+| Lockfile con Guest/Staff | Root package-lock.json đã quản lý các workspace | Đã xóa bản con; giữ root lockfile |
 | `.next`, `dist`, `node_modules`, tsbuildinfo local | Có thể tái tạo, đã được Git ignore | Không coi là source cần lưu; chưa xóa cache/dependencies vì sẽ phải tạo lại khi test |
 
 Không có lý do để xóa migration active hoặc cấu hình cần chạy chỉ để làm thư mục trông ít file hơn. Không chạy Docker volume prune vì máy còn các dự án khác.
@@ -29,9 +29,9 @@ Không có lý do để xóa migration active hoặc cấu hình cần chạy ch
 
 Hai tệp nằm trong backups đã được Git ignore. Chỉ cân nhắc bỏ checkpoint cũ sau khi thống nhất thời gian giữ và đã nghiệm thu khả năng phục hồi; chúng có cấu trúc DB khác nhau, không phải hai lần lưu vô nghĩa.
 
-## Sáu file còn chờ duyệt xóa
+## Sáu file đã xóa theo phê duyệt
 
-Bộ duyệt tự động đã từ chối lệnh xóa vì phạm vi sáu file này chưa được người dùng duyệt cụ thể. **Các file vẫn còn nguyên.** Danh sách chính xác:
+Leader đã duyệt rõ danh sách sáu file dưới đây; đã xóa đúng phạm vi, không có file nào ngoài danh sách:
 
 1. `.env.example` (ở root, rỗng).
 2. `frontend/guest-web/public/file.svg`.
@@ -40,7 +40,7 @@ Bộ duyệt tự động đã từ chối lệnh xóa vì phạm vi sáu file n
 5. `frontend/guest-web/package-lock.json`.
 6. `frontend/staff-app/package-lock.json`.
 
-Không gộp việc duyệt sáu file này với xóa volume DB cũ, backup, `.env` thật hoặc tài nguyên thiết kế Guest.
+Volume DB cũ, backup, `.env` thật và tài nguyên thiết kế Guest được giữ nguyên.
 
 ## Kiểm thử sau dọn
 
@@ -48,4 +48,5 @@ Không gộp việc duyệt sáu file này với xóa volume DB cũ, backup, `.e
 - Hai ca E2E mới kiểm tra xóa đúng bảng có marker và giữ nguyên bảng cùng tên không có marker.
 - Xác minh DB thật sau áp dụng: 43 migration hoàn tất; cả ba bảng demo không còn; hai view báo cáo vẫn đọc dữ liệu nghiệp vụ. Backend/DB healthy. Không còn container/volume restaurant-demo.
 - Cả hai dump đều được pg_restore đọc danh mục archive thành công; đây là kiểm tra cấu trúc backup, chưa phải diễn tập phục hồi toàn bộ.
+- Sau khi xóa sáu file đã duyệt: npm ci dry-run dùng root lockfile đạt; TypeScript của Guest và Staff đạt. Root lockfile, cấu hình backend, 43 migration active và thiết kế Guest được giữ nguyên.
 - Hướng dẫn chạy test tự động, browser, kiểm thử thủ công và các phần UI chưa triển khai: [TESTING.md](TESTING.md).
