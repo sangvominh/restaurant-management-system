@@ -5,5 +5,5 @@ import { InventoryController } from './inventory.controller.js';
 import { InventoryService } from './inventory.service.js';
 import { FinishedService } from './finished.service.js';
 import { FinishedController } from './finished.controller.js';
-@Module({ imports: [PrismaModule, CatalogModule], controllers: [InventoryController, FinishedController], providers: [InventoryService, FinishedService] })
+@Module({ imports: [PrismaModule, CatalogModule], controllers: [InventoryController, FinishedController], providers: [InventoryService, FinishedService], exports: [FinishedService] })
 export class InventoryModule {}

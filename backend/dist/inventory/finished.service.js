@@ -22,7 +22,7 @@ let FinishedService = class FinishedService {
         this.db = db;
     }
     list() { return this.db.productExport.findMany({ include, orderBy: { requestedAt: 'desc' } }); }
-    sales() { return this.db.sale.findMany({ where: { status: { notIn: ['DRAFT', 'CANCELLED'] } }, include: { lines: { include: { product: { include: { unit: true } }, exportLines: { include: { export: true } } } } }, orderBy: { createdAt: 'desc' } }); }
+    sales() { return this.db.sale.findMany({ where: { status: 'CONFIRMED' }, include: { lines: { include: { product: { include: { unit: true } }, exportLines: { include: { export: true } } } } }, orderBy: { createdAt: 'desc' } }); }
     async create(input, user) {
         if (!input || typeof input !== 'object')
             throw new BadRequestException('Dữ liệu không hợp lệ');
@@ -42,8 +42,8 @@ let FinishedService = class FinishedService {
             if (!employee || employee.status !== 'ACTIVE')
                 throw new ForbiddenException('Cần liên kết người sử dụng đang hoạt động');
             const sale = await tx.sale.findUniqueOrThrow({ where: { id: saleId }, include: { lines: { include: { exportLines: { include: { export: true } } } } } });
-            if (['DRAFT', 'CANCELLED'].includes(sale.status))
-                throw new ConflictException('Đơn bán nháp hoặc đã hủy không thể xuất');
+            if (sale.status !== 'CONFIRMED')
+                throw new ConflictException('Chỉ đề nghị xuất cho đơn bán đã xác nhận, chưa thanh toán');
             for (const l of lines) {
                 const sold = sale.lines.find(s => s.id === l.saleLineId);
                 if (!sold)
@@ -65,8 +65,8 @@ let FinishedService = class FinishedService {
             if (doc.status !== 'PENDING')
                 throw new ConflictException('Phiếu đã xử lý');
             if (approve) {
-                if (['DRAFT', 'CANCELLED'].includes(doc.sale.status))
-                    throw new ConflictException('Đơn bán không thể xuất');
+                if (doc.sale.status !== 'CONFIRMED')
+                    throw new ConflictException('Chỉ xuất cho đơn bán đã xác nhận, chưa thanh toán');
                 for (const l of doc.lines) {
                     const moves = await tx.productMovement.findMany({ where: { productId: l.saleLine.productId } });
                     const stock = moves.reduce((q, m) => m.movementType === 'NHAP_SAN_XUAT' ? q.plus(m.quantity) : q.minus(m.quantity), new Prisma.Decimal(0));

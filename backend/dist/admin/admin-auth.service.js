@@ -20,7 +20,7 @@ let AdminAuthService = class AdminAuthService {
     constructor(db) {
         this.db = db;
     }
-    async login(body, adminOnly = true) {
+    async login(body, adminOnly = true, audience = 'warehouse') {
         if (!body || typeof body !== 'object')
             throw new BadRequestException('Dữ liệu không hợp lệ');
         const b = body;
@@ -39,7 +39,9 @@ let AdminAuthService = class AdminAuthService {
         const codes = account.role.permissions.map(p => p.permission.code).sort();
         if (adminOnly && !codes.includes('*'))
             throw new ForbiddenException('Tài khoản không có quyền System Admin');
-        if (!adminOnly && !codes.some(code => ['*', 'catalog:manage', 'inventory:view', 'product:manage', 'export:request', 'export:approve', 'report:stock', 'material:approve', 'production:inspect', 'waste:approve', 'bom:manage', 'production:manage', 'production:perform', 'receipt:create', 'receipt:post', 'sale:view'].includes(code)))
+        if (!adminOnly && audience === 'sales' && !codes.some(code => ['*', 'sale:view', 'sale:create', 'export:request', 'payment:create'].includes(code)))
+            throw new ForbiddenException('Tài khoản chưa được cấp quyền vào web Bán hàng');
+        if (!adminOnly && audience === 'warehouse' && !codes.some(code => ['*', 'catalog:manage', 'inventory:view', 'product:manage', 'export:request', 'export:approve', 'report:stock', 'material:approve', 'production:inspect', 'waste:approve', 'bom:manage', 'production:manage', 'production:perform', 'receipt:create', 'receipt:post', 'sale:view'].includes(code)))
             throw new ForbiddenException('Tài khoản chưa được cấp quyền vào web Kho và sản xuất');
         for (const [id, session] of this.sessions)
             if (session.expiresAt <= Date.now())

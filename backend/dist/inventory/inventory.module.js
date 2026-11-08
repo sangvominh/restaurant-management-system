@@ -14,7 +14,7 @@ import { FinishedController } from './finished.controller.js';
 let InventoryModule = class InventoryModule {
 };
 InventoryModule = __decorate([
-    Module({ imports: [PrismaModule, CatalogModule], controllers: [InventoryController, FinishedController], providers: [InventoryService, FinishedService] })
+    Module({ imports: [PrismaModule, CatalogModule], controllers: [InventoryController, FinishedController], providers: [InventoryService, FinishedService], exports: [FinishedService] })
 ], InventoryModule);
 export { InventoryModule };
 //# sourceMappingURL=inventory.module.js.map

@@ -9,7 +9,7 @@ export declare class AdminAuthService {
     private readonly db;
     private readonly sessions;
     constructor(db: PrismaService);
-    login(body: unknown, adminOnly?: boolean): Promise<{
+    login(body: unknown, adminOnly?: boolean, audience?: 'warehouse' | 'sales'): Promise<{
         token: string;
         user: {
             id: string;

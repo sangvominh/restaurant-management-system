@@ -9,7 +9,7 @@ function amount(v: unknown) { if (!['string', 'number'].includes(typeof v) || !/
 export class FinishedService {
   constructor(private readonly db: PrismaService) {}
   list() { return this.db.productExport.findMany({ include, orderBy: { requestedAt: 'desc' } }); }
-  sales() { return this.db.sale.findMany({ where: { status: { notIn: ['DRAFT', 'CANCELLED'] } }, include: { lines: { include: { product: { include: { unit: true } }, exportLines: { include: { export: true } } } } }, orderBy: { createdAt: 'desc' } }); }
+  sales() { return this.db.sale.findMany({ where: { status: 'CONFIRMED' }, include: { lines: { include: { product: { include: { unit: true } }, exportLines: { include: { export: true } } } } }, orderBy: { createdAt: 'desc' } }); }
   async create(input: unknown, user: AdminUser) {
     if (!input || typeof input !== 'object') throw new BadRequestException('Dữ liệu không hợp lệ');
     const b = input as Record<string, unknown>, saleId = id(b.saleId);
@@ -23,7 +23,7 @@ export class FinishedService {
       const employee = await tx.employee.findUnique({ where: { accountId: user.id } });
       if (!employee || employee.status !== 'ACTIVE') throw new ForbiddenException('Cần liên kết người sử dụng đang hoạt động');
       const sale = await tx.sale.findUniqueOrThrow({ where: { id: saleId }, include: { lines: { include: { exportLines: { include: { export: true } } } } } });
-      if (['DRAFT', 'CANCELLED'].includes(sale.status)) throw new ConflictException('Đơn bán nháp hoặc đã hủy không thể xuất');
+      if (sale.status !== 'CONFIRMED') throw new ConflictException('Chỉ đề nghị xuất cho đơn bán đã xác nhận, chưa thanh toán');
       for (const l of lines) {
         const sold = sale.lines.find(s => s.id === l.saleLineId);
         if (!sold) throw new BadRequestException('Dòng xuất không thuộc đơn bán');
@@ -41,7 +41,7 @@ export class FinishedService {
       const doc = await tx.productExport.findUniqueOrThrow({ where: { id: id(exportId) }, include });
       if (doc.status !== 'PENDING') throw new ConflictException('Phiếu đã xử lý');
       if (approve) {
-        if (['DRAFT', 'CANCELLED'].includes(doc.sale.status)) throw new ConflictException('Đơn bán không thể xuất');
+        if (doc.sale.status !== 'CONFIRMED') throw new ConflictException('Chỉ xuất cho đơn bán đã xác nhận, chưa thanh toán');
         for (const l of doc.lines) {
           const moves = await tx.productMovement.findMany({ where: { productId: l.saleLine.productId } });
           const stock = moves.reduce((q, m) => m.movementType === 'NHAP_SAN_XUAT' ? q.plus(m.quantity) : q.minus(m.quantity), new Prisma.Decimal(0));

@@ -15,7 +15,7 @@ export class AdminAuthService {
   private readonly sessions = new Map<string, Session>();
   constructor(private readonly db: PrismaService) {}
 
-  async login(body: unknown, adminOnly = true) {
+  async login(body: unknown, adminOnly = true, audience: 'warehouse' | 'sales' = 'warehouse') {
     if (!body || typeof body !== 'object') throw new BadRequestException('Dữ liệu không hợp lệ');
     const b = body as Record<string, unknown>;
     if (typeof b.username !== 'string' || !b.username.trim() || b.username.length > 100 ||
@@ -32,7 +32,8 @@ export class AdminAuthService {
       throw new ForbiddenException('Tài khoản hoặc người sử dụng đã ngừng hoạt động');
     const codes = account.role.permissions.map(p => p.permission.code).sort();
     if (adminOnly && !codes.includes('*')) throw new ForbiddenException('Tài khoản không có quyền System Admin');
-    if (!adminOnly && !codes.some(code => ['*', 'catalog:manage', 'inventory:view', 'product:manage', 'export:request', 'export:approve', 'report:stock', 'material:approve', 'production:inspect', 'waste:approve', 'bom:manage', 'production:manage', 'production:perform', 'receipt:create', 'receipt:post', 'sale:view'].includes(code)))
+    if (!adminOnly && audience === 'sales' && !codes.some(code => ['*', 'sale:view', 'sale:create', 'export:request', 'payment:create'].includes(code))) throw new ForbiddenException('Tài khoản chưa được cấp quyền vào web Bán hàng');
+    if (!adminOnly && audience === 'warehouse' && !codes.some(code => ['*', 'catalog:manage', 'inventory:view', 'product:manage', 'export:request', 'export:approve', 'report:stock', 'material:approve', 'production:inspect', 'waste:approve', 'bom:manage', 'production:manage', 'production:perform', 'receipt:create', 'receipt:post', 'sale:view'].includes(code)))
       throw new ForbiddenException('Tài khoản chưa được cấp quyền vào web Kho và sản xuất');
     for (const [id, session] of this.sessions) if (session.expiresAt <= Date.now()) this.sessions.delete(id);
     const token = randomBytes(32).toString('hex');
