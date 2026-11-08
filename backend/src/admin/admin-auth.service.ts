@@ -4,7 +4,7 @@ import { promisify } from 'node:util';
 import { PrismaService } from '../prisma/prisma.service.js';
 
 const derive = promisify(scrypt);
-export interface AdminUser { id: string; username: string; name: string }
+export interface AdminUser { id: string; username: string; name: string; permissions: string[] }
 interface Session { accountId: string; passwordHash: string; roleId: string; rights: string; expiresAt: number }
 const key = (token: string) => createHash('sha256').update(token).digest('hex');
 const include = { employee: true, role: { include: { permissions: { include: { permission: true } } } } } as const;
@@ -15,7 +15,7 @@ export class AdminAuthService {
   private readonly sessions = new Map<string, Session>();
   constructor(private readonly db: PrismaService) {}
 
-  async login(body: unknown) {
+  async login(body: unknown, adminOnly = true) {
     if (!body || typeof body !== 'object') throw new BadRequestException('Dữ liệu không hợp lệ');
     const b = body as Record<string, unknown>;
     if (typeof b.username !== 'string' || !b.username.trim() || b.username.length > 100 ||
@@ -31,15 +31,17 @@ export class AdminAuthService {
     if (account.status !== 'ACTIVE' || (account.employee && account.employee.status !== 'ACTIVE'))
       throw new ForbiddenException('Tài khoản hoặc người sử dụng đã ngừng hoạt động');
     const codes = account.role.permissions.map(p => p.permission.code).sort();
-    if (!codes.includes('*')) throw new ForbiddenException('Tài khoản không có quyền System Admin');
+    if (adminOnly && !codes.includes('*')) throw new ForbiddenException('Tài khoản không có quyền System Admin');
+    if (!adminOnly && !codes.some(code => ['*', 'catalog:manage', 'inventory:view', 'product:manage', 'production:perform', 'receipt:create', 'sale:view'].includes(code)))
+      throw new ForbiddenException('Tài khoản chưa được cấp quyền vào danh mục kho');
     for (const [id, session] of this.sessions) if (session.expiresAt <= Date.now()) this.sessions.delete(id);
     const token = randomBytes(32).toString('hex');
     this.sessions.set(key(token), { accountId: account.id, passwordHash: account.passwordHash,
       roleId: account.roleId, rights: codes.join(','), expiresAt: Date.now() + 8 * 60 * 60 * 1000 });
-    return { token, user: { id: account.id, username: account.username, name: account.employee?.name || account.username } };
+    return { token, user: { id: account.id, username: account.username, name: account.employee?.name || account.username, permissions: codes } };
   }
 
-  async authenticate(token: string): Promise<AdminUser> {
+  async authenticate(token: string, adminOnly = true): Promise<AdminUser> {
     const session = this.sessions.get(key(token));
     if (!session || session.expiresAt <= Date.now()) {
       this.sessions.delete(key(token));
@@ -49,11 +51,11 @@ export class AdminAuthService {
     const codes = account?.role.permissions.map(p => p.permission.code).sort() || [];
     if (!account || account.status !== 'ACTIVE' || (account.employee && account.employee.status !== 'ACTIVE') ||
         account.passwordHash !== session.passwordHash || account.roleId !== session.roleId ||
-        !codes.includes('*') || codes.join(',') !== session.rights) {
+        (adminOnly && !codes.includes('*')) || codes.join(',') !== session.rights) {
       this.sessions.delete(key(token));
       throw new UnauthorizedException('Tài khoản hoặc quyền đã thay đổi, vui lòng đăng nhập lại');
     }
-    return { id: account.id, username: account.username, name: account.employee?.name || account.username };
+    return { id: account.id, username: account.username, name: account.employee?.name || account.username, permissions: codes };
   }
   logout(token: string) { this.sessions.delete(key(token)); return { message: 'Đã đăng xuất' }; }
 }

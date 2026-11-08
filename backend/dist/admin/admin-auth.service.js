@@ -20,7 +20,7 @@ let AdminAuthService = class AdminAuthService {
     constructor(db) {
         this.db = db;
     }
-    async login(body) {
+    async login(body, adminOnly = true) {
         if (!body || typeof body !== 'object')
             throw new BadRequestException('Dữ liệu không hợp lệ');
         const b = body;
@@ -37,17 +37,19 @@ let AdminAuthService = class AdminAuthService {
         if (account.status !== 'ACTIVE' || (account.employee && account.employee.status !== 'ACTIVE'))
             throw new ForbiddenException('Tài khoản hoặc người sử dụng đã ngừng hoạt động');
         const codes = account.role.permissions.map(p => p.permission.code).sort();
-        if (!codes.includes('*'))
+        if (adminOnly && !codes.includes('*'))
             throw new ForbiddenException('Tài khoản không có quyền System Admin');
+        if (!adminOnly && !codes.some(code => ['*', 'catalog:manage', 'inventory:view', 'product:manage', 'production:perform', 'receipt:create', 'sale:view'].includes(code)))
+            throw new ForbiddenException('Tài khoản chưa được cấp quyền vào danh mục kho');
         for (const [id, session] of this.sessions)
             if (session.expiresAt <= Date.now())
                 this.sessions.delete(id);
         const token = randomBytes(32).toString('hex');
         this.sessions.set(key(token), { accountId: account.id, passwordHash: account.passwordHash,
             roleId: account.roleId, rights: codes.join(','), expiresAt: Date.now() + 8 * 60 * 60 * 1000 });
-        return { token, user: { id: account.id, username: account.username, name: account.employee?.name || account.username } };
+        return { token, user: { id: account.id, username: account.username, name: account.employee?.name || account.username, permissions: codes } };
     }
-    async authenticate(token) {
+    async authenticate(token, adminOnly = true) {
         const session = this.sessions.get(key(token));
         if (!session || session.expiresAt <= Date.now()) {
             this.sessions.delete(key(token));
@@ -57,11 +59,11 @@ let AdminAuthService = class AdminAuthService {
         const codes = account?.role.permissions.map(p => p.permission.code).sort() || [];
         if (!account || account.status !== 'ACTIVE' || (account.employee && account.employee.status !== 'ACTIVE') ||
             account.passwordHash !== session.passwordHash || account.roleId !== session.roleId ||
-            !codes.includes('*') || codes.join(',') !== session.rights) {
+            (adminOnly && !codes.includes('*')) || codes.join(',') !== session.rights) {
             this.sessions.delete(key(token));
             throw new UnauthorizedException('Tài khoản hoặc quyền đã thay đổi, vui lòng đăng nhập lại');
         }
-        return { id: account.id, username: account.username, name: account.employee?.name || account.username };
+        return { id: account.id, username: account.username, name: account.employee?.name || account.username, permissions: codes };
     }
     logout(token) { this.sessions.delete(key(token)); return { message: 'Đã đăng xuất' }; }
 };

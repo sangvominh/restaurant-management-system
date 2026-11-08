@@ -4,11 +4,6 @@ export declare class AdminController {
     private readonly service;
     constructor(service: AdminService);
     accounts(): import("../generated/prisma/internal/prismaNamespace.js").PrismaPromise<{
-        id: string;
-        username: string;
-        status: string;
-        createdAt: Date;
-        roleId: string;
         role: {
             id: string;
             name: string;
@@ -18,13 +13,13 @@ export declare class AdminController {
             name: string;
             code: string;
         } | null;
+        id: string;
+        username: string;
+        status: string;
+        createdAt: Date;
+        roleId: string;
     }[]>;
     createAccount(b: unknown): Promise<{
-        id: string;
-        username: string;
-        status: string;
-        createdAt: Date;
-        roleId: string;
         role: {
             id: string;
             name: string;
@@ -34,13 +29,13 @@ export declare class AdminController {
             name: string;
             code: string;
         } | null;
+        id: string;
+        username: string;
+        status: string;
+        createdAt: Date;
+        roleId: string;
     }>;
     updateAccount(id: string, b: unknown, user: AdminUser): Promise<{
-        id: string;
-        username: string;
-        status: string;
-        createdAt: Date;
-        roleId: string;
         role: {
             id: string;
             name: string;
@@ -50,6 +45,11 @@ export declare class AdminController {
             name: string;
             code: string;
         } | null;
+        id: string;
+        username: string;
+        status: string;
+        createdAt: Date;
+        roleId: string;
     }>;
     deleteAccount(id: string, user: AdminUser): Promise<{
         message: string;

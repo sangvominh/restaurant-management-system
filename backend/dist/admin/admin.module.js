@@ -14,7 +14,7 @@ import { AdminAuthController } from './admin-auth.controller.js';
 let AdminModule = class AdminModule {
 };
 AdminModule = __decorate([
-    Module({ imports: [PrismaModule], controllers: [AdminController, AdminAuthController], providers: [AdminService, AdminAuthService, AdminAuthGuard] })
+    Module({ imports: [PrismaModule], controllers: [AdminController, AdminAuthController], providers: [AdminService, AdminAuthService, AdminAuthGuard], exports: [AdminAuthService] })
 ], AdminModule);
 export { AdminModule };
 //# sourceMappingURL=admin.module.js.map

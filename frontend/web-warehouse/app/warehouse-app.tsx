@@ -1,0 +1,58 @@
+'use client';
+import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { api, can, readRights, type Kind, type CatalogItem, type User } from './catalog-api';
+const titles: Record<Kind, string> = { units: 'Đơn vị tính', categories: 'Phân loại', materials: 'Nguyên vật liệu', suppliers: 'Nhà cung cấp', products: 'Thành phẩm' };
+type Data = Record<Kind, CatalogItem[]>;
+const initialData: Data = { units: [], categories: [], materials: [], suppliers: [], products: [] };
+const format = (value?: string) => Number(value || 0).toLocaleString('vi-VN', { maximumFractionDigits: 3 });
+export default function WarehouseApp({ user, logout, busy }: { user: User; logout: () => Promise<void>; busy: boolean }) {
+  const pages = (Object.keys(titles) as Kind[]).filter(key => can(user, ...readRights[key]));
+  const [section, setSection] = useState<Kind>(pages[0] || 'units');
+  const [data, setData] = useState<Data>(initialData);
+  const [loading, setLoading] = useState(true); const [error, setError] = useState('');
+  const [search, setSearch] = useState(''); const [filter, setFilter] = useState('');
+  const [editing, setEditing] = useState<CatalogItem | null | undefined>(); const [deleting, setDeleting] = useState<string>();
+  const pageKey = pages.join(',');
+  const load = useCallback(async () => {
+    setLoading(true); setError('');
+    try {
+      const entries = await Promise.all(pageKey.split(',').filter(Boolean).map(async key => [key, await api<CatalogItem[]>(`catalog/${key}`)] as const));
+      setData({ ...initialData, ...Object.fromEntries(entries) });
+    } catch (err) { setError(err instanceof Error ? err.message : 'Không tải được dữ liệu'); }
+    finally { setLoading(false); }
+  }, [pageKey]);
+  useEffect(() => { void load(); }, [load]);
+  const editable = section === 'products' ? can(user, 'catalog:manage', 'product:manage') : can(user, 'catalog:manage');
+  const rows = data[section].filter(row => `${row.code || ''} ${row.name} ${row.symbol || ''} ${row.category?.name || ''}`.toLocaleLowerCase('vi').includes(search.toLocaleLowerCase('vi')) && (!filter || (section === 'categories' ? row.objectType : row.status) === filter));
+  async function remove(row: CatalogItem) {
+    if (!window.confirm(`Xóa ${row.name}? Bản ghi đã được sử dụng trong nghiệp vụ sẽ không xóa được.`)) return;
+    setDeleting(row.id); setError('');
+    try { await api(`catalog/${section}/${row.id}`, 'DELETE'); await load(); }
+    catch (err) { setError(err instanceof Error ? err.message : 'Không xóa được'); }
+    finally { setDeleting(undefined); }
+  }
+  function navigate(key: Kind) { setSection(key); setSearch(''); setFilter(''); }
+  const hasState = ['materials', 'suppliers', 'products'].includes(section);
+  return <div className="warehouse-shell"><aside><div className="brand"><span>K</span><div>Kho và sản xuất<small>Danh mục nền</small></div></div><nav>{pages.map(key => <button key={key} className={key === section ? 'selected' : ''} onClick={() => navigate(key)}>{titles[key]}</button>)}</nav><p className="aside-note">Quản lý dữ liệu nền phục vụ nhập kho và sản xuất.</p><div className="admin-profile"><strong>{user.name}</strong><small>{user.username}</small><button disabled={busy} onClick={() => void logout()}>Đăng xuất</button></div></aside><main><header><div><p className="eyebrow">KHO VÀ SẢN XUẤT / DANH MỤC</p><h1>{titles[section]}</h1></div><button disabled={loading} onClick={() => void load()}>Tải lại</button></header>
+    <section className="panel"><div className="toolbar"><div><h2>Danh sách {titles[section].toLocaleLowerCase('vi')}</h2><p>{section === 'units' ? 'Mỗi NVL và thành phẩm dùng một đơn vị cơ sở. Chưa hỗ trợ quy đổi.' : section === 'categories' ? 'Tách phân loại nguyên vật liệu và thành phẩm.' : 'Dữ liệu nền, chưa bao gồm số lượng tồn kho.'}</p></div>{editable && <button className="primary" disabled={loading || !!error || (['materials', 'products'].includes(section) && (!data.units.length || !data.categories.some(c => c.objectType === (section === 'materials' ? 'MATERIAL' : 'PRODUCT'))))} onClick={() => setEditing(null)}>+ Thêm mới</button>}</div>
+    {['materials', 'products'].includes(section) && (!data.units.length || !data.categories.some(c => c.objectType === (section === 'materials' ? 'MATERIAL' : 'PRODUCT'))) && !loading && !error && <p className="hint">Cần tạo đơn vị tính và phân loại phù hợp trước khi thêm {section === 'materials' ? 'NVL' : 'thành phẩm'}.</p>}
+    <div className="filters"><input aria-label="Tìm kiếm" placeholder="Tìm mã, tên hoặc phân loại…" value={search} onChange={e => setSearch(e.target.value)} />{section !== 'units' && <select aria-label="Bộ lọc" value={filter} onChange={e => setFilter(e.target.value)}><option value="">{section === 'categories' ? 'Mọi loại đối tượng' : 'Mọi trạng thái'}</option>{section === 'categories' ? <><option value="MATERIAL">Nguyên vật liệu</option><option value="PRODUCT">Thành phẩm</option></> : <><option value="ACTIVE">Hoạt động</option><option value="INACTIVE">Ngừng sử dụng</option></>}</select>}</div>
+    {error && <p className="error" role="alert">{error}</p>}{loading ? <p className="empty" role="status">Đang tải dữ liệu…</p> : <div className="table-wrap"><table><thead><tr><th>{section === 'units' ? 'Ký hiệu' : section === 'categories' ? 'Loại đối tượng' : 'Mã'}</th><th>Tên</th>{['materials', 'products'].includes(section) && <><th>Đơn vị / Phân loại</th><th>{section === 'materials' ? 'Tồn tối thiểu' : 'Giá bán (VND)'}</th></>}{section === 'suppliers' && <th>Liên hệ</th>}{hasState && <th>Trạng thái</th>}{editable && <th>Thao tác</th>}</tr></thead><tbody>{rows.map(row => <tr key={row.id}><td>{section === 'units' ? row.symbol : section === 'categories' ? row.objectType === 'MATERIAL' ? 'Nguyên vật liệu' : 'Thành phẩm' : row.code}</td><td><strong>{row.name}</strong></td>{['materials', 'products'].includes(section) && <><td>{row.unit?.name}<small>{row.category?.name}</small></td><td>{format(section === 'materials' ? row.minStock : row.sellingPrice)}</td></>}{section === 'suppliers' && <td>{row.phone || '—'}<small>{row.address}</small></td>}{hasState && <td><span className={`status ${row.status === 'ACTIVE' ? 'active' : ''}`}>{row.status === 'ACTIVE' ? 'Hoạt động' : 'Ngừng sử dụng'}</span></td>}{editable && <td><div className="actions"><button onClick={() => setEditing(row)}>Sửa</button><button className="danger" disabled={deleting === row.id} onClick={() => void remove(row)}>Xóa</button></div></td>}</tr>)}{!rows.length && <tr><td colSpan={7} className="empty">{error ? 'Không tải được dữ liệu.' : 'Chưa có dữ liệu phù hợp.'}</td></tr>}</tbody></table></div>}<p className="count">{rows.length} bản ghi</p></section><p className="footnote">{editable ? 'Bản ghi đã dùng không thể xóa. Với NVL, NCC và TP, có thể chuyển sang Ngừng sử dụng.' : 'Bạn đang có quyền xem danh mục, không có quyền chỉnh sửa.'}</p>
+  </main>{editing !== undefined && <Editor kind={section} item={editing} data={data} close={() => setEditing(undefined)} saved={load} />}</div>;
+}
+
+function Editor({ kind, item, data, close, saved }: { kind: Kind; item: CatalogItem | null; data: Data; close: () => void; saved: () => Promise<void> }) {
+  const [values, setValues] = useState<Record<string, string>>({ name: item?.name || '', code: item?.code || '', symbol: item?.symbol || '', objectType: item?.objectType || 'MATERIAL', unitId: item?.unitId || '', categoryId: item?.categoryId || '', status: item?.status || 'ACTIVE', minStock: item?.minStock || '0', sellingPrice: item?.sellingPrice || '0', phone: item?.phone || '', address: item?.address || '' });
+  const [error, setError] = useState(''); const [busy, setBusy] = useState(false);
+  function field(name: string, label: string, options?: { value: string; label: string }[], optional = false, step?: string) {
+    return <div className="field" key={name}><label htmlFor={`field-${name}`}>{label}{optional ? ' (không bắt buộc)' : ''}</label>{options ? <select id={`field-${name}`} required={!optional} value={values[name]} onChange={e => setValues({ ...values, [name]: e.target.value })}><option value="">Chọn…</option>{options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select> : <input id={`field-${name}`} required={!optional} value={values[name]} type={step ? 'number' : 'text'} min={step ? '0' : undefined} step={step} onChange={e => setValues({ ...values, [name]: e.target.value })} />}</div>;
+  }
+  async function submit(event: FormEvent) {
+    event.preventDefault(); setBusy(true); setError('');
+    const body = kind === 'units' ? { name: values.name, symbol: values.symbol } : kind === 'categories' ? { name: values.name, objectType: values.objectType } : kind === 'suppliers' ? { code: values.code, name: values.name, phone: values.phone, address: values.address, status: values.status } : { code: values.code, name: values.name, unitId: values.unitId, categoryId: values.categoryId, status: values.status, ...(kind === 'materials' ? { minStock: values.minStock } : { sellingPrice: values.sellingPrice }) };
+    try { await api(item ? `catalog/${kind}/${item.id}` : `catalog/${kind}`, item ? 'PUT' : 'POST', body); await saved(); close(); }
+    catch (err) { setError(err instanceof Error ? err.message : 'Không lưu được dữ liệu'); }
+    finally { setBusy(false); }
+  }
+  return <div className="overlay"><section className="dialog" role="dialog" aria-modal="true" aria-labelledby="editor-title"><div className="dialog-heading"><h2 id="editor-title">{item ? 'Cập nhật' : 'Thêm mới'} · {titles[kind]}</h2><button disabled={busy} onClick={close} aria-label="Đóng">×</button></div><form onSubmit={submit}><fieldset disabled={busy}><div className="form-grid">{!['units', 'categories'].includes(kind) && field('code', 'Mã')}{field('name', 'Tên')}{kind === 'units' && field('symbol', 'Ký hiệu')}{kind === 'categories' && field('objectType', 'Dành cho', [{ value: 'MATERIAL', label: 'Nguyên vật liệu' }, { value: 'PRODUCT', label: 'Thành phẩm' }])}{['materials', 'products'].includes(kind) && <>{field('unitId', 'Đơn vị cơ sở', data.units.map(u => ({ value: u.id, label: `${u.name} (${u.symbol})` })))}{field('categoryId', 'Phân loại', data.categories.filter(c => c.objectType === (kind === 'materials' ? 'MATERIAL' : 'PRODUCT')).map(c => ({ value: c.id, label: c.name })))}{kind === 'materials' ? field('minStock', 'Tồn tối thiểu', undefined, false, '0.001') : field('sellingPrice', 'Giá bán (VND)', undefined, false, '0.01')}</>}{kind === 'suppliers' && <>{field('phone', 'Điện thoại', undefined, true)}{field('address', 'Địa chỉ', undefined, true)}</>}{!['units', 'categories'].includes(kind) && field('status', 'Trạng thái', [{ value: 'ACTIVE', label: 'Hoạt động' }, { value: 'INACTIVE', label: 'Ngừng sử dụng' }])}</div>{error && <p className="error" role="alert">{error}</p>}<div className="dialog-actions"><button type="button" onClick={close}>Hủy</button><button className="primary">{busy ? 'Đang lưu…' : 'Lưu'}</button></div></fieldset></form></section></div>;
+}

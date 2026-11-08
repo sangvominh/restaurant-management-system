@@ -3,20 +3,22 @@ export interface AdminUser {
     id: string;
     username: string;
     name: string;
+    permissions: string[];
 }
 export declare class AdminAuthService {
     private readonly db;
     private readonly sessions;
     constructor(db: PrismaService);
-    login(body: unknown): Promise<{
+    login(body: unknown, adminOnly?: boolean): Promise<{
         token: string;
         user: {
             id: string;
             username: string;
             name: string;
+            permissions: string[];
         };
     }>;
-    authenticate(token: string): Promise<AdminUser>;
+    authenticate(token: string, adminOnly?: boolean): Promise<AdminUser>;
     logout(token: string): {
         message: string;
     };

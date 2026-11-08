@@ -8,6 +8,7 @@ export declare class AdminAuthController {
             id: string;
             username: string;
             name: string;
+            permissions: string[];
         };
     }>;
     me(user: AdminUser): AdminUser;

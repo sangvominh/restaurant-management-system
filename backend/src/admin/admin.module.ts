@@ -5,5 +5,5 @@ import { AdminService } from './admin.service.js';
 import { AdminAuthService } from './admin-auth.service.js';
 import { AdminAuthGuard } from './admin-auth.guard.js';
 import { AdminAuthController } from './admin-auth.controller.js';
-@Module({ imports: [PrismaModule], controllers: [AdminController, AdminAuthController], providers: [AdminService, AdminAuthService, AdminAuthGuard] })
+@Module({ imports: [PrismaModule], controllers: [AdminController, AdminAuthController], providers: [AdminService, AdminAuthService, AdminAuthGuard], exports: [AdminAuthService] })
 export class AdminModule {}

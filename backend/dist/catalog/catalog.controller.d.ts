@@ -1,0 +1,151 @@
+import type { Request } from 'express';
+import { AdminAuthService, type AdminUser } from '../admin/admin-auth.service.js';
+import { CatalogService } from './catalog.service.js';
+type CatalogRequest = Request & {
+    catalogUser: AdminUser;
+    catalogToken: string;
+};
+export declare class WarehouseAuthController {
+    private readonly auth;
+    constructor(auth: AdminAuthService);
+    login(b: unknown): Promise<{
+        token: string;
+        user: {
+            id: string;
+            username: string;
+            name: string;
+            permissions: string[];
+        };
+    }>;
+    me(req: CatalogRequest): AdminUser;
+    logout(req: CatalogRequest): {
+        message: string;
+    };
+}
+export declare class CatalogController {
+    private readonly service;
+    constructor(service: CatalogService);
+    private allow;
+    list(value: string, req: CatalogRequest): import("../generated/prisma/internal/prismaNamespace.js").PrismaPromise<{
+        symbol: string;
+        id: string;
+        name: string;
+    }[]> | import("../generated/prisma/internal/prismaNamespace.js").PrismaPromise<{
+        id: string;
+        name: string;
+        objectType: string;
+    }[]> | import("../generated/prisma/internal/prismaNamespace.js").PrismaPromise<{
+        id: string;
+        status: string;
+        name: string;
+        code: string;
+        phone: string | null;
+        address: string | null;
+    }[]> | import("../generated/prisma/internal/prismaNamespace.js").PrismaPromise<({
+        unit: {
+            symbol: string;
+            id: string;
+            name: string;
+        };
+        category: {
+            id: string;
+            name: string;
+            objectType: string;
+        };
+    } & {
+        id: string;
+        status: string;
+        name: string;
+        code: string;
+        minStock: import("@prisma/client-runtime-utils").Decimal;
+        unitId: string;
+        categoryId: string;
+    })[]> | import("../generated/prisma/internal/prismaNamespace.js").PrismaPromise<({
+        unit: {
+            symbol: string;
+            id: string;
+            name: string;
+        };
+        category: {
+            id: string;
+            name: string;
+            objectType: string;
+        };
+    } & {
+        id: string;
+        status: string;
+        name: string;
+        code: string;
+        unitId: string;
+        categoryId: string;
+        sellingPrice: import("@prisma/client-runtime-utils").Decimal;
+    })[]>;
+    create(value: string, b: unknown, req: CatalogRequest): Promise<{
+        symbol: string;
+        id: string;
+        name: string;
+    } | {
+        id: string;
+        name: string;
+        objectType: string;
+    } | {
+        id: string;
+        status: string;
+        name: string;
+        code: string;
+        phone: string | null;
+        address: string | null;
+    } | {
+        id: string;
+        status: string;
+        name: string;
+        code: string;
+        minStock: import("@prisma/client-runtime-utils").Decimal;
+        unitId: string;
+        categoryId: string;
+    } | {
+        id: string;
+        status: string;
+        name: string;
+        code: string;
+        unitId: string;
+        categoryId: string;
+        sellingPrice: import("@prisma/client-runtime-utils").Decimal;
+    }>;
+    update(value: string, id: string, b: unknown, req: CatalogRequest): Promise<{
+        symbol: string;
+        id: string;
+        name: string;
+    } | {
+        id: string;
+        name: string;
+        objectType: string;
+    } | {
+        id: string;
+        status: string;
+        name: string;
+        code: string;
+        phone: string | null;
+        address: string | null;
+    } | {
+        id: string;
+        status: string;
+        name: string;
+        code: string;
+        minStock: import("@prisma/client-runtime-utils").Decimal;
+        unitId: string;
+        categoryId: string;
+    } | {
+        id: string;
+        status: string;
+        name: string;
+        code: string;
+        unitId: string;
+        categoryId: string;
+        sellingPrice: import("@prisma/client-runtime-utils").Decimal;
+    }>;
+    remove(value: string, id: string, req: CatalogRequest): Promise<{
+        message: string;
+    }>;
+}
+export {};

@@ -3,11 +3,6 @@ export declare class AdminService {
     private readonly db;
     constructor(db: PrismaService);
     accounts(): import("../generated/prisma/internal/prismaNamespace.js").PrismaPromise<{
-        id: string;
-        username: string;
-        status: string;
-        createdAt: Date;
-        roleId: string;
         role: {
             id: string;
             name: string;
@@ -17,6 +12,11 @@ export declare class AdminService {
             name: string;
             code: string;
         } | null;
+        id: string;
+        username: string;
+        status: string;
+        createdAt: Date;
+        roleId: string;
     }[]>;
     roles(): import("../generated/prisma/internal/prismaNamespace.js").PrismaPromise<({
         permissions: ({
@@ -52,11 +52,6 @@ export declare class AdminService {
         group: string;
     }[];
     saveAccount(input: unknown, accountId?: string, actorId?: string): Promise<{
-        id: string;
-        username: string;
-        status: string;
-        createdAt: Date;
-        roleId: string;
         role: {
             id: string;
             name: string;
@@ -66,6 +61,11 @@ export declare class AdminService {
             name: string;
             code: string;
         } | null;
+        id: string;
+        username: string;
+        status: string;
+        createdAt: Date;
+        roleId: string;
     }>;
     deleteAccount(accountId: string, actorId?: string): Promise<{
         message: string;
