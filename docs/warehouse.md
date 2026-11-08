@@ -21,6 +21,11 @@ Nghiệm thu số lượng đạt → ghi tăng tồn thành phẩm đạt.
 Bếp lập hoàn NVL dư hoặc báo hao hụt → kho duyệt, ghi sổ.
 Quản lý hoàn thành lệnh khi đã nghiệm thu và xử lý hết NVL dư.
 
+## Xuất TP và báo cáo kho.
+Xuất thành phẩm: lập phiếu theo đơn bán, duyệt xuất hoặc từ chối; chặn vượt tồn, vượt lượng đơn bán và duyệt trùng.
+Tồn thành phẩm: tính từ số đã nghiệm thu và đã xuất.
+Báo cáo kho: nhập–xuất–tồn NVL/thành phẩm theo tháng, quý, năm.
+
 ## lỗi đã chặn:
 Xóa đơn vị demo_unused → được.
 Xóa đơn vị kg → bị chặn vì NVL/TP đang sử dụng.

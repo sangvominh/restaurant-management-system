@@ -9,10 +9,12 @@ import { PrismaModule } from '../prisma/prisma.module.js';
 import { CatalogModule } from '../catalog/catalog.module.js';
 import { InventoryController } from './inventory.controller.js';
 import { InventoryService } from './inventory.service.js';
+import { FinishedService } from './finished.service.js';
+import { FinishedController } from './finished.controller.js';
 let InventoryModule = class InventoryModule {
 };
 InventoryModule = __decorate([
-    Module({ imports: [PrismaModule, CatalogModule], controllers: [InventoryController], providers: [InventoryService] })
+    Module({ imports: [PrismaModule, CatalogModule], controllers: [InventoryController, FinishedController], providers: [InventoryService, FinishedService] })
 ], InventoryModule);
 export { InventoryModule };
 //# sourceMappingURL=inventory.module.js.map
