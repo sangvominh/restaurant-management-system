@@ -13,10 +13,13 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 import { Body, Controller, Delete, ForbiddenException, Get, Param, Post, Put, Req, UseGuards } from '@nestjs/common';
 import { CatalogGuard } from '../catalog/catalog.guard.js';
 import { ProductionService } from './production.service.js';
+import { ExecutionService } from './execution.service.js';
 let ProductionController = class ProductionController {
     service;
-    constructor(service) {
+    execution;
+    constructor(service, execution) {
         this.service = service;
+        this.execution = execution;
     }
     allow(req, ...codes) {
         if (!req.catalogUser.permissions.includes('*') && !codes.some(c => req.catalogUser.permissions.includes(c)))
@@ -28,7 +31,9 @@ let ProductionController = class ProductionController {
     updateBom(id, b, r) { this.allow(r, 'bom:manage'); return this.service.saveBom(b, r.catalogUser, id); }
     deleteBom(id, r) { this.allow(r, 'bom:manage'); return this.service.bomAction(id, 'delete'); }
     activate(id, r) { this.allow(r, 'bom:manage'); return this.service.bomAction(id, 'activate'); }
-    orders(r) { this.allow(r, 'production:manage', 'production:perform'); return this.service.orders(r.catalogUser); }
+    orders(r) { this.allow(r, 'production:manage', 'production:perform', 'material:approve', 'production:inspect', 'waste:approve'); return this.service.orders(r.catalogUser); }
+    detail(id, r) { return this.execution.detail(id, r.catalogUser); }
+    execute(id, b, r) { return this.execution.act(id, b, r.catalogUser); }
     createOrder(b, r) { this.allow(r, 'production:manage'); return this.service.createOrder(b, r.catalogUser); }
     receive(id, r) { this.allow(r, 'production:perform'); return this.service.orderAction(id, 'receive', r.catalogUser); }
     cancel(id, r) { this.allow(r, 'production:manage'); return this.service.orderAction(id, 'cancel', r.catalogUser); }
@@ -88,6 +93,23 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], ProductionController.prototype, "orders", null);
 __decorate([
+    Get('orders/:id/execution'),
+    __param(0, Param('id')),
+    __param(1, Req()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], ProductionController.prototype, "detail", null);
+__decorate([
+    Post('orders/:id/execution'),
+    __param(0, Param('id')),
+    __param(1, Body()),
+    __param(2, Req()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object, Object]),
+    __metadata("design:returntype", void 0)
+], ProductionController.prototype, "execute", null);
+__decorate([
     Post('orders'),
     __param(0, Body()),
     __param(1, Req()),
@@ -114,7 +136,7 @@ __decorate([
 ProductionController = __decorate([
     Controller('api/warehouse/production'),
     UseGuards(CatalogGuard),
-    __metadata("design:paramtypes", [ProductionService])
+    __metadata("design:paramtypes", [ProductionService, ExecutionService])
 ], ProductionController);
 export { ProductionController };
 //# sourceMappingURL=production.controller.js.map

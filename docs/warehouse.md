@@ -14,6 +14,13 @@ BOM: tạo/sửa/xóa nháp, khai báo phiên bản, định mức, ngày hiệu
 Lệnh sản xuất: chọn BOM có hiệu lực, nhập số lượng, giao nhân viên bếp, đặt hạn hoàn thành, xem nhu cầu nguyên liệu.
 Nhân viên bếp: chỉ thấy và nhận lệnh của mình. Quản lý được hủy lệnh chưa nhận.
 
+## Cấp NVL → sản xuất → nghiệm thu → hoàn/hao hụt.
+Bếp yêu cầu NVL theo lô → kho duyệt cấp hoặc từ chối.
+Bếp ghi sản lượng và lượng nguyên liệu thực tế đã dùng.
+Nghiệm thu số lượng đạt → ghi tăng tồn thành phẩm đạt.
+Bếp lập hoàn NVL dư hoặc báo hao hụt → kho duyệt, ghi sổ.
+Quản lý hoàn thành lệnh khi đã nghiệm thu và xử lý hết NVL dư.
+
 ## lỗi đã chặn:
 Xóa đơn vị demo_unused → được.
 Xóa đơn vị kg → bị chặn vì NVL/TP đang sử dụng.

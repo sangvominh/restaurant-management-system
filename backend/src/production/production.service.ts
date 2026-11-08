@@ -74,7 +74,7 @@ export class ProductionService {
     });
   }
   orders(user: AdminUser) {
-    return this.db.productionOrder.findMany({ where: manager(user) ? {} : { assignedTo: { accountId: user.id } }, include: orderInclude, orderBy: { assignedAt: 'desc' } });
+    return this.db.productionOrder.findMany({ where: manager(user) || user.permissions.some(p => ['material:approve', 'production:inspect', 'waste:approve'].includes(p)) ? {} : { assignedTo: { accountId: user.id } }, include: orderInclude, orderBy: { assignedAt: 'desc' } });
   }
   async createOrder(input: unknown, user: AdminUser) {
     const b = body(input), bomId = uuid(b.bomId), assignedToId = uuid(b.assignedToId), amount = quantity(b.quantity), dueAt = b.dueAt ? date(b.dueAt) : null;
