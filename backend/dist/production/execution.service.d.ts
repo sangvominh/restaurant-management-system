@@ -6,12 +6,6 @@ export declare class ExecutionService {
     detail(id: string, user: AdminUser): Promise<{
         order: {
             bom: {
-                lines: {
-                    id: string;
-                    quantity: import("@prisma/client-runtime-utils").Decimal;
-                    bomId: string;
-                    materialId: string;
-                }[];
                 product: {
                     unit: {
                         symbol: string;
@@ -27,14 +21,20 @@ export declare class ExecutionService {
                     categoryId: string;
                     sellingPrice: import("@prisma/client-runtime-utils").Decimal;
                 };
+                lines: {
+                    id: string;
+                    quantity: import("@prisma/client-runtime-utils").Decimal;
+                    materialId: string;
+                    bomId: string;
+                }[];
             } & {
                 id: string;
                 status: string;
+                createdById: string;
+                productId: string;
                 version: number;
                 outputQuantity: import("@prisma/client-runtime-utils").Decimal;
                 effectiveAt: Date;
-                productId: string;
-                createdById: string;
             };
             assignedTo: {
                 id: string;
@@ -47,12 +47,6 @@ export declare class ExecutionService {
             };
             materialIssues: ({
                 lines: ({
-                    consumptions: {
-                        id: string;
-                        quantity: import("@prisma/client-runtime-utils").Decimal;
-                        issueLineId: string;
-                        runId: string;
-                    }[];
                     wasteLines: ({
                         waste: {
                             id: string;
@@ -65,12 +59,12 @@ export declare class ExecutionService {
                         };
                     } & {
                         id: string;
+                        note: string | null;
                         quantity: import("@prisma/client-runtime-utils").Decimal;
-                        productId: string | null;
                         lotId: string | null;
                         issueLineId: string | null;
+                        productId: string | null;
                         sourceType: string;
-                        note: string | null;
                         wasteId: string;
                     })[];
                     lot: {
@@ -95,6 +89,12 @@ export declare class ExecutionService {
                         expiryDate: Date | null;
                         materialId: string;
                     };
+                    consumptions: {
+                        id: string;
+                        quantity: import("@prisma/client-runtime-utils").Decimal;
+                        issueLineId: string;
+                        runId: string;
+                    }[];
                     returnLines: ({
                         return: {
                             id: string;
@@ -133,9 +133,9 @@ export declare class ExecutionService {
                 requestedAt: Date;
                 approvedAt: Date | null;
                 reason: string | null;
-                productionOrderId: string;
                 requestedById: string;
                 reviewedById: string | null;
+                productionOrderId: string;
             })[];
             runs: ({
                 consumptions: {
@@ -147,8 +147,8 @@ export declare class ExecutionService {
             } & {
                 id: string;
                 status: string;
-                recordedAt: Date;
                 productionOrderId: string;
+                recordedAt: Date;
                 actualQuantity: import("@prisma/client-runtime-utils").Decimal;
                 acceptedQuantity: import("@prisma/client-runtime-utils").Decimal | null;
                 inspectedAt: Date | null;
@@ -158,10 +158,10 @@ export declare class ExecutionService {
             })[];
         } & {
             id: string;
+            status: string;
             quantity: import("@prisma/client-runtime-utils").Decimal;
             assignedAt: Date;
             dueAt: Date | null;
-            status: string;
             bomId: string;
             assignedById: string;
             assignedToId: string;
@@ -196,6 +196,23 @@ export declare class ExecutionService {
     act(id: string, input: unknown, user: AdminUser): Promise<{
         id: string;
         status: string;
+        quantity: import("@prisma/client-runtime-utils").Decimal;
+        assignedAt: Date;
+        dueAt: Date | null;
+        bomId: string;
+        assignedById: string;
+        assignedToId: string;
+    } | {
+        id: string;
+        status: string;
+        requestedAt: Date;
+        approvedAt: Date | null;
+        reason: string;
+        requestedById: string;
+        reviewedById: string | null;
+    } | {
+        id: string;
+        status: string;
         approvedAt: Date | null;
         reason: string;
         reviewedById: string | null;
@@ -206,37 +223,20 @@ export declare class ExecutionService {
         status: string;
         requestedAt: Date;
         approvedAt: Date | null;
-        reason: string;
-        requestedById: string;
-        reviewedById: string | null;
-    } | {
-        id: string;
-        status: string;
-        requestedAt: Date;
-        approvedAt: Date | null;
         reason: string | null;
-        productionOrderId: string;
         requestedById: string;
         reviewedById: string | null;
+        productionOrderId: string;
     } | {
         id: string;
         status: string;
-        recordedAt: Date;
         productionOrderId: string;
+        recordedAt: Date;
         actualQuantity: import("@prisma/client-runtime-utils").Decimal;
         acceptedQuantity: import("@prisma/client-runtime-utils").Decimal | null;
         inspectedAt: Date | null;
         inspectionNote: string | null;
         performedById: string;
         inspectedById: string | null;
-    } | {
-        id: string;
-        quantity: import("@prisma/client-runtime-utils").Decimal;
-        assignedAt: Date;
-        dueAt: Date | null;
-        status: string;
-        bomId: string;
-        assignedById: string;
-        assignedToId: string;
     }>;
 }

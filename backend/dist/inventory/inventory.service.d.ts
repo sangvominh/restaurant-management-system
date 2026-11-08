@@ -7,9 +7,9 @@ export declare class InventoryService {
     list(): Prisma.PrismaPromise<({
         supplier: {
             id: string;
-            code: string;
             status: string;
             name: string;
+            code: string;
             phone: string | null;
             address: string | null;
         };
@@ -28,9 +28,9 @@ export declare class InventoryService {
                     };
                 } & {
                     id: string;
-                    code: string;
                     status: string;
                     name: string;
+                    code: string;
                     minStock: import("@prisma/client-runtime-utils").Decimal;
                     unitId: string;
                     categoryId: string;
@@ -45,14 +45,14 @@ export declare class InventoryService {
             id: string;
             quantity: import("@prisma/client-runtime-utils").Decimal;
             unitPrice: import("@prisma/client-runtime-utils").Decimal;
-            receiptId: string;
             lotId: string;
+            receiptId: string;
         })[];
     } & {
         id: string;
+        status: string;
         code: string;
         receivedAt: Date;
-        status: string;
         note: string | null;
         supplierId: string;
         createdById: string;
@@ -60,9 +60,9 @@ export declare class InventoryService {
     references(): Promise<{
         suppliers: {
             id: string;
-            code: string;
             status: string;
             name: string;
+            code: string;
             phone: string | null;
             address: string | null;
         }[];
@@ -74,9 +74,9 @@ export declare class InventoryService {
             };
         } & {
             id: string;
-            code: string;
             status: string;
             name: string;
+            code: string;
             minStock: import("@prisma/client-runtime-utils").Decimal;
             unitId: string;
             categoryId: string;
@@ -86,9 +86,9 @@ export declare class InventoryService {
     save(input: unknown, user: AdminUser, receiptId?: string): Promise<{
         supplier: {
             id: string;
-            code: string;
             status: string;
             name: string;
+            code: string;
             phone: string | null;
             address: string | null;
         };
@@ -107,9 +107,9 @@ export declare class InventoryService {
                     };
                 } & {
                     id: string;
-                    code: string;
                     status: string;
                     name: string;
+                    code: string;
                     minStock: import("@prisma/client-runtime-utils").Decimal;
                     unitId: string;
                     categoryId: string;
@@ -124,14 +124,14 @@ export declare class InventoryService {
             id: string;
             quantity: import("@prisma/client-runtime-utils").Decimal;
             unitPrice: import("@prisma/client-runtime-utils").Decimal;
-            receiptId: string;
             lotId: string;
+            receiptId: string;
         })[];
     } & {
         id: string;
+        status: string;
         code: string;
         receivedAt: Date;
-        status: string;
         note: string | null;
         supplierId: string;
         createdById: string;
@@ -139,9 +139,9 @@ export declare class InventoryService {
     post(receiptId: string): Promise<{
         supplier: {
             id: string;
-            code: string;
             status: string;
             name: string;
+            code: string;
             phone: string | null;
             address: string | null;
         };
@@ -160,9 +160,9 @@ export declare class InventoryService {
                     };
                 } & {
                     id: string;
-                    code: string;
                     status: string;
                     name: string;
+                    code: string;
                     minStock: import("@prisma/client-runtime-utils").Decimal;
                     unitId: string;
                     categoryId: string;
@@ -177,14 +177,14 @@ export declare class InventoryService {
             id: string;
             quantity: import("@prisma/client-runtime-utils").Decimal;
             unitPrice: import("@prisma/client-runtime-utils").Decimal;
-            receiptId: string;
             lotId: string;
+            receiptId: string;
         })[];
     } & {
         id: string;
+        status: string;
         code: string;
         receivedAt: Date;
-        status: string;
         note: string | null;
         supplierId: string;
         createdById: string;
