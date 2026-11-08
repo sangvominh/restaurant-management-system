@@ -1,29 +1,14 @@
-name: restaurant-integrated
 services:
   db:
-    image: postgres:17.11
+    image: postgres:17
     environment:
       POSTGRES_USER: restaurant
-      POSTGRES_PASSWORD: local_dev_only
-      POSTGRES_DB: restaurant_dev
+      POSTGRES_PASSWORD: restaurant_dev
+      POSTGRES_DB: restaurant_mrp
     ports:
       - "127.0.0.1:5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    env_file:
-      - ./backend/.env
-    environment:
-      PORT: "3000"
-      JWT_ISSUER: restaurant_dev
-      DATABASE_URL: postgresql://restaurant:local_dev_only@db:5432/restaurant_dev?schema=public
-      CORS_ORIGIN: http://localhost:3001,http://localhost:3002,http://localhost:3003,http://localhost:3004,http://localhost:3005,http://localhost:3006
-    ports:
-      - "127.0.0.1:3000:3000"
 
 volumes:
   postgres_data:

@@ -1,0 +1,89 @@
+/// BOM
+model Bom {
+  id String @id @default(uuid()) @db.Uuid
+  version Int
+  outputQuantity Decimal @db.Decimal(18, 3)
+  effectiveAt DateTime @db.Timestamptz(3)
+  status String @default("DRAFT")
+  productId String @db.Uuid
+  product Product @relation("Bom_product", fields: [productId], references: [id], onDelete: Restrict)
+  createdById String @db.Uuid
+  createdBy Employee @relation("Bom_createdBy", fields: [createdById], references: [id], onDelete: Restrict)
+  lines BomLine[] @relation("BomLine_bom")
+  productionOrders ProductionOrder[] @relation("ProductionOrder_bom")
+
+  @@unique([productId, version])
+  @@index([productId])
+  @@index([createdById])
+}
+
+/// CT_BOM
+model BomLine {
+  id String @id @default(uuid()) @db.Uuid
+  quantity Decimal @db.Decimal(18, 3)
+  bomId String @db.Uuid
+  bom Bom @relation("BomLine_bom", fields: [bomId], references: [id], onDelete: Restrict)
+  materialId String @db.Uuid
+  material Material @relation("BomLine_material", fields: [materialId], references: [id], onDelete: Restrict)
+
+  @@index([bomId])
+  @@index([materialId])
+}
+
+/// LENH_SAN_XUAT
+model ProductionOrder {
+  id String @id @default(uuid()) @db.Uuid
+  quantity Decimal @db.Decimal(18, 3)
+  assignedAt DateTime @default(now()) @db.Timestamptz(3)
+  dueAt DateTime? @db.Timestamptz(3)
+  status String @default("NEW")
+  bomId String @db.Uuid
+  bom Bom @relation("ProductionOrder_bom", fields: [bomId], references: [id], onDelete: Restrict)
+  assignedById String @db.Uuid
+  assignedBy Employee @relation("ProductionOrder_assignedBy", fields: [assignedById], references: [id], onDelete: Restrict)
+  assignedToId String @db.Uuid
+  assignedTo Employee @relation("ProductionOrder_assignedTo", fields: [assignedToId], references: [id], onDelete: Restrict)
+  materialIssues MaterialIssue[] @relation("MaterialIssue_productionOrder")
+  runs ProductionRun[] @relation("ProductionRun_productionOrder")
+
+  @@index([bomId])
+  @@index([assignedById])
+  @@index([assignedToId])
+}
+
+/// LAN_SAN_XUAT
+model ProductionRun {
+  id String @id @default(uuid()) @db.Uuid
+  recordedAt DateTime @default(now()) @db.Timestamptz(3)
+  actualQuantity Decimal @db.Decimal(18, 3)
+  acceptedQuantity Decimal? @db.Decimal(18, 3)
+  status String @default("PENDING")
+  inspectedAt DateTime? @db.Timestamptz(3)
+  inspectionNote String?
+  productionOrderId String @db.Uuid
+  productionOrder ProductionOrder @relation("ProductionRun_productionOrder", fields: [productionOrderId], references: [id], onDelete: Restrict)
+  performedById String @db.Uuid
+  performedBy Employee @relation("ProductionRun_performedBy", fields: [performedById], references: [id], onDelete: Restrict)
+  consumptions ConsumptionLine[] @relation("ConsumptionLine_run")
+  inspectedById String? @db.Uuid
+  inspectedBy Employee? @relation("ProductionRun_inspectedBy", fields: [inspectedById], references: [id], onDelete: Restrict)
+  productMovement ProductMovement? @relation("ProductMovement_run")
+
+  @@index([productionOrderId])
+  @@index([performedById])
+  @@index([inspectedById])
+}
+
+/// CT_TIEU_HAO
+model ConsumptionLine {
+  id String @id @default(uuid()) @db.Uuid
+  quantity Decimal @db.Decimal(18, 3)
+  runId String @db.Uuid
+  run ProductionRun @relation("ConsumptionLine_run", fields: [runId], references: [id], onDelete: Restrict)
+  issueLineId String @db.Uuid
+  issueLine MaterialIssueLine @relation("ConsumptionLine_issueLine", fields: [issueLineId], references: [id], onDelete: Restrict)
+  materialMovement MaterialMovement? @relation("MaterialMovement_consumptionLine")
+
+  @@index([runId])
+  @@index([issueLineId])
+}

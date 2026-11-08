@@ -1,0 +1,163 @@
+/// PHIEU_NHAP_NVL
+model MaterialReceipt {
+  id String @id @default(uuid()) @db.Uuid
+  code String @unique
+  receivedAt DateTime @default(now()) @db.Timestamptz(3)
+  status String @default("DRAFT")
+  note String?
+  supplierId String @db.Uuid
+  supplier Supplier @relation("MaterialReceipt_supplier", fields: [supplierId], references: [id], onDelete: Restrict)
+  createdById String @db.Uuid
+  createdBy Employee @relation("MaterialReceipt_createdBy", fields: [createdById], references: [id], onDelete: Restrict)
+  lines MaterialReceiptLine[] @relation("MaterialReceiptLine_receipt")
+
+  @@index([supplierId])
+  @@index([createdById])
+}
+
+/// CT_NHAP_NVL
+model MaterialReceiptLine {
+  id String @id @default(uuid()) @db.Uuid
+  quantity Decimal @db.Decimal(18, 3)
+  unitPrice Decimal @db.Decimal(18, 2)
+  receiptId String @db.Uuid
+  receipt MaterialReceipt @relation("MaterialReceiptLine_receipt", fields: [receiptId], references: [id], onDelete: Restrict)
+  lotId String @db.Uuid
+  lot MaterialLot @relation("MaterialReceiptLine_lot", fields: [lotId], references: [id], onDelete: Restrict)
+  materialMovement MaterialMovement? @relation("MaterialMovement_receiptLine")
+
+  @@index([receiptId])
+  @@index([lotId])
+}
+
+/// PHIEU_CAP_NVL
+model MaterialIssue {
+  id String @id @default(uuid()) @db.Uuid
+  requestedAt DateTime @default(now()) @db.Timestamptz(3)
+  approvedAt DateTime? @db.Timestamptz(3)
+  status String @default("PENDING")
+  reason String?
+  productionOrderId String @db.Uuid
+  productionOrder ProductionOrder @relation("MaterialIssue_productionOrder", fields: [productionOrderId], references: [id], onDelete: Restrict)
+  requestedById String @db.Uuid
+  requestedBy Employee @relation("MaterialIssue_requestedBy", fields: [requestedById], references: [id], onDelete: Restrict)
+  lines MaterialIssueLine[] @relation("MaterialIssueLine_issue")
+  reviewedById String? @db.Uuid
+  reviewedBy Employee? @relation("MaterialIssue_reviewedBy", fields: [reviewedById], references: [id], onDelete: Restrict)
+
+  @@index([productionOrderId])
+  @@index([requestedById])
+  @@index([reviewedById])
+}
+
+/// CT_CAP_NVL
+model MaterialIssueLine {
+  id String @id @default(uuid()) @db.Uuid
+  requestedQuantity Decimal @db.Decimal(18, 3)
+  issuedQuantity Decimal? @db.Decimal(18, 3)
+  issueId String @db.Uuid
+  issue MaterialIssue @relation("MaterialIssueLine_issue", fields: [issueId], references: [id], onDelete: Restrict)
+  lotId String @db.Uuid
+  lot MaterialLot @relation("MaterialIssueLine_lot", fields: [lotId], references: [id], onDelete: Restrict)
+  consumptions ConsumptionLine[] @relation("ConsumptionLine_issueLine")
+  returnLines MaterialReturnLine[] @relation("MaterialReturnLine_issueLine")
+  wasteLines WasteLine[] @relation("WasteLine_issueLine")
+  materialMovement MaterialMovement? @relation("MaterialMovement_issueLine")
+
+  @@index([issueId])
+  @@index([lotId])
+}
+
+/// PHIEU_HOAN_NVL
+model MaterialReturn {
+  id String @id @default(uuid()) @db.Uuid
+  requestedAt DateTime @default(now()) @db.Timestamptz(3)
+  approvedAt DateTime? @db.Timestamptz(3)
+  status String @default("PENDING")
+  reason String
+  requestedById String @db.Uuid
+  requestedBy Employee @relation("MaterialReturn_requestedBy", fields: [requestedById], references: [id], onDelete: Restrict)
+  lines MaterialReturnLine[] @relation("MaterialReturnLine_return")
+  reviewedById String? @db.Uuid
+  reviewedBy Employee? @relation("MaterialReturn_reviewedBy", fields: [reviewedById], references: [id], onDelete: Restrict)
+
+  @@index([requestedById])
+  @@index([reviewedById])
+}
+
+/// CT_HOAN_NVL
+model MaterialReturnLine {
+  id String @id @default(uuid()) @db.Uuid
+  quantity Decimal @db.Decimal(18, 3)
+  returnId String @db.Uuid
+  return MaterialReturn @relation("MaterialReturnLine_return", fields: [returnId], references: [id], onDelete: Restrict)
+  issueLineId String @db.Uuid
+  issueLine MaterialIssueLine @relation("MaterialReturnLine_issueLine", fields: [issueLineId], references: [id], onDelete: Restrict)
+  materialMovement MaterialMovement? @relation("MaterialMovement_returnLine")
+
+  @@index([returnId])
+  @@index([issueLineId])
+}
+
+/// PHIEU_HAO_HUT
+model Waste {
+  id String @id @default(uuid()) @db.Uuid
+  reportedAt DateTime @default(now()) @db.Timestamptz(3)
+  approvedAt DateTime? @db.Timestamptz(3)
+  reason String
+  status String @default("PENDING")
+  reportedById String @db.Uuid
+  reportedBy Employee @relation("Waste_reportedBy", fields: [reportedById], references: [id], onDelete: Restrict)
+  lines WasteLine[] @relation("WasteLine_waste")
+  reviewedById String? @db.Uuid
+  reviewedBy Employee? @relation("Waste_reviewedBy", fields: [reviewedById], references: [id], onDelete: Restrict)
+
+  @@index([reportedById])
+  @@index([reviewedById])
+}
+
+/// CT_HAO_HUT — đúng một nguồn: lot / issueLine / product
+model WasteLine {
+  id String @id @default(uuid()) @db.Uuid
+  sourceType String
+  quantity Decimal @db.Decimal(18, 3)
+  note String?
+  wasteId String @db.Uuid
+  waste Waste @relation("WasteLine_waste", fields: [wasteId], references: [id], onDelete: Restrict)
+  lotId String? @db.Uuid
+  lot MaterialLot? @relation("WasteLine_lot", fields: [lotId], references: [id], onDelete: Restrict)
+  issueLineId String? @db.Uuid
+  issueLine MaterialIssueLine? @relation("WasteLine_issueLine", fields: [issueLineId], references: [id], onDelete: Restrict)
+  productId String? @db.Uuid
+  product Product? @relation("WasteLine_product", fields: [productId], references: [id], onDelete: Restrict)
+  materialMovement MaterialMovement? @relation("MaterialMovement_wasteLine")
+  productMovement ProductMovement? @relation("ProductMovement_wasteLine")
+
+  @@index([wasteId])
+  @@index([lotId])
+  @@index([issueLineId])
+  @@index([productId])
+}
+
+/// BIEN_DONG_NVL — số lượng dương, đúng một nguồn
+model MaterialMovement {
+  id String @id @default(uuid()) @db.Uuid
+  quantity Decimal @db.Decimal(18, 3)
+  fromSource String
+  toSource String
+  postedAt DateTime @default(now()) @db.Timestamptz(3)
+  lotId String @db.Uuid
+  lot MaterialLot @relation("MaterialMovement_lot", fields: [lotId], references: [id], onDelete: Restrict)
+  receiptLineId String? @unique @db.Uuid
+  receiptLine MaterialReceiptLine? @relation("MaterialMovement_receiptLine", fields: [receiptLineId], references: [id], onDelete: Restrict)
+  issueLineId String? @unique @db.Uuid
+  issueLine MaterialIssueLine? @relation("MaterialMovement_issueLine", fields: [issueLineId], references: [id], onDelete: Restrict)
+  consumptionLineId String? @unique @db.Uuid
+  consumptionLine ConsumptionLine? @relation("MaterialMovement_consumptionLine", fields: [consumptionLineId], references: [id], onDelete: Restrict)
+  returnLineId String? @unique @db.Uuid
+  returnLine MaterialReturnLine? @relation("MaterialMovement_returnLine", fields: [returnLineId], references: [id], onDelete: Restrict)
+  wasteLineId String? @unique @db.Uuid
+  wasteLine WasteLine? @relation("MaterialMovement_wasteLine", fields: [wasteLineId], references: [id], onDelete: Restrict)
+
+  @@index([lotId])
+}

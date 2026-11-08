@@ -1,0 +1,94 @@
+/// DON_BAN — tổng tiền tính từ các dòng, không lưu cột
+model Sale {
+  id String @id @default(uuid()) @db.Uuid
+  code String @unique
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  status String @default("DRAFT")
+  createdById String @db.Uuid
+  createdBy Employee @relation("Sale_createdBy", fields: [createdById], references: [id], onDelete: Restrict)
+  lines SaleLine[] @relation("SaleLine_sale")
+  exports ProductExport[] @relation("ProductExport_sale")
+  payment Payment? @relation("Payment_sale")
+
+  @@index([createdById])
+}
+
+/// CT_DON_BAN — lưu tên/giá tại thời điểm bán
+model SaleLine {
+  id String @id @default(uuid()) @db.Uuid
+  quantity Decimal @db.Decimal(18, 3)
+  unitPrice Decimal @db.Decimal(18, 2)
+  productName String
+  saleId String @db.Uuid
+  sale Sale @relation("SaleLine_sale", fields: [saleId], references: [id], onDelete: Restrict)
+  productId String @db.Uuid
+  product Product @relation("SaleLine_product", fields: [productId], references: [id], onDelete: Restrict)
+  exportLines ProductExportLine[] @relation("ProductExportLine_saleLine")
+
+  @@index([saleId])
+  @@index([productId])
+}
+
+/// PHIEU_XUAT_TP
+model ProductExport {
+  id String @id @default(uuid()) @db.Uuid
+  requestedAt DateTime @default(now()) @db.Timestamptz(3)
+  approvedAt DateTime? @db.Timestamptz(3)
+  status String @default("PENDING")
+  reason String?
+  saleId String @db.Uuid
+  sale Sale @relation("ProductExport_sale", fields: [saleId], references: [id], onDelete: Restrict)
+  requestedById String @db.Uuid
+  requestedBy Employee @relation("ProductExport_requestedBy", fields: [requestedById], references: [id], onDelete: Restrict)
+  lines ProductExportLine[] @relation("ProductExportLine_export")
+  reviewedById String? @db.Uuid
+  reviewedBy Employee? @relation("ProductExport_reviewedBy", fields: [reviewedById], references: [id], onDelete: Restrict)
+
+  @@index([saleId])
+  @@index([requestedById])
+  @@index([reviewedById])
+}
+
+/// CT_XUAT_TP
+model ProductExportLine {
+  id String @id @default(uuid()) @db.Uuid
+  requestedQuantity Decimal @db.Decimal(18, 3)
+  exportedQuantity Decimal? @db.Decimal(18, 3)
+  exportId String @db.Uuid
+  export ProductExport @relation("ProductExportLine_export", fields: [exportId], references: [id], onDelete: Restrict)
+  saleLineId String @db.Uuid
+  saleLine SaleLine @relation("ProductExportLine_saleLine", fields: [saleLineId], references: [id], onDelete: Restrict)
+  productMovement ProductMovement? @relation("ProductMovement_exportLine")
+
+  @@index([exportId])
+  @@index([saleLineId])
+}
+
+/// THANH_TOAN
+model Payment {
+  id String @id @default(uuid()) @db.Uuid
+  amount Decimal @db.Decimal(18, 2)
+  method String
+  status String @default("PENDING")
+  paidAt DateTime? @db.Timestamptz(3)
+  saleId String @unique @db.Uuid
+  sale Sale @relation("Payment_sale", fields: [saleId], references: [id], onDelete: Restrict)
+}
+
+/// BIEN_DONG_TP — số lượng dương, đúng một nguồn
+model ProductMovement {
+  id String @id @default(uuid()) @db.Uuid
+  quantity Decimal @db.Decimal(18, 3)
+  movementType String
+  postedAt DateTime @default(now()) @db.Timestamptz(3)
+  productId String @db.Uuid
+  product Product @relation("ProductMovement_product", fields: [productId], references: [id], onDelete: Restrict)
+  runId String? @unique @db.Uuid
+  run ProductionRun? @relation("ProductMovement_run", fields: [runId], references: [id], onDelete: Restrict)
+  exportLineId String? @unique @db.Uuid
+  exportLine ProductExportLine? @relation("ProductMovement_exportLine", fields: [exportLineId], references: [id], onDelete: Restrict)
+  wasteLineId String? @unique @db.Uuid
+  wasteLine WasteLine? @relation("ProductMovement_wasteLine", fields: [wasteLineId], references: [id], onDelete: Restrict)
+
+  @@index([productId])
+}
