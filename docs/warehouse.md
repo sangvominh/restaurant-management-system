@@ -9,6 +9,11 @@ Ghi sổ: tăng tồn một lần; phiếu đã ghi sổ không được sửa/x
 Xem tồn: theo NVL và từng lô, có lọc dưới tồn tối thiểu.
 Tách quyền lập phiếu, ghi sổ và xem tồn.
 
+## BOM và lệnh sản xuất.
+BOM: tạo/sửa/xóa nháp, khai báo phiên bản, định mức, ngày hiệu lực; áp dụng rồi thì khóa sửa/xóa.
+Lệnh sản xuất: chọn BOM có hiệu lực, nhập số lượng, giao nhân viên bếp, đặt hạn hoàn thành, xem nhu cầu nguyên liệu.
+Nhân viên bếp: chỉ thấy và nhận lệnh của mình. Quản lý được hủy lệnh chưa nhận.
+
 ## lỗi đã chặn:
 Xóa đơn vị demo_unused → được.
 Xóa đơn vị kg → bị chặn vì NVL/TP đang sử dụng.
