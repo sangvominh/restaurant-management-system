@@ -44,7 +44,7 @@ export class AdminService {
   employees() { return this.db.employee.findMany({ orderBy: { code: 'asc' } }); }
   permissions() { return PERMISSIONS; }
 
-  async saveAccount(input: unknown, accountId?: string) {
+  async saveAccount(input: unknown, accountId?: string, actorId?: string) {
     const b = body(input);
     const username = text(b.username, 'Tên đăng nhập', 100);
     const roleId = id(b.roleId);
@@ -60,9 +60,16 @@ export class AdminService {
     if (!accountId && !passwordHash) throw new BadRequestException('Cần nhập mật khẩu');
     if (accountId) id(accountId);
     return this.db.$transaction(async tx => {
+      if (accountId && accountId === actorId) {
+        const current = await tx.account.findUniqueOrThrow({ where: { id: accountId } });
+        if (accountStatus !== 'ACTIVE' || roleId !== current.roleId)
+          throw new BadRequestException('Không tự khóa hoặc đổi vai trò tài khoản đang đăng nhập');
+      }
       await tx.role.findUniqueOrThrow({ where: { id: roleId } });
       if (employeeId) {
         const employee = await tx.employee.findUniqueOrThrow({ where: { id: employeeId } });
+        if (accountId && accountId === actorId && employee.status !== 'ACTIVE')
+          throw new BadRequestException('Không tự liên kết với người sử dụng đã ngừng hoạt động');
         if (employee.accountId && employee.accountId !== accountId)
           throw new ConflictException('Người sử dụng đã có tài khoản');
       }
@@ -76,7 +83,8 @@ export class AdminService {
     });
   }
 
-  async deleteAccount(accountId: string) {
+  async deleteAccount(accountId: string, actorId?: string) {
+    if (accountId === actorId) throw new BadRequestException('Không tự xóa tài khoản đang đăng nhập');
     return this.db.$transaction(async tx => {
       await tx.employee.updateMany({ where: { accountId: id(accountId) }, data: { accountId: null } });
       await tx.account.delete({ where: { id: accountId } });
@@ -93,6 +101,11 @@ export class AdminService {
     const codes = [...new Set(b.permissions as string[])];
     if (roleId) id(roleId);
     return this.db.$transaction(async tx => {
+      if (roleId) {
+        const current = await tx.role.findUniqueOrThrow({ where: { id: roleId }, include: roleInclude });
+        if (current.permissions.some(p => p.permission.code === '*') && !codes.includes('*'))
+          throw new BadRequestException('Không được gỡ quyền toàn hệ thống khỏi vai trò System Admin');
+      }
       const role = roleId
         ? await tx.role.update({ where: { id: roleId }, data: { name, description } })
         : await tx.role.create({ data: { name, description } });
@@ -116,13 +129,17 @@ export class AdminService {
     });
   }
 
-  saveEmployee(input: unknown, employeeId?: string) {
+  async saveEmployee(input: unknown, employeeId?: string, actorId?: string) {
     const b = body(input);
     const email = b.email ? text(b.email, 'Email', 150).toLowerCase() : null;
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new BadRequestException('Email không hợp lệ');
     const data = { code: text(b.code, 'Mã người sử dụng', 50), name: text(b.name, 'Họ tên'),
       phone: b.phone ? text(b.phone, 'Điện thoại', 20) : null, email,
       status: status(b.status, ['ACTIVE', 'INACTIVE']) };
+    if (employeeId && actorId && data.status !== 'ACTIVE') {
+      const current = await this.db.employee.findUniqueOrThrow({ where: { id: id(employeeId) } });
+      if (current.accountId === actorId) throw new BadRequestException('Không tự ngừng hoạt động hồ sơ đang đăng nhập');
+    }
     return employeeId ? this.db.employee.update({ where: { id: id(employeeId) }, data }) : this.db.employee.create({ data });
   }
   async deleteEmployee(employeeId: string) {

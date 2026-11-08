@@ -8,10 +8,13 @@ import { Module } from '@nestjs/common';
 import { PrismaModule } from '../prisma/prisma.module.js';
 import { AdminController } from './admin.controller.js';
 import { AdminService } from './admin.service.js';
+import { AdminAuthService } from './admin-auth.service.js';
+import { AdminAuthGuard } from './admin-auth.guard.js';
+import { AdminAuthController } from './admin-auth.controller.js';
 let AdminModule = class AdminModule {
 };
 AdminModule = __decorate([
-    Module({ imports: [PrismaModule], controllers: [AdminController], providers: [AdminService] })
+    Module({ imports: [PrismaModule], controllers: [AdminController, AdminAuthController], providers: [AdminService, AdminAuthService, AdminAuthGuard] })
 ], AdminModule);
 export { AdminModule };
 //# sourceMappingURL=admin.module.js.map

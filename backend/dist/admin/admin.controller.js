@@ -10,8 +10,9 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
 import { AdminService } from './admin.service.js';
+import { AdminAuthGuard, CurrentAdmin } from './admin-auth.guard.js';
 let AdminController = class AdminController {
     service;
     constructor(service) {
@@ -19,8 +20,8 @@ let AdminController = class AdminController {
     }
     accounts() { return this.service.accounts(); }
     createAccount(b) { return this.service.saveAccount(b); }
-    updateAccount(id, b) { return this.service.saveAccount(b, id); }
-    deleteAccount(id) { return this.service.deleteAccount(id); }
+    updateAccount(id, b, user) { return this.service.saveAccount(b, id, user.id); }
+    deleteAccount(id, user) { return this.service.deleteAccount(id, user.id); }
     roles() { return this.service.roles(); }
     createRole(b) { return this.service.saveRole(b); }
     updateRole(id, b) { return this.service.saveRole(b, id); }
@@ -28,7 +29,7 @@ let AdminController = class AdminController {
     permissions() { return this.service.permissions(); }
     employees() { return this.service.employees(); }
     createEmployee(b) { return this.service.saveEmployee(b); }
-    updateEmployee(id, b) { return this.service.saveEmployee(b, id); }
+    updateEmployee(id, b, user) { return this.service.saveEmployee(b, id, user.id); }
     deleteEmployee(id) { return this.service.deleteEmployee(id); }
 };
 __decorate([
@@ -48,15 +49,17 @@ __decorate([
     Put('accounts/:id'),
     __param(0, Param('id')),
     __param(1, Body()),
+    __param(2, CurrentAdmin()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, Object, Object]),
     __metadata("design:returntype", void 0)
 ], AdminController.prototype, "updateAccount", null);
 __decorate([
     Delete('accounts/:id'),
     __param(0, Param('id')),
+    __param(1, CurrentAdmin()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
 ], AdminController.prototype, "deleteAccount", null);
 __decorate([
@@ -110,8 +113,9 @@ __decorate([
     Put('employees/:id'),
     __param(0, Param('id')),
     __param(1, Body()),
+    __param(2, CurrentAdmin()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, Object, Object]),
     __metadata("design:returntype", void 0)
 ], AdminController.prototype, "updateEmployee", null);
 __decorate([
@@ -122,6 +126,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], AdminController.prototype, "deleteEmployee", null);
 AdminController = __decorate([
+    UseGuards(AdminAuthGuard),
     Controller('api/admin'),
     __metadata("design:paramtypes", [AdminService])
 ], AdminController);

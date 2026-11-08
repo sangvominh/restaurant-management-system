@@ -1,4 +1,4 @@
-import AdminApp from './admin-app';
+import AdminSession from './admin-session';
 export default function Page() {
-  return <AdminApp />;
+  return <AdminSession />;
 }

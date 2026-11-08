@@ -1,4 +1,5 @@
 import { AdminService } from './admin.service.js';
+import type { AdminUser } from './admin-auth.service.js';
 export declare class AdminController {
     private readonly service;
     constructor(service: AdminService);
@@ -34,7 +35,7 @@ export declare class AdminController {
             code: string;
         } | null;
     }>;
-    updateAccount(id: string, b: unknown): Promise<{
+    updateAccount(id: string, b: unknown, user: AdminUser): Promise<{
         id: string;
         username: string;
         status: string;
@@ -50,7 +51,7 @@ export declare class AdminController {
             code: string;
         } | null;
     }>;
-    deleteAccount(id: string): Promise<{
+    deleteAccount(id: string, user: AdminUser): Promise<{
         message: string;
     }>;
     roles(): import("../generated/prisma/internal/prismaNamespace.js").PrismaPromise<({
@@ -127,7 +128,7 @@ export declare class AdminController {
         email: string | null;
         accountId: string | null;
     }[]>;
-    createEmployee(b: unknown): import("../generated/prisma/models.js").Prisma__EmployeeClient<{
+    createEmployee(b: unknown): Promise<{
         id: string;
         status: string;
         name: string;
@@ -135,10 +136,8 @@ export declare class AdminController {
         phone: string | null;
         email: string | null;
         accountId: string | null;
-    }, never, import("@prisma/client/runtime/client").DefaultArgs, {
-        omit: import("../generated/prisma/internal/prismaNamespace.js").GlobalOmitConfig | undefined;
     }>;
-    updateEmployee(id: string, b: unknown): import("../generated/prisma/models.js").Prisma__EmployeeClient<{
+    updateEmployee(id: string, b: unknown, user: AdminUser): Promise<{
         id: string;
         status: string;
         name: string;
@@ -146,8 +145,6 @@ export declare class AdminController {
         phone: string | null;
         email: string | null;
         accountId: string | null;
-    }, never, import("@prisma/client/runtime/client").DefaultArgs, {
-        omit: import("../generated/prisma/internal/prismaNamespace.js").GlobalOmitConfig | undefined;
     }>;
     deleteEmployee(id: string): Promise<{
         message: string;

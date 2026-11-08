@@ -1,12 +1,12 @@
 'use client';
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
-import { api, type Entry, type Permission, type Section } from './admin-api';
+import { api, type Entry, type Permission, type Section, type AdminUser } from './admin-api';
 
 const titles: Record<Section, string> = { accounts: 'Tài khoản', roles: 'Vai trò và quyền', employees: 'Thông tin người sử dụng' };
 const states: Record<string, string> = { ACTIVE: 'Hoạt động', LOCKED: 'Đã khóa', INACTIVE: 'Ngừng hoạt động' };
 type Data = Record<Section, Entry[]>;
 
-export default function AdminApp() {
+export default function AdminApp({ user, logout, logoutBusy }: { user: AdminUser; logout: () => Promise<void>; logoutBusy: boolean }) {
   const [section, setSection] = useState<Section>('accounts');
   const [data, setData] = useState<Data>({ accounts: [], roles: [], employees: [] });
   const [permissions, setPermissions] = useState<Permission[]>([]);
@@ -45,6 +45,7 @@ export default function AdminApp() {
     <aside><div className="brand"><span>A</span><div>Admin server<small>MRP Nhà hàng</small></div></div>
       <nav>{(Object.keys(titles) as Section[]).map(key => <button key={key} className={section === key ? 'selected' : ''} onClick={() => { setSection(key); setSearch(''); setFilter(''); }}>{titles[key]}</button>)}</nav>
       <p className="aside-note">Quản trị tài khoản và quyền sử dụng hệ thống.</p>
+      <div className="admin-profile"><strong>{user.name}</strong><small>{user.username} · System Admin</small><button disabled={logoutBusy} onClick={() => void logout()}>{logoutBusy ? 'Đang đăng xuất…' : 'Đăng xuất'}</button></div>
     </aside>
     <main><header><div><p className="eyebrow">QUẢN TRỊ HỆ THỐNG</p><h1>{titles[section]}</h1></div><button onClick={() => void load()} disabled={loading}>Tải lại</button></header>
       <div className="stats">{(Object.keys(titles) as Section[]).map(key => <button key={key} onClick={() => { setSection(key); setSearch(''); setFilter(''); }}><span>{titles[key]}</span><strong>{data[key].length}</strong></button>)}</div>
@@ -58,7 +59,7 @@ export default function AdminApp() {
           <td><div className="actions"><button onClick={() => setEditing(row)}>Sửa</button><button className="danger" disabled={deleting === row.id} onClick={() => void remove(row)}>{deleting === row.id ? 'Đang xóa…' : 'Xóa'}</button></div></td></tr>)}
         {!rows.length && <tr><td className="empty" colSpan={section === 'roles' ? 4 : 5}>{error ? 'Không tải được danh sách.' : 'Chưa có dữ liệu phù hợp.'}</td></tr>}
       </tbody></table></div>}<p className="count">{rows.length} bản ghi</p></section>
-      <p className="footnote">Giai đoạn hiện tại chưa bật đăng nhập và kiểm tra quyền truy cập API.</p>
+      <p className="footnote">Chỉ System Admin được truy cập. Đổi mật khẩu tại mục Sửa tài khoản của bạn; sau khi đổi cần đăng nhập lại.</p>
     </main>
     {editing !== undefined && <Editor section={section} entry={editing} data={data} permissions={permissions} close={() => setEditing(undefined)} saved={load} />}
   </div>;

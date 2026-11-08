@@ -51,7 +51,7 @@ export declare class AdminService {
         name: string;
         group: string;
     }[];
-    saveAccount(input: unknown, accountId?: string): Promise<{
+    saveAccount(input: unknown, accountId?: string, actorId?: string): Promise<{
         id: string;
         username: string;
         status: string;
@@ -67,7 +67,7 @@ export declare class AdminService {
             code: string;
         } | null;
     }>;
-    deleteAccount(accountId: string): Promise<{
+    deleteAccount(accountId: string, actorId?: string): Promise<{
         message: string;
     }>;
     saveRole(input: unknown, roleId?: string): Promise<{
@@ -92,7 +92,7 @@ export declare class AdminService {
     deleteRole(roleId: string): Promise<{
         message: string;
     }>;
-    saveEmployee(input: unknown, employeeId?: string): import("../generated/prisma/models.js").Prisma__EmployeeClient<{
+    saveEmployee(input: unknown, employeeId?: string, actorId?: string): Promise<{
         id: string;
         status: string;
         name: string;
@@ -100,8 +100,6 @@ export declare class AdminService {
         phone: string | null;
         email: string | null;
         accountId: string | null;
-    }, never, import("@prisma/client/runtime/client").DefaultArgs, {
-        omit: import("../generated/prisma/internal/prismaNamespace.js").GlobalOmitConfig | undefined;
     }>;
     deleteEmployee(employeeId: string): Promise<{
         message: string;
