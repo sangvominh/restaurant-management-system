@@ -8,6 +8,8 @@ export const portal: { title: string; pages: PortalPage[] } = {
     { path: '/receipts', label: 'Nhập nguyên vật liệu', permissions: ['inventory:import'] },
     { path: '/material-issues', label: 'Duyệt xuất nguyên vật liệu', permissions: ['inventory:approve-export'] },
     { path: '/transactions', label: 'Lịch sử nguyên vật liệu', permissions: ['inventory:view'] },
+    { path: '/inventory-report', label: 'Báo cáo nhập xuất tồn', permissions: ['inventory:view'] },
+    { path: '/production-capacity', label: 'Khả năng sản xuất', permissions: ['inventory:view'] },
   ]
 };
 export function canEnterPortal(user: AuthUser): boolean {

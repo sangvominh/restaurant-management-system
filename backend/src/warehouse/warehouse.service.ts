@@ -13,6 +13,8 @@ import { SupplierApi } from './api/supplier.api.js';
 import { Injectable } from '@nestjs/common';
 
 import { InventoryApi } from './api/inventory.api.js';
+import { InventoryReportApi, type InventoryReportQuery } from './api/inventory-report.api.js';
+import { ProductionCapacityApi } from './api/production-capacity.api.js';
 import { ReceiptApi } from './api/receipt.api.js';
 import { CreateReceiptDto } from './dto/create-receipt.dto.js';
 import { MaterialIssueApi } from './api/material-issue.api.js';
@@ -51,7 +53,17 @@ export class WarehouseService {
     private readonly adjustmentApi: SharedMaterialAdjustmentApi,
     private readonly finishedGoodsIssueApi: FinishedGoodsIssueApi,
     private readonly finishedGoodsDefectApi: FinishedGoodsDefectApi,
+    private readonly inventoryReportApi: InventoryReportApi,
+    private readonly productionCapacityApi: ProductionCapacityApi,
   ) {}
+
+  getInventoryReport(query: InventoryReportQuery) {
+    return this.inventoryReportApi.getReport(query);
+  }
+
+  getProductionCapacity(branchCode?: string) {
+    return this.productionCapacityApi.getCapacity(branchCode);
+  }
 
   //Danh sách tồn kho
   getInventory(branchCode?: string) {

@@ -27,6 +27,7 @@ import {
 } from '@nestjs/common';
 
 import { WarehouseService } from './warehouse.service.js';
+import type { InventoryReportQuery } from './api/inventory-report.api.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateReceiptDto } from './dto/create-receipt.dto.js';
 import { RejectMaterialIssueDto } from './dto/reject-material-issue.dto.js';
@@ -51,6 +52,18 @@ export class WarehouseController {
     private readonly warehouseService: WarehouseService,
     private readonly db: PrismaService,
   ) {}
+
+  @Get('production-capacity')
+  @RequirePermissions('inventory:view')
+  getProductionCapacity(@Query('branchCode') branchCode?: string) {
+    return this.warehouseService.getProductionCapacity(branchCode);
+  }
+
+  @Get('reports/inventory')
+  @RequirePermissions('inventory:view')
+  getInventoryReport(@Query() query: InventoryReportQuery) {
+    return this.warehouseService.getInventoryReport(query);
+  }
 
   @Get('receipt-options')
   @RequirePermissions('inventory:import')

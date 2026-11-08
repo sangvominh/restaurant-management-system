@@ -14,6 +14,8 @@ import { WarehouseController } from './warehouse.controller.js';
 import { WarehouseService } from './warehouse.service.js';
 
 import { InventoryApi } from './api/inventory.api.js';
+import { InventoryReportApi } from './api/inventory-report.api.js';
+import { ProductionCapacityApi } from './api/production-capacity.api.js';
 import { ReceiptApi } from './api/receipt.api.js';
 import { MaterialIssueApi } from './api/material-issue.api.js';
 import { BomApi } from './api/bom.api.js';
@@ -37,6 +39,8 @@ import { FinishedGoodsDefectApi } from './api/finished-goods-defect.api.js';
     SharedMaterialAdjustmentApi,
     WarehouseService,
     InventoryApi,
+    InventoryReportApi,
+    ProductionCapacityApi,
     ReceiptApi,
     MaterialIssueApi,
     BomApi,

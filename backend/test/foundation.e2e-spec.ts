@@ -86,6 +86,34 @@ it('bootstrap chạy lại giữ tài khoản/quyền và fixture không ghi đ�
   expect(await db.account.count()).toBe(7);
 });
 
+it('báo cáo kho và khả năng sản xuất dùng dữ liệu thật, bảo vệ bằng quyền tồn kho', async () => {
+  const warehouse = await login('warehouse@demo.local');
+  const employee = await login('service@demo.local');
+  for (const path of ['/warehouse/reports/inventory', '/warehouse/production-capacity?branchCode=DEMO-CN01']) {
+    await api().get(path).expect(401);
+    await api().get(path).auth(employee, { type: 'bearer' }).expect(403);
+  }
+  const report = await api().get('/warehouse/reports/inventory')
+    .auth(warehouse, { type: 'bearer' }).expect(200);
+  expect(report.body.data.rows).toEqual(expect.arrayContaining([
+    expect.objectContaining({ code: 'DEMO-NVL01', opening: '0.000', received: '20.000', closing: '20.000', historyComplete: true }),
+  ]));
+  const products = await api().get('/warehouse/reports/inventory?itemType=PRODUCT')
+    .auth(warehouse, { type: 'bearer' }).expect(200);
+  expect(products.body.data.rows).toEqual(expect.arrayContaining([
+    expect.objectContaining({ code: 'DEMO-MON01', received: '0', closing: '0' }),
+  ]));
+  const capacity = await api().get('/warehouse/production-capacity?branchCode=DEMO-CN01')
+    .auth(warehouse, { type: 'bearer' }).expect(200);
+  expect(capacity.body.data.items).toEqual([
+    expect.objectContaining({ productCode: 'DEMO-MON01', maxQuantity: '200', status: 'AVAILABLE' }),
+  ]);
+  await api().get('/warehouse/reports/inventory?month=13')
+    .auth(warehouse, { type: 'bearer' }).expect(400);
+  await api().get('/warehouse/production-capacity')
+    .auth(warehouse, { type: 'bearer' }).expect(400);
+});
+
 it('nhập kho → cấp bếp → gọi món → dùng BOM → phục vụ → thanh toán → báo cáo thật', async () => {
   const warehouse = await login('warehouse@demo.local');
   const owner = await login('owner@demo.local');

@@ -1,5 +1,7 @@
 import { WarehouseService } from './warehouse.service.js';
 import { InventoryApi } from './api/inventory.api.js';
+import type { InventoryReportApi } from './api/inventory-report.api.js';
+import type { ProductionCapacityApi } from './api/production-capacity.api.js';
 import { ReceiptApi } from './api/receipt.api.js';
 import { MaterialIssueApi } from './api/material-issue.api.js';
 import { BomApi } from './api/bom.api.js';
@@ -34,6 +36,8 @@ describe('WarehouseService', () => {
       {} as SharedMaterialAdjustmentApi,
       {} as FinishedGoodsIssueApi,
       {} as FinishedGoodsDefectApi,
+      {} as InventoryReportApi,
+      {} as ProductionCapacityApi,
     );
 
     await service.getSuppliers('rau củ');
