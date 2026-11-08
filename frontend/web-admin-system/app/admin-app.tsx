@@ -1,8 +1,10 @@
 'use client';
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { api, type Entry, type Permission, type Section, type AdminUser } from './admin-api';
+import { Pagination, usePagination } from './list-pagination';
+import { Drawer, Icon } from './admin-ui';
 
-const titles: Record<Section, string> = { accounts: 'Tài khoản', roles: 'Vai trò và quyền', employees: 'Thông tin người sử dụng' };
+const titles: Record<Section, string> = { accounts: 'Tài khoản', roles: 'Vai trò và quyền', employees: 'Người sử dụng' };
 const states: Record<string, string> = { ACTIVE: 'Hoạt động', LOCKED: 'Đã khóa', INACTIVE: 'Ngừng hoạt động' };
 type Data = Record<Section, Entry[]>;
 
@@ -16,7 +18,6 @@ export default function AdminApp({ user, logout, logoutBusy }: { user: AdminUser
   const [filter, setFilter] = useState('');
   const [editing, setEditing] = useState<Entry | null | undefined>();
   const [deleting, setDeleting] = useState<string>();
-
   const load = useCallback(async () => {
     setLoading(true); setError('');
     try {
@@ -28,41 +29,49 @@ export default function AdminApp({ user, logout, logoutBusy }: { user: AdminUser
     finally { setLoading(false); }
   }, []);
   useEffect(() => { void load(); }, [load]);
-
+  function navigate(key: Section) { setSection(key); setSearch(''); setFilter(''); }
   async function remove(row: Entry) {
-    if (!window.confirm(section === 'accounts' ? 'Xóa tài khoản này? Thông tin người sử dụng và giao dịch được giữ lại.' : 'Xóa bản ghi này?')) return;
+    const label = row.username || row.name || row.code || '';
+    if (!window.confirm(`Xóa “${label}”?${section === 'accounts' ? ' Thông tin người sử dụng và giao dịch được giữ lại.' : ''}`)) return;
     setDeleting(row.id); setError('');
     try { await api(`${section}/${row.id}`, 'DELETE'); await load(); }
     catch (err) { setError(err instanceof Error ? err.message : 'Không thể xóa'); }
     finally { setDeleting(undefined); }
   }
   const rows = data[section].filter(row => {
-    const text = [row.username, row.name, row.code, row.email, row.role?.name, row.employee?.name].filter(Boolean).join(' ').toLocaleLowerCase('vi');
-    return text.includes(search.toLocaleLowerCase('vi')) && (!filter || row.status === filter);
+    const text = [row.username, row.name, row.code, row.email, row.phone, row.role?.name, row.employee?.code, row.employee?.name, row.description].filter(Boolean).join(' ').toLocaleLowerCase('vi');
+    return text.includes(search.trim().toLocaleLowerCase('vi')) && (!filter || row.status === filter);
   });
-
+  const pager = usePagination(rows, JSON.stringify([section, search, filter]));
+  function roleSummary(row: Entry) {
+    const codes = row.permissions?.map(p => p.permission.code) || [];
+    if (codes.includes('*')) return <span className="access-badge">Toàn hệ thống</span>;
+    const groups = [...new Set(permissions.filter(p => codes.includes(p.code)).map(p => p.group))];
+    return <div className="permission-summary">{groups.slice(0, 3).map(group => <span className="group-chip" key={group}>{group}</span>)}{groups.length > 3 && <span className="group-chip" title={groups.slice(3).join(', ')}>+{groups.length - 3} nhóm</span>}<small>{codes.length ? `${codes.length} quyền được cấp` : 'Chưa cấp quyền'}</small></div>;
+  }
   return <div className="admin-shell">
-    <aside><div className="brand"><span>A</span><div>Admin server<small>MRP Nhà hàng</small></div></div>
-      <nav>{(Object.keys(titles) as Section[]).map(key => <button key={key} className={section === key ? 'selected' : ''} onClick={() => { setSection(key); setSearch(''); setFilter(''); }}>{titles[key]}</button>)}</nav>
-      <p className="aside-note">Quản trị tài khoản và quyền sử dụng hệ thống.</p>
-      <div className="admin-profile"><strong>{user.name}</strong><small>{user.username} · System Admin</small><button disabled={logoutBusy} onClick={() => void logout()}>{logoutBusy ? 'Đang đăng xuất…' : 'Đăng xuất'}</button></div>
-    </aside>
-    <main><header><div><p className="eyebrow">QUẢN TRỊ HỆ THỐNG</p><h1>{titles[section]}</h1></div><button onClick={() => void load()} disabled={loading}>Tải lại</button></header>
-      <div className="stats">{(Object.keys(titles) as Section[]).map(key => <button key={key} onClick={() => { setSection(key); setSearch(''); setFilter(''); }}><span>{titles[key]}</span><strong>{data[key].length}</strong></button>)}</div>
-      <section className="panel"><div className="toolbar"><div><h2>Danh sách {titles[section].toLocaleLowerCase('vi')}</h2><p>{section === 'accounts' ? 'Mỗi tài khoản có một vai trò và có thể liên kết một người sử dụng.' : section === 'roles' ? 'Chọn các quyền được cấp cho tài khoản sử dụng vai trò này.' : 'Thông tin tối thiểu phục vụ cấp tài khoản và giao việc.'}</p></div>
-        <button className="primary" disabled={loading || !!error || (section === 'accounts' && !data.roles.length)} onClick={() => setEditing(null)}>+ Thêm mới</button></div>
-      {section === 'accounts' && !data.roles.length && !loading && !error && <p className="hint">Chưa có vai trò. Mở <button className="text-button" onClick={() => setSection('roles')}>Vai trò và quyền</button> để tạo trước khi cấp tài khoản.</p>}
-      <div className="filters"><input aria-label="Tìm kiếm" placeholder="Tìm mã, tên, email hoặc vai trò…" value={search} onChange={e => setSearch(e.target.value)} />{section !== 'roles' && <select aria-label="Lọc trạng thái" value={filter} onChange={e => setFilter(e.target.value)}><option value="">Mọi trạng thái</option><option value="ACTIVE">Hoạt động</option><option value={section === 'accounts' ? 'LOCKED' : 'INACTIVE'}>{section === 'accounts' ? 'Đã khóa' : 'Ngừng hoạt động'}</option></select>}</div>
-      {error && <p className="error" role="alert">{error}</p>}
-      {loading ? <p role="status" className="empty">Đang tải dữ liệu…</p> : <div className="table-wrap"><table><thead><tr>{(section === 'accounts' ? ['Tên đăng nhập', 'Người sử dụng', 'Vai trò', 'Trạng thái'] : section === 'roles' ? ['Vai trò', 'Quyền được cấp', 'Số tài khoản'] : ['Mã / Họ tên', 'Liên hệ', 'Tài khoản', 'Trạng thái']).map(name => <th key={name}>{name}</th>)}<th>Thao tác</th></tr></thead><tbody>
-        {rows.map(row => <tr key={row.id}>{section === 'accounts' ? <><td><strong>{row.username}</strong></td><td>{row.employee ? `${row.employee.code} · ${row.employee.name}` : 'Chưa liên kết'}</td><td>{row.role?.name}</td><td><span className={`status ${row.status === 'ACTIVE' ? 'active' : ''}`}>{states[row.status || '']}</span></td></> : section === 'roles' ? <><td><strong>{row.name}</strong><small>{row.description}</small></td><td className="permission-summary">{row.permissions?.map(p => p.permission.name).join(', ') || 'Chưa cấp quyền'}</td><td>{row._count?.accounts || 0}</td></> : <><td><strong>{row.name}</strong><small>{row.code}</small></td><td>{row.email || '—'}<small>{row.phone}</small></td><td>{data.accounts.find(a => a.id === row.accountId)?.username || 'Chưa có'}</td><td><span className={`status ${row.status === 'ACTIVE' ? 'active' : ''}`}>{states[row.status || '']}</span></td></>}
-          <td><div className="actions"><button onClick={() => setEditing(row)}>Sửa</button><button className="danger" disabled={deleting === row.id} onClick={() => void remove(row)}>{deleting === row.id ? 'Đang xóa…' : 'Xóa'}</button></div></td></tr>)}
-        {!rows.length && <tr><td className="empty" colSpan={section === 'roles' ? 4 : 5}>{error ? 'Không tải được danh sách.' : 'Chưa có dữ liệu phù hợp.'}</td></tr>}
-      </tbody></table></div>}<p className="count">{rows.length} bản ghi</p></section>
-      <p className="footnote">Chỉ System Admin được truy cập. Đổi mật khẩu tại mục Sửa tài khoản của bạn; sau khi đổi cần đăng nhập lại.</p>
+    <header className="app-header"><span className="brand">Quản trị hệ thống</span><div className="admin-profile"><div><strong>{user.name}</strong><small>{user.username}</small></div><button className="icon-button" disabled={logoutBusy} onClick={() => void logout()} aria-label={logoutBusy ? 'Đang đăng xuất' : 'Đăng xuất'} title="Đăng xuất"><Icon name="logout" /></button></div></header>
+    <nav className="section-nav" aria-label="Quản trị">{(Object.keys(titles) as Section[]).map(key => <button key={key} aria-current={section === key ? 'page' : undefined} className={section === key ? 'selected' : ''} onClick={() => navigate(key)}><Icon name={key} /><span>{titles[key]}</span><span className="nav-count">{loading ? '…' : data[key].length}</span></button>)}</nav>
+    <main><h1 className="sr-only">{titles[section]}</h1>
+      <section aria-label={titles[section]} className="panel">
+        <div className="list-controls"><div className="search-field"><Icon name="search" /><input aria-label={`Tìm ${titles[section].toLocaleLowerCase('vi')}`} placeholder={section === 'accounts' ? 'Tìm tên đăng nhập, người sử dụng, vai trò…' : section === 'roles' ? 'Tìm vai trò…' : 'Tìm mã, họ tên, email, điện thoại…'} value={search} onChange={e => setSearch(e.target.value)} /></div>
+        {section !== 'roles' && <select aria-label="Lọc trạng thái" value={filter} onChange={e => setFilter(e.target.value)}><option value="">Mọi trạng thái</option><option value="ACTIVE">Hoạt động</option><option value={section === 'accounts' ? 'LOCKED' : 'INACTIVE'}>{section === 'accounts' ? 'Đã khóa' : 'Ngừng hoạt động'}</option></select>}
+        <button className="primary create-button" disabled={loading || !!error || !!deleting || (section === 'accounts' && !data.roles.length)} onClick={() => setEditing(null)}><Icon name="plus" />{section === 'accounts' ? 'Thêm tài khoản' : section === 'roles' ? 'Thêm vai trò' : 'Thêm người sử dụng'}</button></div>
+        {section === 'accounts' && !data.roles.length && !loading && !error && <p className="hint">Cần tạo vai trò trước khi cấp tài khoản. <button className="text-button" onClick={() => navigate('roles')}>Tạo vai trò</button></p>}
+        {error && <div className="error" role="alert">{error} <button className="text-button" disabled={loading || !!deleting} onClick={() => void load()}>Thử lại</button></div>}
+        {loading ? <p role="status" className="empty">Đang tải dữ liệu…</p> : <div className="table-wrap"><table><thead><tr>{(section === 'accounts' ? ['Tên đăng nhập', 'Người sử dụng', 'Vai trò', 'Trạng thái'] : section === 'roles' ? ['Vai trò', 'Phạm vi truy cập', 'Tài khoản'] : ['Người sử dụng', 'Liên hệ', 'Tài khoản', 'Trạng thái']).map(name => <th scope="col" key={name}>{name}</th>)}<th scope="col" className="action-cell"><span className="sr-only">Thao tác</span></th></tr></thead><tbody>
+        {pager.rows.map(row => <tr key={row.id}>{section === 'accounts' ? <><td><div className="identity"><span className="avatar" aria-hidden="true">{(row.username || '?').slice(0, 1).toUpperCase()}</span><div><strong>{row.username}</strong>{row.id === user.id && <small className="self-label">Tài khoản của bạn</small>}</div></div></td><td>{row.employee ? <><span>{row.employee.name}</span><small>{row.employee.code}</small></> : <span className="muted">Chưa liên kết</span>}</td><td><span className="role-name">{row.role?.name || '—'}</span></td><td><Status value={row.status} /></td></> : section === 'roles' ? <><td><strong>{row.name}</strong>{row.description && <small className="row-description">{row.description}</small>}</td><td>{roleSummary(row)}</td><td><span className="number">{row._count?.accounts || 0}</span></td></> : <><td><div className="identity"><span className="avatar" aria-hidden="true">{(row.name || '?').slice(0, 1).toUpperCase()}</span><div><strong>{row.name}</strong><small>{row.code}</small></div></div></td><td>{row.email || <span className="muted">Chưa có email</span>}{row.phone && <small>{row.phone}</small>}</td><td>{data.accounts.find(a => a.id === row.accountId)?.username || <span className="muted">Chưa có tài khoản</span>}</td><td><Status value={row.status} /></td></>}
+          <td className="action-cell"><div className="actions"><button disabled={!!deleting} onClick={() => setEditing(row)}><Icon name="edit" />Chỉnh sửa</button><button className="icon-button danger" disabled={!!deleting || (section === 'accounts' && row.id === user.id)} onClick={() => void remove(row)} aria-label={`Xóa ${row.username || row.name || row.code}`} title={section === 'accounts' && row.id === user.id ? 'Không thể xóa tài khoản đang đăng nhập' : 'Xóa'}><Icon name="trash" /></button></div></td></tr>)}
+        {!rows.length && <tr><td className="empty" colSpan={section === 'roles' ? 4 : 5}><Icon name={section} /><strong>{error ? 'Không tải được danh sách' : search || filter ? 'Không tìm thấy kết quả' : 'Chưa có dữ liệu'}</strong>{search || filter ? <button className="text-button" onClick={() => { setSearch(''); setFilter(''); }}>Bỏ tìm kiếm và bộ lọc</button> : <span>{section === 'accounts' ? 'Thêm tài khoản để cấp quyền truy cập hệ thống.' : section === 'roles' ? 'Tạo vai trò và chọn các quyền cần thiết.' : 'Thêm hồ sơ để liên kết tài khoản và giao việc.'}</span>}</td></tr>}
+        </tbody></table></div>}
+        {!loading && <Pagination pager={pager} disabled={!!deleting} />}
+      </section>
     </main>
     {editing !== undefined && <Editor section={section} entry={editing} data={data} permissions={permissions} close={() => setEditing(undefined)} saved={load} />}
   </div>;
+}
+function Status({ value }: { value?: string }) {
+  return <span className={`status ${value === 'ACTIVE' ? 'active' : value === 'LOCKED' ? 'locked' : 'inactive'}`}><span aria-hidden="true" />{states[value || ''] || value || '—'}</span>;
 }
 
 function Editor({ section, entry, data, permissions, close, saved }: {
@@ -87,11 +96,11 @@ function Editor({ section, entry, data, permissions, close, saved }: {
     catch (err) { setError(err instanceof Error ? err.message : 'Không lưu được dữ liệu'); }
     finally { setBusy(false); }
   }
-  return <div className="overlay"><section className="dialog" role="dialog" aria-modal="true" aria-labelledby="editor-title"><div className="dialog-heading"><h2 id="editor-title">{entry ? 'Cập nhật' : 'Thêm mới'} · {titles[section]}</h2><button disabled={busy} onClick={close} aria-label="Đóng">×</button></div><form onSubmit={submit}><fieldset disabled={busy}><div className="form-grid">
+  return <Drawer title={`${entry ? 'Cập nhật' : 'Thêm'} ${titles[section].toLocaleLowerCase('vi')}`} onClose={close} locked={busy}><form onSubmit={submit}><fieldset disabled={busy}><div className="form-grid">
     {section === 'accounts' ? <>{field('username', 'Tên đăng nhập')}{field('password', entry ? 'Mật khẩu mới' : 'Mật khẩu', undefined, !!entry, 'password')}{field('roleId', 'Vai trò', data.roles.map(r => ({ value: r.id, label: r.name || '' })))}{field('employeeId', 'Người sử dụng', data.employees.filter(e => !e.accountId || e.accountId === entry?.id).map(e => ({ value: e.id, label: `${e.code} · ${e.name}` })), true)}</> : section === 'roles' ? <>{field('name', 'Tên vai trò')}{field('description', 'Mô tả', undefined, true)}</> : <>{field('code', 'Mã người sử dụng')}{field('name', 'Họ tên')}{field('email', 'Email', undefined, true, 'email')}{field('phone', 'Điện thoại', undefined, true)}</>}
     {section !== 'roles' && field('status', 'Trạng thái', [{ value: 'ACTIVE', label: 'Hoạt động' }, { value: section === 'accounts' ? 'LOCKED' : 'INACTIVE', label: section === 'accounts' ? 'Đã khóa' : 'Ngừng hoạt động' }])}</div>
-    {section === 'accounts' && <p className="hint">Mật khẩu từ 8 ký tự. Khi sửa, để trống để giữ mật khẩu hiện tại. Tạo hồ sơ tại mục Thông tin người sử dụng nếu chưa có.</p>}
-    {section === 'roles' && <div className="permission-groups">{[...new Set(permissions.map(p => p.group))].map(group => <section key={group}><h3>{group}</h3>{permissions.filter(p => p.group === group).map(p => <label className="check" key={p.code}><input type="checkbox" checked={selected.includes(p.code)} onChange={e => setSelected(e.target.checked ? [...selected, p.code] : selected.filter(code => code !== p.code))} />{p.name}</label>)}</section>)}</div>}
+    {section === 'accounts' && <p className="hint">Mật khẩu tối thiểu 8 ký tự. Khi cập nhật, để trống để giữ mật khẩu hiện tại.</p>}
+    {section === 'roles' && <div className="permission-groups">{[...new Set(permissions.map(p => p.group))].map(group => <section key={group}><h3>{group}<span>{permissions.filter(p => p.group === group && selected.includes(p.code)).length}/{permissions.filter(p => p.group === group).length}</span></h3>{permissions.filter(p => p.group === group).map(p => <label className="check" key={p.code}><input type="checkbox" checked={selected.includes(p.code)} onChange={e => setSelected(e.target.checked ? [...selected, p.code] : selected.filter(code => code !== p.code))} />{p.name}</label>)}</section>)}</div>}
     {error && <p className="error" role="alert">{error}</p>}<div className="dialog-actions"><button type="button" onClick={close}>Hủy</button><button className="primary" type="submit">{busy ? 'Đang lưu…' : 'Lưu'}</button></div>
-  </fieldset></form></section></div>;
+  </fieldset></form></Drawer>;
 }
