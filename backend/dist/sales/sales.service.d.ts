@@ -55,11 +55,11 @@ export declare class SalesService {
             };
         } & {
             id: string;
+            productId: string;
             quantity: import("@prisma/client-runtime-utils").Decimal;
             unitPrice: import("@prisma/client-runtime-utils").Decimal;
             saleId: string;
             productName: string;
-            productId: string;
         })[];
         exports: ({
             lines: {
@@ -123,11 +123,11 @@ export declare class SalesService {
             };
         } & {
             id: string;
+            productId: string;
             quantity: import("@prisma/client-runtime-utils").Decimal;
             unitPrice: import("@prisma/client-runtime-utils").Decimal;
             saleId: string;
             productName: string;
-            productId: string;
         })[];
         exports: ({
             lines: {
@@ -191,11 +191,11 @@ export declare class SalesService {
             };
         } & {
             id: string;
+            productId: string;
             quantity: import("@prisma/client-runtime-utils").Decimal;
             unitPrice: import("@prisma/client-runtime-utils").Decimal;
             saleId: string;
             productName: string;
-            productId: string;
         })[];
         exports: ({
             lines: {

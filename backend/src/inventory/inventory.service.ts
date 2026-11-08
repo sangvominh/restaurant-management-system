@@ -2,6 +2,7 @@ import { BadRequestException, ConflictException, ForbiddenException, Injectable 
 import { PrismaService } from '../prisma/prisma.service.js';
 import { Prisma } from '../generated/prisma/client.js';
 import type { AdminUser } from '../admin/admin-auth.service.js';
+import { randomBytes } from 'node:crypto';
 const include = { supplier: true, createdBy: { select: { id: true, name: true, accountId: true } }, lines: { include: { lot: { include: { material: { include: { unit: true } } } } } } } as const;
 function text(value: unknown, name: string, max = 200) {
   if (typeof value !== 'string' || !value.trim() || value.trim().length > max) throw new BadRequestException(`${name} không hợp lệ`);
@@ -30,6 +31,7 @@ function expiry(value: unknown) {
   return date;
 }
 function today() { return new Date(new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()) + 'T00:00:00.000Z'); }
+function generatedCode(prefix: string) { return `${prefix}-${today().toISOString().slice(0, 10).replaceAll('-', '')}-${randomBytes(6).toString('hex').toUpperCase()}`; }
 @Injectable()
 export class InventoryService {
   constructor(private readonly db: PrismaService) {}
@@ -46,41 +48,48 @@ export class InventoryService {
     if (receipt.createdBy.accountId !== user.id && !user.permissions.includes('*') && !user.permissions.includes('receipt:post')) throw new ForbiddenException('Chỉ sửa/xóa phiếu nháp của mình');
   }
   async save(input: unknown, user: AdminUser, receiptId?: string) {
-    const b = object(input), code = text(b.code, 'Số phiếu', 50), supplierId = id(b.supplierId);
+    const b = object(input), supplierId = id(b.supplierId);
     if (!Array.isArray(b.lines) || !b.lines.length || b.lines.length > 100) throw new BadRequestException('Cần từ 1 đến 100 dòng NVL');
     const seen = new Set<string>();
     const lines = b.lines.map(value => {
-      const line = object(value), materialId = id(line.materialId), lotCode = text(line.lotCode, 'Mã lô', 50);
-      const key = `${materialId}:${lotCode}`;
-      if (seen.has(key)) throw new BadRequestException('Một NVL cùng mã lô chỉ nhập một dòng trong phiếu');
-      seen.add(key);
-      return { materialId, lotCode, expiryDate: expiry(line.expiryDate), quantity: number(line.quantity, 'Số lượng', 3), unitPrice: number(line.unitPrice, 'Đơn giá', 2, true) };
+      const line = object(value), materialId = id(line.materialId), lineId = line.id ? id(line.id) : null;
+      if (lineId && seen.has(lineId)) throw new BadRequestException('Dòng nhập bị trùng');
+      if (lineId) seen.add(lineId);
+      return { id: lineId, materialId, expiryDate: expiry(line.expiryDate), quantity: number(line.quantity, 'Số lượng', 3), unitPrice: number(line.unitPrice, 'Đơn giá', 2, true) };
     });
     return this.db.$transaction(async tx => {
       await tx.$queryRaw`SELECT pg_advisory_xact_lock(8112027)::text`;
       const employee = await tx.employee.findUnique({ where: { accountId: user.id } });
       if (!employee || employee.status !== 'ACTIVE') throw new ForbiddenException('Tài khoản cần liên kết hồ sơ người sử dụng đang hoạt động để lập phiếu');
-      if (receiptId) {
-        const current = await tx.materialReceipt.findUniqueOrThrow({ where: { id: id(receiptId) }, include: { createdBy: true } });
-        this.editable(current, user);
-      }
+      const current = receiptId ? await tx.materialReceipt.findUniqueOrThrow({ where: { id: id(receiptId) }, include: { createdBy: true, lines: { include: { lot: { include: { _count: { select: { receiptLines: true, issueLines: true, movements: true, wasteLines: true } } } } } } } }) : null;
+      if (current) this.editable(current, user);
+      if (lines.some(l => l.id && !current?.lines.some(old => old.id === l.id))) throw new BadRequestException('Dòng nhập không thuộc phiếu nháp này');
       const supplier = await tx.supplier.findUniqueOrThrow({ where: { id: supplierId } });
       if (supplier.status !== 'ACTIVE') throw new BadRequestException('NCC đã ngừng hoạt động');
       const details = [];
       for (const line of lines) {
         const material = await tx.material.findUniqueOrThrow({ where: { id: line.materialId } });
         if (material.status !== 'ACTIVE') throw new BadRequestException(`NVL ${material.code} đã ngừng sử dụng`);
-        let lot = await tx.materialLot.findUnique({ where: { materialId_code: { materialId: line.materialId, code: line.lotCode } } });
-        if (lot && line.expiryDate && lot.expiryDate?.getTime() !== line.expiryDate.getTime()) throw new BadRequestException(`Hạn sử dụng khác lô ${line.lotCode} đã có`);
-        lot ??= await tx.materialLot.create({ data: { materialId: line.materialId, code: line.lotCode, expiryDate: line.expiryDate } });
+        const old = current?.lines.find(l => l.id === line.id)?.lot;
+        // Không sửa lô cũ dùng chung ở dữ liệu trước đây hoặc đã có phát sinh.
+        const reusable = old && old.materialId === line.materialId && old._count.receiptLines === 1 && old._count.issueLines === 0 && old._count.movements === 0 && old._count.wasteLines === 0;
+        let lot;
+        if (reusable) lot = await tx.materialLot.update({ where: { id: old.id }, data: { expiryDate: line.expiryDate } });
+        else {
+          let lotCode: string;
+          do { lotCode = generatedCode('LO'); } while (await tx.materialLot.findFirst({ where: { code: lotCode } }));
+          lot = await tx.materialLot.create({ data: { materialId: line.materialId, code: lotCode, expiryDate: line.expiryDate } });
+        }
         details.push({ lotId: lot.id, quantity: line.quantity, unitPrice: line.unitPrice });
       }
-      const data = { code, supplierId, note: b.note ? text(b.note, 'Ghi chú', 1000) : null };
+      const data = { supplierId, note: b.note ? text(b.note, 'Ghi chú', 1000) : null };
       if (receiptId) {
         await tx.materialReceiptLine.deleteMany({ where: { receiptId } });
         return tx.materialReceipt.update({ where: { id: receiptId }, data: { ...data, lines: { create: details } }, include });
       }
-      return tx.materialReceipt.create({ data: { ...data, createdById: employee.id, lines: { create: details } }, include });
+      let code: string;
+      do { code = generatedCode('PN'); } while (await tx.materialReceipt.findUnique({ where: { code } }));
+      return tx.materialReceipt.create({ data: { ...data, code, createdById: employee.id, lines: { create: details } }, include });
     });
   }
   async post(receiptId: string) {

@@ -36,13 +36,16 @@ let CatalogService = class CatalogService {
     constructor(db) {
         this.db = db;
     }
-    list(type) {
+    async list(type) {
         switch (type) {
             case 'units': return this.db.unit.findMany({ orderBy: { name: 'asc' } });
             case 'categories': return this.db.category.findMany({ orderBy: [{ objectType: 'asc' }, { name: 'asc' }] });
             case 'materials': return this.db.material.findMany({ include: { unit: true, category: true }, orderBy: { code: 'asc' } });
             case 'suppliers': return this.db.supplier.findMany({ orderBy: { code: 'asc' } });
-            case 'products': return this.db.product.findMany({ include: { unit: true, category: true }, orderBy: { code: 'asc' } });
+            case 'products': {
+                const products = await this.db.product.findMany({ include: { unit: true, category: true, boms: { where: { status: 'ACTIVE', effectiveAt: { lte: new Date() } }, orderBy: [{ effectiveAt: 'desc' }, { version: 'desc' }], take: 1, include: { lines: { include: { material: { include: { unit: true } } } } } } }, orderBy: { code: 'asc' } });
+                return products.map(({ boms, ...p }) => ({ ...p, currentBom: boms[0] || null }));
+            }
         }
     }
     async save(type, input, itemId) {
@@ -53,6 +56,8 @@ let CatalogService = class CatalogService {
             uuid(itemId);
         const name = text(b.name, 'Tên');
         return this.db.$transaction(async (tx) => {
+            if (type === 'products')
+                await tx.$queryRaw `SELECT pg_advisory_xact_lock(8112028)::text`;
             if (type === 'units') {
                 const data = { name, symbol: text(b.symbol, 'Ký hiệu', 20) };
                 return itemId ? tx.unit.update({ where: { id: itemId }, data }) : tx.unit.create({ data });

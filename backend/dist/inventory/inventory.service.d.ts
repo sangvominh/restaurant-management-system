@@ -52,10 +52,10 @@ export declare class InventoryService {
         id: string;
         status: string;
         code: string;
+        createdById: string;
         receivedAt: Date;
         note: string | null;
         supplierId: string;
-        createdById: string;
     })[]>;
     references(): Promise<{
         suppliers: {
@@ -131,10 +131,10 @@ export declare class InventoryService {
         id: string;
         status: string;
         code: string;
+        createdById: string;
         receivedAt: Date;
         note: string | null;
         supplierId: string;
-        createdById: string;
     }>;
     post(receiptId: string): Promise<{
         supplier: {
@@ -184,10 +184,10 @@ export declare class InventoryService {
         id: string;
         status: string;
         code: string;
+        createdById: string;
         receivedAt: Date;
         note: string | null;
         supplierId: string;
-        createdById: string;
     }>;
     remove(receiptId: string, user: AdminUser): Promise<{
         message: string;

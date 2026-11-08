@@ -91,11 +91,11 @@ export declare class ProductionService {
     } & {
         id: string;
         status: string;
-        createdById: string;
-        productId: string;
         version: number;
-        outputQuantity: import("@prisma/client-runtime-utils").Decimal;
         effectiveAt: Date;
+        outputQuantity: import("@prisma/client-runtime-utils").Decimal;
+        productId: string;
+        createdById: string;
     })[]>;
     saveBom(input: unknown, user: AdminUser, existingId?: string): Promise<{
         product: {
@@ -147,20 +147,20 @@ export declare class ProductionService {
     } & {
         id: string;
         status: string;
-        createdById: string;
-        productId: string;
         version: number;
-        outputQuantity: import("@prisma/client-runtime-utils").Decimal;
         effectiveAt: Date;
+        outputQuantity: import("@prisma/client-runtime-utils").Decimal;
+        productId: string;
+        createdById: string;
     }>;
     bomAction(id: string, action: 'activate' | 'delete'): Promise<{
         id: string;
         status: string;
-        createdById: string;
-        productId: string;
         version: number;
-        outputQuantity: import("@prisma/client-runtime-utils").Decimal;
         effectiveAt: Date;
+        outputQuantity: import("@prisma/client-runtime-utils").Decimal;
+        productId: string;
+        createdById: string;
     }>;
     orders(user: AdminUser): Prisma.PrismaPromise<({
         bom: {
@@ -213,11 +213,11 @@ export declare class ProductionService {
         } & {
             id: string;
             status: string;
-            createdById: string;
-            productId: string;
             version: number;
-            outputQuantity: import("@prisma/client-runtime-utils").Decimal;
             effectiveAt: Date;
+            outputQuantity: import("@prisma/client-runtime-utils").Decimal;
+            productId: string;
+            createdById: string;
         };
         assignedBy: {
             id: string;
@@ -298,11 +298,11 @@ export declare class ProductionService {
         } & {
             id: string;
             status: string;
-            createdById: string;
-            productId: string;
             version: number;
-            outputQuantity: import("@prisma/client-runtime-utils").Decimal;
             effectiveAt: Date;
+            outputQuantity: import("@prisma/client-runtime-utils").Decimal;
+            productId: string;
+            createdById: string;
         };
         assignedBy: {
             id: string;

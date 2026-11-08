@@ -1,0 +1,2 @@
+ALTER TABLE "Product" ADD COLUMN "supplyType" TEXT NOT NULL DEFAULT 'PREPARED';
+ALTER TABLE "Product" ADD CONSTRAINT "Product_supplyType_check" CHECK ("supplyType" IN ('PREPARED', 'PURCHASED'));

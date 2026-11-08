@@ -7,9 +7,9 @@
 
 NVL: chỉ biến động vào/ra TRONG_KHO ảnh hưởng báo cáo kho. Cấp là xuất, hoàn là nhập. Tiêu hao/hao hụt tại bếp không trừ kho lần nữa.
 
-Thành phẩm: NHAP_SAN_XUAT tăng tồn, XUAT_BAN và các biến động xuất khác giảm tồn. Chỉ thành phẩm đạt đã nghiệm thu được nhập kho.
+Thành phẩm: NHAP_SAN_XUAT tăng tồn qua nghiệm thu; XUAT_BAN và các biến động xuất khác giảm tồn. Không còn nhánh nhập trực tiếp thành phẩm mua về.
 
-Chỉ đơn bán CONFIRMED được đề nghị/duyệt xuất. Tạo và xác nhận đơn tại web Restaurant (cổng 3002), không tạo đơn trong web Kho. Đơn COMPLETED đã thanh toán không được xuất thêm. Không nhập thành phẩm mua trực tiếp trong đợt này.
+Chỉ đơn bán CONFIRMED được đề nghị/duyệt xuất. Tạo và xác nhận đơn tại web Restaurant (cổng 3002), không tạo đơn trong web Kho. Đơn COMPLETED đã thanh toán không được xuất thêm. Danh mục nguyên liệu và thành phẩm vẫn riêng, kết nối qua BOM và lệnh chế biến.
 
 Kiểm tra: nghiệm thu 9 phần → tồn 9; đề nghị xuất 4 → tồn vẫn 9; duyệt → tồn 5. Báo cáo kỳ chứa hai nghiệp vụ phải có nhập 9, xuất 4, tồn cuối 5 nếu tồn đầu 0.
 

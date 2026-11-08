@@ -30,11 +30,11 @@ export declare class ExecutionService {
             } & {
                 id: string;
                 status: string;
-                createdById: string;
-                productId: string;
                 version: number;
-                outputQuantity: import("@prisma/client-runtime-utils").Decimal;
                 effectiveAt: Date;
+                outputQuantity: import("@prisma/client-runtime-utils").Decimal;
+                productId: string;
+                createdById: string;
             };
             assignedTo: {
                 id: string;
@@ -59,11 +59,11 @@ export declare class ExecutionService {
                         };
                     } & {
                         id: string;
+                        productId: string | null;
                         note: string | null;
                         quantity: import("@prisma/client-runtime-utils").Decimal;
                         lotId: string | null;
                         issueLineId: string | null;
-                        productId: string | null;
                         sourceType: string;
                         wasteId: string;
                     })[];

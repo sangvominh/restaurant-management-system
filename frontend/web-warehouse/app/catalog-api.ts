@@ -3,6 +3,7 @@ export interface CatalogItem {
   id: string; name: string; code?: string; symbol?: string; objectType?: string;
   unitId?: string; categoryId?: string; unit?: { name: string; symbol: string }; category?: { name: string };
   minStock?: string; sellingPrice?: string; status?: string; phone?: string | null; address?: string | null;
+  currentBom?: { id: string; version: number; outputQuantity: string; effectiveAt: string; lines: { id: string; quantity: string; material: { name: string; status: string; unit: { symbol: string } } }[] } | null;
 }
 export interface User { id: string; username: string; name: string; permissions: string[] }
 export const TOKEN_KEY = 'warehouse_session';

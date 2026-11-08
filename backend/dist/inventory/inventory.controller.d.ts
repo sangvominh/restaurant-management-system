@@ -81,10 +81,10 @@ export declare class InventoryController {
         id: string;
         status: string;
         code: string;
+        createdById: string;
         receivedAt: Date;
         note: string | null;
         supplierId: string;
-        createdById: string;
     })[]>;
     create(b: unknown, req: AuthRequest): Promise<{
         supplier: {
@@ -134,10 +134,10 @@ export declare class InventoryController {
         id: string;
         status: string;
         code: string;
+        createdById: string;
         receivedAt: Date;
         note: string | null;
         supplierId: string;
-        createdById: string;
     }>;
     update(id: string, b: unknown, req: AuthRequest): Promise<{
         supplier: {
@@ -187,10 +187,10 @@ export declare class InventoryController {
         id: string;
         status: string;
         code: string;
+        createdById: string;
         receivedAt: Date;
         note: string | null;
         supplierId: string;
-        createdById: string;
     }>;
     remove(id: string, req: AuthRequest): Promise<{
         message: string;
@@ -243,10 +243,10 @@ export declare class InventoryController {
         id: string;
         status: string;
         code: string;
+        createdById: string;
         receivedAt: Date;
         note: string | null;
         supplierId: string;
-        createdById: string;
     }>;
     stock(req: AuthRequest): import("../generated/prisma/internal/prismaNamespace.js").PrismaPromise<unknown>;
     lots(id: string, req: AuthRequest): Promise<unknown>;

@@ -36,9 +36,8 @@ export class ProductionService {
   }
   boms() { return this.db.bom.findMany({ include: bomInclude, orderBy: [{ productId: 'asc' }, { version: 'desc' }] }); }
   async saveBom(input: unknown, user: AdminUser, existingId?: string) {
-    const b = body(input), productId = uuid(b.productId), outputQuantity = quantity(b.outputQuantity), effectiveAt = date(b.effectiveAt);
-    const version = Number(b.version);
-    if (!Number.isInteger(version) || version < 1 || version > 2147483647) throw new BadRequestException('Phiên bản phải là số nguyên dương');
+    const b = body(input), productId = uuid(b.productId), outputQuantity = new Prisma.Decimal(1), effectiveAt = date(b.effectiveAt);
+    if (b.outputQuantity !== undefined && !quantity(b.outputQuantity).eq(1)) throw new BadRequestException('Công thức phải khai báo cho 1 đơn vị thành phẩm');
     if (!Array.isArray(b.lines) || b.lines.length < 1 || b.lines.length > 100) throw new BadRequestException('Cần 1–100 nguyên liệu');
     const lines = b.lines.map(item => { const l = body(item); return { materialId: uuid(l.materialId), quantity: quantity(l.quantity) }; });
     if (new Set(lines.map(l => l.materialId)).size !== lines.length) throw new BadRequestException('Nguyên liệu bị trùng');
@@ -46,10 +45,14 @@ export class ProductionService {
       await tx.$queryRaw`SELECT pg_advisory_xact_lock(8112028)::text`;
       const employee = await tx.employee.findUnique({ where: { accountId: user.id } });
       if (!employee || employee.status !== 'ACTIVE') throw new ForbiddenException('Cần liên kết người sử dụng đang hoạt động');
-      if (existingId) {
-        const current = await tx.bom.findUniqueOrThrow({ where: { id: uuid(existingId) } });
+      const current = existingId ? await tx.bom.findUniqueOrThrow({ where: { id: uuid(existingId) } }) : null;
+      if (current) {
         if (current.status !== 'DRAFT') throw new ConflictException('Chỉ sửa BOM nháp; BOM đã áp dụng cần tạo phiên bản mới');
+        if (current.productId !== productId) throw new BadRequestException('Không đổi thành phẩm của công thức đã lưu; hãy tạo công thức mới');
       }
+      const highest = current ? null : await tx.bom.aggregate({ where: { productId }, _max: { version: true } });
+      const version = current?.version ?? (highest?._max.version ?? 0) + 1;
+      if (version > 2147483647) throw new ConflictException('Đã đạt giới hạn phiên bản công thức');
       const product = await tx.product.findUniqueOrThrow({ where: { id: productId } });
       if (product.status !== 'ACTIVE' || await tx.material.count({ where: { id: { in: lines.map(l => l.materialId) }, status: 'ACTIVE' } }) !== lines.length) throw new BadRequestException('Thành phẩm và nguyên liệu phải đang hoạt động');
       const data = { productId, version, outputQuantity, effectiveAt, lines: { create: lines } };
@@ -70,6 +73,7 @@ export class ProductionService {
         return tx.bom.delete({ where: { id } });
       }
       if (!bom.lines.length || bom.product.status !== 'ACTIVE' || bom.lines.some(l => l.material.status !== 'ACTIVE')) throw new BadRequestException('BOM cần nguyên liệu và thành phẩm đang hoạt động');
+      if (!bom.outputQuantity.eq(1)) throw new BadRequestException('BOM nháp cũ cần sửa định mức về 1 đơn vị thành phẩm trước khi áp dụng');
       return tx.bom.update({ where: { id }, data: { status: 'ACTIVE' } });
     });
   }
@@ -77,17 +81,19 @@ export class ProductionService {
     return this.db.productionOrder.findMany({ where: manager(user) || user.permissions.some(p => ['material:approve', 'production:inspect', 'waste:approve'].includes(p)) ? {} : { assignedTo: { accountId: user.id } }, include: orderInclude, orderBy: { assignedAt: 'desc' } });
   }
   async createOrder(input: unknown, user: AdminUser) {
-    const b = body(input), bomId = uuid(b.bomId), assignedToId = uuid(b.assignedToId), amount = quantity(b.quantity), dueAt = b.dueAt ? date(b.dueAt) : null;
+    const b = body(input), productId = uuid(b.productId), assignedToId = uuid(b.assignedToId), amount = quantity(b.quantity), dueAt = b.dueAt ? date(b.dueAt) : null;
     return this.db.$transaction(async tx => {
       await tx.$queryRaw`SELECT pg_advisory_xact_lock(8112028)::text`;
       const employee = await tx.employee.findUnique({ where: { accountId: user.id } });
       if (!employee || employee.status !== 'ACTIVE') throw new ForbiddenException('Cần liên kết người sử dụng đang hoạt động');
-      const bom = await tx.bom.findUniqueOrThrow({ where: { id: bomId }, include: bomInclude });
+      const bom = await tx.bom.findFirst({ where: { productId, status: 'ACTIVE', effectiveAt: { lte: new Date() } }, orderBy: [{ effectiveAt: 'desc' }, { version: 'desc' }], include: bomInclude });
+      if (!bom) throw new BadRequestException('Thành phẩm chưa có công thức được áp dụng và đến ngày hiệu lực');
+      if (b.expectedBomId !== undefined && uuid(b.expectedBomId) !== bom.id) throw new ConflictException('Công thức đang áp dụng đã thay đổi. Hãy tải lại trước khi giao lệnh');
       if (bom.status !== 'ACTIVE' || bom.effectiveAt > new Date() || bom.product.status !== 'ACTIVE' || !bom.lines.length || bom.lines.some(l => l.material.status !== 'ACTIVE')) throw new BadRequestException('BOM chưa có hiệu lực hoặc có thành phẩm/nguyên liệu ngừng hoạt động');
       if (dueAt && dueAt <= new Date()) throw new BadRequestException('Hạn hoàn thành phải ở tương lai');
       const assignee = await tx.employee.findFirst({ where: { id: assignedToId, status: 'ACTIVE', account: { status: 'ACTIVE', role: { permissions: { some: { permission: { code: { in: ['*', 'production:perform'] } } } } } } } });
       if (!assignee) throw new BadRequestException('Người nhận cần tài khoản hoạt động và quyền thực hiện sản xuất');
-      return tx.productionOrder.create({ data: { bomId, quantity: amount, assignedById: employee.id, assignedToId, dueAt }, include: orderInclude });
+      return tx.productionOrder.create({ data: { bomId: bom.id, quantity: amount, assignedById: employee.id, assignedToId, dueAt }, include: orderInclude });
     });
   }
   async orderAction(id: string, action: 'receive' | 'cancel', user: AdminUser) {
