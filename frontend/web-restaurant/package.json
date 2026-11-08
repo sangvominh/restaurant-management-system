@@ -7,6 +7,16 @@
     "build": "next build",
     "start": "next start --port 3002"
   },
-  "dependencies": { "next": "16.4.5", "react": "19.3.0", "react-dom": "19.3.0" },
-  "devDependencies": { "@types/node": "^20", "@types/react": "^19", "@types/react-dom": "^19", "typescript": "^5" }
+  "dependencies": {
+    "jsbarcode": "^3.12.3",
+    "next": "16.4.5",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^5"
+  }
 }
