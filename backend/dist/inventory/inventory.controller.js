@@ -10,13 +10,16 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { Body, Controller, Delete, ForbiddenException, Get, Param, Post, Put, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, ForbiddenException, Get, Param, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
 import { CatalogGuard } from '../catalog/catalog.guard.js';
 import { InventoryService } from './inventory.service.js';
+import { StockInsightsService } from './stock-insights.service.js';
 let InventoryController = class InventoryController {
     service;
-    constructor(service) {
+    insights;
+    constructor(service, insights) {
         this.service = service;
+        this.insights = insights;
     }
     allow(req, ...codes) {
         if (!req.catalogUser.permissions.includes('*') && !codes.some(code => req.catalogUser.permissions.includes(code)))
@@ -29,6 +32,7 @@ let InventoryController = class InventoryController {
     remove(id, req) { this.allow(req, 'receipt:create'); return this.service.remove(id, req.catalogUser); }
     post(id, req) { this.allow(req, 'receipt:post'); return this.service.post(id); }
     stock(req) { this.allow(req, 'inventory:view'); return this.service.stock(); }
+    insightsList(kind, req) { this.allow(req, 'inventory:view'); return this.insights.read(kind); }
     lots(id, req) { this.allow(req, 'inventory:view'); return this.service.lots(id); }
 };
 __decorate([
@@ -86,6 +90,14 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], InventoryController.prototype, "stock", null);
 __decorate([
+    Get('stock-insights'),
+    __param(0, Query('kind')),
+    __param(1, Req()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], InventoryController.prototype, "insightsList", null);
+__decorate([
     Get('inventory/:id/lots'),
     __param(0, Param('id')),
     __param(1, Req()),
@@ -96,7 +108,7 @@ __decorate([
 InventoryController = __decorate([
     Controller('api/warehouse'),
     UseGuards(CatalogGuard),
-    __metadata("design:paramtypes", [InventoryService])
+    __metadata("design:paramtypes", [InventoryService, StockInsightsService])
 ], InventoryController);
 export { InventoryController };
 //# sourceMappingURL=inventory.controller.js.map

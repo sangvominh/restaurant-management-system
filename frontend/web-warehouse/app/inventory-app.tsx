@@ -6,6 +6,7 @@ import { usePagination, Pagination } from './list-pagination';
 import { StatusBadge, statusInfo } from './status-ui';
 import { DocumentTools } from './document-print';
 import LabelPrint, { type StockLabel } from './label-print';
+import StockDashboard from './stock-dashboard';
 interface ReceiptLine { id: string; quantity: string; unitPrice: string; lot: { id: string; code: string; expiryDate: string | null; material: CatalogItem } }
 interface Receipt { id: string; code: string; status: string; receivedAt: string; note: string | null; supplierId: string; supplier: CatalogItem; createdBy: { name: string; accountId: string | null }; lines: ReceiptLine[] }
 interface Stock { id: string; code: string; name: string; status: string; minStock: string; quantity: string; unitName: string; symbol: string }
@@ -16,6 +17,9 @@ const money = (value: number) => value.toLocaleString('vi-VN', { maximumFraction
 const date = (value: string) => new Date(value).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
 const day = (value: string | null) => value ? new Date(value).toLocaleDateString('vi-VN', { timeZone: 'UTC' }) : 'Không có';
 export default function InventoryApp({ user, mode }: { user: User; mode: 'receipts' | 'inventory' }) {
+  return mode === 'inventory' ? <StockDashboard kind="materials" /> : <InventoryWorkspace user={user} mode={mode} />;
+}
+function InventoryWorkspace({ user, mode }: { user: User; mode: 'receipts' | 'inventory' }) {
   const [label, setLabel] = useState<StockLabel>();
   const [receipts, setReceipts] = useState<Receipt[]>([]); const [stock, setStock] = useState<Stock[]>([]);
   const [references, setReferences] = useState<References>({ suppliers: [], materials: [] });

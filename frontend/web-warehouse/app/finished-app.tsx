@@ -5,6 +5,7 @@ import { DocumentCard, Drawer } from './workspace-ui';
 import { usePagination, Pagination } from './list-pagination';
 import { StatusBadge, statusInfo } from './status-ui';
 import { DocumentTools } from './document-print';
+import StockDashboard from './stock-dashboard';
 type Row = { id: string; code: string; name: string; unit: string; opening: string; incoming: string; outgoing: string; closing: string };
 type SaleLine = { id: string; quantity: string; productName: string; product: { unit: { symbol: string } }; exportLines: { requestedQuantity: string; exportedQuantity: string | null; export: { status: string } }[] };
 type Sale = { id: string; code: string; lines: SaleLine[] };
@@ -17,6 +18,9 @@ function dates(year: number, period: string, index: number) {
   return { start: `${year}-${String(month).padStart(2, '0')}-01`, end: `${year}-${String(last).padStart(2, '0')}-${new Date(year, last, 0).getDate()}` };
 }
 export default function FinishedApp({ mode, user }: { mode: 'exports' | 'finished' | 'report'; user: User }) {
+  return mode === 'finished' ? <StockDashboard kind="products" /> : <FinishedWorkspace mode={mode} user={user} />;
+}
+function FinishedWorkspace({ mode, user }: { mode: 'exports' | 'finished' | 'report'; user: User }) {
   const [rows, setRows] = useState<Row[]>([]), [docs, setDocs] = useState<Doc[]>([]), [sales, setSales] = useState<Sale[]>([]);
   const [loading, setLoading] = useState(false), [busy, setBusy] = useState(false), [error, setError] = useState(''), [search, setSearch] = useState('');
   const [kind, setKind] = useState('materials'), [period, setPeriod] = useState('month'), [year, setYear] = useState(new Date().getFullYear()), [index, setIndex] = useState(new Date().getMonth() + 1);

@@ -1,10 +1,10 @@
 # Mã vạch và bản in
 
 - Phiếu nhập: CODE128 từ số phiếu. Lệnh chế biến và phiếu xuất: CODE128 từ ID đầy đủ. Đơn bán (web Restaurant): ID đầy đủ; số đơn vẫn hiển thị riêng trên bản in.
-- Card, chi tiết và bản in dùng cùng giá trị. Không lưu ảnh hoặc thêm bảng mã vạch.
+- Mã vạch hiển thị ở chi tiết và bản in, không hiển thị trên card. Không lưu ảnh hoặc thêm bảng mã vạch.
 - Mở chi tiết → In phiếu / PDF. Cho phép cửa sổ bật lên nếu trình duyệt chặn. Có thể bấm In / Lưu PDF ngay trong cửa sổ bản in nếu hộp thoại không tự mở.
 - Bản in A4 có tất cả dòng hàng (không giới hạn theo phân trang danh sách), trạng thái tại lúc in, ghi chú và chỗ ký. Phiếu/đơn nháp có dấu NHÁP. In không làm đổi trạng thái hay ghi sổ.
-- Đây là chứng từ nội bộ, chưa tích hợp hóa đơn điện tử hoặc chữ ký số. Chưa có chức năng quét để tự tìm/mở phiếu. Mã vạch nhỏ trên card để nhận diện; dùng chi tiết/bản in kích thước lớn để quét và kiểm tra với thiết bị thực tế.
+- Đây là chứng từ nội bộ, chưa tích hợp hóa đơn điện tử hoặc chữ ký số. Chưa có chức năng quét để tự tìm/mở phiếu. Dùng mã vạch ở chi tiết/bản in để quét và kiểm tra với thiết bị thực tế.
 - Đã kiểm tra kiểu TypeScript, cú pháp CSS và tính ổn định chuỗi CODE128. Chưa kiểm tra bằng máy quét, máy in hoặc hộp thoại in thực tế.
 
 ## Tem dán vật lý

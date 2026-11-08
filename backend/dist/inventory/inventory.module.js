@@ -11,10 +11,11 @@ import { InventoryController } from './inventory.controller.js';
 import { InventoryService } from './inventory.service.js';
 import { FinishedService } from './finished.service.js';
 import { FinishedController } from './finished.controller.js';
+import { StockInsightsService } from './stock-insights.service.js';
 let InventoryModule = class InventoryModule {
 };
 InventoryModule = __decorate([
-    Module({ imports: [PrismaModule, CatalogModule], controllers: [InventoryController, FinishedController], providers: [InventoryService, FinishedService], exports: [FinishedService] })
+    Module({ imports: [PrismaModule, CatalogModule], controllers: [InventoryController, FinishedController], providers: [InventoryService, FinishedService, StockInsightsService], exports: [FinishedService] })
 ], InventoryModule);
 export { InventoryModule };
 //# sourceMappingURL=inventory.module.js.map
