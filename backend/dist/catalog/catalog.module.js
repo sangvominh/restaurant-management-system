@@ -13,7 +13,7 @@ import { CatalogGuard } from './catalog.guard.js';
 let CatalogModule = class CatalogModule {
 };
 CatalogModule = __decorate([
-    Module({ imports: [AdminModule, PrismaModule], controllers: [CatalogController, WarehouseAuthController], providers: [CatalogService, CatalogGuard] })
+    Module({ imports: [AdminModule, PrismaModule], controllers: [CatalogController, WarehouseAuthController], providers: [CatalogService, CatalogGuard], exports: [CatalogGuard, AdminModule] })
 ], CatalogModule);
 export { CatalogModule };
 //# sourceMappingURL=catalog.module.js.map

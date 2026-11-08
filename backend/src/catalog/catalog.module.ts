@@ -4,5 +4,5 @@ import { PrismaModule } from '../prisma/prisma.module.js';
 import { CatalogController, WarehouseAuthController } from './catalog.controller.js';
 import { CatalogService } from './catalog.service.js';
 import { CatalogGuard } from './catalog.guard.js';
-@Module({ imports: [AdminModule, PrismaModule], controllers: [CatalogController, WarehouseAuthController], providers: [CatalogService, CatalogGuard] })
+@Module({ imports: [AdminModule, PrismaModule], controllers: [CatalogController, WarehouseAuthController], providers: [CatalogService, CatalogGuard], exports: [CatalogGuard, AdminModule] })
 export class CatalogModule {}

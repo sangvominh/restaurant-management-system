@@ -39,8 +39,8 @@ let AdminAuthService = class AdminAuthService {
         const codes = account.role.permissions.map(p => p.permission.code).sort();
         if (adminOnly && !codes.includes('*'))
             throw new ForbiddenException('Tài khoản không có quyền System Admin');
-        if (!adminOnly && !codes.some(code => ['*', 'catalog:manage', 'inventory:view', 'product:manage', 'production:perform', 'receipt:create', 'sale:view'].includes(code)))
-            throw new ForbiddenException('Tài khoản chưa được cấp quyền vào danh mục kho');
+        if (!adminOnly && !codes.some(code => ['*', 'catalog:manage', 'inventory:view', 'product:manage', 'production:perform', 'receipt:create', 'receipt:post', 'sale:view'].includes(code)))
+            throw new ForbiddenException('Tài khoản chưa được cấp quyền vào web Kho và sản xuất');
         for (const [id, session] of this.sessions)
             if (session.expiresAt <= Date.now())
                 this.sessions.delete(id);
