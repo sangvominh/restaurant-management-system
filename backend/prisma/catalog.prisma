@@ -31,6 +31,7 @@ model Material {
   category Category @relation("Material_category", fields: [categoryId], references: [id], onDelete: Restrict)
   lots MaterialLot[] @relation("MaterialLot_material")
   bomLines BomLine[] @relation("BomLine_material")
+  shortages MaterialShortage[]
 
   @@index([unitId])
   @@index([categoryId])

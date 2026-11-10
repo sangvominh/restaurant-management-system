@@ -80,6 +80,20 @@ export class ProductionService {
   orders(user: AdminUser) {
     return this.db.productionOrder.findMany({ where: manager(user) || user.permissions.some(p => ['material:approve', 'production:inspect', 'waste:approve'].includes(p)) ? {} : { assignedTo: { accountId: user.id } }, include: orderInclude, orderBy: { assignedAt: 'desc' } });
   }
+  async rejectReplenishment(id: string, input: unknown) {
+    const b = body(input);
+    if (typeof b.note !== 'string' || !b.note.trim() || b.note.length > 500) throw new BadRequestException('Cần lý do từ chối, tối đa 500 ký tự');
+    const note = b.note.trim();
+    return this.db.$transaction(async tx => {
+      await tx.$queryRaw`SELECT pg_advisory_xact_lock(8112028)::text`;
+      const request = await tx.replenishmentRequest.findUniqueOrThrow({ where: { id: uuid(id) } });
+      if (request.status !== 'PENDING') throw new ConflictException('Yêu cầu đã xử lý');
+      return tx.replenishmentRequest.update({ where: { id }, data: { status: 'REJECTED', note } });
+    });
+  }
+  async replenishments() {
+    return this.db.replenishmentRequest.findMany({ where: { status: 'PENDING', saleLine: { sale: { status: 'CONFIRMED' } } }, include: { requestedBy: { select: { name: true } }, saleLine: { include: { product: { include: { unit: true } }, sale: { include: { table: true } } } } }, orderBy: { requestedAt: 'asc' } });
+  }
   async createOrder(input: unknown, user: AdminUser) {
     const b = body(input), productId = uuid(b.productId), assignedToId = uuid(b.assignedToId), amount = quantity(b.quantity), dueAt = b.dueAt ? date(b.dueAt) : null;
     return this.db.$transaction(async tx => {
@@ -93,7 +107,11 @@ export class ProductionService {
       if (dueAt && dueAt <= new Date()) throw new BadRequestException('Hạn hoàn thành phải ở tương lai');
       const assignee = await tx.employee.findFirst({ where: { id: assignedToId, status: 'ACTIVE', account: { status: 'ACTIVE', role: { permissions: { some: { permission: { code: { in: ['*', 'production:perform'] } } } } } } } });
       if (!assignee) throw new BadRequestException('Người nhận cần tài khoản hoạt động và quyền thực hiện sản xuất');
-      return tx.productionOrder.create({ data: { bomId: bom.id, quantity: amount, assignedById: employee.id, assignedToId, dueAt }, include: orderInclude });
+      const request = b.replenishmentId ? await tx.replenishmentRequest.findUniqueOrThrow({ where: { id: uuid(b.replenishmentId) }, include: { saleLine: { include: { sale: true } } } }) : null;
+      if (request && (request.status !== 'PENDING' || request.saleLine.sale.status !== 'CONFIRMED' || request.saleLine.productId !== productId || !request.quantity.eq(amount))) throw new ConflictException('Yêu cầu bổ sung đã xử lý hoặc không khớp thành phẩm/số lượng');
+      const order = await tx.productionOrder.create({ data: { bomId: bom.id, quantity: amount, assignedById: employee.id, assignedToId, dueAt }, include: orderInclude });
+      if (request) await tx.replenishmentRequest.update({ where: { id: request.id }, data: { productionOrderId: order.id, status: 'LINKED' } });
+      return order;
     });
   }
   async orderAction(id: string, action: 'receive' | 'cancel', user: AdminUser) {

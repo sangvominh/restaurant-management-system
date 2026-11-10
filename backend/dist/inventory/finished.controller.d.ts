@@ -14,7 +14,11 @@ export declare class FinishedController {
             status: string;
             createdAt: Date;
             code: string;
+            version: number;
             createdById: string;
+            closedAt: Date | null;
+            closedById: string | null;
+            tableId: string | null;
         };
         lines: ({
             saleLine: {
@@ -37,26 +41,21 @@ export declare class FinishedController {
                 id: string;
                 productId: string;
                 quantity: import("@prisma/client-runtime-utils").Decimal;
+                note: string;
                 unitPrice: import("@prisma/client-runtime-utils").Decimal;
-                saleId: string;
+                sentById: string | null;
+                sentAt: Date | null;
+                batch: number | null;
                 productName: string;
+                saleId: string;
             };
         } & {
             id: string;
-            saleLineId: string;
             requestedQuantity: import("@prisma/client-runtime-utils").Decimal;
             exportedQuantity: import("@prisma/client-runtime-utils").Decimal | null;
             exportId: string;
+            saleLineId: string;
         })[];
-        requestedBy: {
-            id: string;
-            status: string;
-            name: string;
-            code: string;
-            phone: string | null;
-            email: string | null;
-            accountId: string | null;
-        };
         reviewedBy: {
             id: string;
             status: string;
@@ -66,15 +65,24 @@ export declare class FinishedController {
             email: string | null;
             accountId: string | null;
         } | null;
+        requestedBy: {
+            id: string;
+            status: string;
+            name: string;
+            code: string;
+            phone: string | null;
+            email: string | null;
+            accountId: string | null;
+        };
     } & {
         id: string;
         status: string;
-        requestedAt: Date;
-        approvedAt: Date | null;
         reason: string | null;
-        saleId: string;
-        requestedById: string;
+        approvedAt: Date | null;
         reviewedById: string | null;
+        saleId: string;
+        requestedAt: Date;
+        requestedById: string;
     })[]>;
     sales(r: R): import("../generated/prisma/internal/prismaNamespace.js").PrismaPromise<({
         lines: ({
@@ -97,34 +105,42 @@ export declare class FinishedController {
                 export: {
                     id: string;
                     status: string;
-                    requestedAt: Date;
-                    approvedAt: Date | null;
                     reason: string | null;
-                    saleId: string;
-                    requestedById: string;
+                    approvedAt: Date | null;
                     reviewedById: string | null;
+                    saleId: string;
+                    requestedAt: Date;
+                    requestedById: string;
                 };
             } & {
                 id: string;
-                saleLineId: string;
                 requestedQuantity: import("@prisma/client-runtime-utils").Decimal;
                 exportedQuantity: import("@prisma/client-runtime-utils").Decimal | null;
                 exportId: string;
+                saleLineId: string;
             })[];
         } & {
             id: string;
             productId: string;
             quantity: import("@prisma/client-runtime-utils").Decimal;
+            note: string;
             unitPrice: import("@prisma/client-runtime-utils").Decimal;
-            saleId: string;
+            sentById: string | null;
+            sentAt: Date | null;
+            batch: number | null;
             productName: string;
+            saleId: string;
         })[];
     } & {
         id: string;
         status: string;
         createdAt: Date;
         code: string;
+        version: number;
         createdById: string;
+        closedAt: Date | null;
+        closedById: string | null;
+        tableId: string | null;
     })[]>;
     create(b: unknown, r: R): Promise<{
         sale: {
@@ -132,7 +148,11 @@ export declare class FinishedController {
             status: string;
             createdAt: Date;
             code: string;
+            version: number;
             createdById: string;
+            closedAt: Date | null;
+            closedById: string | null;
+            tableId: string | null;
         };
         lines: ({
             saleLine: {
@@ -155,26 +175,21 @@ export declare class FinishedController {
                 id: string;
                 productId: string;
                 quantity: import("@prisma/client-runtime-utils").Decimal;
+                note: string;
                 unitPrice: import("@prisma/client-runtime-utils").Decimal;
-                saleId: string;
+                sentById: string | null;
+                sentAt: Date | null;
+                batch: number | null;
                 productName: string;
+                saleId: string;
             };
         } & {
             id: string;
-            saleLineId: string;
             requestedQuantity: import("@prisma/client-runtime-utils").Decimal;
             exportedQuantity: import("@prisma/client-runtime-utils").Decimal | null;
             exportId: string;
+            saleLineId: string;
         })[];
-        requestedBy: {
-            id: string;
-            status: string;
-            name: string;
-            code: string;
-            phone: string | null;
-            email: string | null;
-            accountId: string | null;
-        };
         reviewedBy: {
             id: string;
             status: string;
@@ -184,15 +199,24 @@ export declare class FinishedController {
             email: string | null;
             accountId: string | null;
         } | null;
+        requestedBy: {
+            id: string;
+            status: string;
+            name: string;
+            code: string;
+            phone: string | null;
+            email: string | null;
+            accountId: string | null;
+        };
     } & {
         id: string;
         status: string;
-        requestedAt: Date;
-        approvedAt: Date | null;
         reason: string | null;
-        saleId: string;
-        requestedById: string;
+        approvedAt: Date | null;
         reviewedById: string | null;
+        saleId: string;
+        requestedAt: Date;
+        requestedById: string;
     }>;
     approve(id: string, r: R): Promise<{
         sale: {
@@ -200,7 +224,11 @@ export declare class FinishedController {
             status: string;
             createdAt: Date;
             code: string;
+            version: number;
             createdById: string;
+            closedAt: Date | null;
+            closedById: string | null;
+            tableId: string | null;
         };
         lines: ({
             saleLine: {
@@ -223,26 +251,21 @@ export declare class FinishedController {
                 id: string;
                 productId: string;
                 quantity: import("@prisma/client-runtime-utils").Decimal;
+                note: string;
                 unitPrice: import("@prisma/client-runtime-utils").Decimal;
-                saleId: string;
+                sentById: string | null;
+                sentAt: Date | null;
+                batch: number | null;
                 productName: string;
+                saleId: string;
             };
         } & {
             id: string;
-            saleLineId: string;
             requestedQuantity: import("@prisma/client-runtime-utils").Decimal;
             exportedQuantity: import("@prisma/client-runtime-utils").Decimal | null;
             exportId: string;
+            saleLineId: string;
         })[];
-        requestedBy: {
-            id: string;
-            status: string;
-            name: string;
-            code: string;
-            phone: string | null;
-            email: string | null;
-            accountId: string | null;
-        };
         reviewedBy: {
             id: string;
             status: string;
@@ -252,15 +275,24 @@ export declare class FinishedController {
             email: string | null;
             accountId: string | null;
         } | null;
+        requestedBy: {
+            id: string;
+            status: string;
+            name: string;
+            code: string;
+            phone: string | null;
+            email: string | null;
+            accountId: string | null;
+        };
     } & {
         id: string;
         status: string;
-        requestedAt: Date;
-        approvedAt: Date | null;
         reason: string | null;
-        saleId: string;
-        requestedById: string;
+        approvedAt: Date | null;
         reviewedById: string | null;
+        saleId: string;
+        requestedAt: Date;
+        requestedById: string;
     }>;
     reject(id: string, r: R): Promise<{
         sale: {
@@ -268,7 +300,11 @@ export declare class FinishedController {
             status: string;
             createdAt: Date;
             code: string;
+            version: number;
             createdById: string;
+            closedAt: Date | null;
+            closedById: string | null;
+            tableId: string | null;
         };
         lines: ({
             saleLine: {
@@ -291,26 +327,21 @@ export declare class FinishedController {
                 id: string;
                 productId: string;
                 quantity: import("@prisma/client-runtime-utils").Decimal;
+                note: string;
                 unitPrice: import("@prisma/client-runtime-utils").Decimal;
-                saleId: string;
+                sentById: string | null;
+                sentAt: Date | null;
+                batch: number | null;
                 productName: string;
+                saleId: string;
             };
         } & {
             id: string;
-            saleLineId: string;
             requestedQuantity: import("@prisma/client-runtime-utils").Decimal;
             exportedQuantity: import("@prisma/client-runtime-utils").Decimal | null;
             exportId: string;
+            saleLineId: string;
         })[];
-        requestedBy: {
-            id: string;
-            status: string;
-            name: string;
-            code: string;
-            phone: string | null;
-            email: string | null;
-            accountId: string | null;
-        };
         reviewedBy: {
             id: string;
             status: string;
@@ -320,15 +351,24 @@ export declare class FinishedController {
             email: string | null;
             accountId: string | null;
         } | null;
+        requestedBy: {
+            id: string;
+            status: string;
+            name: string;
+            code: string;
+            phone: string | null;
+            email: string | null;
+            accountId: string | null;
+        };
     } & {
         id: string;
         status: string;
-        requestedAt: Date;
-        approvedAt: Date | null;
         reason: string | null;
-        saleId: string;
-        requestedById: string;
+        approvedAt: Date | null;
         reviewedById: string | null;
+        saleId: string;
+        requestedAt: Date;
+        requestedById: string;
     }>;
     stock(r: R): Promise<{
         id: string;

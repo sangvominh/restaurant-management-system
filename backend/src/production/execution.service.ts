@@ -2,12 +2,13 @@ import { BadRequestException, ConflictException, ForbiddenException, Injectable 
 import { PrismaService } from '../prisma/prisma.service.js';
 import { Prisma } from '../generated/prisma/client.js';
 import type { AdminUser } from '../admin/admin-auth.service.js';
+import { daysRemaining } from '../inventory/expiry.js';
 const lineInclude = { lot: { include: { material: { include: { unit: true } } } }, consumptions: true, returnLines: { include: { return: true } }, wasteLines: { include: { waste: true } } } as const;
 function uuid(v: unknown) { if (typeof v !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v)) throw new BadRequestException('ID không hợp lệ'); return v; }
 function qty(v: unknown, zero = false) { if (!['string', 'number'].includes(typeof v) || !/^\d{1,15}(\.\d{1,3})?$/.test(String(v))) throw new BadRequestException('Số lượng không hợp lệ'); const q = new Prisma.Decimal(String(v)); if (zero ? q.lt(0) : q.lte(0)) throw new BadRequestException('Số lượng không hợp lệ'); return q; }
 function reason(v: unknown) { if (typeof v !== 'string' || !v.trim() || v.length > 1000) throw new BadRequestException('Cần lý do (tối đa 1000 ký tự)'); return v.trim(); }
 function allow(u: AdminUser, right: string) { if (!u.permissions.includes('*') && !u.permissions.includes(right)) throw new ForbiddenException('Chưa có quyền thực hiện thao tác'); }
-function expired(d: Date | null) { return d && d.toISOString().slice(0, 10) < new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); }
+function expired(d: Date | null) { const days = daysRemaining(d ? d.toISOString().slice(0, 10) : null); return days !== null && days < 0; }
 function remaining(l: Prisma.MaterialIssueLineGetPayload<{ include: typeof lineInclude }>) {
   return (l.issuedQuantity || new Prisma.Decimal(0)).minus(Prisma.Decimal.sum(0, ...l.consumptions.map(x => x.quantity), ...l.returnLines.filter(x => x.return.status !== 'REJECTED').map(x => x.quantity), ...l.wasteLines.filter(x => x.waste.status !== 'REJECTED').map(x => x.quantity)));
 }
@@ -15,10 +16,10 @@ function remaining(l: Prisma.MaterialIssueLineGetPayload<{ include: typeof lineI
 export class ExecutionService {
   constructor(private readonly db: PrismaService) {}
   async detail(id: string, user: AdminUser) {
-    const order = await this.db.productionOrder.findUniqueOrThrow({ where: { id: uuid(id) }, include: { assignedTo: true, bom: { include: { product: { include: { unit: true } }, lines: true } }, materialIssues: { include: { requestedBy: true, lines: { include: lineInclude } }, orderBy: { requestedAt: 'asc' } }, runs: { include: { consumptions: true }, orderBy: { recordedAt: 'asc' } } } });
+    const order = await this.db.productionOrder.findUniqueOrThrow({ where: { id: uuid(id) }, include: { assignedTo: true, bom: { include: { product: { include: { unit: true } }, lines: { include: { material: { include: { unit: true } } } } } }, materialIssues: { include: { requestedBy: true, lines: { include: lineInclude } }, orderBy: { requestedAt: 'asc' } }, runs: { include: { consumptions: true }, orderBy: { recordedAt: 'asc' } } } });
     if (order.assignedTo.accountId !== user.id && !user.permissions.some(p => ['*', 'production:manage', 'material:approve', 'production:inspect', 'waste:approve'].includes(p))) throw new ForbiddenException('Không có quyền xem lệnh');
     const lots = await this.db.materialLot.findMany({ where: { materialId: { in: order.bom.lines.map(l => l.materialId) } }, include: { material: { include: { unit: true } }, movements: true }, orderBy: { expiryDate: 'asc' } });
-    return { order, lots: lots.map(({ movements, ...l }) => ({ ...l, stock: movements.reduce((q, m) => q.plus(m.toSource === 'TRONG_KHO' ? m.quantity : 0).minus(m.fromSource === 'TRONG_KHO' ? m.quantity : 0), new Prisma.Decimal(0)) })), balances: order.materialIssues.flatMap(i => i.lines.map(l => ({ id: l.id, remaining: remaining(l) }))) };
+    return { order, lots: lots.map(({ movements, ...l }) => ({ ...l, daysRemaining: daysRemaining(l.expiryDate?.toISOString().slice(0, 10) || null), stock: movements.reduce((q, m) => q.plus(m.toSource === 'TRONG_KHO' ? m.quantity : 0).minus(m.fromSource === 'TRONG_KHO' ? m.quantity : 0), new Prisma.Decimal(0)) })), balances: order.materialIssues.flatMap(i => i.lines.map(l => ({ id: l.id, remaining: remaining(l) }))) };
   }
   async act(id: string, input: unknown, user: AdminUser) {
     if (!input || typeof input !== 'object' || Array.isArray(input)) throw new BadRequestException('Dữ liệu không hợp lệ');
@@ -59,7 +60,7 @@ export class ExecutionService {
         if (actualQuantity.plus(used._sum.actualQuantity || 0).gt(order.quantity)) throw new BadRequestException('Tổng sản lượng ghi nhận vượt lệnh');
         for (const l of lines) {
           const issued = await tx.materialIssueLine.findUniqueOrThrow({ where: { id: l.issueLineId }, include: { ...lineInclude, issue: true } });
-          if (issued.issue.productionOrderId !== id || issued.issue.status !== 'APPROVED' || remaining(issued).lt(l.quantity)) throw new BadRequestException('Tiêu hao vượt NVL còn lại hoặc sai lệnh');
+          if (issued.issue.productionOrderId !== id || issued.issue.status !== 'APPROVED' || remaining(issued).lt(l.quantity) || expired(issued.lot.expiryDate)) throw new BadRequestException('Tiêu hao vượt NVL còn lại, lô hết hạn hoặc sai lệnh');
         }
         const run = await tx.productionRun.create({ data: { productionOrderId: id, performedById: employee.id, actualQuantity, consumptions: { create: lines } }, include: { consumptions: { include: { issueLine: true } } } });
         for (const l of run.consumptions) await tx.materialMovement.create({ data: { lotId: l.issueLine.lotId, quantity: l.quantity, fromSource: 'DA_CAP', toSource: 'DA_SU_DUNG', consumptionLineId: l.id } });
@@ -101,6 +102,7 @@ export class ExecutionService {
       }
       if (b.action === 'complete') {
         allow(user, 'production:manage');
+        if (await tx.materialShortage.count({ where: { productionOrderId: id, status: { in: ['PENDING', 'PROCESSING'] } } })) throw new ConflictException('Cần kết thúc hoặc rút các báo thiếu NVL trước khi đóng lệnh');
         if (!['RECEIVED', 'IN_PROGRESS'].includes(order.status)) throw new ConflictException('Lệnh không thể hoàn thành');
         const runs = await tx.productionRun.findMany({ where: { productionOrderId: id } });
         const issues = await tx.materialIssue.findMany({ where: { productionOrderId: id }, include: { lines: { include: lineInclude } } });

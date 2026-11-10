@@ -14,23 +14,31 @@ import { Body, Controller, Delete, ForbiddenException, Get, Param, Post, Put, Re
 import { CatalogGuard } from '../catalog/catalog.guard.js';
 import { ProductionService } from './production.service.js';
 import { ExecutionService } from './execution.service.js';
+import { ShortageService } from './shortage.service.js';
 let ProductionController = class ProductionController {
     service;
     execution;
-    constructor(service, execution) {
+    shortages;
+    constructor(service, execution, shortages) {
         this.service = service;
         this.execution = execution;
+        this.shortages = shortages;
     }
     allow(req, ...codes) {
         if (!req.catalogUser.permissions.includes('*') && !codes.some(c => req.catalogUser.permissions.includes(c)))
             throw new ForbiddenException('Bạn chưa được cấp quyền chức năng này');
     }
     references(r) { this.allow(r, 'bom:manage', 'production:manage'); return this.service.references(); }
+    shortageList(r) { return this.shortages.list(r.catalogUser); }
+    reportShortage(b, r) { return this.shortages.save(b, r.catalogUser); }
+    reviewShortage(id, b, r) { return this.shortages.save(b, r.catalogUser, id); }
     boms(r) { this.allow(r, 'bom:manage', 'production:manage'); return this.service.boms(); }
     createBom(b, r) { this.allow(r, 'bom:manage'); return this.service.saveBom(b, r.catalogUser); }
     updateBom(id, b, r) { this.allow(r, 'bom:manage'); return this.service.saveBom(b, r.catalogUser, id); }
     deleteBom(id, r) { this.allow(r, 'bom:manage'); return this.service.bomAction(id, 'delete'); }
     activate(id, r) { this.allow(r, 'bom:manage'); return this.service.bomAction(id, 'activate'); }
+    rejectReplenishment(id, b, r) { this.allow(r, 'production:manage'); return this.service.rejectReplenishment(id, b); }
+    replenishments(r) { this.allow(r, 'production:manage'); return this.service.replenishments(); }
     orders(r) { this.allow(r, 'production:manage', 'production:perform', 'material:approve', 'production:inspect', 'waste:approve'); return this.service.orders(r.catalogUser); }
     detail(id, r) { return this.execution.detail(id, r.catalogUser); }
     execute(id, b, r) { return this.execution.act(id, b, r.catalogUser); }
@@ -45,6 +53,30 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], ProductionController.prototype, "references", null);
+__decorate([
+    Get('material-shortages'),
+    __param(0, Req()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], ProductionController.prototype, "shortageList", null);
+__decorate([
+    Post('material-shortages'),
+    __param(0, Body()),
+    __param(1, Req()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", void 0)
+], ProductionController.prototype, "reportShortage", null);
+__decorate([
+    Put('material-shortages/:id'),
+    __param(0, Param('id')),
+    __param(1, Body()),
+    __param(2, Req()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object, Object]),
+    __metadata("design:returntype", void 0)
+], ProductionController.prototype, "reviewShortage", null);
 __decorate([
     Get('boms'),
     __param(0, Req()),
@@ -85,6 +117,22 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
 ], ProductionController.prototype, "activate", null);
+__decorate([
+    Post('replenishments/:id/reject'),
+    __param(0, Param('id')),
+    __param(1, Body()),
+    __param(2, Req()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object, Object]),
+    __metadata("design:returntype", void 0)
+], ProductionController.prototype, "rejectReplenishment", null);
+__decorate([
+    Get('replenishments'),
+    __param(0, Req()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], ProductionController.prototype, "replenishments", null);
 __decorate([
     Get('orders'),
     __param(0, Req()),
@@ -136,7 +184,7 @@ __decorate([
 ProductionController = __decorate([
     Controller('api/warehouse/production'),
     UseGuards(CatalogGuard),
-    __metadata("design:paramtypes", [ProductionService, ExecutionService])
+    __metadata("design:paramtypes", [ProductionService, ExecutionService, ShortageService])
 ], ProductionController);
 export { ProductionController };
 //# sourceMappingURL=production.controller.js.map

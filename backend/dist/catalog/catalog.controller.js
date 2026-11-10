@@ -72,7 +72,7 @@ let CatalogController = class CatalogController {
     list(value, req) {
         const type = kind(value);
         this.allow(req.catalogUser, readRights[type]);
-        return this.service.list(type);
+        return this.service.presentation(type);
     }
     create(value, b, req) {
         const type = kind(value);

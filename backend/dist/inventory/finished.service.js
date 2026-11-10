@@ -22,7 +22,7 @@ let FinishedService = class FinishedService {
         this.db = db;
     }
     list() { return this.db.productExport.findMany({ include, orderBy: { requestedAt: 'desc' } }); }
-    sales() { return this.db.sale.findMany({ where: { status: 'CONFIRMED' }, include: { lines: { include: { product: { include: { unit: true } }, exportLines: { include: { export: true } } } } }, orderBy: { createdAt: 'desc' } }); }
+    sales() { return this.db.sale.findMany({ where: { status: 'CONFIRMED' }, include: { lines: { where: { sentAt: { not: null } }, include: { product: { include: { unit: true } }, exportLines: { include: { export: true } } } } }, orderBy: { createdAt: 'desc' } }); }
     async create(input, user) {
         if (!input || typeof input !== 'object')
             throw new BadRequestException('Dữ liệu không hợp lệ');
@@ -46,6 +46,8 @@ let FinishedService = class FinishedService {
                 throw new ConflictException('Chỉ đề nghị xuất cho đơn bán đã xác nhận, chưa thanh toán');
             for (const l of lines) {
                 const sold = sale.lines.find(s => s.id === l.saleLineId);
+                if (sold && !sold.sentAt)
+                    throw new ConflictException('Món chưa gửi, không được đề nghị xuất');
                 if (!sold)
                     throw new BadRequestException('Dòng xuất không thuộc đơn bán');
                 const reserved = Prisma.Decimal.sum(0, ...sold.exportLines.filter(e => ['PENDING', 'APPROVED'].includes(e.export.status)).map(e => e.export.status === 'APPROVED' ? e.exportedQuantity || 0 : e.requestedQuantity));

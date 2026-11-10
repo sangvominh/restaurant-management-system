@@ -26,22 +26,21 @@ export declare class CatalogController {
     private readonly service;
     constructor(service: CatalogService);
     private allow;
-    list(value: string, req: CatalogRequest): Promise<{
+    list(value: string, req: CatalogRequest): Promise<({
+        canDelete: boolean;
+        canEdit: boolean;
         symbol: string;
         id: string;
         name: string;
-    }[] | {
+    } | {
+        canDelete: boolean;
+        canEdit: boolean;
         id: string;
         name: string;
         objectType: string;
-    }[] | {
-        id: string;
-        status: string;
-        name: string;
-        code: string;
-        phone: string | null;
-        address: string | null;
-    }[] | ({
+    } | {
+        canDelete: boolean;
+        canEdit: boolean;
         unit: {
             symbol: string;
             id: string;
@@ -52,7 +51,6 @@ export declare class CatalogController {
             name: string;
             objectType: string;
         };
-    } & {
         id: string;
         status: string;
         name: string;
@@ -60,7 +58,18 @@ export declare class CatalogController {
         minStock: import("@prisma/client-runtime-utils").Decimal;
         unitId: string;
         categoryId: string;
-    })[] | {
+    } | {
+        canDelete: boolean;
+        canEdit: boolean;
+        id: string;
+        status: string;
+        name: string;
+        code: string;
+        phone: string | null;
+        address: string | null;
+    } | {
+        canDelete: boolean;
+        canEdit: boolean;
         currentBom: {
             lines: ({
                 material: {
@@ -81,8 +90,8 @@ export declare class CatalogController {
             } & {
                 id: string;
                 quantity: import("@prisma/client-runtime-utils").Decimal;
-                materialId: string;
                 bomId: string;
+                materialId: string;
             })[];
         } & {
             id: string;
@@ -110,7 +119,7 @@ export declare class CatalogController {
         unitId: string;
         categoryId: string;
         sellingPrice: import("@prisma/client-runtime-utils").Decimal;
-    }[]>;
+    })[]>;
     create(value: string, b: unknown, req: CatalogRequest): Promise<{
         symbol: string;
         id: string;

@@ -43,12 +43,39 @@ model ProductionOrder {
   assignedBy Employee @relation("ProductionOrder_assignedBy", fields: [assignedById], references: [id], onDelete: Restrict)
   assignedToId String @db.Uuid
   assignedTo Employee @relation("ProductionOrder_assignedTo", fields: [assignedToId], references: [id], onDelete: Restrict)
+  replenishment ReplenishmentRequest?
+  materialShortages MaterialShortage[]
   materialIssues MaterialIssue[] @relation("MaterialIssue_productionOrder")
   runs ProductionRun[] @relation("ProductionRun_productionOrder")
 
   @@index([bomId])
   @@index([assignedById])
   @@index([assignedToId])
+}
+
+/// Báo thiếu NVL theo lệnh, không phải phiếu cấp và không làm đổi tồn.
+model MaterialShortage {
+  id String @id @default(uuid()) @db.Uuid
+  quantity Decimal @db.Decimal(18, 3)
+  reason String
+  status String @default("PENDING")
+  requestedAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  reviewNote String?
+  productionOrderId String @db.Uuid
+  productionOrder ProductionOrder @relation(fields: [productionOrderId], references: [id], onDelete: Restrict)
+  materialId String @db.Uuid
+  material Material @relation(fields: [materialId], references: [id], onDelete: Restrict)
+  requestedById String @db.Uuid
+  requestedBy Employee @relation("ShortageRequester", fields: [requestedById], references: [id], onDelete: Restrict)
+  reviewedById String? @db.Uuid
+  reviewedBy Employee? @relation("ShortageReviewer", fields: [reviewedById], references: [id], onDelete: Restrict)
+
+  @@index([productionOrderId, materialId, status])
+  @@index([materialId])
+  @@index([requestedById])
+  @@index([reviewedById])
+  @@index([status, requestedAt])
 }
 
 /// LAN_SAN_XUAT

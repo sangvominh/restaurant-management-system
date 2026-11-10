@@ -21,12 +21,28 @@ export declare class ExecutionService {
                     categoryId: string;
                     sellingPrice: import("@prisma/client-runtime-utils").Decimal;
                 };
-                lines: {
+                lines: ({
+                    material: {
+                        unit: {
+                            symbol: string;
+                            id: string;
+                            name: string;
+                        };
+                    } & {
+                        id: string;
+                        status: string;
+                        name: string;
+                        code: string;
+                        minStock: import("@prisma/client-runtime-utils").Decimal;
+                        unitId: string;
+                        categoryId: string;
+                    };
+                } & {
                     id: string;
                     quantity: import("@prisma/client-runtime-utils").Decimal;
-                    materialId: string;
                     bomId: string;
-                }[];
+                    materialId: string;
+                })[];
             } & {
                 id: string;
                 status: string;
@@ -51,20 +67,20 @@ export declare class ExecutionService {
                         waste: {
                             id: string;
                             status: string;
-                            approvedAt: Date | null;
                             reason: string;
-                            reviewedById: string | null;
                             reportedAt: Date;
+                            approvedAt: Date | null;
                             reportedById: string;
+                            reviewedById: string | null;
                         };
                     } & {
                         id: string;
                         productId: string | null;
-                        note: string | null;
                         quantity: import("@prisma/client-runtime-utils").Decimal;
+                        note: string | null;
                         lotId: string | null;
-                        issueLineId: string | null;
                         sourceType: string;
+                        issueLineId: string | null;
                         wasteId: string;
                     })[];
                     lot: {
@@ -86,8 +102,8 @@ export declare class ExecutionService {
                     } & {
                         id: string;
                         code: string;
-                        expiryDate: Date | null;
                         materialId: string;
+                        expiryDate: Date | null;
                     };
                     consumptions: {
                         id: string;
@@ -99,11 +115,11 @@ export declare class ExecutionService {
                         return: {
                             id: string;
                             status: string;
-                            requestedAt: Date;
-                            approvedAt: Date | null;
                             reason: string;
-                            requestedById: string;
+                            approvedAt: Date | null;
                             reviewedById: string | null;
+                            requestedAt: Date;
+                            requestedById: string;
                         };
                     } & {
                         id: string;
@@ -130,11 +146,11 @@ export declare class ExecutionService {
             } & {
                 id: string;
                 status: string;
-                requestedAt: Date;
-                approvedAt: Date | null;
                 reason: string | null;
-                requestedById: string;
+                approvedAt: Date | null;
                 reviewedById: string | null;
+                requestedAt: Date;
+                requestedById: string;
                 productionOrderId: string;
             })[];
             runs: ({
@@ -160,13 +176,14 @@ export declare class ExecutionService {
             id: string;
             status: string;
             quantity: import("@prisma/client-runtime-utils").Decimal;
+            bomId: string;
             assignedAt: Date;
             dueAt: Date | null;
-            bomId: string;
             assignedById: string;
             assignedToId: string;
         };
         lots: {
+            daysRemaining: number | null;
             stock: import("@prisma/client-runtime-utils").Decimal;
             material: {
                 unit: {
@@ -185,8 +202,8 @@ export declare class ExecutionService {
             };
             id: string;
             code: string;
-            expiryDate: Date | null;
             materialId: string;
+            expiryDate: Date | null;
         }[];
         balances: {
             id: string;
@@ -197,35 +214,35 @@ export declare class ExecutionService {
         id: string;
         status: string;
         quantity: import("@prisma/client-runtime-utils").Decimal;
+        bomId: string;
         assignedAt: Date;
         dueAt: Date | null;
-        bomId: string;
         assignedById: string;
         assignedToId: string;
     } | {
         id: string;
         status: string;
-        requestedAt: Date;
-        approvedAt: Date | null;
         reason: string;
-        requestedById: string;
+        approvedAt: Date | null;
         reviewedById: string | null;
+        requestedAt: Date;
+        requestedById: string;
     } | {
         id: string;
         status: string;
-        approvedAt: Date | null;
         reason: string;
-        reviewedById: string | null;
         reportedAt: Date;
+        approvedAt: Date | null;
         reportedById: string;
+        reviewedById: string | null;
     } | {
         id: string;
         status: string;
-        requestedAt: Date;
-        approvedAt: Date | null;
         reason: string | null;
-        requestedById: string;
+        approvedAt: Date | null;
         reviewedById: string | null;
+        requestedAt: Date;
+        requestedById: string;
         productionOrderId: string;
     } | {
         id: string;

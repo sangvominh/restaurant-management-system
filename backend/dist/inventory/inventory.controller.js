@@ -32,6 +32,8 @@ let InventoryController = class InventoryController {
     remove(id, req) { this.allow(req, 'receipt:create'); return this.service.remove(id, req.catalogUser); }
     post(id, req) { this.allow(req, 'receipt:post'); return this.service.post(id); }
     stock(req) { this.allow(req, 'inventory:view'); return this.service.stock(); }
+    discard(id, b, req) { this.allow(req, 'waste:approve'); return this.service.discardLot(id, b, req.catalogUser); }
+    minimum(id, b, req) { this.allow(req, 'catalog:manage'); return this.service.setMinimum(id, b); }
     insightsList(kind, req) { this.allow(req, 'inventory:view'); return this.insights.read(kind); }
     lots(id, req) { this.allow(req, 'inventory:view'); return this.service.lots(id); }
 };
@@ -89,6 +91,24 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], InventoryController.prototype, "stock", null);
+__decorate([
+    Post('inventory/lots/:id/discard'),
+    __param(0, Param('id')),
+    __param(1, Body()),
+    __param(2, Req()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object, Object]),
+    __metadata("design:returntype", void 0)
+], InventoryController.prototype, "discard", null);
+__decorate([
+    Put('inventory/:id/minimum'),
+    __param(0, Param('id')),
+    __param(1, Body()),
+    __param(2, Req()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object, Object]),
+    __metadata("design:returntype", void 0)
+], InventoryController.prototype, "minimum", null);
 __decorate([
     Get('stock-insights'),
     __param(0, Query('kind')),

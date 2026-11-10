@@ -99,6 +99,9 @@ export interface PrismaClient<in LogOpts extends Prisma.LogLevel = never, in out
     get productionOrder(): Prisma.ProductionOrderDelegate<ExtArgs, {
         omit: OmitOpts;
     }>;
+    get materialShortage(): Prisma.MaterialShortageDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
     get productionRun(): Prisma.ProductionRunDelegate<ExtArgs, {
         omit: OmitOpts;
     }>;
@@ -121,6 +124,21 @@ export interface PrismaClient<in LogOpts extends Prisma.LogLevel = never, in out
         omit: OmitOpts;
     }>;
     get productMovement(): Prisma.ProductMovementDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
+    get diningTable(): Prisma.DiningTableDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
+    get diningArea(): Prisma.DiningAreaDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
+    get serving(): Prisma.ServingDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
+    get replenishmentRequest(): Prisma.ReplenishmentRequestDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
+    get saleLineChange(): Prisma.SaleLineChangeDelegate<ExtArgs, {
         omit: OmitOpts;
     }>;
 }

@@ -136,6 +136,7 @@ export type MaterialWhereInput = {
     category?: Prisma.XOR<Prisma.CategoryScalarRelationFilter, Prisma.CategoryWhereInput>;
     lots?: Prisma.MaterialLotListRelationFilter;
     bomLines?: Prisma.BomLineListRelationFilter;
+    shortages?: Prisma.MaterialShortageListRelationFilter;
 };
 export type MaterialOrderByWithRelationInput = {
     id?: Prisma.SortOrder;
@@ -149,6 +150,7 @@ export type MaterialOrderByWithRelationInput = {
     category?: Prisma.CategoryOrderByWithRelationInput;
     lots?: Prisma.MaterialLotOrderByRelationAggregateInput;
     bomLines?: Prisma.BomLineOrderByRelationAggregateInput;
+    shortages?: Prisma.MaterialShortageOrderByRelationAggregateInput;
 };
 export type MaterialWhereUniqueInput = Prisma.AtLeast<{
     id?: string;
@@ -165,6 +167,7 @@ export type MaterialWhereUniqueInput = Prisma.AtLeast<{
     category?: Prisma.XOR<Prisma.CategoryScalarRelationFilter, Prisma.CategoryWhereInput>;
     lots?: Prisma.MaterialLotListRelationFilter;
     bomLines?: Prisma.BomLineListRelationFilter;
+    shortages?: Prisma.MaterialShortageListRelationFilter;
 }, "id" | "code">;
 export type MaterialOrderByWithAggregationInput = {
     id?: Prisma.SortOrder;
@@ -202,6 +205,7 @@ export type MaterialCreateInput = {
     category: Prisma.CategoryCreateNestedOneWithoutMaterialsInput;
     lots?: Prisma.MaterialLotCreateNestedManyWithoutMaterialInput;
     bomLines?: Prisma.BomLineCreateNestedManyWithoutMaterialInput;
+    shortages?: Prisma.MaterialShortageCreateNestedManyWithoutMaterialInput;
 };
 export type MaterialUncheckedCreateInput = {
     id?: string;
@@ -213,6 +217,7 @@ export type MaterialUncheckedCreateInput = {
     categoryId: string;
     lots?: Prisma.MaterialLotUncheckedCreateNestedManyWithoutMaterialInput;
     bomLines?: Prisma.BomLineUncheckedCreateNestedManyWithoutMaterialInput;
+    shortages?: Prisma.MaterialShortageUncheckedCreateNestedManyWithoutMaterialInput;
 };
 export type MaterialUpdateInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -224,6 +229,7 @@ export type MaterialUpdateInput = {
     category?: Prisma.CategoryUpdateOneRequiredWithoutMaterialsNestedInput;
     lots?: Prisma.MaterialLotUpdateManyWithoutMaterialNestedInput;
     bomLines?: Prisma.BomLineUpdateManyWithoutMaterialNestedInput;
+    shortages?: Prisma.MaterialShortageUpdateManyWithoutMaterialNestedInput;
 };
 export type MaterialUncheckedUpdateInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -235,6 +241,7 @@ export type MaterialUncheckedUpdateInput = {
     categoryId?: Prisma.StringFieldUpdateOperationsInput | string;
     lots?: Prisma.MaterialLotUncheckedUpdateManyWithoutMaterialNestedInput;
     bomLines?: Prisma.BomLineUncheckedUpdateManyWithoutMaterialNestedInput;
+    shortages?: Prisma.MaterialShortageUncheckedUpdateManyWithoutMaterialNestedInput;
 };
 export type MaterialCreateManyInput = {
     id?: string;
@@ -413,6 +420,18 @@ export type MaterialUpdateOneRequiredWithoutBomLinesNestedInput = {
     connect?: Prisma.MaterialWhereUniqueInput;
     update?: Prisma.XOR<Prisma.XOR<Prisma.MaterialUpdateToOneWithWhereWithoutBomLinesInput, Prisma.MaterialUpdateWithoutBomLinesInput>, Prisma.MaterialUncheckedUpdateWithoutBomLinesInput>;
 };
+export type MaterialCreateNestedOneWithoutShortagesInput = {
+    create?: Prisma.XOR<Prisma.MaterialCreateWithoutShortagesInput, Prisma.MaterialUncheckedCreateWithoutShortagesInput>;
+    connectOrCreate?: Prisma.MaterialCreateOrConnectWithoutShortagesInput;
+    connect?: Prisma.MaterialWhereUniqueInput;
+};
+export type MaterialUpdateOneRequiredWithoutShortagesNestedInput = {
+    create?: Prisma.XOR<Prisma.MaterialCreateWithoutShortagesInput, Prisma.MaterialUncheckedCreateWithoutShortagesInput>;
+    connectOrCreate?: Prisma.MaterialCreateOrConnectWithoutShortagesInput;
+    upsert?: Prisma.MaterialUpsertWithoutShortagesInput;
+    connect?: Prisma.MaterialWhereUniqueInput;
+    update?: Prisma.XOR<Prisma.XOR<Prisma.MaterialUpdateToOneWithWhereWithoutShortagesInput, Prisma.MaterialUpdateWithoutShortagesInput>, Prisma.MaterialUncheckedUpdateWithoutShortagesInput>;
+};
 export type MaterialCreateWithoutUnitInput = {
     id?: string;
     code: string;
@@ -422,6 +441,7 @@ export type MaterialCreateWithoutUnitInput = {
     category: Prisma.CategoryCreateNestedOneWithoutMaterialsInput;
     lots?: Prisma.MaterialLotCreateNestedManyWithoutMaterialInput;
     bomLines?: Prisma.BomLineCreateNestedManyWithoutMaterialInput;
+    shortages?: Prisma.MaterialShortageCreateNestedManyWithoutMaterialInput;
 };
 export type MaterialUncheckedCreateWithoutUnitInput = {
     id?: string;
@@ -432,6 +452,7 @@ export type MaterialUncheckedCreateWithoutUnitInput = {
     categoryId: string;
     lots?: Prisma.MaterialLotUncheckedCreateNestedManyWithoutMaterialInput;
     bomLines?: Prisma.BomLineUncheckedCreateNestedManyWithoutMaterialInput;
+    shortages?: Prisma.MaterialShortageUncheckedCreateNestedManyWithoutMaterialInput;
 };
 export type MaterialCreateOrConnectWithoutUnitInput = {
     where: Prisma.MaterialWhereUniqueInput;
@@ -475,6 +496,7 @@ export type MaterialCreateWithoutCategoryInput = {
     unit: Prisma.UnitCreateNestedOneWithoutMaterialsInput;
     lots?: Prisma.MaterialLotCreateNestedManyWithoutMaterialInput;
     bomLines?: Prisma.BomLineCreateNestedManyWithoutMaterialInput;
+    shortages?: Prisma.MaterialShortageCreateNestedManyWithoutMaterialInput;
 };
 export type MaterialUncheckedCreateWithoutCategoryInput = {
     id?: string;
@@ -485,6 +507,7 @@ export type MaterialUncheckedCreateWithoutCategoryInput = {
     unitId: string;
     lots?: Prisma.MaterialLotUncheckedCreateNestedManyWithoutMaterialInput;
     bomLines?: Prisma.BomLineUncheckedCreateNestedManyWithoutMaterialInput;
+    shortages?: Prisma.MaterialShortageUncheckedCreateNestedManyWithoutMaterialInput;
 };
 export type MaterialCreateOrConnectWithoutCategoryInput = {
     where: Prisma.MaterialWhereUniqueInput;
@@ -516,6 +539,7 @@ export type MaterialCreateWithoutLotsInput = {
     unit: Prisma.UnitCreateNestedOneWithoutMaterialsInput;
     category: Prisma.CategoryCreateNestedOneWithoutMaterialsInput;
     bomLines?: Prisma.BomLineCreateNestedManyWithoutMaterialInput;
+    shortages?: Prisma.MaterialShortageCreateNestedManyWithoutMaterialInput;
 };
 export type MaterialUncheckedCreateWithoutLotsInput = {
     id?: string;
@@ -526,6 +550,7 @@ export type MaterialUncheckedCreateWithoutLotsInput = {
     unitId: string;
     categoryId: string;
     bomLines?: Prisma.BomLineUncheckedCreateNestedManyWithoutMaterialInput;
+    shortages?: Prisma.MaterialShortageUncheckedCreateNestedManyWithoutMaterialInput;
 };
 export type MaterialCreateOrConnectWithoutLotsInput = {
     where: Prisma.MaterialWhereUniqueInput;
@@ -549,6 +574,7 @@ export type MaterialUpdateWithoutLotsInput = {
     unit?: Prisma.UnitUpdateOneRequiredWithoutMaterialsNestedInput;
     category?: Prisma.CategoryUpdateOneRequiredWithoutMaterialsNestedInput;
     bomLines?: Prisma.BomLineUpdateManyWithoutMaterialNestedInput;
+    shortages?: Prisma.MaterialShortageUpdateManyWithoutMaterialNestedInput;
 };
 export type MaterialUncheckedUpdateWithoutLotsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -559,6 +585,7 @@ export type MaterialUncheckedUpdateWithoutLotsInput = {
     unitId?: Prisma.StringFieldUpdateOperationsInput | string;
     categoryId?: Prisma.StringFieldUpdateOperationsInput | string;
     bomLines?: Prisma.BomLineUncheckedUpdateManyWithoutMaterialNestedInput;
+    shortages?: Prisma.MaterialShortageUncheckedUpdateManyWithoutMaterialNestedInput;
 };
 export type MaterialCreateWithoutBomLinesInput = {
     id?: string;
@@ -569,6 +596,7 @@ export type MaterialCreateWithoutBomLinesInput = {
     unit: Prisma.UnitCreateNestedOneWithoutMaterialsInput;
     category: Prisma.CategoryCreateNestedOneWithoutMaterialsInput;
     lots?: Prisma.MaterialLotCreateNestedManyWithoutMaterialInput;
+    shortages?: Prisma.MaterialShortageCreateNestedManyWithoutMaterialInput;
 };
 export type MaterialUncheckedCreateWithoutBomLinesInput = {
     id?: string;
@@ -579,6 +607,7 @@ export type MaterialUncheckedCreateWithoutBomLinesInput = {
     unitId: string;
     categoryId: string;
     lots?: Prisma.MaterialLotUncheckedCreateNestedManyWithoutMaterialInput;
+    shortages?: Prisma.MaterialShortageUncheckedCreateNestedManyWithoutMaterialInput;
 };
 export type MaterialCreateOrConnectWithoutBomLinesInput = {
     where: Prisma.MaterialWhereUniqueInput;
@@ -602,6 +631,7 @@ export type MaterialUpdateWithoutBomLinesInput = {
     unit?: Prisma.UnitUpdateOneRequiredWithoutMaterialsNestedInput;
     category?: Prisma.CategoryUpdateOneRequiredWithoutMaterialsNestedInput;
     lots?: Prisma.MaterialLotUpdateManyWithoutMaterialNestedInput;
+    shortages?: Prisma.MaterialShortageUpdateManyWithoutMaterialNestedInput;
 };
 export type MaterialUncheckedUpdateWithoutBomLinesInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -612,6 +642,64 @@ export type MaterialUncheckedUpdateWithoutBomLinesInput = {
     unitId?: Prisma.StringFieldUpdateOperationsInput | string;
     categoryId?: Prisma.StringFieldUpdateOperationsInput | string;
     lots?: Prisma.MaterialLotUncheckedUpdateManyWithoutMaterialNestedInput;
+    shortages?: Prisma.MaterialShortageUncheckedUpdateManyWithoutMaterialNestedInput;
+};
+export type MaterialCreateWithoutShortagesInput = {
+    id?: string;
+    code: string;
+    name: string;
+    minStock?: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    status?: string;
+    unit: Prisma.UnitCreateNestedOneWithoutMaterialsInput;
+    category: Prisma.CategoryCreateNestedOneWithoutMaterialsInput;
+    lots?: Prisma.MaterialLotCreateNestedManyWithoutMaterialInput;
+    bomLines?: Prisma.BomLineCreateNestedManyWithoutMaterialInput;
+};
+export type MaterialUncheckedCreateWithoutShortagesInput = {
+    id?: string;
+    code: string;
+    name: string;
+    minStock?: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    status?: string;
+    unitId: string;
+    categoryId: string;
+    lots?: Prisma.MaterialLotUncheckedCreateNestedManyWithoutMaterialInput;
+    bomLines?: Prisma.BomLineUncheckedCreateNestedManyWithoutMaterialInput;
+};
+export type MaterialCreateOrConnectWithoutShortagesInput = {
+    where: Prisma.MaterialWhereUniqueInput;
+    create: Prisma.XOR<Prisma.MaterialCreateWithoutShortagesInput, Prisma.MaterialUncheckedCreateWithoutShortagesInput>;
+};
+export type MaterialUpsertWithoutShortagesInput = {
+    update: Prisma.XOR<Prisma.MaterialUpdateWithoutShortagesInput, Prisma.MaterialUncheckedUpdateWithoutShortagesInput>;
+    create: Prisma.XOR<Prisma.MaterialCreateWithoutShortagesInput, Prisma.MaterialUncheckedCreateWithoutShortagesInput>;
+    where?: Prisma.MaterialWhereInput;
+};
+export type MaterialUpdateToOneWithWhereWithoutShortagesInput = {
+    where?: Prisma.MaterialWhereInput;
+    data: Prisma.XOR<Prisma.MaterialUpdateWithoutShortagesInput, Prisma.MaterialUncheckedUpdateWithoutShortagesInput>;
+};
+export type MaterialUpdateWithoutShortagesInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    code?: Prisma.StringFieldUpdateOperationsInput | string;
+    name?: Prisma.StringFieldUpdateOperationsInput | string;
+    minStock?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    status?: Prisma.StringFieldUpdateOperationsInput | string;
+    unit?: Prisma.UnitUpdateOneRequiredWithoutMaterialsNestedInput;
+    category?: Prisma.CategoryUpdateOneRequiredWithoutMaterialsNestedInput;
+    lots?: Prisma.MaterialLotUpdateManyWithoutMaterialNestedInput;
+    bomLines?: Prisma.BomLineUpdateManyWithoutMaterialNestedInput;
+};
+export type MaterialUncheckedUpdateWithoutShortagesInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    code?: Prisma.StringFieldUpdateOperationsInput | string;
+    name?: Prisma.StringFieldUpdateOperationsInput | string;
+    minStock?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    status?: Prisma.StringFieldUpdateOperationsInput | string;
+    unitId?: Prisma.StringFieldUpdateOperationsInput | string;
+    categoryId?: Prisma.StringFieldUpdateOperationsInput | string;
+    lots?: Prisma.MaterialLotUncheckedUpdateManyWithoutMaterialNestedInput;
+    bomLines?: Prisma.BomLineUncheckedUpdateManyWithoutMaterialNestedInput;
 };
 export type MaterialCreateManyUnitInput = {
     id?: string;
@@ -630,6 +718,7 @@ export type MaterialUpdateWithoutUnitInput = {
     category?: Prisma.CategoryUpdateOneRequiredWithoutMaterialsNestedInput;
     lots?: Prisma.MaterialLotUpdateManyWithoutMaterialNestedInput;
     bomLines?: Prisma.BomLineUpdateManyWithoutMaterialNestedInput;
+    shortages?: Prisma.MaterialShortageUpdateManyWithoutMaterialNestedInput;
 };
 export type MaterialUncheckedUpdateWithoutUnitInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -640,6 +729,7 @@ export type MaterialUncheckedUpdateWithoutUnitInput = {
     categoryId?: Prisma.StringFieldUpdateOperationsInput | string;
     lots?: Prisma.MaterialLotUncheckedUpdateManyWithoutMaterialNestedInput;
     bomLines?: Prisma.BomLineUncheckedUpdateManyWithoutMaterialNestedInput;
+    shortages?: Prisma.MaterialShortageUncheckedUpdateManyWithoutMaterialNestedInput;
 };
 export type MaterialUncheckedUpdateManyWithoutUnitInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -666,6 +756,7 @@ export type MaterialUpdateWithoutCategoryInput = {
     unit?: Prisma.UnitUpdateOneRequiredWithoutMaterialsNestedInput;
     lots?: Prisma.MaterialLotUpdateManyWithoutMaterialNestedInput;
     bomLines?: Prisma.BomLineUpdateManyWithoutMaterialNestedInput;
+    shortages?: Prisma.MaterialShortageUpdateManyWithoutMaterialNestedInput;
 };
 export type MaterialUncheckedUpdateWithoutCategoryInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -676,6 +767,7 @@ export type MaterialUncheckedUpdateWithoutCategoryInput = {
     unitId?: Prisma.StringFieldUpdateOperationsInput | string;
     lots?: Prisma.MaterialLotUncheckedUpdateManyWithoutMaterialNestedInput;
     bomLines?: Prisma.BomLineUncheckedUpdateManyWithoutMaterialNestedInput;
+    shortages?: Prisma.MaterialShortageUncheckedUpdateManyWithoutMaterialNestedInput;
 };
 export type MaterialUncheckedUpdateManyWithoutCategoryInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -688,10 +780,12 @@ export type MaterialUncheckedUpdateManyWithoutCategoryInput = {
 export type MaterialCountOutputType = {
     lots: number;
     bomLines: number;
+    shortages: number;
 };
 export type MaterialCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     lots?: boolean | MaterialCountOutputTypeCountLotsArgs;
     bomLines?: boolean | MaterialCountOutputTypeCountBomLinesArgs;
+    shortages?: boolean | MaterialCountOutputTypeCountShortagesArgs;
 };
 export type MaterialCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.MaterialCountOutputTypeSelect<ExtArgs> | null;
@@ -701,6 +795,9 @@ export type MaterialCountOutputTypeCountLotsArgs<ExtArgs extends runtime.Types.E
 };
 export type MaterialCountOutputTypeCountBomLinesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     where?: Prisma.BomLineWhereInput;
+};
+export type MaterialCountOutputTypeCountShortagesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    where?: Prisma.MaterialShortageWhereInput;
 };
 export type MaterialSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
     id?: boolean;
@@ -714,6 +811,7 @@ export type MaterialSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
     category?: boolean | Prisma.CategoryDefaultArgs<ExtArgs>;
     lots?: boolean | Prisma.Material$lotsArgs<ExtArgs>;
     bomLines?: boolean | Prisma.Material$bomLinesArgs<ExtArgs>;
+    shortages?: boolean | Prisma.Material$shortagesArgs<ExtArgs>;
     _count?: boolean | Prisma.MaterialCountOutputTypeDefaultArgs<ExtArgs>;
 }, ExtArgs["result"]["material"]>;
 export type MaterialSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -753,6 +851,7 @@ export type MaterialInclude<ExtArgs extends runtime.Types.Extensions.InternalArg
     category?: boolean | Prisma.CategoryDefaultArgs<ExtArgs>;
     lots?: boolean | Prisma.Material$lotsArgs<ExtArgs>;
     bomLines?: boolean | Prisma.Material$bomLinesArgs<ExtArgs>;
+    shortages?: boolean | Prisma.Material$shortagesArgs<ExtArgs>;
     _count?: boolean | Prisma.MaterialCountOutputTypeDefaultArgs<ExtArgs>;
 };
 export type MaterialIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -770,6 +869,7 @@ export type $MaterialPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
         category: Prisma.$CategoryPayload<ExtArgs>;
         lots: Prisma.$MaterialLotPayload<ExtArgs>[];
         bomLines: Prisma.$BomLinePayload<ExtArgs>[];
+        shortages: Prisma.$MaterialShortagePayload<ExtArgs>[];
     };
     scalars: runtime.Types.Extensions.GetPayloadResult<{
         id: string;
@@ -835,6 +935,7 @@ export interface Prisma__MaterialClient<T, Null = never, ExtArgs extends runtime
     category<T extends Prisma.CategoryDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CategoryDefaultArgs<ExtArgs>>): Prisma.Prisma__CategoryClient<runtime.Types.Result.GetResult<Prisma.$CategoryPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>;
     lots<T extends Prisma.Material$lotsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Material$lotsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MaterialLotPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     bomLines<T extends Prisma.Material$bomLinesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Material$bomLinesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BomLinePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
+    shortages<T extends Prisma.Material$shortagesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Material$shortagesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MaterialShortagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): runtime.Types.Utils.JsPromise<TResult1 | TResult2>;
     catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): runtime.Types.Utils.JsPromise<T | TResult>;
     finally(onfinally?: (() => void) | undefined | null): runtime.Types.Utils.JsPromise<T>;
@@ -969,6 +1070,17 @@ export type Material$bomLinesArgs<ExtArgs extends runtime.Types.Extensions.Inter
     take?: number;
     skip?: number;
     distinct?: Prisma.BomLineScalarFieldEnum | Prisma.BomLineScalarFieldEnum[];
+};
+export type Material$shortagesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    select?: Prisma.MaterialShortageSelect<ExtArgs> | null;
+    omit?: Prisma.MaterialShortageOmit<ExtArgs> | null;
+    include?: Prisma.MaterialShortageInclude<ExtArgs> | null;
+    where?: Prisma.MaterialShortageWhereInput;
+    orderBy?: Prisma.MaterialShortageOrderByWithRelationInput | Prisma.MaterialShortageOrderByWithRelationInput[];
+    cursor?: Prisma.MaterialShortageWhereUniqueInput;
+    take?: number;
+    skip?: number;
+    distinct?: Prisma.MaterialShortageScalarFieldEnum | Prisma.MaterialShortageScalarFieldEnum[];
 };
 export type MaterialDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.MaterialSelect<ExtArgs> | null;

@@ -55,6 +55,14 @@ model Employee {
   performedRuns ProductionRun[] @relation("ProductionRun_performedBy")
   requestedReturns MaterialReturn[] @relation("MaterialReturn_requestedBy")
   reportedWastes Waste[] @relation("Waste_reportedBy")
+  requestedMaterialShortages MaterialShortage[] @relation("ShortageRequester")
+  reviewedMaterialShortages MaterialShortage[] @relation("ShortageReviewer")
+  closedSales Sale[] @relation("SaleCloser")
+  lineChanges SaleLineChange[]
+  sentLines SaleLine[] @relation("LineSender")
+  receivedPayments Payment[] @relation("PaymentReceiver")
+  servings Serving[]
+  replenishments ReplenishmentRequest[]
   createdSales Sale[] @relation("Sale_createdBy")
   requestedExports ProductExport[] @relation("ProductExport_requestedBy")
   accountId String? @unique @db.Uuid

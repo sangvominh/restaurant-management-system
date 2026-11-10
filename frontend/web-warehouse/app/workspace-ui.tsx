@@ -7,7 +7,7 @@ export function NavIcon({ name }: { name: 'stock' | 'kitchen' | 'catalog' | 'rep
 export function DocumentCard({ type, title, status, tone = '', children, footer, onOpen }: { type: string; title: string; status: string; tone?: string; reference?: string; children: ReactNode; footer: ReactNode; onOpen: () => void }) {
   return <article className="document-card"><button className="document-open" onClick={onOpen} title={status} aria-label={`Mở ${type.toLocaleLowerCase('vi')} ${title} · ${status}`} /><span className={`card-corner-status ${tone}`} role="img" aria-label={status} title={status}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{tone === 'done' ? <path d="m5 12 4 4L19 6" /> : tone === 'pending' ? <><circle cx="12" cy="12" r="8" /><path d="M12 7v5l3 2" /></> : tone === 'rejected' ? <path d="m6 6 12 12M6 18 18 6" /> : tone === 'draft' ? <path d="m5 16 10-10 3 3L8 19H5ZM14 7l3 3" /> : tone === 'info' ? <><path d="m9 5 10 7-10 7Z" /></> : <path d="M6 12h12" />}</svg></span><h3>{title}</h3><div className="document-summary">{children}</div><div className="document-footer">{footer}<span aria-hidden="true">Xem chi tiết →</span></div></article>;
 }
-export function Drawer({ title, children, onClose, locked = false }: { title: string; children: ReactNode; onClose: () => void; locked?: boolean }) {
+export function Drawer({ title, children, onClose, locked = false, form = false }: { title: string; children: ReactNode; onClose: () => void; locked?: boolean; form?: boolean }) {
   const heading = useId(), panel = useRef<HTMLElement>(null), closeRef = useRef(onClose), lockedRef = useRef(locked);
   useEffect(() => { closeRef.current = onClose; lockedRef.current = locked; });
   useEffect(() => {
@@ -25,5 +25,8 @@ export function Drawer({ title, children, onClose, locked = false }: { title: st
     document.addEventListener('keydown', key);
     return () => { document.removeEventListener('keydown', key); document.body.style.overflow = overflow; if (previous?.isConnected) previous.focus(); };
   }, []);
-  return <div className="drawer-backdrop" onMouseDown={e => { if (e.target === e.currentTarget && !locked) onClose(); }}><section ref={panel} tabIndex={-1} className="document-drawer" role="dialog" aria-modal="true" aria-labelledby={heading}><div className="drawer-heading"><h2 id={heading}>{title}</h2><button disabled={locked} onClick={onClose} aria-label="Đóng chi tiết">×</button></div><div className="drawer-body">{children}</div></section></div>;
+  return <div className="drawer-backdrop" onClick={e => { if (e.target === e.currentTarget && !locked) onClose(); }}><section ref={panel} tabIndex={-1} className={`document-drawer${form ? ' form-dialog' : ''}`} role="dialog" aria-modal="true" aria-labelledby={heading}><div className="drawer-heading"><h2 id={heading}>{title}</h2></div><div className="drawer-body">{children}</div>{!form && <div className="drawer-close-action"><button type="button" disabled={locked} onClick={onClose}>Hủy</button></div>}</section></div>;
+}
+export function Modal({ title, children, onClose, locked = false }: { title: string; children: ReactNode; onClose: () => void; locked?: boolean }) {
+  return <Drawer title={title} onClose={onClose} locked={locked} form>{children}</Drawer>;
 }

@@ -19,12 +19,21 @@ export declare class StockInsightsService {
             minimum: import("@prisma/client-runtime-utils").Decimal;
             shortage: import("@prisma/client-runtime-utils").Decimal;
             lots: {
+                daysRemaining: number | null;
                 expired: boolean;
                 soon: boolean;
+                cancellations: {
+                    id: string;
+                    documentId: string;
+                    quantity: import("@prisma/client-runtime-utils").Decimal;
+                    at: Date | null;
+                    reason: string;
+                    by: string;
+                }[];
                 id: string;
                 code: string;
                 materialId: string;
-                expiryDate: Date | null;
+                expiryDate: string | null;
                 quantity: Prisma.Decimal;
             }[];
         }[];

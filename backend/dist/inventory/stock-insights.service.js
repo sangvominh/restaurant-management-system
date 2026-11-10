@@ -10,6 +10,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { Prisma } from '../generated/prisma/client.js';
+import { vietnamDay, daysRemaining } from './expiry.js';
 let StockInsightsService = class StockInsightsService {
     db;
     constructor(db) {
@@ -19,18 +20,18 @@ let StockInsightsService = class StockInsightsService {
         if (!['materials', 'products'].includes(kind))
             throw new BadRequestException('Loại kho không hợp lệ');
         const now = new Date();
-        const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
-        const soon = new Date(new Date(today + 'T00:00:00Z').getTime() + 7 * 86400000).toISOString().slice(0, 10);
+        const today = vietnamDay(now);
         return this.db.$transaction(async (tx) => {
             if (kind === 'materials') {
-                const [materials, lots] = await Promise.all([
+                const [materials, lots, cancellations] = await Promise.all([
                     tx.material.findMany({ include: { unit: true, category: true }, orderBy: { code: 'asc' } }),
-                    tx.$queryRaw `SELECT l.id,l.code,l."materialId",l."expiryDate",COALESCE(SUM(
+                    tx.$queryRaw `SELECT l.id,l.code,l."materialId",to_char(l."expiryDate",'YYYY-MM-DD') AS "expiryDate",COALESCE(SUM(
             CASE WHEN m."toSource"='TRONG_KHO' THEN m.quantity ELSE 0 END - CASE WHEN m."fromSource"='TRONG_KHO' THEN m.quantity ELSE 0 END),0) AS quantity
             FROM "MaterialLot" l LEFT JOIN "MaterialMovement" m ON m."lotId"=l.id GROUP BY l.id ORDER BY l."expiryDate" NULLS LAST,l.code`,
+                    tx.wasteLine.findMany({ where: { lotId: { not: null }, sourceType: 'TRONG_KHO', waste: { status: 'APPROVED' } }, include: { waste: { include: { reviewedBy: { select: { name: true } } } } } }),
                 ]);
                 return { asOf: now.toISOString(), rows: materials.map(m => {
-                        const own = lots.filter(l => l.materialId === m.id).map(l => ({ ...l, expired: !!l.expiryDate && l.expiryDate.toISOString().slice(0, 10) < today, soon: !!l.expiryDate && l.expiryDate.toISOString().slice(0, 10) >= today && l.expiryDate.toISOString().slice(0, 10) <= soon }));
+                        const own = lots.filter(l => l.materialId === m.id).map(l => { const days = daysRemaining(l.expiryDate, today); return { ...l, daysRemaining: days, expired: days !== null && days < 0, soon: days !== null && days >= 0 && days <= 7, cancellations: cancellations.filter(c => c.lotId === l.id).map(c => ({ id: c.id, documentId: c.wasteId, quantity: c.quantity, at: c.waste.approvedAt, reason: c.waste.reason, by: c.waste.reviewedBy?.name || '' })) }; });
                         const stock = Prisma.Decimal.sum(0, ...own.map(l => l.quantity));
                         const expired = Prisma.Decimal.sum(0, ...own.filter(l => l.expired && l.quantity.gt(0)).map(l => l.quantity));
                         const expiring = Prisma.Decimal.sum(0, ...own.filter(l => l.soon && l.quantity.gt(0)).map(l => l.quantity));
@@ -41,7 +42,7 @@ let StockInsightsService = class StockInsightsService {
             const [products, moves, lines] = await Promise.all([
                 tx.product.findMany({ include: { unit: true, category: true }, orderBy: { code: 'asc' } }),
                 tx.productMovement.findMany(),
-                tx.saleLine.findMany({ where: { sale: { status: 'CONFIRMED' } }, include: { sale: { select: { code: true } }, exportLines: { include: { export: { select: { status: true } } } } } }),
+                tx.saleLine.findMany({ where: { sentAt: { not: null }, sale: { status: 'CONFIRMED' } }, include: { sale: { select: { code: true } }, exportLines: { include: { export: { select: { status: true } } } } } }),
             ]);
             return { asOf: now.toISOString(), rows: products.map(p => {
                     const stock = moves.filter(m => m.productId === p.id).reduce((q, m) => m.movementType === 'NHAP_SAN_XUAT' ? q.plus(m.quantity) : q.minus(m.quantity), new Prisma.Decimal(0));

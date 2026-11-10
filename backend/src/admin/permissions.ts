@@ -16,6 +16,8 @@ export const PERMISSIONS = [
   { code: 'waste:request', name: 'Báo hao hụt', group: 'Kho' },
   { code: 'waste:approve', name: 'Duyệt hao hụt', group: 'Kho' },
   { code: 'product:manage', name: 'Quản lý thành phẩm và giá bán', group: 'Bán hàng' },
+  { code: 'production:request', name: 'Quyết định yêu cầu chế biến bổ sung', group: 'Bán hàng' },
+  { code: 'sale:prepare', name: 'Bếp nhận và xác nhận ra món', group: 'Bán hàng' },
   { code: 'sale:view', name: 'Xem đơn bán', group: 'Bán hàng' },
   { code: 'sale:create', name: 'Lập đơn bán', group: 'Bán hàng' },
   { code: 'export:request', name: 'Đề nghị xuất thành phẩm', group: 'Bán hàng' },

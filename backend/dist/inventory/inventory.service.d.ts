@@ -38,8 +38,8 @@ export declare class InventoryService {
             } & {
                 id: string;
                 code: string;
-                expiryDate: Date | null;
                 materialId: string;
+                expiryDate: Date | null;
             };
         } & {
             id: string;
@@ -117,8 +117,8 @@ export declare class InventoryService {
             } & {
                 id: string;
                 code: string;
-                expiryDate: Date | null;
                 materialId: string;
+                expiryDate: Date | null;
             };
         } & {
             id: string;
@@ -170,8 +170,8 @@ export declare class InventoryService {
             } & {
                 id: string;
                 code: string;
-                expiryDate: Date | null;
                 materialId: string;
+                expiryDate: Date | null;
             };
         } & {
             id: string;
@@ -193,5 +193,29 @@ export declare class InventoryService {
         message: string;
     }>;
     stock(): Prisma.PrismaPromise<unknown>;
+    setMinimum(materialId: string, input: unknown): Promise<{
+        id: string;
+        minStock: import("@prisma/client-runtime-utils").Decimal;
+    }>;
+    discardLot(lotId: string, input: unknown, user: AdminUser): Promise<{
+        lines: {
+            id: string;
+            productId: string | null;
+            quantity: import("@prisma/client-runtime-utils").Decimal;
+            note: string | null;
+            lotId: string | null;
+            sourceType: string;
+            issueLineId: string | null;
+            wasteId: string;
+        }[];
+    } & {
+        id: string;
+        status: string;
+        reason: string;
+        reportedAt: Date;
+        approvedAt: Date | null;
+        reportedById: string;
+        reviewedById: string | null;
+    }>;
     lots(materialId: string): Promise<unknown>;
 }

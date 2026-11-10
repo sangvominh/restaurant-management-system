@@ -9,7 +9,7 @@ function amount(v: unknown) { if (!['string', 'number'].includes(typeof v) || !/
 export class FinishedService {
   constructor(private readonly db: PrismaService) {}
   list() { return this.db.productExport.findMany({ include, orderBy: { requestedAt: 'desc' } }); }
-  sales() { return this.db.sale.findMany({ where: { status: 'CONFIRMED' }, include: { lines: { include: { product: { include: { unit: true } }, exportLines: { include: { export: true } } } } }, orderBy: { createdAt: 'desc' } }); }
+  sales() { return this.db.sale.findMany({ where: { status: 'CONFIRMED' }, include: { lines: { where: { sentAt: { not: null } }, include: { product: { include: { unit: true } }, exportLines: { include: { export: true } } } } }, orderBy: { createdAt: 'desc' } }); }
   async create(input: unknown, user: AdminUser) {
     if (!input || typeof input !== 'object') throw new BadRequestException('Dữ liệu không hợp lệ');
     const b = input as Record<string, unknown>, saleId = id(b.saleId);
@@ -26,6 +26,7 @@ export class FinishedService {
       if (sale.status !== 'CONFIRMED') throw new ConflictException('Chỉ đề nghị xuất cho đơn bán đã xác nhận, chưa thanh toán');
       for (const l of lines) {
         const sold = sale.lines.find(s => s.id === l.saleLineId);
+        if (sold && !sold.sentAt) throw new ConflictException('Món chưa gửi, không được đề nghị xuất');
         if (!sold) throw new BadRequestException('Dòng xuất không thuộc đơn bán');
         const reserved = Prisma.Decimal.sum(0, ...sold.exportLines.filter(e => ['PENDING', 'APPROVED'].includes(e.export.status)).map(e => e.export.status === 'APPROVED' ? e.exportedQuantity || 0 : e.requestedQuantity));
         if (reserved.plus(l.requestedQuantity).gt(sold.quantity)) throw new BadRequestException('Số lượng xuất và chờ xuất vượt số lượng đơn bán');

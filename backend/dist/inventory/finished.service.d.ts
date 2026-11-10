@@ -10,7 +10,11 @@ export declare class FinishedService {
             status: string;
             createdAt: Date;
             code: string;
+            version: number;
             createdById: string;
+            closedAt: Date | null;
+            closedById: string | null;
+            tableId: string | null;
         };
         lines: ({
             saleLine: {
@@ -33,26 +37,21 @@ export declare class FinishedService {
                 id: string;
                 productId: string;
                 quantity: import("@prisma/client-runtime-utils").Decimal;
+                note: string;
                 unitPrice: import("@prisma/client-runtime-utils").Decimal;
-                saleId: string;
+                sentById: string | null;
+                sentAt: Date | null;
+                batch: number | null;
                 productName: string;
+                saleId: string;
             };
         } & {
             id: string;
-            saleLineId: string;
             requestedQuantity: import("@prisma/client-runtime-utils").Decimal;
             exportedQuantity: import("@prisma/client-runtime-utils").Decimal | null;
             exportId: string;
+            saleLineId: string;
         })[];
-        requestedBy: {
-            id: string;
-            status: string;
-            name: string;
-            code: string;
-            phone: string | null;
-            email: string | null;
-            accountId: string | null;
-        };
         reviewedBy: {
             id: string;
             status: string;
@@ -62,15 +61,24 @@ export declare class FinishedService {
             email: string | null;
             accountId: string | null;
         } | null;
+        requestedBy: {
+            id: string;
+            status: string;
+            name: string;
+            code: string;
+            phone: string | null;
+            email: string | null;
+            accountId: string | null;
+        };
     } & {
         id: string;
         status: string;
-        requestedAt: Date;
-        approvedAt: Date | null;
         reason: string | null;
-        saleId: string;
-        requestedById: string;
+        approvedAt: Date | null;
         reviewedById: string | null;
+        saleId: string;
+        requestedAt: Date;
+        requestedById: string;
     })[]>;
     sales(): Prisma.PrismaPromise<({
         lines: ({
@@ -93,34 +101,42 @@ export declare class FinishedService {
                 export: {
                     id: string;
                     status: string;
-                    requestedAt: Date;
-                    approvedAt: Date | null;
                     reason: string | null;
-                    saleId: string;
-                    requestedById: string;
+                    approvedAt: Date | null;
                     reviewedById: string | null;
+                    saleId: string;
+                    requestedAt: Date;
+                    requestedById: string;
                 };
             } & {
                 id: string;
-                saleLineId: string;
                 requestedQuantity: import("@prisma/client-runtime-utils").Decimal;
                 exportedQuantity: import("@prisma/client-runtime-utils").Decimal | null;
                 exportId: string;
+                saleLineId: string;
             })[];
         } & {
             id: string;
             productId: string;
             quantity: import("@prisma/client-runtime-utils").Decimal;
+            note: string;
             unitPrice: import("@prisma/client-runtime-utils").Decimal;
-            saleId: string;
+            sentById: string | null;
+            sentAt: Date | null;
+            batch: number | null;
             productName: string;
+            saleId: string;
         })[];
     } & {
         id: string;
         status: string;
         createdAt: Date;
         code: string;
+        version: number;
         createdById: string;
+        closedAt: Date | null;
+        closedById: string | null;
+        tableId: string | null;
     })[]>;
     create(input: unknown, user: AdminUser): Promise<{
         sale: {
@@ -128,7 +144,11 @@ export declare class FinishedService {
             status: string;
             createdAt: Date;
             code: string;
+            version: number;
             createdById: string;
+            closedAt: Date | null;
+            closedById: string | null;
+            tableId: string | null;
         };
         lines: ({
             saleLine: {
@@ -151,26 +171,21 @@ export declare class FinishedService {
                 id: string;
                 productId: string;
                 quantity: import("@prisma/client-runtime-utils").Decimal;
+                note: string;
                 unitPrice: import("@prisma/client-runtime-utils").Decimal;
-                saleId: string;
+                sentById: string | null;
+                sentAt: Date | null;
+                batch: number | null;
                 productName: string;
+                saleId: string;
             };
         } & {
             id: string;
-            saleLineId: string;
             requestedQuantity: import("@prisma/client-runtime-utils").Decimal;
             exportedQuantity: import("@prisma/client-runtime-utils").Decimal | null;
             exportId: string;
+            saleLineId: string;
         })[];
-        requestedBy: {
-            id: string;
-            status: string;
-            name: string;
-            code: string;
-            phone: string | null;
-            email: string | null;
-            accountId: string | null;
-        };
         reviewedBy: {
             id: string;
             status: string;
@@ -180,15 +195,24 @@ export declare class FinishedService {
             email: string | null;
             accountId: string | null;
         } | null;
+        requestedBy: {
+            id: string;
+            status: string;
+            name: string;
+            code: string;
+            phone: string | null;
+            email: string | null;
+            accountId: string | null;
+        };
     } & {
         id: string;
         status: string;
-        requestedAt: Date;
-        approvedAt: Date | null;
         reason: string | null;
-        saleId: string;
-        requestedById: string;
+        approvedAt: Date | null;
         reviewedById: string | null;
+        saleId: string;
+        requestedAt: Date;
+        requestedById: string;
     }>;
     review(exportId: string, approve: boolean, user: AdminUser): Promise<{
         sale: {
@@ -196,7 +220,11 @@ export declare class FinishedService {
             status: string;
             createdAt: Date;
             code: string;
+            version: number;
             createdById: string;
+            closedAt: Date | null;
+            closedById: string | null;
+            tableId: string | null;
         };
         lines: ({
             saleLine: {
@@ -219,26 +247,21 @@ export declare class FinishedService {
                 id: string;
                 productId: string;
                 quantity: import("@prisma/client-runtime-utils").Decimal;
+                note: string;
                 unitPrice: import("@prisma/client-runtime-utils").Decimal;
-                saleId: string;
+                sentById: string | null;
+                sentAt: Date | null;
+                batch: number | null;
                 productName: string;
+                saleId: string;
             };
         } & {
             id: string;
-            saleLineId: string;
             requestedQuantity: import("@prisma/client-runtime-utils").Decimal;
             exportedQuantity: import("@prisma/client-runtime-utils").Decimal | null;
             exportId: string;
+            saleLineId: string;
         })[];
-        requestedBy: {
-            id: string;
-            status: string;
-            name: string;
-            code: string;
-            phone: string | null;
-            email: string | null;
-            accountId: string | null;
-        };
         reviewedBy: {
             id: string;
             status: string;
@@ -248,15 +271,24 @@ export declare class FinishedService {
             email: string | null;
             accountId: string | null;
         } | null;
+        requestedBy: {
+            id: string;
+            status: string;
+            name: string;
+            code: string;
+            phone: string | null;
+            email: string | null;
+            accountId: string | null;
+        };
     } & {
         id: string;
         status: string;
-        requestedAt: Date;
-        approvedAt: Date | null;
         reason: string | null;
-        saleId: string;
-        requestedById: string;
+        approvedAt: Date | null;
         reviewedById: string | null;
+        saleId: string;
+        requestedAt: Date;
+        requestedById: string;
     }>;
     report(kind: string, start?: string, end?: string): Promise<{
         id: string;

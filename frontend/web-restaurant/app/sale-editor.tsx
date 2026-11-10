@@ -1,14 +1,84 @@
 'use client';
-import { useState, type FormEvent } from 'react';
-import { api, money, type Product, type Sale } from './sales-api';
-export default function SaleEditor({ sale, products, close, saved }: { sale: Sale | null; products: Product[]; close: () => void; saved: () => Promise<void> }) {
-  const [code, setCode] = useState(sale?.code || ''), [lines, setLines] = useState(sale?.lines.map(l => ({ productId: l.productId, quantity: l.quantity })) || [{ productId: '', quantity: '1' }]);
-  const [busy, setBusy] = useState(false), [error, setError] = useState('');
-  const price = (id: string) => sale?.lines.find(l => l.productId === id)?.unitPrice ?? products.find(p => p.id === id)?.sellingPrice ?? '0';
-  const options = [...products, ...(sale?.lines.filter(l => !products.some(p => p.id === l.productId)).map(l => ({ id: l.productId, code: '', name: `${l.productName} (ngừng bán)`, sellingPrice: l.unitPrice, stock: '0', unit: l.product.unit, category: { name: '' } })) || [])];
-  async function submit(e: FormEvent) {
-    e.preventDefault(); setBusy(true); setError('');
-    try { await api(sale ? `sales/${sale.id}` : 'sales', sale ? 'PUT' : 'POST', { code, lines }); await saved(); close(); } catch (e) { setError(e instanceof Error ? e.message : 'Không lưu được'); } finally { setBusy(false); }
+import { useEffect, useState } from 'react';
+import { api, money, fmt, dispatched, can, type User, type Product, type Sale, type DiningTable } from './sales-api';
+import ServiceProgress from './service-progress';
+import { DocumentTools } from './document-print';
+import { Drawer } from './document-ui';
+type Line = { id?: string; productId: string; quantity: string; note: string };
+export default function SaleEditor({ sale, products, close, saved, tables, initialTableId = '', user }: { sale: Sale | null; products: Product[]; close: () => void; saved: () => Promise<void>; tables: DiningTable[]; initialTableId?: string; user: User }) {
+  const [current, setCurrent] = useState(sale), [tableId, setTableId] = useState(sale?.tableId || initialTableId);
+  const [lines, setLines] = useState<Line[]>(sale?.lines.filter(l => !l.sentAt).map(l => ({ id: l.id, productId: l.productId, quantity: l.quantity, note: l.note })) || []);
+  const [view, setView] = useState<'order' | 'bill'>('order'), [method, setMethod] = useState('CASH');
+  const [search, setSearch] = useState(''), [category, setCategory] = useState(''), [busy, setBusy] = useState(false), [error, setError] = useState('');
+  const [stockProducts, setStockProducts] = useState(products);
+  useEffect(() => {
+    let active = true;
+    async function refresh() {
+      try {
+        const [ps, orders] = await Promise.all([api<Product[]>('products'), current?.id ? api<Sale[]>('sales') : Promise.resolve([])]);
+        if (!active) return; setStockProducts(ps);
+        const fresh = orders.find(s => s.id === current?.id);
+        if (fresh) setCurrent(prev => prev && fresh.version >= prev.version && JSON.stringify(prev.lines.filter(l => !l.sentAt)) === JSON.stringify(fresh.lines.filter(l => !l.sentAt)) ? fresh : prev);
+      } catch { if (active) setError('Không cập nhật được tồn và tiến độ. Mở lại bàn để cập nhật trước khi thao tác.'); }
+    }
+    void refresh(); const timer = window.setInterval(() => void refresh(), 15000);
+    return () => { active = false; window.clearInterval(timer); };
+  }, [current?.id]);
+  const sent = current?.lines.filter(l => l.sentAt) || [];
+  const price = (l: Line) => l.id ? current?.lines.find(x => x.id === l.id)?.unitPrice || '0' : products.find(p => p.id === l.productId)?.sellingPrice || '0';
+  const product = (id: string) => products.find(p => p.id === id);
+  const total = sent.reduce((v, l) => v + Number(l.quantity) * Number(l.unitPrice), 0) + lines.reduce((v, l) => v + Number(l.quantity) * Number(price(l)), 0);
+  function add(p: Product) {
+    const index = lines.findIndex(l => l.productId === p.id && !l.note);
+    if (index >= 0) setLines(lines.map((l, i) => i === index ? { ...l, quantity: String(Number(l.quantity) + 1) } : l));
+    else if (lines.length < 100) setLines([...lines, { productId: p.id, quantity: '1', note: '' }]);
   }
-  return <div className="overlay editor-screen"><section className="dialog" role="dialog" aria-modal="true" aria-labelledby="sale-editor"><div className="toolbar"><h2 id="sale-editor">{sale ? 'Sửa đơn nháp' : 'Tạo đơn bán'}</h2><button disabled={busy} onClick={close} aria-label="Đóng">×</button></div><form onSubmit={submit}><fieldset disabled={busy}><label>Mã đơn<input required maxLength={50} value={code} onChange={e => setCode(e.target.value)} placeholder="VD: DB-001" /></label>{lines.map((l, i) => <div className="line" key={i}><div className="entry-line-heading"><strong>Thành phẩm {i + 1}</strong><button className="remove-line" type="button" disabled={lines.length === 1} aria-label={`Xóa thành phẩm ${i + 1}`} onClick={() => setLines(lines.filter((_, j) => j !== i))}><span aria-hidden="true">×</span> Xóa dòng</button></div><label>Thành phẩm<select required value={l.productId} onChange={e => setLines(lines.map((x, j) => j === i ? { ...x, productId: e.target.value } : x))}><option value="">Chọn…</option>{options.map(p => <option key={p.id} value={p.id}>{p.code} · {p.name} ({p.unit.symbol})</option>)}</select></label><label>Số lượng<input required type="number" min="0.001" step="0.001" value={l.quantity} onChange={e => setLines(lines.map((x, j) => j === i ? { ...x, quantity: e.target.value } : x))} /></label><p>Đơn giá: {money(price(l.productId))} · Thành tiền dự kiến: {money(Number(price(l.productId)) * Number(l.quantity))}</p></div>)}<button className="add-line" type="button" disabled={lines.length >= 100} onClick={() => setLines([...lines, { productId: '', quantity: '1' }])}>+ Thêm thành phẩm</button><p className="hint">Giá lấy từ danh mục khi thêm thành phẩm vào đơn. Dòng đã lưu giữ nguyên giá; tổng tiền chính thức do backend tính.</p>{error && <p className="error" role="alert">{error}</p>}<div className="actions"><button type="button" onClick={close}>Đóng</button><button className="primary">{busy ? 'Đang lưu…' : 'Lưu nháp'}</button></div></fieldset></form></section></div>;
+  function change(i: number, patch: Partial<Line>) { setLines(lines.map((l, j) => i === j ? { ...l, ...patch } : l)); }
+  async function submit(send: boolean) {
+    if (lines.some(l => !Number.isFinite(Number(l.quantity)) || Number(l.quantity) <= 0)) { setError('Số lượng món phải lớn hơn 0'); return; }
+    if (send) {
+      const shortages = [...new Set(lines.map(l => l.productId))].filter(id => lines.filter(l => l.productId === id).reduce((sum,l) => sum + Number(l.quantity),0) > Number(stockProducts.find(p => p.id === id)?.available || 0));
+      if (shortages.length && !window.confirm('Có món vượt lượng sẵn: ' + shortages.map(id => product(id)?.name || id).join(', ') + '. Gửi đơn ở trạng thái chờ đáp ứng? Quản lý cần quyết định yêu cầu bổ sung.')) return;
+    }
+    setBusy(true); setError('');
+    try {
+      const result = await api<Sale>(current ? `sales/${current.id}` : 'sales', current ? 'PUT' : 'POST', { tableId: tableId || null, version: current?.version, lines });
+      // Preserve the saved ID/version if sending fails; a retry must not create another order.
+      setCurrent(result);
+      setLines(result.lines.filter(l => !l.sentAt).map(l => ({ id: l.id, productId: l.productId, quantity: l.quantity, note: l.note })));
+      if (send) { const sentOrder = await api<Sale>(`sales/${result.id}/send`, 'POST', { version: result.version }); setCurrent(sentOrder); setLines([]); }
+      setStockProducts(await api<Product[]>('products'));
+      await saved();
+    } catch (e) { setError(e instanceof Error ? e.message : 'Không lưu được đơn'); }
+    finally { setBusy(false); }
+  }
+  async function serviceAction(action: 'serve' | 'replenish', lineId: string, quantity: string) {
+    if (!current || !window.confirm(action === 'serve' ? 'Xác nhận đã mang '+fmt(quantity)+' đến khách?' : 'Yêu cầu chế biến bổ sung '+fmt(quantity)+'?')) return;
+    setBusy(true); setError('');
+    try { const result = await api<Sale>(`sales/${current.id}/${action}`, 'POST', { lineId, quantity, version: current.version }); setCurrent(result); setStockProducts(await api<Product[]>('products')); await saved(); }
+    catch(e) { setError(e instanceof Error ? e.message : 'Không thực hiện được'); } finally { setBusy(false); }
+  }
+  async function changeLine(body: { lineId: string; quantity: string; reason: string; productId?: string; replacementQuantity?: string }) {
+    if (!current) return false;
+    const original = current.lines.filter(l=>!l.sentAt).map(l=>({id:l.id,productId:l.productId,quantity:l.quantity,note:l.note}));
+    if (JSON.stringify(original)!==JSON.stringify(lines)) {setError('Lưu hoặc gửi món mới trước khi đổi/hủy món cũ');return false;}
+    setBusy(true);setError('');
+    try { const next = await api<Sale>(`sales/${current.id}/change-line`,'POST',{...body,version:current.version});setCurrent(next);setStockProducts(await api<Product[]>('products'));await saved();return true; }
+    catch(e){setError(e instanceof Error?e.message:'Không đổi/hủy được');return false;}finally{setBusy(false);}
+  }
+  async function closeEmpty() {
+    if (!current || !window.confirm('Đóng đơn không còn món tính tiền?')) return;
+    setBusy(true);setError('');
+    try{await api(`sales/${current.id}/cancel`,'POST',{reason:'Đơn đã hủy hết món',version:current.version});await saved();close();}catch(e){setError(e instanceof Error?e.message:'Không đóng được');}finally{setBusy(false);}
+  }
+  async function pay() {
+    if (!current || !window.confirm('Đã đối chiếu với khách: món trên hóa đơn đúng thực tế, món không phục vụ đã đổi/hủy, và đã thu đủ ' + money(current.total) + '?')) return;
+    setBusy(true); setError('');
+    try { await api(`sales/${current.id}/pay`, 'POST', { method, version:current.version }); await saved(); close(); }
+    catch (e) { setError(e instanceof Error ? e.message : 'Không thanh toán được'); } finally { setBusy(false); }
+  }
+  const payable = !!current && !current.payment && current.status === 'CONFIRMED' && Number(current.total)>0 && !current.lines.some(l => !l.sentAt) && !current.exports.some(e => e.status === 'PENDING');
+  const shown = stockProducts.filter(p => (!category || p.category.name === category) && (p.name + ' ' + p.code).toLocaleLowerCase('vi').includes(search.toLocaleLowerCase('vi')));
+  return <Drawer title={current?.table?.name || tables.find(t => t.id === tableId)?.name || 'Đơn mang đi'} onClose={close} locked={busy}><div className="pos-mode"><button disabled={busy} className={view === 'order' ? 'active' : ''} onClick={() => setView('order')}>Gọi món</button><button disabled={busy} className={view === 'bill' ? 'active' : ''} onClick={() => setView('bill')}>Tính tiền</button></div>{view === 'bill' ? <div className="pos-bill">{error && <p className="error" role="alert">{error}</p>}{!current ? <p>Lưu tạm hoặc gửi món để tạo đơn trước khi xem hóa đơn.</p> : <><h3>Hóa đơn {current.table?.name || 'mang đi'}</h3><div className="table-wrap"><table><thead><tr><th>Món</th><th>SL</th><th>Thành tiền</th></tr></thead><tbody>{current.lines.filter(l=>Number(l.quantity)>0).map(l => <tr key={l.id}><td>{l.productName}<small>{l.sentAt ? 'Đã gửi' : 'Chưa gửi'}</small></td><td>{fmt(l.quantity)}</td><td>{money(Number(l.quantity) * Number(l.unitPrice))}</td></tr>)}</tbody></table></div><p className="total">Tổng: {money(current.total)}</p><DocumentTools document={{ title: current.payment ? 'Hóa đơn bán hàng' : 'Phiếu tạm tính', reference: current.id, status: current.payment ? 'Đã thanh toán' : 'Chưa thanh toán', fields: [['Mã đơn', current.code], ['Bàn', current.table?.name || 'Mang đi']], columns: ['Món', 'SL', 'Đơn giá', 'Thành tiền'], rows: current.lines.filter(l=>Number(l.quantity)>0).map(l => [l.productName, fmt(l.quantity), money(l.unitPrice), money(Number(l.quantity) * Number(l.unitPrice))]), totals: [['Tổng tiền', money(current.total)]], signatures: [], note: 'Chứng từ nội bộ.' }} />{JSON.stringify(lines) !== JSON.stringify(current.lines.filter(l => !l.sentAt).map(l => ({ id: l.id, productId: l.productId, quantity: l.quantity, note: l.note }))) && <p className="hint">Có thay đổi chưa lưu. Hóa đơn chỉ hiển thị dữ liệu đã lưu; quay lại Gọi món để lưu hoặc gửi.</p>}{current.payment ? <p className="hint">Đã thanh toán {money(current.payment.amount)}</p> : <><p className="hint">{payable ? 'Đối chiếu món với khách trước khi xác nhận thu tiền.' : 'Xử lý món chưa gửi hoặc phiếu xuất cũ đang chờ trước khi đóng đơn.'}</p>{current.lines.every(l=>Number(l.quantity)===0) && can(user,'sale:create') && <button disabled={busy} onClick={()=>void closeEmpty()}>Đóng đơn không tính tiền</button>}{can(user, 'payment:create') && <><label>Phương thức<select disabled={busy} value={method} onChange={e => setMethod(e.target.value)}><option value="CASH">Tiền mặt</option><option value="TRANSFER">Chuyển khoản</option></select></label><button className="primary" disabled={busy || !payable || JSON.stringify(lines) !== JSON.stringify(current.lines.filter(l => !l.sentAt).map(l => ({ id: l.id, productId: l.productId, quantity: l.quantity, note: l.note })))} onClick={() => void pay()}>Thu tiền / Đóng bàn</button></>}</>}</>}</div> : <div className="pos-workspace"><section className="pos-menu" aria-label="Thực đơn"><input autoComplete="off" aria-label="Tìm món" placeholder="Tìm món theo tên hoặc mã…" value={search} onChange={e => setSearch(e.target.value)} /><div className="pos-categories" aria-label="Nhóm món"><button className={!category ? 'is-active' : ''} onClick={() => setCategory('')}>Tất cả</button>{[...new Set(products.map(p => p.category.name))].map(c => <button className={category === c ? 'is-active' : ''} key={c} onClick={() => setCategory(c)}>{c}</button>)}</div><div className="pos-menu-grid">{shown.map(p => <button disabled={busy || lines.length >= 100 && !lines.some(l => l.productId === p.id && !l.note)} key={p.id} onClick={() => add(p)} className="pos-menu-item"><strong>{p.name}</strong><span>{money(p.sellingPrice)}</span><small className={Number(p.available) <= 0 ? 'menu-out' : 'menu-ready'}>{Number(p.available) > 0 ? `Sẵn ${fmt(p.available)} ${p.unit.symbol}` : 'Cần chờ bổ sung'}</small></button>)}</div>{!shown.length && <p className="empty">Không tìm thấy món.</p>}</section><section className="pos-ticket" aria-label="Đơn hiện tại"><div className="pos-ticket-context">{current || initialTableId ? null : <label>Phục vụ tại<select disabled={busy} value={tableId} onChange={e => setTableId(e.target.value)}><option value="">Mang đi</option>{tables.filter(t => t.status === 'ACTIVE').map(t => <option value={t.id} key={t.id}>{t.area ? t.area + ' · ' : ''}{t.name}</option>)}</select></label>}</div><div className="pos-ticket-lines">{current && <ServiceProgress sale={current} products={stockProducts} user={user} busy={busy} act={serviceAction} change={changeLine} />}{lines.length > 0 && <h3>Món mới <span>· {lines.length}</span></h3>}{!lines.length && !sent.length && <p className="pos-empty">Bấm món bên trái để thêm vào đơn.</p>}{lines.map((l, i) => <div className="pos-ticket-item" key={l.id || i}><div className="pos-item-heading"><strong>{product(l.productId)?.name || current?.lines.find(x => x.id === l.id)?.productName}</strong><button disabled={busy} aria-label={`Bỏ ${product(l.productId)?.name || 'món'}`} className="pos-remove" onClick={() => setLines(lines.filter((_, j) => j !== i))}>×</button></div><div className="pos-item-quantity"><button disabled={busy || Number(l.quantity) <= 1} aria-label="Giảm số lượng" onClick={() => change(i, { quantity: String(Number(l.quantity) - 1) })}>−</button><input aria-label={`Số lượng ${product(l.productId)?.name || 'món'}`} disabled={busy} type="number" min="0.001" step="0.001" value={l.quantity} onChange={e => change(i, { quantity: e.target.value })} /><button disabled={busy} aria-label="Tăng số lượng" onClick={() => change(i, { quantity: String(Number(l.quantity) + 1) })}>+</button><strong>{money(Number(l.quantity || 0) * Number(price(l)))}</strong></div><details className="pos-line-note"><summary>{l.note || 'Thêm ghi chú'}</summary><input disabled={busy} aria-label="Ghi chú món" className="pos-note" maxLength={500} placeholder="Ghi chú: không cay, ít muối…" value={l.note} onChange={e => change(i, { note: e.target.value })} /></details></div>)}</div><div className="pos-ticket-footer">{error && <p className="error" role="alert">{error}</p>}<div className="pos-total"><span>Tổng tiền</span><strong>{money(total)}</strong></div><div className="pos-submit"><button disabled={busy || !lines.length && !sent.length} onClick={() => void submit(false)}>Lưu tạm</button><button disabled={busy || !lines.length} className="primary" onClick={() => void submit(true)}>{busy ? 'Đang xử lý…' : 'Gửi bếp'}</button></div></div></section></div>}</Drawer>;
 }
+

@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service.js';
 import { Prisma } from '../generated/prisma/client.js';
 import type { AdminUser } from '../admin/admin-auth.service.js';
 import { randomBytes } from 'node:crypto';
+import { vietnamDay } from './expiry.js';
 const include = { supplier: true, createdBy: { select: { id: true, name: true, accountId: true } }, lines: { include: { lot: { include: { material: { include: { unit: true } } } } } } } as const;
 function text(value: unknown, name: string, max = 200) {
   if (typeof value !== 'string' || !value.trim() || value.trim().length > max) throw new BadRequestException(`${name} không hợp lệ`);
@@ -30,7 +31,7 @@ function expiry(value: unknown) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(input) || Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== input) throw new BadRequestException('Hạn sử dụng không hợp lệ');
   return date;
 }
-function today() { return new Date(new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()) + 'T00:00:00.000Z'); }
+function today() { return new Date(vietnamDay() + 'T00:00:00.000Z'); }
 function generatedCode(prefix: string) { return `${prefix}-${today().toISOString().slice(0, 10).replaceAll('-', '')}-${randomBytes(6).toString('hex').toUpperCase()}`; }
 @Injectable()
 export class InventoryService {
@@ -124,6 +125,24 @@ export class InventoryService {
       COALESCE(SUM(CASE WHEN mm."toSource"='TRONG_KHO' THEN mm.quantity ELSE 0 END - CASE WHEN mm."fromSource"='TRONG_KHO' THEN mm.quantity ELSE 0 END),0) AS quantity
       FROM "Material" m JOIN "Unit" u ON u.id=m."unitId" LEFT JOIN "MaterialLot" l ON l."materialId"=m.id
       LEFT JOIN "MaterialMovement" mm ON mm."lotId"=l.id GROUP BY m.id,u.name,u.symbol ORDER BY m.code`;
+  }
+  async setMinimum(materialId: string, input: unknown) {
+    const b = object(input);
+    return this.db.material.update({ where: { id: id(materialId) }, data: { minStock: number(b.minStock, 'Tồn tối thiểu', 3, true) }, select: { id: true, minStock: true } });
+  }
+  async discardLot(lotId: string, input: unknown, user: AdminUser) {
+    const b = object(input), reason = text(b.reason, 'Lý do hủy', 1000), quantity = number(b.quantity, 'Số lượng hủy', 3);
+    return this.db.$transaction(async tx => {
+      await tx.$queryRaw`SELECT pg_advisory_xact_lock(8112027)::text`;
+      const employee = await tx.employee.findUnique({ where: { accountId: user.id } });
+      if (!employee || employee.status !== 'ACTIVE') throw new ForbiddenException('Cần hồ sơ người sử dụng đang hoạt động');
+      const lot = await tx.materialLot.findUniqueOrThrow({ where: { id: id(lotId) }, include: { movements: true } });
+      const stock = lot.movements.reduce((q, m) => q.plus(m.toSource === 'TRONG_KHO' ? m.quantity : 0).minus(m.fromSource === 'TRONG_KHO' ? m.quantity : 0), new Prisma.Decimal(0));
+      if (quantity.gt(stock)) throw new ConflictException('Số lượng hủy vượt tồn trong kho');
+      const waste = await tx.waste.create({ data: { reason, status: 'APPROVED', approvedAt: new Date(), reportedById: employee.id, reviewedById: employee.id, lines: { create: { sourceType: 'TRONG_KHO', lotId: lot.id, quantity } } }, include: { lines: true } });
+      await tx.materialMovement.create({ data: { lotId: lot.id, quantity, fromSource: 'TRONG_KHO', toSource: 'DA_HUY', wasteLineId: waste.lines[0].id } });
+      return waste;
+    });
   }
   async lots(materialId: string) {
     await this.db.material.findUniqueOrThrow({ where: { id: id(materialId) } });

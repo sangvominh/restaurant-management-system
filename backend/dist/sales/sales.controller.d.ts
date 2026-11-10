@@ -27,8 +27,159 @@ export declare class SalesController {
     private readonly service;
     private readonly finished;
     constructor(service: SalesService, finished: FinishedService);
+    ready(id: string, b: unknown, r: R): Promise<{
+        total: import("@prisma/client-runtime-utils").Decimal;
+        payment: {
+            id: string;
+            status: string;
+            saleId: string;
+            amount: import("@prisma/client-runtime-utils").Decimal;
+            receivedById: string | null;
+            method: string;
+            paidAt: Date | null;
+        } | null;
+        createdBy: {
+            id: string;
+            name: string;
+        };
+        lines: ({
+            product: {
+                unit: {
+                    symbol: string;
+                    id: string;
+                    name: string;
+                };
+            } & {
+                id: string;
+                status: string;
+                name: string;
+                code: string;
+                unitId: string;
+                categoryId: string;
+                sellingPrice: import("@prisma/client-runtime-utils").Decimal;
+            };
+            servings: ({
+                servedBy: {
+                    name: string;
+                };
+            } & {
+                id: string;
+                quantity: import("@prisma/client-runtime-utils").Decimal;
+                saleLineId: string;
+                servedAt: Date;
+                servedById: string;
+            })[];
+            replenishments: ({
+                productionOrder: {
+                    id: string;
+                    status: string;
+                } | null;
+            } & {
+                id: string;
+                status: string;
+                quantity: import("@prisma/client-runtime-utils").Decimal;
+                note: string;
+                requestedAt: Date;
+                requestedById: string;
+                saleLineId: string;
+                productionOrderId: string | null;
+            })[];
+            changes: ({
+                changedBy: {
+                    name: string;
+                };
+            } & {
+                id: string;
+                quantity: import("@prisma/client-runtime-utils").Decimal;
+                reason: string;
+                saleLineId: string;
+                changedAt: Date;
+                previousQuantity: import("@prisma/client-runtime-utils").Decimal;
+                replacementLineId: string | null;
+                changedById: string;
+            })[];
+        } & {
+            id: string;
+            productId: string;
+            quantity: import("@prisma/client-runtime-utils").Decimal;
+            note: string;
+            unitPrice: import("@prisma/client-runtime-utils").Decimal;
+            sentById: string | null;
+            sentAt: Date | null;
+            batch: number | null;
+            productName: string;
+            saleId: string;
+        })[];
+        table: {
+            id: string;
+            status: string;
+            name: string;
+            area: string;
+            x: number;
+            y: number;
+        } | null;
+        exports: ({
+            lines: {
+                id: string;
+                requestedQuantity: import("@prisma/client-runtime-utils").Decimal;
+                exportedQuantity: import("@prisma/client-runtime-utils").Decimal | null;
+                exportId: string;
+                saleLineId: string;
+            }[];
+            reviewedBy: {
+                name: string;
+            } | null;
+            requestedBy: {
+                name: string;
+            };
+        } & {
+            id: string;
+            status: string;
+            reason: string | null;
+            approvedAt: Date | null;
+            reviewedById: string | null;
+            saleId: string;
+            requestedAt: Date;
+            requestedById: string;
+        })[];
+        id: string;
+        status: string;
+        createdAt: Date;
+        code: string;
+        version: number;
+        createdById: string;
+        closedAt: Date | null;
+        closedById: string | null;
+        tableId: string | null;
+    }>;
+    updateArea(name: string, b: unknown, r: R): Promise<{
+        name: string;
+        rows: number;
+        columns: number;
+        color: string;
+    }>;
+    deleteArea(name: string, r: R): Promise<{
+        name: string;
+        rows: number;
+        columns: number;
+        color: string;
+    }>;
+    deleteTable(id: string, r: R): Promise<{
+        id: string;
+        status: string;
+        name: string;
+        area: string;
+        x: number;
+        y: number;
+    }>;
     products(r: R): Promise<{
         stock: import("@prisma/client-runtime-utils").Decimal;
+        available: import("@prisma/client-runtime-utils").Decimal;
+        allocations: {
+            lineId: string;
+            ready: import("@prisma/client-runtime-utils").Decimal;
+            missing: import("@prisma/client-runtime-utils").Decimal;
+        }[];
         unit: {
             symbol: string;
             id: string;
@@ -47,13 +198,14 @@ export declare class SalesController {
         categoryId: string;
         sellingPrice: import("@prisma/client-runtime-utils").Decimal;
     }[]>;
-    list(r: R): Promise<{
+    changeLine(id: string, b: unknown, r: R): Promise<{
         total: import("@prisma/client-runtime-utils").Decimal;
         payment: {
             id: string;
             status: string;
             saleId: string;
             amount: import("@prisma/client-runtime-utils").Decimal;
+            receivedById: string | null;
             method: string;
             paidAt: Date | null;
         } | null;
@@ -77,43 +229,635 @@ export declare class SalesController {
                 categoryId: string;
                 sellingPrice: import("@prisma/client-runtime-utils").Decimal;
             };
+            servings: ({
+                servedBy: {
+                    name: string;
+                };
+            } & {
+                id: string;
+                quantity: import("@prisma/client-runtime-utils").Decimal;
+                saleLineId: string;
+                servedAt: Date;
+                servedById: string;
+            })[];
+            replenishments: ({
+                productionOrder: {
+                    id: string;
+                    status: string;
+                } | null;
+            } & {
+                id: string;
+                status: string;
+                quantity: import("@prisma/client-runtime-utils").Decimal;
+                note: string;
+                requestedAt: Date;
+                requestedById: string;
+                saleLineId: string;
+                productionOrderId: string | null;
+            })[];
+            changes: ({
+                changedBy: {
+                    name: string;
+                };
+            } & {
+                id: string;
+                quantity: import("@prisma/client-runtime-utils").Decimal;
+                reason: string;
+                saleLineId: string;
+                changedAt: Date;
+                previousQuantity: import("@prisma/client-runtime-utils").Decimal;
+                replacementLineId: string | null;
+                changedById: string;
+            })[];
         } & {
             id: string;
             productId: string;
             quantity: import("@prisma/client-runtime-utils").Decimal;
+            note: string;
             unitPrice: import("@prisma/client-runtime-utils").Decimal;
-            saleId: string;
+            sentById: string | null;
+            sentAt: Date | null;
+            batch: number | null;
             productName: string;
+            saleId: string;
         })[];
+        table: {
+            id: string;
+            status: string;
+            name: string;
+            area: string;
+            x: number;
+            y: number;
+        } | null;
         exports: ({
             lines: {
                 id: string;
-                saleLineId: string;
                 requestedQuantity: import("@prisma/client-runtime-utils").Decimal;
                 exportedQuantity: import("@prisma/client-runtime-utils").Decimal | null;
                 exportId: string;
+                saleLineId: string;
             }[];
-            requestedBy: {
-                name: string;
-            };
             reviewedBy: {
                 name: string;
             } | null;
+            requestedBy: {
+                name: string;
+            };
         } & {
             id: string;
             status: string;
-            requestedAt: Date;
-            approvedAt: Date | null;
             reason: string | null;
-            saleId: string;
-            requestedById: string;
+            approvedAt: Date | null;
             reviewedById: string | null;
+            saleId: string;
+            requestedAt: Date;
+            requestedById: string;
         })[];
         id: string;
         status: string;
         createdAt: Date;
         code: string;
+        version: number;
         createdById: string;
+        closedAt: Date | null;
+        closedById: string | null;
+        tableId: string | null;
+    }>;
+    serve(id: string, b: unknown, r: R): Promise<{
+        total: import("@prisma/client-runtime-utils").Decimal;
+        payment: {
+            id: string;
+            status: string;
+            saleId: string;
+            amount: import("@prisma/client-runtime-utils").Decimal;
+            receivedById: string | null;
+            method: string;
+            paidAt: Date | null;
+        } | null;
+        createdBy: {
+            id: string;
+            name: string;
+        };
+        lines: ({
+            product: {
+                unit: {
+                    symbol: string;
+                    id: string;
+                    name: string;
+                };
+            } & {
+                id: string;
+                status: string;
+                name: string;
+                code: string;
+                unitId: string;
+                categoryId: string;
+                sellingPrice: import("@prisma/client-runtime-utils").Decimal;
+            };
+            servings: ({
+                servedBy: {
+                    name: string;
+                };
+            } & {
+                id: string;
+                quantity: import("@prisma/client-runtime-utils").Decimal;
+                saleLineId: string;
+                servedAt: Date;
+                servedById: string;
+            })[];
+            replenishments: ({
+                productionOrder: {
+                    id: string;
+                    status: string;
+                } | null;
+            } & {
+                id: string;
+                status: string;
+                quantity: import("@prisma/client-runtime-utils").Decimal;
+                note: string;
+                requestedAt: Date;
+                requestedById: string;
+                saleLineId: string;
+                productionOrderId: string | null;
+            })[];
+            changes: ({
+                changedBy: {
+                    name: string;
+                };
+            } & {
+                id: string;
+                quantity: import("@prisma/client-runtime-utils").Decimal;
+                reason: string;
+                saleLineId: string;
+                changedAt: Date;
+                previousQuantity: import("@prisma/client-runtime-utils").Decimal;
+                replacementLineId: string | null;
+                changedById: string;
+            })[];
+        } & {
+            id: string;
+            productId: string;
+            quantity: import("@prisma/client-runtime-utils").Decimal;
+            note: string;
+            unitPrice: import("@prisma/client-runtime-utils").Decimal;
+            sentById: string | null;
+            sentAt: Date | null;
+            batch: number | null;
+            productName: string;
+            saleId: string;
+        })[];
+        table: {
+            id: string;
+            status: string;
+            name: string;
+            area: string;
+            x: number;
+            y: number;
+        } | null;
+        exports: ({
+            lines: {
+                id: string;
+                requestedQuantity: import("@prisma/client-runtime-utils").Decimal;
+                exportedQuantity: import("@prisma/client-runtime-utils").Decimal | null;
+                exportId: string;
+                saleLineId: string;
+            }[];
+            reviewedBy: {
+                name: string;
+            } | null;
+            requestedBy: {
+                name: string;
+            };
+        } & {
+            id: string;
+            status: string;
+            reason: string | null;
+            approvedAt: Date | null;
+            reviewedById: string | null;
+            saleId: string;
+            requestedAt: Date;
+            requestedById: string;
+        })[];
+        id: string;
+        status: string;
+        createdAt: Date;
+        code: string;
+        version: number;
+        createdById: string;
+        closedAt: Date | null;
+        closedById: string | null;
+        tableId: string | null;
+    }>;
+    replenish(id: string, b: unknown, r: R): Promise<{
+        total: import("@prisma/client-runtime-utils").Decimal;
+        payment: {
+            id: string;
+            status: string;
+            saleId: string;
+            amount: import("@prisma/client-runtime-utils").Decimal;
+            receivedById: string | null;
+            method: string;
+            paidAt: Date | null;
+        } | null;
+        createdBy: {
+            id: string;
+            name: string;
+        };
+        lines: ({
+            product: {
+                unit: {
+                    symbol: string;
+                    id: string;
+                    name: string;
+                };
+            } & {
+                id: string;
+                status: string;
+                name: string;
+                code: string;
+                unitId: string;
+                categoryId: string;
+                sellingPrice: import("@prisma/client-runtime-utils").Decimal;
+            };
+            servings: ({
+                servedBy: {
+                    name: string;
+                };
+            } & {
+                id: string;
+                quantity: import("@prisma/client-runtime-utils").Decimal;
+                saleLineId: string;
+                servedAt: Date;
+                servedById: string;
+            })[];
+            replenishments: ({
+                productionOrder: {
+                    id: string;
+                    status: string;
+                } | null;
+            } & {
+                id: string;
+                status: string;
+                quantity: import("@prisma/client-runtime-utils").Decimal;
+                note: string;
+                requestedAt: Date;
+                requestedById: string;
+                saleLineId: string;
+                productionOrderId: string | null;
+            })[];
+            changes: ({
+                changedBy: {
+                    name: string;
+                };
+            } & {
+                id: string;
+                quantity: import("@prisma/client-runtime-utils").Decimal;
+                reason: string;
+                saleLineId: string;
+                changedAt: Date;
+                previousQuantity: import("@prisma/client-runtime-utils").Decimal;
+                replacementLineId: string | null;
+                changedById: string;
+            })[];
+        } & {
+            id: string;
+            productId: string;
+            quantity: import("@prisma/client-runtime-utils").Decimal;
+            note: string;
+            unitPrice: import("@prisma/client-runtime-utils").Decimal;
+            sentById: string | null;
+            sentAt: Date | null;
+            batch: number | null;
+            productName: string;
+            saleId: string;
+        })[];
+        table: {
+            id: string;
+            status: string;
+            name: string;
+            area: string;
+            x: number;
+            y: number;
+        } | null;
+        exports: ({
+            lines: {
+                id: string;
+                requestedQuantity: import("@prisma/client-runtime-utils").Decimal;
+                exportedQuantity: import("@prisma/client-runtime-utils").Decimal | null;
+                exportId: string;
+                saleLineId: string;
+            }[];
+            reviewedBy: {
+                name: string;
+            } | null;
+            requestedBy: {
+                name: string;
+            };
+        } & {
+            id: string;
+            status: string;
+            reason: string | null;
+            approvedAt: Date | null;
+            reviewedById: string | null;
+            saleId: string;
+            requestedAt: Date;
+            requestedById: string;
+        })[];
+        id: string;
+        status: string;
+        createdAt: Date;
+        code: string;
+        version: number;
+        createdById: string;
+        closedAt: Date | null;
+        closedById: string | null;
+        tableId: string | null;
+    }>;
+    areas(r: R): Promise<{
+        name: string;
+        rows: number;
+        columns: number;
+        color: string;
+    }[]>;
+    area(b: unknown, r: R): Promise<{
+        name: string;
+        rows: number;
+        columns: number;
+        color: string;
+    }>;
+    tables(r: R): Promise<{
+        id: string;
+        status: string;
+        name: string;
+        area: string;
+        x: number;
+        y: number;
+    }[]>;
+    createTable(b: unknown, r: R): Promise<{
+        id: string;
+        status: string;
+        name: string;
+        area: string;
+        x: number;
+        y: number;
+    }>;
+    updateTable(id: string, b: unknown, r: R): Promise<{
+        id: string;
+        status: string;
+        name: string;
+        area: string;
+        x: number;
+        y: number;
+    }>;
+    send(id: string, b: unknown, r: R): Promise<{
+        total: import("@prisma/client-runtime-utils").Decimal;
+        payment: {
+            id: string;
+            status: string;
+            saleId: string;
+            amount: import("@prisma/client-runtime-utils").Decimal;
+            receivedById: string | null;
+            method: string;
+            paidAt: Date | null;
+        } | null;
+        createdBy: {
+            id: string;
+            name: string;
+        };
+        lines: ({
+            product: {
+                unit: {
+                    symbol: string;
+                    id: string;
+                    name: string;
+                };
+            } & {
+                id: string;
+                status: string;
+                name: string;
+                code: string;
+                unitId: string;
+                categoryId: string;
+                sellingPrice: import("@prisma/client-runtime-utils").Decimal;
+            };
+            servings: ({
+                servedBy: {
+                    name: string;
+                };
+            } & {
+                id: string;
+                quantity: import("@prisma/client-runtime-utils").Decimal;
+                saleLineId: string;
+                servedAt: Date;
+                servedById: string;
+            })[];
+            replenishments: ({
+                productionOrder: {
+                    id: string;
+                    status: string;
+                } | null;
+            } & {
+                id: string;
+                status: string;
+                quantity: import("@prisma/client-runtime-utils").Decimal;
+                note: string;
+                requestedAt: Date;
+                requestedById: string;
+                saleLineId: string;
+                productionOrderId: string | null;
+            })[];
+            changes: ({
+                changedBy: {
+                    name: string;
+                };
+            } & {
+                id: string;
+                quantity: import("@prisma/client-runtime-utils").Decimal;
+                reason: string;
+                saleLineId: string;
+                changedAt: Date;
+                previousQuantity: import("@prisma/client-runtime-utils").Decimal;
+                replacementLineId: string | null;
+                changedById: string;
+            })[];
+        } & {
+            id: string;
+            productId: string;
+            quantity: import("@prisma/client-runtime-utils").Decimal;
+            note: string;
+            unitPrice: import("@prisma/client-runtime-utils").Decimal;
+            sentById: string | null;
+            sentAt: Date | null;
+            batch: number | null;
+            productName: string;
+            saleId: string;
+        })[];
+        table: {
+            id: string;
+            status: string;
+            name: string;
+            area: string;
+            x: number;
+            y: number;
+        } | null;
+        exports: ({
+            lines: {
+                id: string;
+                requestedQuantity: import("@prisma/client-runtime-utils").Decimal;
+                exportedQuantity: import("@prisma/client-runtime-utils").Decimal | null;
+                exportId: string;
+                saleLineId: string;
+            }[];
+            reviewedBy: {
+                name: string;
+            } | null;
+            requestedBy: {
+                name: string;
+            };
+        } & {
+            id: string;
+            status: string;
+            reason: string | null;
+            approvedAt: Date | null;
+            reviewedById: string | null;
+            saleId: string;
+            requestedAt: Date;
+            requestedById: string;
+        })[];
+        id: string;
+        status: string;
+        createdAt: Date;
+        code: string;
+        version: number;
+        createdById: string;
+        closedAt: Date | null;
+        closedById: string | null;
+        tableId: string | null;
+    }>;
+    list(r: R): Promise<{
+        total: import("@prisma/client-runtime-utils").Decimal;
+        payment: {
+            id: string;
+            status: string;
+            saleId: string;
+            amount: import("@prisma/client-runtime-utils").Decimal;
+            receivedById: string | null;
+            method: string;
+            paidAt: Date | null;
+        } | null;
+        createdBy: {
+            id: string;
+            name: string;
+        };
+        lines: ({
+            product: {
+                unit: {
+                    symbol: string;
+                    id: string;
+                    name: string;
+                };
+            } & {
+                id: string;
+                status: string;
+                name: string;
+                code: string;
+                unitId: string;
+                categoryId: string;
+                sellingPrice: import("@prisma/client-runtime-utils").Decimal;
+            };
+            servings: ({
+                servedBy: {
+                    name: string;
+                };
+            } & {
+                id: string;
+                quantity: import("@prisma/client-runtime-utils").Decimal;
+                saleLineId: string;
+                servedAt: Date;
+                servedById: string;
+            })[];
+            replenishments: ({
+                productionOrder: {
+                    id: string;
+                    status: string;
+                } | null;
+            } & {
+                id: string;
+                status: string;
+                quantity: import("@prisma/client-runtime-utils").Decimal;
+                note: string;
+                requestedAt: Date;
+                requestedById: string;
+                saleLineId: string;
+                productionOrderId: string | null;
+            })[];
+            changes: ({
+                changedBy: {
+                    name: string;
+                };
+            } & {
+                id: string;
+                quantity: import("@prisma/client-runtime-utils").Decimal;
+                reason: string;
+                saleLineId: string;
+                changedAt: Date;
+                previousQuantity: import("@prisma/client-runtime-utils").Decimal;
+                replacementLineId: string | null;
+                changedById: string;
+            })[];
+        } & {
+            id: string;
+            productId: string;
+            quantity: import("@prisma/client-runtime-utils").Decimal;
+            note: string;
+            unitPrice: import("@prisma/client-runtime-utils").Decimal;
+            sentById: string | null;
+            sentAt: Date | null;
+            batch: number | null;
+            productName: string;
+            saleId: string;
+        })[];
+        table: {
+            id: string;
+            status: string;
+            name: string;
+            area: string;
+            x: number;
+            y: number;
+        } | null;
+        exports: ({
+            lines: {
+                id: string;
+                requestedQuantity: import("@prisma/client-runtime-utils").Decimal;
+                exportedQuantity: import("@prisma/client-runtime-utils").Decimal | null;
+                exportId: string;
+                saleLineId: string;
+            }[];
+            reviewedBy: {
+                name: string;
+            } | null;
+            requestedBy: {
+                name: string;
+            };
+        } & {
+            id: string;
+            status: string;
+            reason: string | null;
+            approvedAt: Date | null;
+            reviewedById: string | null;
+            saleId: string;
+            requestedAt: Date;
+            requestedById: string;
+        })[];
+        id: string;
+        status: string;
+        createdAt: Date;
+        code: string;
+        version: number;
+        createdById: string;
+        closedAt: Date | null;
+        closedById: string | null;
+        tableId: string | null;
     }[]>;
     create(b: unknown, r: R): Promise<{
         total: import("@prisma/client-runtime-utils").Decimal;
@@ -122,6 +866,7 @@ export declare class SalesController {
             status: string;
             saleId: string;
             amount: import("@prisma/client-runtime-utils").Decimal;
+            receivedById: string | null;
             method: string;
             paidAt: Date | null;
         } | null;
@@ -145,43 +890,99 @@ export declare class SalesController {
                 categoryId: string;
                 sellingPrice: import("@prisma/client-runtime-utils").Decimal;
             };
+            servings: ({
+                servedBy: {
+                    name: string;
+                };
+            } & {
+                id: string;
+                quantity: import("@prisma/client-runtime-utils").Decimal;
+                saleLineId: string;
+                servedAt: Date;
+                servedById: string;
+            })[];
+            replenishments: ({
+                productionOrder: {
+                    id: string;
+                    status: string;
+                } | null;
+            } & {
+                id: string;
+                status: string;
+                quantity: import("@prisma/client-runtime-utils").Decimal;
+                note: string;
+                requestedAt: Date;
+                requestedById: string;
+                saleLineId: string;
+                productionOrderId: string | null;
+            })[];
+            changes: ({
+                changedBy: {
+                    name: string;
+                };
+            } & {
+                id: string;
+                quantity: import("@prisma/client-runtime-utils").Decimal;
+                reason: string;
+                saleLineId: string;
+                changedAt: Date;
+                previousQuantity: import("@prisma/client-runtime-utils").Decimal;
+                replacementLineId: string | null;
+                changedById: string;
+            })[];
         } & {
             id: string;
             productId: string;
             quantity: import("@prisma/client-runtime-utils").Decimal;
+            note: string;
             unitPrice: import("@prisma/client-runtime-utils").Decimal;
-            saleId: string;
+            sentById: string | null;
+            sentAt: Date | null;
+            batch: number | null;
             productName: string;
+            saleId: string;
         })[];
+        table: {
+            id: string;
+            status: string;
+            name: string;
+            area: string;
+            x: number;
+            y: number;
+        } | null;
         exports: ({
             lines: {
                 id: string;
-                saleLineId: string;
                 requestedQuantity: import("@prisma/client-runtime-utils").Decimal;
                 exportedQuantity: import("@prisma/client-runtime-utils").Decimal | null;
                 exportId: string;
+                saleLineId: string;
             }[];
-            requestedBy: {
-                name: string;
-            };
             reviewedBy: {
                 name: string;
             } | null;
+            requestedBy: {
+                name: string;
+            };
         } & {
             id: string;
             status: string;
-            requestedAt: Date;
-            approvedAt: Date | null;
             reason: string | null;
-            saleId: string;
-            requestedById: string;
+            approvedAt: Date | null;
             reviewedById: string | null;
+            saleId: string;
+            requestedAt: Date;
+            requestedById: string;
         })[];
         id: string;
         status: string;
         createdAt: Date;
         code: string;
+        version: number;
         createdById: string;
+        closedAt: Date | null;
+        closedById: string | null;
+        tableId: string | null;
     }>;
     update(id: string, b: unknown, r: R): Promise<{
         total: import("@prisma/client-runtime-utils").Decimal;
@@ -190,6 +991,7 @@ export declare class SalesController {
             status: string;
             saleId: string;
             amount: import("@prisma/client-runtime-utils").Decimal;
+            receivedById: string | null;
             method: string;
             paidAt: Date | null;
         } | null;
@@ -213,43 +1015,99 @@ export declare class SalesController {
                 categoryId: string;
                 sellingPrice: import("@prisma/client-runtime-utils").Decimal;
             };
+            servings: ({
+                servedBy: {
+                    name: string;
+                };
+            } & {
+                id: string;
+                quantity: import("@prisma/client-runtime-utils").Decimal;
+                saleLineId: string;
+                servedAt: Date;
+                servedById: string;
+            })[];
+            replenishments: ({
+                productionOrder: {
+                    id: string;
+                    status: string;
+                } | null;
+            } & {
+                id: string;
+                status: string;
+                quantity: import("@prisma/client-runtime-utils").Decimal;
+                note: string;
+                requestedAt: Date;
+                requestedById: string;
+                saleLineId: string;
+                productionOrderId: string | null;
+            })[];
+            changes: ({
+                changedBy: {
+                    name: string;
+                };
+            } & {
+                id: string;
+                quantity: import("@prisma/client-runtime-utils").Decimal;
+                reason: string;
+                saleLineId: string;
+                changedAt: Date;
+                previousQuantity: import("@prisma/client-runtime-utils").Decimal;
+                replacementLineId: string | null;
+                changedById: string;
+            })[];
         } & {
             id: string;
             productId: string;
             quantity: import("@prisma/client-runtime-utils").Decimal;
+            note: string;
             unitPrice: import("@prisma/client-runtime-utils").Decimal;
-            saleId: string;
+            sentById: string | null;
+            sentAt: Date | null;
+            batch: number | null;
             productName: string;
+            saleId: string;
         })[];
+        table: {
+            id: string;
+            status: string;
+            name: string;
+            area: string;
+            x: number;
+            y: number;
+        } | null;
         exports: ({
             lines: {
                 id: string;
-                saleLineId: string;
                 requestedQuantity: import("@prisma/client-runtime-utils").Decimal;
                 exportedQuantity: import("@prisma/client-runtime-utils").Decimal | null;
                 exportId: string;
+                saleLineId: string;
             }[];
-            requestedBy: {
-                name: string;
-            };
             reviewedBy: {
                 name: string;
             } | null;
+            requestedBy: {
+                name: string;
+            };
         } & {
             id: string;
             status: string;
-            requestedAt: Date;
-            approvedAt: Date | null;
             reason: string | null;
-            saleId: string;
-            requestedById: string;
+            approvedAt: Date | null;
             reviewedById: string | null;
+            saleId: string;
+            requestedAt: Date;
+            requestedById: string;
         })[];
         id: string;
         status: string;
         createdAt: Date;
         code: string;
+        version: number;
         createdById: string;
+        closedAt: Date | null;
+        closedById: string | null;
+        tableId: string | null;
     }>;
     confirm(id: string, r: R): Promise<{
         total: import("@prisma/client-runtime-utils").Decimal;
@@ -258,6 +1116,7 @@ export declare class SalesController {
             status: string;
             saleId: string;
             amount: import("@prisma/client-runtime-utils").Decimal;
+            receivedById: string | null;
             method: string;
             paidAt: Date | null;
         } | null;
@@ -281,51 +1140,108 @@ export declare class SalesController {
                 categoryId: string;
                 sellingPrice: import("@prisma/client-runtime-utils").Decimal;
             };
+            servings: ({
+                servedBy: {
+                    name: string;
+                };
+            } & {
+                id: string;
+                quantity: import("@prisma/client-runtime-utils").Decimal;
+                saleLineId: string;
+                servedAt: Date;
+                servedById: string;
+            })[];
+            replenishments: ({
+                productionOrder: {
+                    id: string;
+                    status: string;
+                } | null;
+            } & {
+                id: string;
+                status: string;
+                quantity: import("@prisma/client-runtime-utils").Decimal;
+                note: string;
+                requestedAt: Date;
+                requestedById: string;
+                saleLineId: string;
+                productionOrderId: string | null;
+            })[];
+            changes: ({
+                changedBy: {
+                    name: string;
+                };
+            } & {
+                id: string;
+                quantity: import("@prisma/client-runtime-utils").Decimal;
+                reason: string;
+                saleLineId: string;
+                changedAt: Date;
+                previousQuantity: import("@prisma/client-runtime-utils").Decimal;
+                replacementLineId: string | null;
+                changedById: string;
+            })[];
         } & {
             id: string;
             productId: string;
             quantity: import("@prisma/client-runtime-utils").Decimal;
+            note: string;
             unitPrice: import("@prisma/client-runtime-utils").Decimal;
-            saleId: string;
+            sentById: string | null;
+            sentAt: Date | null;
+            batch: number | null;
             productName: string;
+            saleId: string;
         })[];
+        table: {
+            id: string;
+            status: string;
+            name: string;
+            area: string;
+            x: number;
+            y: number;
+        } | null;
         exports: ({
             lines: {
                 id: string;
-                saleLineId: string;
                 requestedQuantity: import("@prisma/client-runtime-utils").Decimal;
                 exportedQuantity: import("@prisma/client-runtime-utils").Decimal | null;
                 exportId: string;
+                saleLineId: string;
             }[];
-            requestedBy: {
-                name: string;
-            };
             reviewedBy: {
                 name: string;
             } | null;
+            requestedBy: {
+                name: string;
+            };
         } & {
             id: string;
             status: string;
-            requestedAt: Date;
-            approvedAt: Date | null;
             reason: string | null;
-            saleId: string;
-            requestedById: string;
+            approvedAt: Date | null;
             reviewedById: string | null;
+            saleId: string;
+            requestedAt: Date;
+            requestedById: string;
         })[];
         id: string;
         status: string;
         createdAt: Date;
         code: string;
+        version: number;
         createdById: string;
+        closedAt: Date | null;
+        closedById: string | null;
+        tableId: string | null;
     }>;
-    cancel(id: string, r: R): Promise<{
+    cancel(id: string, b: unknown, r: R): Promise<{
         total: import("@prisma/client-runtime-utils").Decimal;
         payment: {
             id: string;
             status: string;
             saleId: string;
             amount: import("@prisma/client-runtime-utils").Decimal;
+            receivedById: string | null;
             method: string;
             paidAt: Date | null;
         } | null;
@@ -349,43 +1265,99 @@ export declare class SalesController {
                 categoryId: string;
                 sellingPrice: import("@prisma/client-runtime-utils").Decimal;
             };
+            servings: ({
+                servedBy: {
+                    name: string;
+                };
+            } & {
+                id: string;
+                quantity: import("@prisma/client-runtime-utils").Decimal;
+                saleLineId: string;
+                servedAt: Date;
+                servedById: string;
+            })[];
+            replenishments: ({
+                productionOrder: {
+                    id: string;
+                    status: string;
+                } | null;
+            } & {
+                id: string;
+                status: string;
+                quantity: import("@prisma/client-runtime-utils").Decimal;
+                note: string;
+                requestedAt: Date;
+                requestedById: string;
+                saleLineId: string;
+                productionOrderId: string | null;
+            })[];
+            changes: ({
+                changedBy: {
+                    name: string;
+                };
+            } & {
+                id: string;
+                quantity: import("@prisma/client-runtime-utils").Decimal;
+                reason: string;
+                saleLineId: string;
+                changedAt: Date;
+                previousQuantity: import("@prisma/client-runtime-utils").Decimal;
+                replacementLineId: string | null;
+                changedById: string;
+            })[];
         } & {
             id: string;
             productId: string;
             quantity: import("@prisma/client-runtime-utils").Decimal;
+            note: string;
             unitPrice: import("@prisma/client-runtime-utils").Decimal;
-            saleId: string;
+            sentById: string | null;
+            sentAt: Date | null;
+            batch: number | null;
             productName: string;
+            saleId: string;
         })[];
+        table: {
+            id: string;
+            status: string;
+            name: string;
+            area: string;
+            x: number;
+            y: number;
+        } | null;
         exports: ({
             lines: {
                 id: string;
-                saleLineId: string;
                 requestedQuantity: import("@prisma/client-runtime-utils").Decimal;
                 exportedQuantity: import("@prisma/client-runtime-utils").Decimal | null;
                 exportId: string;
+                saleLineId: string;
             }[];
-            requestedBy: {
-                name: string;
-            };
             reviewedBy: {
                 name: string;
             } | null;
+            requestedBy: {
+                name: string;
+            };
         } & {
             id: string;
             status: string;
-            requestedAt: Date;
-            approvedAt: Date | null;
             reason: string | null;
-            saleId: string;
-            requestedById: string;
+            approvedAt: Date | null;
             reviewedById: string | null;
+            saleId: string;
+            requestedAt: Date;
+            requestedById: string;
         })[];
         id: string;
         status: string;
         createdAt: Date;
         code: string;
+        version: number;
         createdById: string;
+        closedAt: Date | null;
+        closedById: string | null;
+        tableId: string | null;
     }>;
     pay(id: string, b: unknown, r: R): Promise<{
         total: import("@prisma/client-runtime-utils").Decimal;
@@ -394,6 +1366,7 @@ export declare class SalesController {
             status: string;
             saleId: string;
             amount: import("@prisma/client-runtime-utils").Decimal;
+            receivedById: string | null;
             method: string;
             paidAt: Date | null;
         } | null;
@@ -417,43 +1390,99 @@ export declare class SalesController {
                 categoryId: string;
                 sellingPrice: import("@prisma/client-runtime-utils").Decimal;
             };
+            servings: ({
+                servedBy: {
+                    name: string;
+                };
+            } & {
+                id: string;
+                quantity: import("@prisma/client-runtime-utils").Decimal;
+                saleLineId: string;
+                servedAt: Date;
+                servedById: string;
+            })[];
+            replenishments: ({
+                productionOrder: {
+                    id: string;
+                    status: string;
+                } | null;
+            } & {
+                id: string;
+                status: string;
+                quantity: import("@prisma/client-runtime-utils").Decimal;
+                note: string;
+                requestedAt: Date;
+                requestedById: string;
+                saleLineId: string;
+                productionOrderId: string | null;
+            })[];
+            changes: ({
+                changedBy: {
+                    name: string;
+                };
+            } & {
+                id: string;
+                quantity: import("@prisma/client-runtime-utils").Decimal;
+                reason: string;
+                saleLineId: string;
+                changedAt: Date;
+                previousQuantity: import("@prisma/client-runtime-utils").Decimal;
+                replacementLineId: string | null;
+                changedById: string;
+            })[];
         } & {
             id: string;
             productId: string;
             quantity: import("@prisma/client-runtime-utils").Decimal;
+            note: string;
             unitPrice: import("@prisma/client-runtime-utils").Decimal;
-            saleId: string;
+            sentById: string | null;
+            sentAt: Date | null;
+            batch: number | null;
             productName: string;
+            saleId: string;
         })[];
+        table: {
+            id: string;
+            status: string;
+            name: string;
+            area: string;
+            x: number;
+            y: number;
+        } | null;
         exports: ({
             lines: {
                 id: string;
-                saleLineId: string;
                 requestedQuantity: import("@prisma/client-runtime-utils").Decimal;
                 exportedQuantity: import("@prisma/client-runtime-utils").Decimal | null;
                 exportId: string;
+                saleLineId: string;
             }[];
-            requestedBy: {
-                name: string;
-            };
             reviewedBy: {
                 name: string;
             } | null;
+            requestedBy: {
+                name: string;
+            };
         } & {
             id: string;
             status: string;
-            requestedAt: Date;
-            approvedAt: Date | null;
             reason: string | null;
-            saleId: string;
-            requestedById: string;
+            approvedAt: Date | null;
             reviewedById: string | null;
+            saleId: string;
+            requestedAt: Date;
+            requestedById: string;
         })[];
         id: string;
         status: string;
         createdAt: Date;
         code: string;
+        version: number;
         createdById: string;
+        closedAt: Date | null;
+        closedById: string | null;
+        tableId: string | null;
     }>;
     request(b: unknown, r: R): Promise<{
         sale: {
@@ -461,7 +1490,11 @@ export declare class SalesController {
             status: string;
             createdAt: Date;
             code: string;
+            version: number;
             createdById: string;
+            closedAt: Date | null;
+            closedById: string | null;
+            tableId: string | null;
         };
         lines: ({
             saleLine: {
@@ -484,26 +1517,21 @@ export declare class SalesController {
                 id: string;
                 productId: string;
                 quantity: import("@prisma/client-runtime-utils").Decimal;
+                note: string;
                 unitPrice: import("@prisma/client-runtime-utils").Decimal;
-                saleId: string;
+                sentById: string | null;
+                sentAt: Date | null;
+                batch: number | null;
                 productName: string;
+                saleId: string;
             };
         } & {
             id: string;
-            saleLineId: string;
             requestedQuantity: import("@prisma/client-runtime-utils").Decimal;
             exportedQuantity: import("@prisma/client-runtime-utils").Decimal | null;
             exportId: string;
+            saleLineId: string;
         })[];
-        requestedBy: {
-            id: string;
-            status: string;
-            name: string;
-            code: string;
-            phone: string | null;
-            email: string | null;
-            accountId: string | null;
-        };
         reviewedBy: {
             id: string;
             status: string;
@@ -513,15 +1541,24 @@ export declare class SalesController {
             email: string | null;
             accountId: string | null;
         } | null;
+        requestedBy: {
+            id: string;
+            status: string;
+            name: string;
+            code: string;
+            phone: string | null;
+            email: string | null;
+            accountId: string | null;
+        };
     } & {
         id: string;
         status: string;
-        requestedAt: Date;
-        approvedAt: Date | null;
         reason: string | null;
-        saleId: string;
-        requestedById: string;
+        approvedAt: Date | null;
         reviewedById: string | null;
+        saleId: string;
+        requestedAt: Date;
+        requestedById: string;
     }>;
 }
 export {};

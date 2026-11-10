@@ -13,9 +13,9 @@ export declare class InventoryController {
     references(req: AuthRequest): Promise<{
         suppliers: {
             id: string;
-            code: string;
-            name: string;
             status: string;
+            name: string;
+            code: string;
             phone: string | null;
             address: string | null;
         }[];
@@ -27,10 +27,10 @@ export declare class InventoryController {
             };
         } & {
             id: string;
-            code: string;
-            name: string;
-            minStock: import("@prisma/client-runtime-utils").Decimal;
             status: string;
+            name: string;
+            code: string;
+            minStock: import("@prisma/client-runtime-utils").Decimal;
             unitId: string;
             categoryId: string;
         })[];
@@ -38,9 +38,9 @@ export declare class InventoryController {
     list(req: AuthRequest): import("../generated/prisma/internal/prismaNamespace.js").PrismaPromise<({
         supplier: {
             id: string;
-            code: string;
-            name: string;
             status: string;
+            name: string;
+            code: string;
             phone: string | null;
             address: string | null;
         };
@@ -59,30 +59,30 @@ export declare class InventoryController {
                     };
                 } & {
                     id: string;
-                    code: string;
-                    name: string;
-                    minStock: import("@prisma/client-runtime-utils").Decimal;
                     status: string;
+                    name: string;
+                    code: string;
+                    minStock: import("@prisma/client-runtime-utils").Decimal;
                     unitId: string;
                     categoryId: string;
                 };
             } & {
                 id: string;
                 code: string;
-                expiryDate: Date | null;
                 materialId: string;
+                expiryDate: Date | null;
             };
         } & {
             id: string;
             quantity: import("@prisma/client-runtime-utils").Decimal;
             unitPrice: import("@prisma/client-runtime-utils").Decimal;
-            receiptId: string;
             lotId: string;
+            receiptId: string;
         })[];
     } & {
         id: string;
-        code: string;
         status: string;
+        code: string;
         createdById: string;
         receivedAt: Date;
         note: string | null;
@@ -91,9 +91,9 @@ export declare class InventoryController {
     create(b: unknown, req: AuthRequest): Promise<{
         supplier: {
             id: string;
-            code: string;
-            name: string;
             status: string;
+            name: string;
+            code: string;
             phone: string | null;
             address: string | null;
         };
@@ -112,30 +112,30 @@ export declare class InventoryController {
                     };
                 } & {
                     id: string;
-                    code: string;
-                    name: string;
-                    minStock: import("@prisma/client-runtime-utils").Decimal;
                     status: string;
+                    name: string;
+                    code: string;
+                    minStock: import("@prisma/client-runtime-utils").Decimal;
                     unitId: string;
                     categoryId: string;
                 };
             } & {
                 id: string;
                 code: string;
-                expiryDate: Date | null;
                 materialId: string;
+                expiryDate: Date | null;
             };
         } & {
             id: string;
             quantity: import("@prisma/client-runtime-utils").Decimal;
             unitPrice: import("@prisma/client-runtime-utils").Decimal;
-            receiptId: string;
             lotId: string;
+            receiptId: string;
         })[];
     } & {
         id: string;
-        code: string;
         status: string;
+        code: string;
         createdById: string;
         receivedAt: Date;
         note: string | null;
@@ -144,9 +144,9 @@ export declare class InventoryController {
     update(id: string, b: unknown, req: AuthRequest): Promise<{
         supplier: {
             id: string;
-            code: string;
-            name: string;
             status: string;
+            name: string;
+            code: string;
             phone: string | null;
             address: string | null;
         };
@@ -165,30 +165,30 @@ export declare class InventoryController {
                     };
                 } & {
                     id: string;
-                    code: string;
-                    name: string;
-                    minStock: import("@prisma/client-runtime-utils").Decimal;
                     status: string;
+                    name: string;
+                    code: string;
+                    minStock: import("@prisma/client-runtime-utils").Decimal;
                     unitId: string;
                     categoryId: string;
                 };
             } & {
                 id: string;
                 code: string;
-                expiryDate: Date | null;
                 materialId: string;
+                expiryDate: Date | null;
             };
         } & {
             id: string;
             quantity: import("@prisma/client-runtime-utils").Decimal;
             unitPrice: import("@prisma/client-runtime-utils").Decimal;
-            receiptId: string;
             lotId: string;
+            receiptId: string;
         })[];
     } & {
         id: string;
-        code: string;
         status: string;
+        code: string;
         createdById: string;
         receivedAt: Date;
         note: string | null;
@@ -200,9 +200,9 @@ export declare class InventoryController {
     post(id: string, req: AuthRequest): Promise<{
         supplier: {
             id: string;
-            code: string;
-            name: string;
             status: string;
+            name: string;
+            code: string;
             phone: string | null;
             address: string | null;
         };
@@ -221,36 +221,60 @@ export declare class InventoryController {
                     };
                 } & {
                     id: string;
-                    code: string;
-                    name: string;
-                    minStock: import("@prisma/client-runtime-utils").Decimal;
                     status: string;
+                    name: string;
+                    code: string;
+                    minStock: import("@prisma/client-runtime-utils").Decimal;
                     unitId: string;
                     categoryId: string;
                 };
             } & {
                 id: string;
                 code: string;
-                expiryDate: Date | null;
                 materialId: string;
+                expiryDate: Date | null;
             };
         } & {
             id: string;
             quantity: import("@prisma/client-runtime-utils").Decimal;
             unitPrice: import("@prisma/client-runtime-utils").Decimal;
-            receiptId: string;
             lotId: string;
+            receiptId: string;
         })[];
     } & {
         id: string;
-        code: string;
         status: string;
+        code: string;
         createdById: string;
         receivedAt: Date;
         note: string | null;
         supplierId: string;
     }>;
     stock(req: AuthRequest): import("../generated/prisma/internal/prismaNamespace.js").PrismaPromise<unknown>;
+    discard(id: string, b: unknown, req: AuthRequest): Promise<{
+        lines: {
+            id: string;
+            productId: string | null;
+            quantity: import("@prisma/client-runtime-utils").Decimal;
+            note: string | null;
+            lotId: string | null;
+            sourceType: string;
+            issueLineId: string | null;
+            wasteId: string;
+        }[];
+    } & {
+        id: string;
+        status: string;
+        reason: string;
+        reportedAt: Date;
+        approvedAt: Date | null;
+        reportedById: string;
+        reviewedById: string | null;
+    }>;
+    minimum(id: string, b: unknown, req: AuthRequest): Promise<{
+        id: string;
+        minStock: import("@prisma/client-runtime-utils").Decimal;
+    }>;
     insightsList(kind: string, req: AuthRequest): Promise<{
         asOf: string;
         rows: {
@@ -267,12 +291,21 @@ export declare class InventoryController {
             minimum: import("@prisma/client-runtime-utils").Decimal;
             shortage: import("@prisma/client-runtime-utils").Decimal;
             lots: {
+                daysRemaining: number | null;
                 expired: boolean;
                 soon: boolean;
+                cancellations: {
+                    id: string;
+                    documentId: string;
+                    quantity: import("@prisma/client-runtime-utils").Decimal;
+                    at: Date | null;
+                    reason: string;
+                    by: string;
+                }[];
                 id: string;
                 code: string;
                 materialId: string;
-                expiryDate: Date | null;
+                expiryDate: string | null;
                 quantity: import("../generated/prisma/internal/prismaNamespace.js").Decimal;
             }[];
         }[];

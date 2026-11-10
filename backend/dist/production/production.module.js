@@ -10,10 +10,11 @@ import { CatalogModule } from '../catalog/catalog.module.js';
 import { ProductionController } from './production.controller.js';
 import { ProductionService } from './production.service.js';
 import { ExecutionService } from './execution.service.js';
+import { ShortageService } from './shortage.service.js';
 let ProductionModule = class ProductionModule {
 };
 ProductionModule = __decorate([
-    Module({ imports: [PrismaModule, CatalogModule], controllers: [ProductionController], providers: [ProductionService, ExecutionService] })
+    Module({ imports: [PrismaModule, CatalogModule], controllers: [ProductionController], providers: [ProductionService, ExecutionService, ShortageService] })
 ], ProductionModule);
 export { ProductionModule };
 //# sourceMappingURL=production.module.js.map

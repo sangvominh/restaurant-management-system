@@ -26,7 +26,7 @@ export class CatalogController {
     if (!user.permissions.includes('*') && !codes.some(code => user.permissions.includes(code))) throw new ForbiddenException('Bạn chưa được cấp quyền chức năng này');
   }
   @Get(':type') list(@Param('type') value: string, @Req() req: CatalogRequest) {
-    const type = kind(value); this.allow(req.catalogUser, readRights[type]); return this.service.list(type);
+    const type = kind(value); this.allow(req.catalogUser, readRights[type]); return this.service.presentation(type);
   }
   @Post(':type') create(@Param('type') value: string, @Body() b: unknown, @Req() req: CatalogRequest) {
     const type = kind(value); this.allow(req.catalogUser, type === 'products' ? ['catalog:manage', 'product:manage'] : ['catalog:manage']); return this.service.save(type, b);

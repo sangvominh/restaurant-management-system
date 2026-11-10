@@ -4,6 +4,12 @@ model Sale {
   code String @unique
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   status String @default("DRAFT")
+  closedAt DateTime? @db.Timestamptz(3)
+  closedById String? @db.Uuid
+  closedBy Employee? @relation("SaleCloser", fields: [closedById], references: [id], onDelete: Restrict)
+  version Int @default(0)
+  tableId String? @db.Uuid
+  table DiningTable? @relation(fields: [tableId], references: [id], onDelete: Restrict)
   createdById String @db.Uuid
   createdBy Employee @relation("Sale_createdBy", fields: [createdById], references: [id], onDelete: Restrict)
   lines SaleLine[] @relation("SaleLine_sale")
@@ -18,11 +24,20 @@ model SaleLine {
   id String @id @default(uuid()) @db.Uuid
   quantity Decimal @db.Decimal(18, 3)
   unitPrice Decimal @db.Decimal(18, 2)
+  changes SaleLineChange[] @relation("ChangedLine")
+  replacementChanges SaleLineChange[] @relation("ReplacementLine")
+  sentById String? @db.Uuid
+  sentBy Employee? @relation("LineSender", fields: [sentById], references: [id], onDelete: Restrict)
+  note String @default("")
+  sentAt DateTime? @db.Timestamptz(3)
+  batch Int?
   productName String
   saleId String @db.Uuid
   sale Sale @relation("SaleLine_sale", fields: [saleId], references: [id], onDelete: Restrict)
   productId String @db.Uuid
   product Product @relation("SaleLine_product", fields: [productId], references: [id], onDelete: Restrict)
+  servings Serving[]
+  replenishments ReplenishmentRequest[]
   exportLines ProductExportLine[] @relation("ProductExportLine_saleLine")
 
   @@index([saleId])
@@ -68,6 +83,8 @@ model ProductExportLine {
 model Payment {
   id String @id @default(uuid()) @db.Uuid
   amount Decimal @db.Decimal(18, 2)
+  receivedById String? @db.Uuid
+  receivedBy Employee? @relation("PaymentReceiver", fields: [receivedById], references: [id], onDelete: Restrict)
   method String
   status String @default("PENDING")
   paidAt DateTime? @db.Timestamptz(3)
@@ -92,3 +109,63 @@ model ProductMovement {
 
   @@index([productId])
 }
+
+model DiningTable {
+  id String @id @default(uuid()) @db.Uuid
+  name String @unique
+  area String @default("Chung")
+  diningArea DiningArea @relation(fields: [area], references: [name], onDelete: Restrict, onUpdate: Cascade)
+  x Int @default(0)
+  y Int @default(0)
+  status String @default("ACTIVE")
+  sales Sale[]
+}
+model DiningArea {
+  columns Int @default(8)
+  rows Int @default(4)
+  color String @default("#42688b")
+  name String @id
+  tables DiningTable[]
+}
+model Serving {
+  id String @id @default(uuid()) @db.Uuid
+  quantity Decimal @db.Decimal(18, 3)
+  servedAt DateTime @default(now()) @db.Timestamptz(3)
+  saleLineId String @db.Uuid
+  saleLine SaleLine @relation(fields: [saleLineId], references: [id], onDelete: Restrict)
+  servedById String @db.Uuid
+  servedBy Employee @relation(fields: [servedById], references: [id], onDelete: Restrict)
+  @@index([saleLineId])
+}
+model ReplenishmentRequest {
+  id String @id @default(uuid()) @db.Uuid
+  quantity Decimal @db.Decimal(18, 3)
+  requestedAt DateTime @default(now()) @db.Timestamptz(3)
+  status String @default("PENDING")
+  note String @default("")
+  saleLineId String @db.Uuid
+  saleLine SaleLine @relation(fields: [saleLineId], references: [id], onDelete: Restrict)
+  requestedById String @db.Uuid
+  requestedBy Employee @relation(fields: [requestedById], references: [id], onDelete: Restrict)
+  productionOrderId String? @unique @db.Uuid
+  productionOrder ProductionOrder? @relation(fields: [productionOrderId], references: [id], onDelete: Restrict)
+  @@index([saleLineId])
+}
+model SaleLineChange {
+  id String @id @default(uuid()) @db.Uuid
+  changedAt DateTime @default(now()) @db.Timestamptz(3)
+  previousQuantity Decimal @db.Decimal(18, 3)
+  quantity Decimal @db.Decimal(18, 3)
+  reason String
+  saleLineId String @db.Uuid
+  saleLine SaleLine @relation("ChangedLine", fields: [saleLineId], references: [id], onDelete: Restrict)
+  replacementLineId String? @db.Uuid
+  replacementLine SaleLine? @relation("ReplacementLine", fields: [replacementLineId], references: [id], onDelete: Restrict)
+  changedById String @db.Uuid
+  changedBy Employee @relation(fields: [changedById], references: [id], onDelete: Restrict)
+  @@index([saleLineId])
+}
+
+
+
+

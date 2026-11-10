@@ -32,6 +32,7 @@ export const ModelName = {
     Bom: 'Bom',
     BomLine: 'BomLine',
     ProductionOrder: 'ProductionOrder',
+    MaterialShortage: 'MaterialShortage',
     ProductionRun: 'ProductionRun',
     ConsumptionLine: 'ConsumptionLine',
     Sale: 'Sale',
@@ -39,7 +40,12 @@ export const ModelName = {
     ProductExport: 'ProductExport',
     ProductExportLine: 'ProductExportLine',
     Payment: 'Payment',
-    ProductMovement: 'ProductMovement'
+    ProductMovement: 'ProductMovement',
+    DiningTable: 'DiningTable',
+    DiningArea: 'DiningArea',
+    Serving: 'Serving',
+    ReplenishmentRequest: 'ReplenishmentRequest',
+    SaleLineChange: 'SaleLineChange'
 };
 export const TransactionIsolationLevel = runtime.makeStrictEnum({
     ReadUncommitted: 'ReadUncommitted',
@@ -225,6 +231,19 @@ export const ProductionOrderScalarFieldEnum = {
     assignedById: 'assignedById',
     assignedToId: 'assignedToId'
 };
+export const MaterialShortageScalarFieldEnum = {
+    id: 'id',
+    quantity: 'quantity',
+    reason: 'reason',
+    status: 'status',
+    requestedAt: 'requestedAt',
+    updatedAt: 'updatedAt',
+    reviewNote: 'reviewNote',
+    productionOrderId: 'productionOrderId',
+    materialId: 'materialId',
+    requestedById: 'requestedById',
+    reviewedById: 'reviewedById'
+};
 export const ProductionRunScalarFieldEnum = {
     id: 'id',
     recordedAt: 'recordedAt',
@@ -248,12 +267,20 @@ export const SaleScalarFieldEnum = {
     code: 'code',
     createdAt: 'createdAt',
     status: 'status',
+    closedAt: 'closedAt',
+    closedById: 'closedById',
+    version: 'version',
+    tableId: 'tableId',
     createdById: 'createdById'
 };
 export const SaleLineScalarFieldEnum = {
     id: 'id',
     quantity: 'quantity',
     unitPrice: 'unitPrice',
+    sentById: 'sentById',
+    note: 'note',
+    sentAt: 'sentAt',
+    batch: 'batch',
     productName: 'productName',
     saleId: 'saleId',
     productId: 'productId'
@@ -278,6 +305,7 @@ export const ProductExportLineScalarFieldEnum = {
 export const PaymentScalarFieldEnum = {
     id: 'id',
     amount: 'amount',
+    receivedById: 'receivedById',
     method: 'method',
     status: 'status',
     paidAt: 'paidAt',
@@ -292,6 +320,47 @@ export const ProductMovementScalarFieldEnum = {
     runId: 'runId',
     exportLineId: 'exportLineId',
     wasteLineId: 'wasteLineId'
+};
+export const DiningTableScalarFieldEnum = {
+    id: 'id',
+    name: 'name',
+    area: 'area',
+    x: 'x',
+    y: 'y',
+    status: 'status'
+};
+export const DiningAreaScalarFieldEnum = {
+    columns: 'columns',
+    rows: 'rows',
+    color: 'color',
+    name: 'name'
+};
+export const ServingScalarFieldEnum = {
+    id: 'id',
+    quantity: 'quantity',
+    servedAt: 'servedAt',
+    saleLineId: 'saleLineId',
+    servedById: 'servedById'
+};
+export const ReplenishmentRequestScalarFieldEnum = {
+    id: 'id',
+    quantity: 'quantity',
+    requestedAt: 'requestedAt',
+    status: 'status',
+    note: 'note',
+    saleLineId: 'saleLineId',
+    requestedById: 'requestedById',
+    productionOrderId: 'productionOrderId'
+};
+export const SaleLineChangeScalarFieldEnum = {
+    id: 'id',
+    changedAt: 'changedAt',
+    previousQuantity: 'previousQuantity',
+    quantity: 'quantity',
+    reason: 'reason',
+    saleLineId: 'saleLineId',
+    replacementLineId: 'replacementLineId',
+    changedById: 'changedById'
 };
 export const SortOrder = {
     asc: 'asc',

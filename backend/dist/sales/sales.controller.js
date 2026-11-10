@@ -10,12 +10,12 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { Body, Controller, ForbiddenException, Get, HttpCode, Param, Post, Put, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, ForbiddenException, Get, HttpCode, Param, Post, Put, Req, UseGuards } from '@nestjs/common';
 import { AdminAuthService } from '../admin/admin-auth.service.js';
 import { CatalogGuard } from '../catalog/catalog.guard.js';
 import { FinishedService } from '../inventory/finished.service.js';
 import { SalesService } from './sales.service.js';
-const rights = ['sale:view', 'sale:create', 'export:request', 'payment:create'];
+const rights = ['sale:view', 'sale:create', 'export:request', 'payment:create', 'sale:prepare'];
 function allow(r, codes = rights) { if (!r.catalogUser.permissions.includes('*') && !codes.some(c => r.catalogUser.permissions.includes(c)))
     throw new ForbiddenException('Chưa có quyền bán hàng'); }
 let RestaurantAuthController = class RestaurantAuthController {
@@ -64,15 +64,62 @@ let SalesController = class SalesController {
         this.service = service;
         this.finished = finished;
     }
+    ready(id, b, r) { allow(r, ['sale:prepare']); return this.service.ready(id, b, r.catalogUser); }
+    updateArea(name, b, r) { allow(r, ['sale:create']); return this.service.saveArea(b, name); }
+    deleteArea(name, r) { allow(r, ['sale:create']); return this.service.deleteArea(name); }
+    deleteTable(id, r) { allow(r, ['sale:create']); return this.service.deleteTable(id); }
     products(r) { allow(r); return this.service.products(); }
+    changeLine(id, b, r) { allow(r, ['sale:create']); return this.service.changeLine(id, b, r.catalogUser); }
+    serve(id, b, r) { allow(r, ['sale:create']); return this.service.serve(id, b, r.catalogUser); }
+    replenish(id, b, r) { allow(r, ['production:request']); return this.service.replenish(id, b, r.catalogUser); }
+    areas(r) { allow(r); return this.service.areas(); }
+    area(b, r) { allow(r, ['sale:create']); return this.service.saveArea(b); }
+    tables(r) { allow(r); return this.service.tables(); }
+    createTable(b, r) { allow(r, ['sale:create']); return this.service.saveTable(b); }
+    updateTable(id, b, r) { allow(r, ['sale:create']); return this.service.saveTable(b, id); }
+    send(id, b, r) { allow(r, ['sale:create']); return this.service.send(id, b, r.catalogUser); }
     list(r) { allow(r); return this.service.list(); }
     create(b, r) { allow(r, ['sale:create']); return this.service.save(b, r.catalogUser); }
     update(id, b, r) { allow(r, ['sale:create']); return this.service.save(b, r.catalogUser, id); }
-    confirm(id, r) { allow(r, ['sale:create']); return this.service.action(id, 'confirm', {}); }
-    cancel(id, r) { allow(r, ['sale:create']); return this.service.action(id, 'cancel', {}); }
-    pay(id, b, r) { allow(r, ['payment:create']); return this.service.action(id, 'pay', b); }
+    confirm(id, r) { allow(r, ['sale:create']); return this.service.action(id, 'confirm', {}, r.catalogUser); }
+    cancel(id, b, r) { allow(r, ['sale:create']); return this.service.action(id, 'cancel', b, r.catalogUser); }
+    pay(id, b, r) { allow(r, ['payment:create']); return this.service.action(id, 'pay', b, r.catalogUser); }
     request(b, r) { allow(r, ['export:request']); return this.finished.create(b, r.catalogUser); }
 };
+__decorate([
+    Post('sales/:id/ready'),
+    __param(0, Param('id')),
+    __param(1, Body()),
+    __param(2, Req()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object, Object]),
+    __metadata("design:returntype", void 0)
+], SalesController.prototype, "ready", null);
+__decorate([
+    Put('areas/:name'),
+    __param(0, Param('name')),
+    __param(1, Body()),
+    __param(2, Req()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object, Object]),
+    __metadata("design:returntype", void 0)
+], SalesController.prototype, "updateArea", null);
+__decorate([
+    Delete('areas/:name'),
+    __param(0, Param('name')),
+    __param(1, Req()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], SalesController.prototype, "deleteArea", null);
+__decorate([
+    Delete('tables/:id'),
+    __param(0, Param('id')),
+    __param(1, Req()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], SalesController.prototype, "deleteTable", null);
 __decorate([
     Get('products'),
     __param(0, Req()),
@@ -80,6 +127,81 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], SalesController.prototype, "products", null);
+__decorate([
+    Post('sales/:id/change-line'),
+    __param(0, Param('id')),
+    __param(1, Body()),
+    __param(2, Req()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object, Object]),
+    __metadata("design:returntype", void 0)
+], SalesController.prototype, "changeLine", null);
+__decorate([
+    Post('sales/:id/serve'),
+    __param(0, Param('id')),
+    __param(1, Body()),
+    __param(2, Req()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object, Object]),
+    __metadata("design:returntype", void 0)
+], SalesController.prototype, "serve", null);
+__decorate([
+    Post('sales/:id/replenish'),
+    __param(0, Param('id')),
+    __param(1, Body()),
+    __param(2, Req()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object, Object]),
+    __metadata("design:returntype", void 0)
+], SalesController.prototype, "replenish", null);
+__decorate([
+    Get('areas'),
+    __param(0, Req()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], SalesController.prototype, "areas", null);
+__decorate([
+    Post('areas'),
+    __param(0, Body()),
+    __param(1, Req()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", void 0)
+], SalesController.prototype, "area", null);
+__decorate([
+    Get('tables'),
+    __param(0, Req()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], SalesController.prototype, "tables", null);
+__decorate([
+    Post('tables'),
+    __param(0, Body()),
+    __param(1, Req()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", void 0)
+], SalesController.prototype, "createTable", null);
+__decorate([
+    Put('tables/:id'),
+    __param(0, Param('id')),
+    __param(1, Body()),
+    __param(2, Req()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object, Object]),
+    __metadata("design:returntype", void 0)
+], SalesController.prototype, "updateTable", null);
+__decorate([
+    Post('sales/:id/send'),
+    __param(0, Param('id')),
+    __param(1, Body()),
+    __param(2, Req()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object, Object]),
+    __metadata("design:returntype", void 0)
+], SalesController.prototype, "send", null);
 __decorate([
     Get('sales'),
     __param(0, Req()),
@@ -115,9 +237,10 @@ __decorate([
 __decorate([
     Post('sales/:id/cancel'),
     __param(0, Param('id')),
-    __param(1, Req()),
+    __param(1, Body()),
+    __param(2, Req()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, Object, Object]),
     __metadata("design:returntype", void 0)
 ], SalesController.prototype, "cancel", null);
 __decorate([

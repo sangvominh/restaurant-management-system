@@ -1,0 +1,16 @@
+CREATE TABLE "Serving" (
+ "id" UUID PRIMARY KEY, "quantity" DECIMAL(18,3) NOT NULL CHECK ("quantity" > 0),
+ "servedAt" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ "saleLineId" UUID NOT NULL REFERENCES "SaleLine"("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+ "servedById" UUID NOT NULL REFERENCES "Employee"("id") ON DELETE RESTRICT ON UPDATE CASCADE
+);
+CREATE INDEX "Serving_saleLineId_idx" ON "Serving"("saleLineId");
+CREATE TABLE "ReplenishmentRequest" (
+ "id" UUID PRIMARY KEY, "quantity" DECIMAL(18,3) NOT NULL CHECK ("quantity" > 0),
+ "requestedAt" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ "status" TEXT NOT NULL DEFAULT 'PENDING', "note" TEXT NOT NULL DEFAULT '',
+ "saleLineId" UUID NOT NULL REFERENCES "SaleLine"("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+ "requestedById" UUID NOT NULL REFERENCES "Employee"("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+ "productionOrderId" UUID UNIQUE REFERENCES "ProductionOrder"("id") ON DELETE RESTRICT ON UPDATE CASCADE
+);
+CREATE INDEX "ReplenishmentRequest_saleLineId_idx" ON "ReplenishmentRequest"("saleLineId");

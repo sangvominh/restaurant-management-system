@@ -3,14 +3,26 @@ import type * as Prisma from "../internal/prismaNamespace.js";
 export type SaleModel = runtime.Types.Result.DefaultSelection<Prisma.$SalePayload>;
 export type AggregateSale = {
     _count: SaleCountAggregateOutputType | null;
+    _avg: SaleAvgAggregateOutputType | null;
+    _sum: SaleSumAggregateOutputType | null;
     _min: SaleMinAggregateOutputType | null;
     _max: SaleMaxAggregateOutputType | null;
+};
+export type SaleAvgAggregateOutputType = {
+    version: number | null;
+};
+export type SaleSumAggregateOutputType = {
+    version: number | null;
 };
 export type SaleMinAggregateOutputType = {
     id: string | null;
     code: string | null;
     createdAt: Date | null;
     status: string | null;
+    closedAt: Date | null;
+    closedById: string | null;
+    version: number | null;
+    tableId: string | null;
     createdById: string | null;
 };
 export type SaleMaxAggregateOutputType = {
@@ -18,6 +30,10 @@ export type SaleMaxAggregateOutputType = {
     code: string | null;
     createdAt: Date | null;
     status: string | null;
+    closedAt: Date | null;
+    closedById: string | null;
+    version: number | null;
+    tableId: string | null;
     createdById: string | null;
 };
 export type SaleCountAggregateOutputType = {
@@ -25,14 +41,28 @@ export type SaleCountAggregateOutputType = {
     code: number;
     createdAt: number;
     status: number;
+    closedAt: number;
+    closedById: number;
+    version: number;
+    tableId: number;
     createdById: number;
     _all: number;
+};
+export type SaleAvgAggregateInputType = {
+    version?: true;
+};
+export type SaleSumAggregateInputType = {
+    version?: true;
 };
 export type SaleMinAggregateInputType = {
     id?: true;
     code?: true;
     createdAt?: true;
     status?: true;
+    closedAt?: true;
+    closedById?: true;
+    version?: true;
+    tableId?: true;
     createdById?: true;
 };
 export type SaleMaxAggregateInputType = {
@@ -40,6 +70,10 @@ export type SaleMaxAggregateInputType = {
     code?: true;
     createdAt?: true;
     status?: true;
+    closedAt?: true;
+    closedById?: true;
+    version?: true;
+    tableId?: true;
     createdById?: true;
 };
 export type SaleCountAggregateInputType = {
@@ -47,6 +81,10 @@ export type SaleCountAggregateInputType = {
     code?: true;
     createdAt?: true;
     status?: true;
+    closedAt?: true;
+    closedById?: true;
+    version?: true;
+    tableId?: true;
     createdById?: true;
     _all?: true;
 };
@@ -57,6 +95,8 @@ export type SaleAggregateArgs<ExtArgs extends runtime.Types.Extensions.InternalA
     take?: number;
     skip?: number;
     _count?: true | SaleCountAggregateInputType;
+    _avg?: SaleAvgAggregateInputType;
+    _sum?: SaleSumAggregateInputType;
     _min?: SaleMinAggregateInputType;
     _max?: SaleMaxAggregateInputType;
 };
@@ -71,6 +111,8 @@ export type SaleGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
     take?: number;
     skip?: number;
     _count?: SaleCountAggregateInputType | true;
+    _avg?: SaleAvgAggregateInputType;
+    _sum?: SaleSumAggregateInputType;
     _min?: SaleMinAggregateInputType;
     _max?: SaleMaxAggregateInputType;
 };
@@ -79,8 +121,14 @@ export type SaleGroupByOutputType = {
     code: string;
     createdAt: Date;
     status: string;
+    closedAt: Date | null;
+    closedById: string | null;
+    version: number;
+    tableId: string | null;
     createdById: string;
     _count: SaleCountAggregateOutputType | null;
+    _avg: SaleAvgAggregateOutputType | null;
+    _sum: SaleSumAggregateOutputType | null;
     _min: SaleMinAggregateOutputType | null;
     _max: SaleMaxAggregateOutputType | null;
 };
@@ -95,7 +143,13 @@ export type SaleWhereInput = {
     code?: Prisma.StringFilter<"Sale"> | string;
     createdAt?: Prisma.DateTimeFilter<"Sale"> | Date | string;
     status?: Prisma.StringFilter<"Sale"> | string;
+    closedAt?: Prisma.DateTimeNullableFilter<"Sale"> | Date | string | null;
+    closedById?: Prisma.UuidNullableFilter<"Sale"> | string | null;
+    version?: Prisma.IntFilter<"Sale"> | number;
+    tableId?: Prisma.UuidNullableFilter<"Sale"> | string | null;
     createdById?: Prisma.UuidFilter<"Sale"> | string;
+    closedBy?: Prisma.XOR<Prisma.EmployeeNullableScalarRelationFilter, Prisma.EmployeeWhereInput> | null;
+    table?: Prisma.XOR<Prisma.DiningTableNullableScalarRelationFilter, Prisma.DiningTableWhereInput> | null;
     createdBy?: Prisma.XOR<Prisma.EmployeeScalarRelationFilter, Prisma.EmployeeWhereInput>;
     lines?: Prisma.SaleLineListRelationFilter;
     exports?: Prisma.ProductExportListRelationFilter;
@@ -106,7 +160,13 @@ export type SaleOrderByWithRelationInput = {
     code?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
     status?: Prisma.SortOrder;
+    closedAt?: Prisma.SortOrderInput | Prisma.SortOrder;
+    closedById?: Prisma.SortOrderInput | Prisma.SortOrder;
+    version?: Prisma.SortOrder;
+    tableId?: Prisma.SortOrderInput | Prisma.SortOrder;
     createdById?: Prisma.SortOrder;
+    closedBy?: Prisma.EmployeeOrderByWithRelationInput;
+    table?: Prisma.DiningTableOrderByWithRelationInput;
     createdBy?: Prisma.EmployeeOrderByWithRelationInput;
     lines?: Prisma.SaleLineOrderByRelationAggregateInput;
     exports?: Prisma.ProductExportOrderByRelationAggregateInput;
@@ -120,7 +180,13 @@ export type SaleWhereUniqueInput = Prisma.AtLeast<{
     NOT?: Prisma.SaleWhereInput | Prisma.SaleWhereInput[];
     createdAt?: Prisma.DateTimeFilter<"Sale"> | Date | string;
     status?: Prisma.StringFilter<"Sale"> | string;
+    closedAt?: Prisma.DateTimeNullableFilter<"Sale"> | Date | string | null;
+    closedById?: Prisma.UuidNullableFilter<"Sale"> | string | null;
+    version?: Prisma.IntFilter<"Sale"> | number;
+    tableId?: Prisma.UuidNullableFilter<"Sale"> | string | null;
     createdById?: Prisma.UuidFilter<"Sale"> | string;
+    closedBy?: Prisma.XOR<Prisma.EmployeeNullableScalarRelationFilter, Prisma.EmployeeWhereInput> | null;
+    table?: Prisma.XOR<Prisma.DiningTableNullableScalarRelationFilter, Prisma.DiningTableWhereInput> | null;
     createdBy?: Prisma.XOR<Prisma.EmployeeScalarRelationFilter, Prisma.EmployeeWhereInput>;
     lines?: Prisma.SaleLineListRelationFilter;
     exports?: Prisma.ProductExportListRelationFilter;
@@ -131,10 +197,16 @@ export type SaleOrderByWithAggregationInput = {
     code?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
     status?: Prisma.SortOrder;
+    closedAt?: Prisma.SortOrderInput | Prisma.SortOrder;
+    closedById?: Prisma.SortOrderInput | Prisma.SortOrder;
+    version?: Prisma.SortOrder;
+    tableId?: Prisma.SortOrderInput | Prisma.SortOrder;
     createdById?: Prisma.SortOrder;
     _count?: Prisma.SaleCountOrderByAggregateInput;
+    _avg?: Prisma.SaleAvgOrderByAggregateInput;
     _max?: Prisma.SaleMaxOrderByAggregateInput;
     _min?: Prisma.SaleMinOrderByAggregateInput;
+    _sum?: Prisma.SaleSumOrderByAggregateInput;
 };
 export type SaleScalarWhereWithAggregatesInput = {
     AND?: Prisma.SaleScalarWhereWithAggregatesInput | Prisma.SaleScalarWhereWithAggregatesInput[];
@@ -144,6 +216,10 @@ export type SaleScalarWhereWithAggregatesInput = {
     code?: Prisma.StringWithAggregatesFilter<"Sale"> | string;
     createdAt?: Prisma.DateTimeWithAggregatesFilter<"Sale"> | Date | string;
     status?: Prisma.StringWithAggregatesFilter<"Sale"> | string;
+    closedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Sale"> | Date | string | null;
+    closedById?: Prisma.UuidNullableWithAggregatesFilter<"Sale"> | string | null;
+    version?: Prisma.IntWithAggregatesFilter<"Sale"> | number;
+    tableId?: Prisma.UuidNullableWithAggregatesFilter<"Sale"> | string | null;
     createdById?: Prisma.UuidWithAggregatesFilter<"Sale"> | string;
 };
 export type SaleCreateInput = {
@@ -151,6 +227,10 @@ export type SaleCreateInput = {
     code: string;
     createdAt?: Date | string;
     status?: string;
+    closedAt?: Date | string | null;
+    version?: number;
+    closedBy?: Prisma.EmployeeCreateNestedOneWithoutClosedSalesInput;
+    table?: Prisma.DiningTableCreateNestedOneWithoutSalesInput;
     createdBy: Prisma.EmployeeCreateNestedOneWithoutCreatedSalesInput;
     lines?: Prisma.SaleLineCreateNestedManyWithoutSaleInput;
     exports?: Prisma.ProductExportCreateNestedManyWithoutSaleInput;
@@ -161,6 +241,10 @@ export type SaleUncheckedCreateInput = {
     code: string;
     createdAt?: Date | string;
     status?: string;
+    closedAt?: Date | string | null;
+    closedById?: string | null;
+    version?: number;
+    tableId?: string | null;
     createdById: string;
     lines?: Prisma.SaleLineUncheckedCreateNestedManyWithoutSaleInput;
     exports?: Prisma.ProductExportUncheckedCreateNestedManyWithoutSaleInput;
@@ -171,6 +255,10 @@ export type SaleUpdateInput = {
     code?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     status?: Prisma.StringFieldUpdateOperationsInput | string;
+    closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    version?: Prisma.IntFieldUpdateOperationsInput | number;
+    closedBy?: Prisma.EmployeeUpdateOneWithoutClosedSalesNestedInput;
+    table?: Prisma.DiningTableUpdateOneWithoutSalesNestedInput;
     createdBy?: Prisma.EmployeeUpdateOneRequiredWithoutCreatedSalesNestedInput;
     lines?: Prisma.SaleLineUpdateManyWithoutSaleNestedInput;
     exports?: Prisma.ProductExportUpdateManyWithoutSaleNestedInput;
@@ -181,6 +269,10 @@ export type SaleUncheckedUpdateInput = {
     code?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     status?: Prisma.StringFieldUpdateOperationsInput | string;
+    closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    closedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    version?: Prisma.IntFieldUpdateOperationsInput | number;
+    tableId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     createdById?: Prisma.StringFieldUpdateOperationsInput | string;
     lines?: Prisma.SaleLineUncheckedUpdateManyWithoutSaleNestedInput;
     exports?: Prisma.ProductExportUncheckedUpdateManyWithoutSaleNestedInput;
@@ -191,6 +283,10 @@ export type SaleCreateManyInput = {
     code: string;
     createdAt?: Date | string;
     status?: string;
+    closedAt?: Date | string | null;
+    closedById?: string | null;
+    version?: number;
+    tableId?: string | null;
     createdById: string;
 };
 export type SaleUpdateManyMutationInput = {
@@ -198,12 +294,18 @@ export type SaleUpdateManyMutationInput = {
     code?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     status?: Prisma.StringFieldUpdateOperationsInput | string;
+    closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    version?: Prisma.IntFieldUpdateOperationsInput | number;
 };
 export type SaleUncheckedUpdateManyInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     code?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     status?: Prisma.StringFieldUpdateOperationsInput | string;
+    closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    closedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    version?: Prisma.IntFieldUpdateOperationsInput | number;
+    tableId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     createdById?: Prisma.StringFieldUpdateOperationsInput | string;
 };
 export type SaleListRelationFilter = {
@@ -219,13 +321,24 @@ export type SaleCountOrderByAggregateInput = {
     code?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
     status?: Prisma.SortOrder;
+    closedAt?: Prisma.SortOrder;
+    closedById?: Prisma.SortOrder;
+    version?: Prisma.SortOrder;
+    tableId?: Prisma.SortOrder;
     createdById?: Prisma.SortOrder;
+};
+export type SaleAvgOrderByAggregateInput = {
+    version?: Prisma.SortOrder;
 };
 export type SaleMaxOrderByAggregateInput = {
     id?: Prisma.SortOrder;
     code?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
     status?: Prisma.SortOrder;
+    closedAt?: Prisma.SortOrder;
+    closedById?: Prisma.SortOrder;
+    version?: Prisma.SortOrder;
+    tableId?: Prisma.SortOrder;
     createdById?: Prisma.SortOrder;
 };
 export type SaleMinOrderByAggregateInput = {
@@ -233,11 +346,24 @@ export type SaleMinOrderByAggregateInput = {
     code?: Prisma.SortOrder;
     createdAt?: Prisma.SortOrder;
     status?: Prisma.SortOrder;
+    closedAt?: Prisma.SortOrder;
+    closedById?: Prisma.SortOrder;
+    version?: Prisma.SortOrder;
+    tableId?: Prisma.SortOrder;
     createdById?: Prisma.SortOrder;
+};
+export type SaleSumOrderByAggregateInput = {
+    version?: Prisma.SortOrder;
 };
 export type SaleScalarRelationFilter = {
     is?: Prisma.SaleWhereInput;
     isNot?: Prisma.SaleWhereInput;
+};
+export type SaleCreateNestedManyWithoutClosedByInput = {
+    create?: Prisma.XOR<Prisma.SaleCreateWithoutClosedByInput, Prisma.SaleUncheckedCreateWithoutClosedByInput> | Prisma.SaleCreateWithoutClosedByInput[] | Prisma.SaleUncheckedCreateWithoutClosedByInput[];
+    connectOrCreate?: Prisma.SaleCreateOrConnectWithoutClosedByInput | Prisma.SaleCreateOrConnectWithoutClosedByInput[];
+    createMany?: Prisma.SaleCreateManyClosedByInputEnvelope;
+    connect?: Prisma.SaleWhereUniqueInput | Prisma.SaleWhereUniqueInput[];
 };
 export type SaleCreateNestedManyWithoutCreatedByInput = {
     create?: Prisma.XOR<Prisma.SaleCreateWithoutCreatedByInput, Prisma.SaleUncheckedCreateWithoutCreatedByInput> | Prisma.SaleCreateWithoutCreatedByInput[] | Prisma.SaleUncheckedCreateWithoutCreatedByInput[];
@@ -245,11 +371,30 @@ export type SaleCreateNestedManyWithoutCreatedByInput = {
     createMany?: Prisma.SaleCreateManyCreatedByInputEnvelope;
     connect?: Prisma.SaleWhereUniqueInput | Prisma.SaleWhereUniqueInput[];
 };
+export type SaleUncheckedCreateNestedManyWithoutClosedByInput = {
+    create?: Prisma.XOR<Prisma.SaleCreateWithoutClosedByInput, Prisma.SaleUncheckedCreateWithoutClosedByInput> | Prisma.SaleCreateWithoutClosedByInput[] | Prisma.SaleUncheckedCreateWithoutClosedByInput[];
+    connectOrCreate?: Prisma.SaleCreateOrConnectWithoutClosedByInput | Prisma.SaleCreateOrConnectWithoutClosedByInput[];
+    createMany?: Prisma.SaleCreateManyClosedByInputEnvelope;
+    connect?: Prisma.SaleWhereUniqueInput | Prisma.SaleWhereUniqueInput[];
+};
 export type SaleUncheckedCreateNestedManyWithoutCreatedByInput = {
     create?: Prisma.XOR<Prisma.SaleCreateWithoutCreatedByInput, Prisma.SaleUncheckedCreateWithoutCreatedByInput> | Prisma.SaleCreateWithoutCreatedByInput[] | Prisma.SaleUncheckedCreateWithoutCreatedByInput[];
     connectOrCreate?: Prisma.SaleCreateOrConnectWithoutCreatedByInput | Prisma.SaleCreateOrConnectWithoutCreatedByInput[];
     createMany?: Prisma.SaleCreateManyCreatedByInputEnvelope;
     connect?: Prisma.SaleWhereUniqueInput | Prisma.SaleWhereUniqueInput[];
+};
+export type SaleUpdateManyWithoutClosedByNestedInput = {
+    create?: Prisma.XOR<Prisma.SaleCreateWithoutClosedByInput, Prisma.SaleUncheckedCreateWithoutClosedByInput> | Prisma.SaleCreateWithoutClosedByInput[] | Prisma.SaleUncheckedCreateWithoutClosedByInput[];
+    connectOrCreate?: Prisma.SaleCreateOrConnectWithoutClosedByInput | Prisma.SaleCreateOrConnectWithoutClosedByInput[];
+    upsert?: Prisma.SaleUpsertWithWhereUniqueWithoutClosedByInput | Prisma.SaleUpsertWithWhereUniqueWithoutClosedByInput[];
+    createMany?: Prisma.SaleCreateManyClosedByInputEnvelope;
+    set?: Prisma.SaleWhereUniqueInput | Prisma.SaleWhereUniqueInput[];
+    disconnect?: Prisma.SaleWhereUniqueInput | Prisma.SaleWhereUniqueInput[];
+    delete?: Prisma.SaleWhereUniqueInput | Prisma.SaleWhereUniqueInput[];
+    connect?: Prisma.SaleWhereUniqueInput | Prisma.SaleWhereUniqueInput[];
+    update?: Prisma.SaleUpdateWithWhereUniqueWithoutClosedByInput | Prisma.SaleUpdateWithWhereUniqueWithoutClosedByInput[];
+    updateMany?: Prisma.SaleUpdateManyWithWhereWithoutClosedByInput | Prisma.SaleUpdateManyWithWhereWithoutClosedByInput[];
+    deleteMany?: Prisma.SaleScalarWhereInput | Prisma.SaleScalarWhereInput[];
 };
 export type SaleUpdateManyWithoutCreatedByNestedInput = {
     create?: Prisma.XOR<Prisma.SaleCreateWithoutCreatedByInput, Prisma.SaleUncheckedCreateWithoutCreatedByInput> | Prisma.SaleCreateWithoutCreatedByInput[] | Prisma.SaleUncheckedCreateWithoutCreatedByInput[];
@@ -262,6 +407,19 @@ export type SaleUpdateManyWithoutCreatedByNestedInput = {
     connect?: Prisma.SaleWhereUniqueInput | Prisma.SaleWhereUniqueInput[];
     update?: Prisma.SaleUpdateWithWhereUniqueWithoutCreatedByInput | Prisma.SaleUpdateWithWhereUniqueWithoutCreatedByInput[];
     updateMany?: Prisma.SaleUpdateManyWithWhereWithoutCreatedByInput | Prisma.SaleUpdateManyWithWhereWithoutCreatedByInput[];
+    deleteMany?: Prisma.SaleScalarWhereInput | Prisma.SaleScalarWhereInput[];
+};
+export type SaleUncheckedUpdateManyWithoutClosedByNestedInput = {
+    create?: Prisma.XOR<Prisma.SaleCreateWithoutClosedByInput, Prisma.SaleUncheckedCreateWithoutClosedByInput> | Prisma.SaleCreateWithoutClosedByInput[] | Prisma.SaleUncheckedCreateWithoutClosedByInput[];
+    connectOrCreate?: Prisma.SaleCreateOrConnectWithoutClosedByInput | Prisma.SaleCreateOrConnectWithoutClosedByInput[];
+    upsert?: Prisma.SaleUpsertWithWhereUniqueWithoutClosedByInput | Prisma.SaleUpsertWithWhereUniqueWithoutClosedByInput[];
+    createMany?: Prisma.SaleCreateManyClosedByInputEnvelope;
+    set?: Prisma.SaleWhereUniqueInput | Prisma.SaleWhereUniqueInput[];
+    disconnect?: Prisma.SaleWhereUniqueInput | Prisma.SaleWhereUniqueInput[];
+    delete?: Prisma.SaleWhereUniqueInput | Prisma.SaleWhereUniqueInput[];
+    connect?: Prisma.SaleWhereUniqueInput | Prisma.SaleWhereUniqueInput[];
+    update?: Prisma.SaleUpdateWithWhereUniqueWithoutClosedByInput | Prisma.SaleUpdateWithWhereUniqueWithoutClosedByInput[];
+    updateMany?: Prisma.SaleUpdateManyWithWhereWithoutClosedByInput | Prisma.SaleUpdateManyWithWhereWithoutClosedByInput[];
     deleteMany?: Prisma.SaleScalarWhereInput | Prisma.SaleScalarWhereInput[];
 };
 export type SaleUncheckedUpdateManyWithoutCreatedByNestedInput = {
@@ -313,11 +471,87 @@ export type SaleUpdateOneRequiredWithoutPaymentNestedInput = {
     connect?: Prisma.SaleWhereUniqueInput;
     update?: Prisma.XOR<Prisma.XOR<Prisma.SaleUpdateToOneWithWhereWithoutPaymentInput, Prisma.SaleUpdateWithoutPaymentInput>, Prisma.SaleUncheckedUpdateWithoutPaymentInput>;
 };
+export type SaleCreateNestedManyWithoutTableInput = {
+    create?: Prisma.XOR<Prisma.SaleCreateWithoutTableInput, Prisma.SaleUncheckedCreateWithoutTableInput> | Prisma.SaleCreateWithoutTableInput[] | Prisma.SaleUncheckedCreateWithoutTableInput[];
+    connectOrCreate?: Prisma.SaleCreateOrConnectWithoutTableInput | Prisma.SaleCreateOrConnectWithoutTableInput[];
+    createMany?: Prisma.SaleCreateManyTableInputEnvelope;
+    connect?: Prisma.SaleWhereUniqueInput | Prisma.SaleWhereUniqueInput[];
+};
+export type SaleUncheckedCreateNestedManyWithoutTableInput = {
+    create?: Prisma.XOR<Prisma.SaleCreateWithoutTableInput, Prisma.SaleUncheckedCreateWithoutTableInput> | Prisma.SaleCreateWithoutTableInput[] | Prisma.SaleUncheckedCreateWithoutTableInput[];
+    connectOrCreate?: Prisma.SaleCreateOrConnectWithoutTableInput | Prisma.SaleCreateOrConnectWithoutTableInput[];
+    createMany?: Prisma.SaleCreateManyTableInputEnvelope;
+    connect?: Prisma.SaleWhereUniqueInput | Prisma.SaleWhereUniqueInput[];
+};
+export type SaleUpdateManyWithoutTableNestedInput = {
+    create?: Prisma.XOR<Prisma.SaleCreateWithoutTableInput, Prisma.SaleUncheckedCreateWithoutTableInput> | Prisma.SaleCreateWithoutTableInput[] | Prisma.SaleUncheckedCreateWithoutTableInput[];
+    connectOrCreate?: Prisma.SaleCreateOrConnectWithoutTableInput | Prisma.SaleCreateOrConnectWithoutTableInput[];
+    upsert?: Prisma.SaleUpsertWithWhereUniqueWithoutTableInput | Prisma.SaleUpsertWithWhereUniqueWithoutTableInput[];
+    createMany?: Prisma.SaleCreateManyTableInputEnvelope;
+    set?: Prisma.SaleWhereUniqueInput | Prisma.SaleWhereUniqueInput[];
+    disconnect?: Prisma.SaleWhereUniqueInput | Prisma.SaleWhereUniqueInput[];
+    delete?: Prisma.SaleWhereUniqueInput | Prisma.SaleWhereUniqueInput[];
+    connect?: Prisma.SaleWhereUniqueInput | Prisma.SaleWhereUniqueInput[];
+    update?: Prisma.SaleUpdateWithWhereUniqueWithoutTableInput | Prisma.SaleUpdateWithWhereUniqueWithoutTableInput[];
+    updateMany?: Prisma.SaleUpdateManyWithWhereWithoutTableInput | Prisma.SaleUpdateManyWithWhereWithoutTableInput[];
+    deleteMany?: Prisma.SaleScalarWhereInput | Prisma.SaleScalarWhereInput[];
+};
+export type SaleUncheckedUpdateManyWithoutTableNestedInput = {
+    create?: Prisma.XOR<Prisma.SaleCreateWithoutTableInput, Prisma.SaleUncheckedCreateWithoutTableInput> | Prisma.SaleCreateWithoutTableInput[] | Prisma.SaleUncheckedCreateWithoutTableInput[];
+    connectOrCreate?: Prisma.SaleCreateOrConnectWithoutTableInput | Prisma.SaleCreateOrConnectWithoutTableInput[];
+    upsert?: Prisma.SaleUpsertWithWhereUniqueWithoutTableInput | Prisma.SaleUpsertWithWhereUniqueWithoutTableInput[];
+    createMany?: Prisma.SaleCreateManyTableInputEnvelope;
+    set?: Prisma.SaleWhereUniqueInput | Prisma.SaleWhereUniqueInput[];
+    disconnect?: Prisma.SaleWhereUniqueInput | Prisma.SaleWhereUniqueInput[];
+    delete?: Prisma.SaleWhereUniqueInput | Prisma.SaleWhereUniqueInput[];
+    connect?: Prisma.SaleWhereUniqueInput | Prisma.SaleWhereUniqueInput[];
+    update?: Prisma.SaleUpdateWithWhereUniqueWithoutTableInput | Prisma.SaleUpdateWithWhereUniqueWithoutTableInput[];
+    updateMany?: Prisma.SaleUpdateManyWithWhereWithoutTableInput | Prisma.SaleUpdateManyWithWhereWithoutTableInput[];
+    deleteMany?: Prisma.SaleScalarWhereInput | Prisma.SaleScalarWhereInput[];
+};
+export type SaleCreateWithoutClosedByInput = {
+    id?: string;
+    code: string;
+    createdAt?: Date | string;
+    status?: string;
+    closedAt?: Date | string | null;
+    version?: number;
+    table?: Prisma.DiningTableCreateNestedOneWithoutSalesInput;
+    createdBy: Prisma.EmployeeCreateNestedOneWithoutCreatedSalesInput;
+    lines?: Prisma.SaleLineCreateNestedManyWithoutSaleInput;
+    exports?: Prisma.ProductExportCreateNestedManyWithoutSaleInput;
+    payment?: Prisma.PaymentCreateNestedOneWithoutSaleInput;
+};
+export type SaleUncheckedCreateWithoutClosedByInput = {
+    id?: string;
+    code: string;
+    createdAt?: Date | string;
+    status?: string;
+    closedAt?: Date | string | null;
+    version?: number;
+    tableId?: string | null;
+    createdById: string;
+    lines?: Prisma.SaleLineUncheckedCreateNestedManyWithoutSaleInput;
+    exports?: Prisma.ProductExportUncheckedCreateNestedManyWithoutSaleInput;
+    payment?: Prisma.PaymentUncheckedCreateNestedOneWithoutSaleInput;
+};
+export type SaleCreateOrConnectWithoutClosedByInput = {
+    where: Prisma.SaleWhereUniqueInput;
+    create: Prisma.XOR<Prisma.SaleCreateWithoutClosedByInput, Prisma.SaleUncheckedCreateWithoutClosedByInput>;
+};
+export type SaleCreateManyClosedByInputEnvelope = {
+    data: Prisma.SaleCreateManyClosedByInput | Prisma.SaleCreateManyClosedByInput[];
+    skipDuplicates?: boolean;
+};
 export type SaleCreateWithoutCreatedByInput = {
     id?: string;
     code: string;
     createdAt?: Date | string;
     status?: string;
+    closedAt?: Date | string | null;
+    version?: number;
+    closedBy?: Prisma.EmployeeCreateNestedOneWithoutClosedSalesInput;
+    table?: Prisma.DiningTableCreateNestedOneWithoutSalesInput;
     lines?: Prisma.SaleLineCreateNestedManyWithoutSaleInput;
     exports?: Prisma.ProductExportCreateNestedManyWithoutSaleInput;
     payment?: Prisma.PaymentCreateNestedOneWithoutSaleInput;
@@ -327,6 +561,10 @@ export type SaleUncheckedCreateWithoutCreatedByInput = {
     code: string;
     createdAt?: Date | string;
     status?: string;
+    closedAt?: Date | string | null;
+    closedById?: string | null;
+    version?: number;
+    tableId?: string | null;
     lines?: Prisma.SaleLineUncheckedCreateNestedManyWithoutSaleInput;
     exports?: Prisma.ProductExportUncheckedCreateNestedManyWithoutSaleInput;
     payment?: Prisma.PaymentUncheckedCreateNestedOneWithoutSaleInput;
@@ -338,6 +576,33 @@ export type SaleCreateOrConnectWithoutCreatedByInput = {
 export type SaleCreateManyCreatedByInputEnvelope = {
     data: Prisma.SaleCreateManyCreatedByInput | Prisma.SaleCreateManyCreatedByInput[];
     skipDuplicates?: boolean;
+};
+export type SaleUpsertWithWhereUniqueWithoutClosedByInput = {
+    where: Prisma.SaleWhereUniqueInput;
+    update: Prisma.XOR<Prisma.SaleUpdateWithoutClosedByInput, Prisma.SaleUncheckedUpdateWithoutClosedByInput>;
+    create: Prisma.XOR<Prisma.SaleCreateWithoutClosedByInput, Prisma.SaleUncheckedCreateWithoutClosedByInput>;
+};
+export type SaleUpdateWithWhereUniqueWithoutClosedByInput = {
+    where: Prisma.SaleWhereUniqueInput;
+    data: Prisma.XOR<Prisma.SaleUpdateWithoutClosedByInput, Prisma.SaleUncheckedUpdateWithoutClosedByInput>;
+};
+export type SaleUpdateManyWithWhereWithoutClosedByInput = {
+    where: Prisma.SaleScalarWhereInput;
+    data: Prisma.XOR<Prisma.SaleUpdateManyMutationInput, Prisma.SaleUncheckedUpdateManyWithoutClosedByInput>;
+};
+export type SaleScalarWhereInput = {
+    AND?: Prisma.SaleScalarWhereInput | Prisma.SaleScalarWhereInput[];
+    OR?: Prisma.SaleScalarWhereInput[];
+    NOT?: Prisma.SaleScalarWhereInput | Prisma.SaleScalarWhereInput[];
+    id?: Prisma.UuidFilter<"Sale"> | string;
+    code?: Prisma.StringFilter<"Sale"> | string;
+    createdAt?: Prisma.DateTimeFilter<"Sale"> | Date | string;
+    status?: Prisma.StringFilter<"Sale"> | string;
+    closedAt?: Prisma.DateTimeNullableFilter<"Sale"> | Date | string | null;
+    closedById?: Prisma.UuidNullableFilter<"Sale"> | string | null;
+    version?: Prisma.IntFilter<"Sale"> | number;
+    tableId?: Prisma.UuidNullableFilter<"Sale"> | string | null;
+    createdById?: Prisma.UuidFilter<"Sale"> | string;
 };
 export type SaleUpsertWithWhereUniqueWithoutCreatedByInput = {
     where: Prisma.SaleWhereUniqueInput;
@@ -352,21 +617,15 @@ export type SaleUpdateManyWithWhereWithoutCreatedByInput = {
     where: Prisma.SaleScalarWhereInput;
     data: Prisma.XOR<Prisma.SaleUpdateManyMutationInput, Prisma.SaleUncheckedUpdateManyWithoutCreatedByInput>;
 };
-export type SaleScalarWhereInput = {
-    AND?: Prisma.SaleScalarWhereInput | Prisma.SaleScalarWhereInput[];
-    OR?: Prisma.SaleScalarWhereInput[];
-    NOT?: Prisma.SaleScalarWhereInput | Prisma.SaleScalarWhereInput[];
-    id?: Prisma.UuidFilter<"Sale"> | string;
-    code?: Prisma.StringFilter<"Sale"> | string;
-    createdAt?: Prisma.DateTimeFilter<"Sale"> | Date | string;
-    status?: Prisma.StringFilter<"Sale"> | string;
-    createdById?: Prisma.UuidFilter<"Sale"> | string;
-};
 export type SaleCreateWithoutLinesInput = {
     id?: string;
     code: string;
     createdAt?: Date | string;
     status?: string;
+    closedAt?: Date | string | null;
+    version?: number;
+    closedBy?: Prisma.EmployeeCreateNestedOneWithoutClosedSalesInput;
+    table?: Prisma.DiningTableCreateNestedOneWithoutSalesInput;
     createdBy: Prisma.EmployeeCreateNestedOneWithoutCreatedSalesInput;
     exports?: Prisma.ProductExportCreateNestedManyWithoutSaleInput;
     payment?: Prisma.PaymentCreateNestedOneWithoutSaleInput;
@@ -376,6 +635,10 @@ export type SaleUncheckedCreateWithoutLinesInput = {
     code: string;
     createdAt?: Date | string;
     status?: string;
+    closedAt?: Date | string | null;
+    closedById?: string | null;
+    version?: number;
+    tableId?: string | null;
     createdById: string;
     exports?: Prisma.ProductExportUncheckedCreateNestedManyWithoutSaleInput;
     payment?: Prisma.PaymentUncheckedCreateNestedOneWithoutSaleInput;
@@ -398,6 +661,10 @@ export type SaleUpdateWithoutLinesInput = {
     code?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     status?: Prisma.StringFieldUpdateOperationsInput | string;
+    closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    version?: Prisma.IntFieldUpdateOperationsInput | number;
+    closedBy?: Prisma.EmployeeUpdateOneWithoutClosedSalesNestedInput;
+    table?: Prisma.DiningTableUpdateOneWithoutSalesNestedInput;
     createdBy?: Prisma.EmployeeUpdateOneRequiredWithoutCreatedSalesNestedInput;
     exports?: Prisma.ProductExportUpdateManyWithoutSaleNestedInput;
     payment?: Prisma.PaymentUpdateOneWithoutSaleNestedInput;
@@ -407,6 +674,10 @@ export type SaleUncheckedUpdateWithoutLinesInput = {
     code?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     status?: Prisma.StringFieldUpdateOperationsInput | string;
+    closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    closedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    version?: Prisma.IntFieldUpdateOperationsInput | number;
+    tableId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     createdById?: Prisma.StringFieldUpdateOperationsInput | string;
     exports?: Prisma.ProductExportUncheckedUpdateManyWithoutSaleNestedInput;
     payment?: Prisma.PaymentUncheckedUpdateOneWithoutSaleNestedInput;
@@ -416,6 +687,10 @@ export type SaleCreateWithoutExportsInput = {
     code: string;
     createdAt?: Date | string;
     status?: string;
+    closedAt?: Date | string | null;
+    version?: number;
+    closedBy?: Prisma.EmployeeCreateNestedOneWithoutClosedSalesInput;
+    table?: Prisma.DiningTableCreateNestedOneWithoutSalesInput;
     createdBy: Prisma.EmployeeCreateNestedOneWithoutCreatedSalesInput;
     lines?: Prisma.SaleLineCreateNestedManyWithoutSaleInput;
     payment?: Prisma.PaymentCreateNestedOneWithoutSaleInput;
@@ -425,6 +700,10 @@ export type SaleUncheckedCreateWithoutExportsInput = {
     code: string;
     createdAt?: Date | string;
     status?: string;
+    closedAt?: Date | string | null;
+    closedById?: string | null;
+    version?: number;
+    tableId?: string | null;
     createdById: string;
     lines?: Prisma.SaleLineUncheckedCreateNestedManyWithoutSaleInput;
     payment?: Prisma.PaymentUncheckedCreateNestedOneWithoutSaleInput;
@@ -447,6 +726,10 @@ export type SaleUpdateWithoutExportsInput = {
     code?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     status?: Prisma.StringFieldUpdateOperationsInput | string;
+    closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    version?: Prisma.IntFieldUpdateOperationsInput | number;
+    closedBy?: Prisma.EmployeeUpdateOneWithoutClosedSalesNestedInput;
+    table?: Prisma.DiningTableUpdateOneWithoutSalesNestedInput;
     createdBy?: Prisma.EmployeeUpdateOneRequiredWithoutCreatedSalesNestedInput;
     lines?: Prisma.SaleLineUpdateManyWithoutSaleNestedInput;
     payment?: Prisma.PaymentUpdateOneWithoutSaleNestedInput;
@@ -456,6 +739,10 @@ export type SaleUncheckedUpdateWithoutExportsInput = {
     code?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     status?: Prisma.StringFieldUpdateOperationsInput | string;
+    closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    closedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    version?: Prisma.IntFieldUpdateOperationsInput | number;
+    tableId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     createdById?: Prisma.StringFieldUpdateOperationsInput | string;
     lines?: Prisma.SaleLineUncheckedUpdateManyWithoutSaleNestedInput;
     payment?: Prisma.PaymentUncheckedUpdateOneWithoutSaleNestedInput;
@@ -465,6 +752,10 @@ export type SaleCreateWithoutPaymentInput = {
     code: string;
     createdAt?: Date | string;
     status?: string;
+    closedAt?: Date | string | null;
+    version?: number;
+    closedBy?: Prisma.EmployeeCreateNestedOneWithoutClosedSalesInput;
+    table?: Prisma.DiningTableCreateNestedOneWithoutSalesInput;
     createdBy: Prisma.EmployeeCreateNestedOneWithoutCreatedSalesInput;
     lines?: Prisma.SaleLineCreateNestedManyWithoutSaleInput;
     exports?: Prisma.ProductExportCreateNestedManyWithoutSaleInput;
@@ -474,6 +765,10 @@ export type SaleUncheckedCreateWithoutPaymentInput = {
     code: string;
     createdAt?: Date | string;
     status?: string;
+    closedAt?: Date | string | null;
+    closedById?: string | null;
+    version?: number;
+    tableId?: string | null;
     createdById: string;
     lines?: Prisma.SaleLineUncheckedCreateNestedManyWithoutSaleInput;
     exports?: Prisma.ProductExportUncheckedCreateNestedManyWithoutSaleInput;
@@ -496,6 +791,10 @@ export type SaleUpdateWithoutPaymentInput = {
     code?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     status?: Prisma.StringFieldUpdateOperationsInput | string;
+    closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    version?: Prisma.IntFieldUpdateOperationsInput | number;
+    closedBy?: Prisma.EmployeeUpdateOneWithoutClosedSalesNestedInput;
+    table?: Prisma.DiningTableUpdateOneWithoutSalesNestedInput;
     createdBy?: Prisma.EmployeeUpdateOneRequiredWithoutCreatedSalesNestedInput;
     lines?: Prisma.SaleLineUpdateManyWithoutSaleNestedInput;
     exports?: Prisma.ProductExportUpdateManyWithoutSaleNestedInput;
@@ -505,21 +804,126 @@ export type SaleUncheckedUpdateWithoutPaymentInput = {
     code?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     status?: Prisma.StringFieldUpdateOperationsInput | string;
+    closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    closedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    version?: Prisma.IntFieldUpdateOperationsInput | number;
+    tableId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     createdById?: Prisma.StringFieldUpdateOperationsInput | string;
     lines?: Prisma.SaleLineUncheckedUpdateManyWithoutSaleNestedInput;
     exports?: Prisma.ProductExportUncheckedUpdateManyWithoutSaleNestedInput;
+};
+export type SaleCreateWithoutTableInput = {
+    id?: string;
+    code: string;
+    createdAt?: Date | string;
+    status?: string;
+    closedAt?: Date | string | null;
+    version?: number;
+    closedBy?: Prisma.EmployeeCreateNestedOneWithoutClosedSalesInput;
+    createdBy: Prisma.EmployeeCreateNestedOneWithoutCreatedSalesInput;
+    lines?: Prisma.SaleLineCreateNestedManyWithoutSaleInput;
+    exports?: Prisma.ProductExportCreateNestedManyWithoutSaleInput;
+    payment?: Prisma.PaymentCreateNestedOneWithoutSaleInput;
+};
+export type SaleUncheckedCreateWithoutTableInput = {
+    id?: string;
+    code: string;
+    createdAt?: Date | string;
+    status?: string;
+    closedAt?: Date | string | null;
+    closedById?: string | null;
+    version?: number;
+    createdById: string;
+    lines?: Prisma.SaleLineUncheckedCreateNestedManyWithoutSaleInput;
+    exports?: Prisma.ProductExportUncheckedCreateNestedManyWithoutSaleInput;
+    payment?: Prisma.PaymentUncheckedCreateNestedOneWithoutSaleInput;
+};
+export type SaleCreateOrConnectWithoutTableInput = {
+    where: Prisma.SaleWhereUniqueInput;
+    create: Prisma.XOR<Prisma.SaleCreateWithoutTableInput, Prisma.SaleUncheckedCreateWithoutTableInput>;
+};
+export type SaleCreateManyTableInputEnvelope = {
+    data: Prisma.SaleCreateManyTableInput | Prisma.SaleCreateManyTableInput[];
+    skipDuplicates?: boolean;
+};
+export type SaleUpsertWithWhereUniqueWithoutTableInput = {
+    where: Prisma.SaleWhereUniqueInput;
+    update: Prisma.XOR<Prisma.SaleUpdateWithoutTableInput, Prisma.SaleUncheckedUpdateWithoutTableInput>;
+    create: Prisma.XOR<Prisma.SaleCreateWithoutTableInput, Prisma.SaleUncheckedCreateWithoutTableInput>;
+};
+export type SaleUpdateWithWhereUniqueWithoutTableInput = {
+    where: Prisma.SaleWhereUniqueInput;
+    data: Prisma.XOR<Prisma.SaleUpdateWithoutTableInput, Prisma.SaleUncheckedUpdateWithoutTableInput>;
+};
+export type SaleUpdateManyWithWhereWithoutTableInput = {
+    where: Prisma.SaleScalarWhereInput;
+    data: Prisma.XOR<Prisma.SaleUpdateManyMutationInput, Prisma.SaleUncheckedUpdateManyWithoutTableInput>;
+};
+export type SaleCreateManyClosedByInput = {
+    id?: string;
+    code: string;
+    createdAt?: Date | string;
+    status?: string;
+    closedAt?: Date | string | null;
+    version?: number;
+    tableId?: string | null;
+    createdById: string;
 };
 export type SaleCreateManyCreatedByInput = {
     id?: string;
     code: string;
     createdAt?: Date | string;
     status?: string;
+    closedAt?: Date | string | null;
+    closedById?: string | null;
+    version?: number;
+    tableId?: string | null;
+};
+export type SaleUpdateWithoutClosedByInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    code?: Prisma.StringFieldUpdateOperationsInput | string;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    status?: Prisma.StringFieldUpdateOperationsInput | string;
+    closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    version?: Prisma.IntFieldUpdateOperationsInput | number;
+    table?: Prisma.DiningTableUpdateOneWithoutSalesNestedInput;
+    createdBy?: Prisma.EmployeeUpdateOneRequiredWithoutCreatedSalesNestedInput;
+    lines?: Prisma.SaleLineUpdateManyWithoutSaleNestedInput;
+    exports?: Prisma.ProductExportUpdateManyWithoutSaleNestedInput;
+    payment?: Prisma.PaymentUpdateOneWithoutSaleNestedInput;
+};
+export type SaleUncheckedUpdateWithoutClosedByInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    code?: Prisma.StringFieldUpdateOperationsInput | string;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    status?: Prisma.StringFieldUpdateOperationsInput | string;
+    closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    version?: Prisma.IntFieldUpdateOperationsInput | number;
+    tableId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    createdById?: Prisma.StringFieldUpdateOperationsInput | string;
+    lines?: Prisma.SaleLineUncheckedUpdateManyWithoutSaleNestedInput;
+    exports?: Prisma.ProductExportUncheckedUpdateManyWithoutSaleNestedInput;
+    payment?: Prisma.PaymentUncheckedUpdateOneWithoutSaleNestedInput;
+};
+export type SaleUncheckedUpdateManyWithoutClosedByInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    code?: Prisma.StringFieldUpdateOperationsInput | string;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    status?: Prisma.StringFieldUpdateOperationsInput | string;
+    closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    version?: Prisma.IntFieldUpdateOperationsInput | number;
+    tableId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    createdById?: Prisma.StringFieldUpdateOperationsInput | string;
 };
 export type SaleUpdateWithoutCreatedByInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     code?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     status?: Prisma.StringFieldUpdateOperationsInput | string;
+    closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    version?: Prisma.IntFieldUpdateOperationsInput | number;
+    closedBy?: Prisma.EmployeeUpdateOneWithoutClosedSalesNestedInput;
+    table?: Prisma.DiningTableUpdateOneWithoutSalesNestedInput;
     lines?: Prisma.SaleLineUpdateManyWithoutSaleNestedInput;
     exports?: Prisma.ProductExportUpdateManyWithoutSaleNestedInput;
     payment?: Prisma.PaymentUpdateOneWithoutSaleNestedInput;
@@ -529,6 +933,10 @@ export type SaleUncheckedUpdateWithoutCreatedByInput = {
     code?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     status?: Prisma.StringFieldUpdateOperationsInput | string;
+    closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    closedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    version?: Prisma.IntFieldUpdateOperationsInput | number;
+    tableId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     lines?: Prisma.SaleLineUncheckedUpdateManyWithoutSaleNestedInput;
     exports?: Prisma.ProductExportUncheckedUpdateManyWithoutSaleNestedInput;
     payment?: Prisma.PaymentUncheckedUpdateOneWithoutSaleNestedInput;
@@ -538,6 +946,56 @@ export type SaleUncheckedUpdateManyWithoutCreatedByInput = {
     code?: Prisma.StringFieldUpdateOperationsInput | string;
     createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     status?: Prisma.StringFieldUpdateOperationsInput | string;
+    closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    closedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    version?: Prisma.IntFieldUpdateOperationsInput | number;
+    tableId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+};
+export type SaleCreateManyTableInput = {
+    id?: string;
+    code: string;
+    createdAt?: Date | string;
+    status?: string;
+    closedAt?: Date | string | null;
+    closedById?: string | null;
+    version?: number;
+    createdById: string;
+};
+export type SaleUpdateWithoutTableInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    code?: Prisma.StringFieldUpdateOperationsInput | string;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    status?: Prisma.StringFieldUpdateOperationsInput | string;
+    closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    version?: Prisma.IntFieldUpdateOperationsInput | number;
+    closedBy?: Prisma.EmployeeUpdateOneWithoutClosedSalesNestedInput;
+    createdBy?: Prisma.EmployeeUpdateOneRequiredWithoutCreatedSalesNestedInput;
+    lines?: Prisma.SaleLineUpdateManyWithoutSaleNestedInput;
+    exports?: Prisma.ProductExportUpdateManyWithoutSaleNestedInput;
+    payment?: Prisma.PaymentUpdateOneWithoutSaleNestedInput;
+};
+export type SaleUncheckedUpdateWithoutTableInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    code?: Prisma.StringFieldUpdateOperationsInput | string;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    status?: Prisma.StringFieldUpdateOperationsInput | string;
+    closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    closedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    version?: Prisma.IntFieldUpdateOperationsInput | number;
+    createdById?: Prisma.StringFieldUpdateOperationsInput | string;
+    lines?: Prisma.SaleLineUncheckedUpdateManyWithoutSaleNestedInput;
+    exports?: Prisma.ProductExportUncheckedUpdateManyWithoutSaleNestedInput;
+    payment?: Prisma.PaymentUncheckedUpdateOneWithoutSaleNestedInput;
+};
+export type SaleUncheckedUpdateManyWithoutTableInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    code?: Prisma.StringFieldUpdateOperationsInput | string;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    status?: Prisma.StringFieldUpdateOperationsInput | string;
+    closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    closedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    version?: Prisma.IntFieldUpdateOperationsInput | number;
+    createdById?: Prisma.StringFieldUpdateOperationsInput | string;
 };
 export type SaleCountOutputType = {
     lines: number;
@@ -561,7 +1019,13 @@ export type SaleSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
     code?: boolean;
     createdAt?: boolean;
     status?: boolean;
+    closedAt?: boolean;
+    closedById?: boolean;
+    version?: boolean;
+    tableId?: boolean;
     createdById?: boolean;
+    closedBy?: boolean | Prisma.Sale$closedByArgs<ExtArgs>;
+    table?: boolean | Prisma.Sale$tableArgs<ExtArgs>;
     createdBy?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>;
     lines?: boolean | Prisma.Sale$linesArgs<ExtArgs>;
     exports?: boolean | Prisma.Sale$exportsArgs<ExtArgs>;
@@ -573,7 +1037,13 @@ export type SaleSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
     code?: boolean;
     createdAt?: boolean;
     status?: boolean;
+    closedAt?: boolean;
+    closedById?: boolean;
+    version?: boolean;
+    tableId?: boolean;
     createdById?: boolean;
+    closedBy?: boolean | Prisma.Sale$closedByArgs<ExtArgs>;
+    table?: boolean | Prisma.Sale$tableArgs<ExtArgs>;
     createdBy?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>;
 }, ExtArgs["result"]["sale"]>;
 export type SaleSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -581,7 +1051,13 @@ export type SaleSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
     code?: boolean;
     createdAt?: boolean;
     status?: boolean;
+    closedAt?: boolean;
+    closedById?: boolean;
+    version?: boolean;
+    tableId?: boolean;
     createdById?: boolean;
+    closedBy?: boolean | Prisma.Sale$closedByArgs<ExtArgs>;
+    table?: boolean | Prisma.Sale$tableArgs<ExtArgs>;
     createdBy?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>;
 }, ExtArgs["result"]["sale"]>;
 export type SaleSelectScalar = {
@@ -589,10 +1065,16 @@ export type SaleSelectScalar = {
     code?: boolean;
     createdAt?: boolean;
     status?: boolean;
+    closedAt?: boolean;
+    closedById?: boolean;
+    version?: boolean;
+    tableId?: boolean;
     createdById?: boolean;
 };
-export type SaleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "createdAt" | "status" | "createdById", ExtArgs["result"]["sale"]>;
+export type SaleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "createdAt" | "status" | "closedAt" | "closedById" | "version" | "tableId" | "createdById", ExtArgs["result"]["sale"]>;
 export type SaleInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    closedBy?: boolean | Prisma.Sale$closedByArgs<ExtArgs>;
+    table?: boolean | Prisma.Sale$tableArgs<ExtArgs>;
     createdBy?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>;
     lines?: boolean | Prisma.Sale$linesArgs<ExtArgs>;
     exports?: boolean | Prisma.Sale$exportsArgs<ExtArgs>;
@@ -600,14 +1082,20 @@ export type SaleInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
     _count?: boolean | Prisma.SaleCountOutputTypeDefaultArgs<ExtArgs>;
 };
 export type SaleIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    closedBy?: boolean | Prisma.Sale$closedByArgs<ExtArgs>;
+    table?: boolean | Prisma.Sale$tableArgs<ExtArgs>;
     createdBy?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>;
 };
 export type SaleIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    closedBy?: boolean | Prisma.Sale$closedByArgs<ExtArgs>;
+    table?: boolean | Prisma.Sale$tableArgs<ExtArgs>;
     createdBy?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>;
 };
 export type $SalePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     name: "Sale";
     objects: {
+        closedBy: Prisma.$EmployeePayload<ExtArgs> | null;
+        table: Prisma.$DiningTablePayload<ExtArgs> | null;
         createdBy: Prisma.$EmployeePayload<ExtArgs>;
         lines: Prisma.$SaleLinePayload<ExtArgs>[];
         exports: Prisma.$ProductExportPayload<ExtArgs>[];
@@ -618,6 +1106,10 @@ export type $SalePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
         code: string;
         createdAt: Date;
         status: string;
+        closedAt: Date | null;
+        closedById: string | null;
+        version: number;
+        tableId: string | null;
         createdById: string;
     }, ExtArgs["result"]["sale"]>;
     composites: {};
@@ -671,6 +1163,8 @@ export interface SaleDelegate<ExtArgs extends runtime.Types.Extensions.InternalA
 }
 export interface Prisma__SaleClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise";
+    closedBy<T extends Prisma.Sale$closedByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Sale$closedByArgs<ExtArgs>>): Prisma.Prisma__EmployeeClient<runtime.Types.Result.GetResult<Prisma.$EmployeePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>;
+    table<T extends Prisma.Sale$tableArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Sale$tableArgs<ExtArgs>>): Prisma.Prisma__DiningTableClient<runtime.Types.Result.GetResult<Prisma.$DiningTablePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>;
     createdBy<T extends Prisma.EmployeeDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EmployeeDefaultArgs<ExtArgs>>): Prisma.Prisma__EmployeeClient<runtime.Types.Result.GetResult<Prisma.$EmployeePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>;
     lines<T extends Prisma.Sale$linesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Sale$linesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SaleLinePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     exports<T extends Prisma.Sale$exportsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Sale$exportsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProductExportPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
@@ -684,6 +1178,10 @@ export interface SaleFieldRefs {
     readonly code: Prisma.FieldRef<"Sale", 'String'>;
     readonly createdAt: Prisma.FieldRef<"Sale", 'DateTime'>;
     readonly status: Prisma.FieldRef<"Sale", 'String'>;
+    readonly closedAt: Prisma.FieldRef<"Sale", 'DateTime'>;
+    readonly closedById: Prisma.FieldRef<"Sale", 'String'>;
+    readonly version: Prisma.FieldRef<"Sale", 'Int'>;
+    readonly tableId: Prisma.FieldRef<"Sale", 'String'>;
     readonly createdById: Prisma.FieldRef<"Sale", 'String'>;
 }
 export type SaleFindUniqueArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -785,6 +1283,18 @@ export type SaleDeleteArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs
 export type SaleDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     where?: Prisma.SaleWhereInput;
     limit?: number;
+};
+export type Sale$closedByArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    select?: Prisma.EmployeeSelect<ExtArgs> | null;
+    omit?: Prisma.EmployeeOmit<ExtArgs> | null;
+    include?: Prisma.EmployeeInclude<ExtArgs> | null;
+    where?: Prisma.EmployeeWhereInput;
+};
+export type Sale$tableArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    select?: Prisma.DiningTableSelect<ExtArgs> | null;
+    omit?: Prisma.DiningTableOmit<ExtArgs> | null;
+    include?: Prisma.DiningTableInclude<ExtArgs> | null;
+    where?: Prisma.DiningTableWhereInput;
 };
 export type Sale$linesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.SaleLineSelect<ExtArgs> | null;
