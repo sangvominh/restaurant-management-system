@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import './login-view.css';
 type Variant = 'warehouse' | 'restaurant' | 'admin';
 const content = {
-  warehouse: { name: 'Quản lý kho', title: 'Chuẩn bị tốt.\nVận hành nhịp nhàng.', description: 'Theo dõi nguyên liệu, tổ chức chế biến và quản lý thành phẩm trong cùng một không gian.', steps: ['Nguyên liệu', 'Chế biến', 'Thành phẩm'], hint: 'Dùng tài khoản được cấp cho bộ phận kho và chế biến.' },
+  warehouse: { name: 'Kho & Chế biến', title: 'Chuẩn bị tốt.\nVận hành nhịp nhàng.', description: 'Theo dõi nguyên liệu, tổ chức chế biến và quản lý thành phẩm trong cùng một không gian.', steps: ['Nguyên liệu', 'Chế biến', 'Thành phẩm'], hint: 'Dùng tài khoản được cấp cho bộ phận kho và chế biến.' },
   restaurant: { name: 'Quản lý nhà hàng', title: 'Sẵn sàng cho\nmột ca phục vụ.', description: 'Từ nhận món đến tính tiền, theo dõi công việc của nhà hàng một cách liền mạch.', steps: ['Nhận món', 'Phục vụ', 'Tính tiền'], hint: 'Dùng tài khoản được cấp cho bộ phận nhà hàng.' },
   admin: { name: 'Quản trị hệ thống', title: 'Đúng người.\nĐúng quyền truy cập.', description: 'Quản lý tài khoản, vai trò và người sử dụng tại một nơi.', steps: ['Tài khoản', 'Vai trò', 'Người sử dụng'], hint: 'Dành cho tài khoản có quyền quản trị hệ thống.' },
 };

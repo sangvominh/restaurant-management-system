@@ -30,8 +30,8 @@ export declare class CatalogService {
             objectType: string;
         };
         id: string;
-        status: string;
         name: string;
+        status: string;
         code: string;
         minStock: import("@prisma/client-runtime-utils").Decimal;
         unitId: string;
@@ -40,8 +40,8 @@ export declare class CatalogService {
         canDelete: boolean;
         canEdit: boolean;
         id: string;
-        status: string;
         name: string;
+        status: string;
         code: string;
         phone: string | null;
         address: string | null;
@@ -58,8 +58,8 @@ export declare class CatalogService {
                     };
                 } & {
                     id: string;
-                    status: string;
                     name: string;
+                    status: string;
                     code: string;
                     minStock: import("@prisma/client-runtime-utils").Decimal;
                     unitId: string;
@@ -91,8 +91,8 @@ export declare class CatalogService {
             objectType: string;
         };
         id: string;
-        status: string;
         name: string;
+        status: string;
         code: string;
         unitId: string;
         categoryId: string;
@@ -119,16 +119,16 @@ export declare class CatalogService {
         };
     } & {
         id: string;
-        status: string;
         name: string;
+        status: string;
         code: string;
         minStock: import("@prisma/client-runtime-utils").Decimal;
         unitId: string;
         categoryId: string;
     })[] | {
         id: string;
-        status: string;
         name: string;
+        status: string;
         code: string;
         phone: string | null;
         address: string | null;
@@ -143,8 +143,8 @@ export declare class CatalogService {
                     };
                 } & {
                     id: string;
-                    status: string;
                     name: string;
+                    status: string;
                     code: string;
                     minStock: import("@prisma/client-runtime-utils").Decimal;
                     unitId: string;
@@ -176,8 +176,8 @@ export declare class CatalogService {
             objectType: string;
         };
         id: string;
-        status: string;
         name: string;
+        status: string;
         code: string;
         unitId: string;
         categoryId: string;
@@ -193,23 +193,23 @@ export declare class CatalogService {
         objectType: string;
     } | {
         id: string;
-        status: string;
         name: string;
+        status: string;
         code: string;
         phone: string | null;
         address: string | null;
     } | {
         id: string;
-        status: string;
         name: string;
+        status: string;
         code: string;
         minStock: import("@prisma/client-runtime-utils").Decimal;
         unitId: string;
         categoryId: string;
     } | {
         id: string;
-        status: string;
         name: string;
+        status: string;
         code: string;
         unitId: string;
         categoryId: string;

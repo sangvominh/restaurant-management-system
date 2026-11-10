@@ -18,6 +18,9 @@ export default function WarehouseSession() {
       .finally(() => { if (active) setReady(true); });
     return () => { active = false; window.removeEventListener('warehouse-session-ended', ended); };
   }, []);
+  useEffect(() => {
+    document.title = user ? `${user.roleName || user.username} · ${user.username} | Kho & Chế biến` : 'Đăng nhập | Kho & Chế biến';
+  }, [user]);
   async function login(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); const data = new FormData(event.currentTarget); setBusy(true); setError('');
     try { const result = await api<{ token: string; user: User }>('auth/login', 'POST', { username: String(data.get('username') || '').trim(), password: data.get('password') }); sessionStorage.setItem(TOKEN_KEY, result.token); setUser(result.user); }

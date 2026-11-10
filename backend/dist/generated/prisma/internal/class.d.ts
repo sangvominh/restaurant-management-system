@@ -30,6 +30,9 @@ export interface PrismaClient<in LogOpts extends Prisma.LogLevel = never, in out
     $extends: runtime.Types.Extensions.ExtendsHook<"extends", Prisma.TypeMapCb<OmitOpts>, ExtArgs, runtime.Types.Utils.Call<Prisma.TypeMapCb<OmitOpts>, {
         extArgs: ExtArgs;
     }>>;
+    get roleTemplate(): Prisma.RoleTemplateDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
     get role(): Prisma.RoleDelegate<ExtArgs, {
         omit: OmitOpts;
     }>;
@@ -139,6 +142,18 @@ export interface PrismaClient<in LogOpts extends Prisma.LogLevel = never, in out
         omit: OmitOpts;
     }>;
     get saleLineChange(): Prisma.SaleLineChangeDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
+    get storeDispatch(): Prisma.StoreDispatchDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
+    get storeDispatchLine(): Prisma.StoreDispatchLineDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
+    get storeAdjustment(): Prisma.StoreAdjustmentDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
+    get storeMovement(): Prisma.StoreMovementDelegate<ExtArgs, {
         omit: OmitOpts;
     }>;
 }

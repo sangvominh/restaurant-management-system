@@ -37,9 +37,7 @@ let ProductionController = class ProductionController {
     updateBom(id, b, r) { this.allow(r, 'bom:manage'); return this.service.saveBom(b, r.catalogUser, id); }
     deleteBom(id, r) { this.allow(r, 'bom:manage'); return this.service.bomAction(id, 'delete'); }
     activate(id, r) { this.allow(r, 'bom:manage'); return this.service.bomAction(id, 'activate'); }
-    rejectReplenishment(id, b, r) { this.allow(r, 'production:manage'); return this.service.rejectReplenishment(id, b); }
-    replenishments(r) { this.allow(r, 'production:manage'); return this.service.replenishments(); }
-    orders(r) { this.allow(r, 'production:manage', 'production:perform', 'material:approve', 'production:inspect', 'waste:approve', 'material:request', 'waste:request'); return this.service.orders(r.catalogUser); }
+    orders(r) { this.allow(r, 'material:view', 'production:manage', 'production:perform', 'material:approve', 'production:inspect', 'waste:approve', 'material:request', 'waste:request'); return this.service.orders(r.catalogUser); }
     detail(id, r) { return this.execution.detail(id, r.catalogUser); }
     execute(id, b, r) { return this.execution.act(id, b, r.catalogUser); }
     createOrder(b, r) { this.allow(r, 'production:manage'); return this.service.createOrder(b, r.catalogUser); }
@@ -117,22 +115,6 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
 ], ProductionController.prototype, "activate", null);
-__decorate([
-    Post('replenishments/:id/reject'),
-    __param(0, Param('id')),
-    __param(1, Body()),
-    __param(2, Req()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object, Object]),
-    __metadata("design:returntype", void 0)
-], ProductionController.prototype, "rejectReplenishment", null);
-__decorate([
-    Get('replenishments'),
-    __param(0, Req()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", void 0)
-], ProductionController.prototype, "replenishments", null);
 __decorate([
     Get('orders'),
     __param(0, Req()),

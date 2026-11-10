@@ -36,6 +36,7 @@ model SaleLine {
   sale Sale @relation("SaleLine_sale", fields: [saleId], references: [id], onDelete: Restrict)
   productId String @db.Uuid
   product Product @relation("SaleLine_product", fields: [productId], references: [id], onDelete: Restrict)
+  storeMovement StoreMovement?
   servings Serving[]
   replenishments ReplenishmentRequest[]
   exportLines ProductExportLine[] @relation("ProductExportLine_saleLine")
@@ -100,6 +101,10 @@ model ProductMovement {
   postedAt DateTime @default(now()) @db.Timestamptz(3)
   productId String @db.Uuid
   product Product @relation("ProductMovement_product", fields: [productId], references: [id], onDelete: Restrict)
+  dispatchLineId String? @unique @db.Uuid
+  dispatchLine StoreDispatchLine? @relation(fields: [dispatchLineId], references: [id], onDelete: Restrict)
+  storeAdjustmentId String? @unique @db.Uuid
+  storeAdjustment StoreAdjustment? @relation(fields: [storeAdjustmentId], references: [id], onDelete: Restrict)
   runId String? @unique @db.Uuid
   run ProductionRun? @relation("ProductMovement_run", fields: [runId], references: [id], onDelete: Restrict)
   exportLineId String? @unique @db.Uuid
@@ -147,9 +152,10 @@ model ReplenishmentRequest {
   saleLine SaleLine @relation(fields: [saleLineId], references: [id], onDelete: Restrict)
   requestedById String @db.Uuid
   requestedBy Employee @relation(fields: [requestedById], references: [id], onDelete: Restrict)
-  productionOrderId String? @unique @db.Uuid
+  productionOrderId String? @db.Uuid
   productionOrder ProductionOrder? @relation(fields: [productionOrderId], references: [id], onDelete: Restrict)
   @@index([saleLineId])
+  @@index([productionOrderId])
 }
 model SaleLineChange {
   id String @id @default(uuid()) @db.Uuid

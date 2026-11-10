@@ -131,3 +131,4 @@ body{font-family:"Segoe UI",Tahoma,Arial,sans-serif;font-size:14px;line-height:1
 
 
 
+.menu-price{font-size:12px;text-align:left;margin-top:8px;max-width:240px}.menu-price summary{cursor:pointer;color:var(--green,#28654c)}.menu-price form{padding:10px 0}.menu-price label{font-size:11px}.menu-price input{display:block;margin:6px 0}.menu-price small{font-size:11px;line-height:1.6}.menu-price button{margin-top:8px;font-size:12px}

@@ -39,8 +39,8 @@ export declare class AdminService {
     })[]>;
     employees(): import("../generated/prisma/internal/prismaNamespace.js").PrismaPromise<{
         id: string;
-        status: string;
         name: string;
+        status: string;
         code: string;
         phone: string | null;
         email: string | null;
@@ -94,8 +94,8 @@ export declare class AdminService {
     }>;
     saveEmployee(input: unknown, employeeId?: string, actorId?: string): Promise<{
         id: string;
-        status: string;
         name: string;
+        status: string;
         code: string;
         phone: string | null;
         email: string | null;

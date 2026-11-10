@@ -1,3 +1,4 @@
+export type * from './models/RoleTemplate.js';
 export type * from './models/Role.js';
 export type * from './models/Permission.js';
 export type * from './models/RolePermission.js';
@@ -35,4 +36,8 @@ export type * from './models/DiningArea.js';
 export type * from './models/Serving.js';
 export type * from './models/ReplenishmentRequest.js';
 export type * from './models/SaleLineChange.js';
+export type * from './models/StoreDispatch.js';
+export type * from './models/StoreDispatchLine.js';
+export type * from './models/StoreAdjustment.js';
+export type * from './models/StoreMovement.js';
 export type * from './commonInputTypes.js';

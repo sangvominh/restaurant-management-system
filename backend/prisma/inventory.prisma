@@ -37,6 +37,7 @@ model MaterialIssue {
   approvedAt DateTime? @db.Timestamptz(3)
   status String @default("PENDING")
   reason String?
+  reviewNote String?
   productionOrderId String @db.Uuid
   productionOrder ProductionOrder @relation("MaterialIssue_productionOrder", fields: [productionOrderId], references: [id], onDelete: Restrict)
   requestedById String @db.Uuid

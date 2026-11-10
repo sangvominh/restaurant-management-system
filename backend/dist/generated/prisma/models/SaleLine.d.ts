@@ -169,6 +169,7 @@ export type SaleLineWhereInput = {
     sentBy?: Prisma.XOR<Prisma.EmployeeNullableScalarRelationFilter, Prisma.EmployeeWhereInput> | null;
     sale?: Prisma.XOR<Prisma.SaleScalarRelationFilter, Prisma.SaleWhereInput>;
     product?: Prisma.XOR<Prisma.ProductScalarRelationFilter, Prisma.ProductWhereInput>;
+    storeMovement?: Prisma.XOR<Prisma.StoreMovementNullableScalarRelationFilter, Prisma.StoreMovementWhereInput> | null;
     servings?: Prisma.ServingListRelationFilter;
     replenishments?: Prisma.ReplenishmentRequestListRelationFilter;
     exportLines?: Prisma.ProductExportLineListRelationFilter;
@@ -189,6 +190,7 @@ export type SaleLineOrderByWithRelationInput = {
     sentBy?: Prisma.EmployeeOrderByWithRelationInput;
     sale?: Prisma.SaleOrderByWithRelationInput;
     product?: Prisma.ProductOrderByWithRelationInput;
+    storeMovement?: Prisma.StoreMovementOrderByWithRelationInput;
     servings?: Prisma.ServingOrderByRelationAggregateInput;
     replenishments?: Prisma.ReplenishmentRequestOrderByRelationAggregateInput;
     exportLines?: Prisma.ProductExportLineOrderByRelationAggregateInput;
@@ -212,6 +214,7 @@ export type SaleLineWhereUniqueInput = Prisma.AtLeast<{
     sentBy?: Prisma.XOR<Prisma.EmployeeNullableScalarRelationFilter, Prisma.EmployeeWhereInput> | null;
     sale?: Prisma.XOR<Prisma.SaleScalarRelationFilter, Prisma.SaleWhereInput>;
     product?: Prisma.XOR<Prisma.ProductScalarRelationFilter, Prisma.ProductWhereInput>;
+    storeMovement?: Prisma.XOR<Prisma.StoreMovementNullableScalarRelationFilter, Prisma.StoreMovementWhereInput> | null;
     servings?: Prisma.ServingListRelationFilter;
     replenishments?: Prisma.ReplenishmentRequestListRelationFilter;
     exportLines?: Prisma.ProductExportLineListRelationFilter;
@@ -261,6 +264,7 @@ export type SaleLineCreateInput = {
     sentBy?: Prisma.EmployeeCreateNestedOneWithoutSentLinesInput;
     sale: Prisma.SaleCreateNestedOneWithoutLinesInput;
     product: Prisma.ProductCreateNestedOneWithoutSaleLinesInput;
+    storeMovement?: Prisma.StoreMovementCreateNestedOneWithoutSaleLineInput;
     servings?: Prisma.ServingCreateNestedManyWithoutSaleLineInput;
     replenishments?: Prisma.ReplenishmentRequestCreateNestedManyWithoutSaleLineInput;
     exportLines?: Prisma.ProductExportLineCreateNestedManyWithoutSaleLineInput;
@@ -278,6 +282,7 @@ export type SaleLineUncheckedCreateInput = {
     productId: string;
     changes?: Prisma.SaleLineChangeUncheckedCreateNestedManyWithoutSaleLineInput;
     replacementChanges?: Prisma.SaleLineChangeUncheckedCreateNestedManyWithoutReplacementLineInput;
+    storeMovement?: Prisma.StoreMovementUncheckedCreateNestedOneWithoutSaleLineInput;
     servings?: Prisma.ServingUncheckedCreateNestedManyWithoutSaleLineInput;
     replenishments?: Prisma.ReplenishmentRequestUncheckedCreateNestedManyWithoutSaleLineInput;
     exportLines?: Prisma.ProductExportLineUncheckedCreateNestedManyWithoutSaleLineInput;
@@ -295,6 +300,7 @@ export type SaleLineUpdateInput = {
     sentBy?: Prisma.EmployeeUpdateOneWithoutSentLinesNestedInput;
     sale?: Prisma.SaleUpdateOneRequiredWithoutLinesNestedInput;
     product?: Prisma.ProductUpdateOneRequiredWithoutSaleLinesNestedInput;
+    storeMovement?: Prisma.StoreMovementUpdateOneWithoutSaleLineNestedInput;
     servings?: Prisma.ServingUpdateManyWithoutSaleLineNestedInput;
     replenishments?: Prisma.ReplenishmentRequestUpdateManyWithoutSaleLineNestedInput;
     exportLines?: Prisma.ProductExportLineUpdateManyWithoutSaleLineNestedInput;
@@ -312,6 +318,7 @@ export type SaleLineUncheckedUpdateInput = {
     productId?: Prisma.StringFieldUpdateOperationsInput | string;
     changes?: Prisma.SaleLineChangeUncheckedUpdateManyWithoutSaleLineNestedInput;
     replacementChanges?: Prisma.SaleLineChangeUncheckedUpdateManyWithoutReplacementLineNestedInput;
+    storeMovement?: Prisma.StoreMovementUncheckedUpdateOneWithoutSaleLineNestedInput;
     servings?: Prisma.ServingUncheckedUpdateManyWithoutSaleLineNestedInput;
     replenishments?: Prisma.ReplenishmentRequestUncheckedUpdateManyWithoutSaleLineNestedInput;
     exportLines?: Prisma.ProductExportLineUncheckedUpdateManyWithoutSaleLineNestedInput;
@@ -594,6 +601,20 @@ export type SaleLineUpdateOneWithoutReplacementChangesNestedInput = {
     connect?: Prisma.SaleLineWhereUniqueInput;
     update?: Prisma.XOR<Prisma.XOR<Prisma.SaleLineUpdateToOneWithWhereWithoutReplacementChangesInput, Prisma.SaleLineUpdateWithoutReplacementChangesInput>, Prisma.SaleLineUncheckedUpdateWithoutReplacementChangesInput>;
 };
+export type SaleLineCreateNestedOneWithoutStoreMovementInput = {
+    create?: Prisma.XOR<Prisma.SaleLineCreateWithoutStoreMovementInput, Prisma.SaleLineUncheckedCreateWithoutStoreMovementInput>;
+    connectOrCreate?: Prisma.SaleLineCreateOrConnectWithoutStoreMovementInput;
+    connect?: Prisma.SaleLineWhereUniqueInput;
+};
+export type SaleLineUpdateOneWithoutStoreMovementNestedInput = {
+    create?: Prisma.XOR<Prisma.SaleLineCreateWithoutStoreMovementInput, Prisma.SaleLineUncheckedCreateWithoutStoreMovementInput>;
+    connectOrCreate?: Prisma.SaleLineCreateOrConnectWithoutStoreMovementInput;
+    upsert?: Prisma.SaleLineUpsertWithoutStoreMovementInput;
+    disconnect?: Prisma.SaleLineWhereInput | boolean;
+    delete?: Prisma.SaleLineWhereInput | boolean;
+    connect?: Prisma.SaleLineWhereUniqueInput;
+    update?: Prisma.XOR<Prisma.XOR<Prisma.SaleLineUpdateToOneWithWhereWithoutStoreMovementInput, Prisma.SaleLineUpdateWithoutStoreMovementInput>, Prisma.SaleLineUncheckedUpdateWithoutStoreMovementInput>;
+};
 export type SaleLineCreateWithoutSentByInput = {
     id?: string;
     quantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
@@ -606,6 +627,7 @@ export type SaleLineCreateWithoutSentByInput = {
     replacementChanges?: Prisma.SaleLineChangeCreateNestedManyWithoutReplacementLineInput;
     sale: Prisma.SaleCreateNestedOneWithoutLinesInput;
     product: Prisma.ProductCreateNestedOneWithoutSaleLinesInput;
+    storeMovement?: Prisma.StoreMovementCreateNestedOneWithoutSaleLineInput;
     servings?: Prisma.ServingCreateNestedManyWithoutSaleLineInput;
     replenishments?: Prisma.ReplenishmentRequestCreateNestedManyWithoutSaleLineInput;
     exportLines?: Prisma.ProductExportLineCreateNestedManyWithoutSaleLineInput;
@@ -622,6 +644,7 @@ export type SaleLineUncheckedCreateWithoutSentByInput = {
     productId: string;
     changes?: Prisma.SaleLineChangeUncheckedCreateNestedManyWithoutSaleLineInput;
     replacementChanges?: Prisma.SaleLineChangeUncheckedCreateNestedManyWithoutReplacementLineInput;
+    storeMovement?: Prisma.StoreMovementUncheckedCreateNestedOneWithoutSaleLineInput;
     servings?: Prisma.ServingUncheckedCreateNestedManyWithoutSaleLineInput;
     replenishments?: Prisma.ReplenishmentRequestUncheckedCreateNestedManyWithoutSaleLineInput;
     exportLines?: Prisma.ProductExportLineUncheckedCreateNestedManyWithoutSaleLineInput;
@@ -674,6 +697,7 @@ export type SaleLineCreateWithoutProductInput = {
     replacementChanges?: Prisma.SaleLineChangeCreateNestedManyWithoutReplacementLineInput;
     sentBy?: Prisma.EmployeeCreateNestedOneWithoutSentLinesInput;
     sale: Prisma.SaleCreateNestedOneWithoutLinesInput;
+    storeMovement?: Prisma.StoreMovementCreateNestedOneWithoutSaleLineInput;
     servings?: Prisma.ServingCreateNestedManyWithoutSaleLineInput;
     replenishments?: Prisma.ReplenishmentRequestCreateNestedManyWithoutSaleLineInput;
     exportLines?: Prisma.ProductExportLineCreateNestedManyWithoutSaleLineInput;
@@ -690,6 +714,7 @@ export type SaleLineUncheckedCreateWithoutProductInput = {
     saleId: string;
     changes?: Prisma.SaleLineChangeUncheckedCreateNestedManyWithoutSaleLineInput;
     replacementChanges?: Prisma.SaleLineChangeUncheckedCreateNestedManyWithoutReplacementLineInput;
+    storeMovement?: Prisma.StoreMovementUncheckedCreateNestedOneWithoutSaleLineInput;
     servings?: Prisma.ServingUncheckedCreateNestedManyWithoutSaleLineInput;
     replenishments?: Prisma.ReplenishmentRequestUncheckedCreateNestedManyWithoutSaleLineInput;
     exportLines?: Prisma.ProductExportLineUncheckedCreateNestedManyWithoutSaleLineInput;
@@ -727,6 +752,7 @@ export type SaleLineCreateWithoutSaleInput = {
     replacementChanges?: Prisma.SaleLineChangeCreateNestedManyWithoutReplacementLineInput;
     sentBy?: Prisma.EmployeeCreateNestedOneWithoutSentLinesInput;
     product: Prisma.ProductCreateNestedOneWithoutSaleLinesInput;
+    storeMovement?: Prisma.StoreMovementCreateNestedOneWithoutSaleLineInput;
     servings?: Prisma.ServingCreateNestedManyWithoutSaleLineInput;
     replenishments?: Prisma.ReplenishmentRequestCreateNestedManyWithoutSaleLineInput;
     exportLines?: Prisma.ProductExportLineCreateNestedManyWithoutSaleLineInput;
@@ -743,6 +769,7 @@ export type SaleLineUncheckedCreateWithoutSaleInput = {
     productId: string;
     changes?: Prisma.SaleLineChangeUncheckedCreateNestedManyWithoutSaleLineInput;
     replacementChanges?: Prisma.SaleLineChangeUncheckedCreateNestedManyWithoutReplacementLineInput;
+    storeMovement?: Prisma.StoreMovementUncheckedCreateNestedOneWithoutSaleLineInput;
     servings?: Prisma.ServingUncheckedCreateNestedManyWithoutSaleLineInput;
     replenishments?: Prisma.ReplenishmentRequestUncheckedCreateNestedManyWithoutSaleLineInput;
     exportLines?: Prisma.ProductExportLineUncheckedCreateNestedManyWithoutSaleLineInput;
@@ -781,6 +808,7 @@ export type SaleLineCreateWithoutExportLinesInput = {
     sentBy?: Prisma.EmployeeCreateNestedOneWithoutSentLinesInput;
     sale: Prisma.SaleCreateNestedOneWithoutLinesInput;
     product: Prisma.ProductCreateNestedOneWithoutSaleLinesInput;
+    storeMovement?: Prisma.StoreMovementCreateNestedOneWithoutSaleLineInput;
     servings?: Prisma.ServingCreateNestedManyWithoutSaleLineInput;
     replenishments?: Prisma.ReplenishmentRequestCreateNestedManyWithoutSaleLineInput;
 };
@@ -797,6 +825,7 @@ export type SaleLineUncheckedCreateWithoutExportLinesInput = {
     productId: string;
     changes?: Prisma.SaleLineChangeUncheckedCreateNestedManyWithoutSaleLineInput;
     replacementChanges?: Prisma.SaleLineChangeUncheckedCreateNestedManyWithoutReplacementLineInput;
+    storeMovement?: Prisma.StoreMovementUncheckedCreateNestedOneWithoutSaleLineInput;
     servings?: Prisma.ServingUncheckedCreateNestedManyWithoutSaleLineInput;
     replenishments?: Prisma.ReplenishmentRequestUncheckedCreateNestedManyWithoutSaleLineInput;
 };
@@ -826,6 +855,7 @@ export type SaleLineUpdateWithoutExportLinesInput = {
     sentBy?: Prisma.EmployeeUpdateOneWithoutSentLinesNestedInput;
     sale?: Prisma.SaleUpdateOneRequiredWithoutLinesNestedInput;
     product?: Prisma.ProductUpdateOneRequiredWithoutSaleLinesNestedInput;
+    storeMovement?: Prisma.StoreMovementUpdateOneWithoutSaleLineNestedInput;
     servings?: Prisma.ServingUpdateManyWithoutSaleLineNestedInput;
     replenishments?: Prisma.ReplenishmentRequestUpdateManyWithoutSaleLineNestedInput;
 };
@@ -842,6 +872,7 @@ export type SaleLineUncheckedUpdateWithoutExportLinesInput = {
     productId?: Prisma.StringFieldUpdateOperationsInput | string;
     changes?: Prisma.SaleLineChangeUncheckedUpdateManyWithoutSaleLineNestedInput;
     replacementChanges?: Prisma.SaleLineChangeUncheckedUpdateManyWithoutReplacementLineNestedInput;
+    storeMovement?: Prisma.StoreMovementUncheckedUpdateOneWithoutSaleLineNestedInput;
     servings?: Prisma.ServingUncheckedUpdateManyWithoutSaleLineNestedInput;
     replenishments?: Prisma.ReplenishmentRequestUncheckedUpdateManyWithoutSaleLineNestedInput;
 };
@@ -858,6 +889,7 @@ export type SaleLineCreateWithoutServingsInput = {
     sentBy?: Prisma.EmployeeCreateNestedOneWithoutSentLinesInput;
     sale: Prisma.SaleCreateNestedOneWithoutLinesInput;
     product: Prisma.ProductCreateNestedOneWithoutSaleLinesInput;
+    storeMovement?: Prisma.StoreMovementCreateNestedOneWithoutSaleLineInput;
     replenishments?: Prisma.ReplenishmentRequestCreateNestedManyWithoutSaleLineInput;
     exportLines?: Prisma.ProductExportLineCreateNestedManyWithoutSaleLineInput;
 };
@@ -874,6 +906,7 @@ export type SaleLineUncheckedCreateWithoutServingsInput = {
     productId: string;
     changes?: Prisma.SaleLineChangeUncheckedCreateNestedManyWithoutSaleLineInput;
     replacementChanges?: Prisma.SaleLineChangeUncheckedCreateNestedManyWithoutReplacementLineInput;
+    storeMovement?: Prisma.StoreMovementUncheckedCreateNestedOneWithoutSaleLineInput;
     replenishments?: Prisma.ReplenishmentRequestUncheckedCreateNestedManyWithoutSaleLineInput;
     exportLines?: Prisma.ProductExportLineUncheckedCreateNestedManyWithoutSaleLineInput;
 };
@@ -903,6 +936,7 @@ export type SaleLineUpdateWithoutServingsInput = {
     sentBy?: Prisma.EmployeeUpdateOneWithoutSentLinesNestedInput;
     sale?: Prisma.SaleUpdateOneRequiredWithoutLinesNestedInput;
     product?: Prisma.ProductUpdateOneRequiredWithoutSaleLinesNestedInput;
+    storeMovement?: Prisma.StoreMovementUpdateOneWithoutSaleLineNestedInput;
     replenishments?: Prisma.ReplenishmentRequestUpdateManyWithoutSaleLineNestedInput;
     exportLines?: Prisma.ProductExportLineUpdateManyWithoutSaleLineNestedInput;
 };
@@ -919,6 +953,7 @@ export type SaleLineUncheckedUpdateWithoutServingsInput = {
     productId?: Prisma.StringFieldUpdateOperationsInput | string;
     changes?: Prisma.SaleLineChangeUncheckedUpdateManyWithoutSaleLineNestedInput;
     replacementChanges?: Prisma.SaleLineChangeUncheckedUpdateManyWithoutReplacementLineNestedInput;
+    storeMovement?: Prisma.StoreMovementUncheckedUpdateOneWithoutSaleLineNestedInput;
     replenishments?: Prisma.ReplenishmentRequestUncheckedUpdateManyWithoutSaleLineNestedInput;
     exportLines?: Prisma.ProductExportLineUncheckedUpdateManyWithoutSaleLineNestedInput;
 };
@@ -935,6 +970,7 @@ export type SaleLineCreateWithoutReplenishmentsInput = {
     sentBy?: Prisma.EmployeeCreateNestedOneWithoutSentLinesInput;
     sale: Prisma.SaleCreateNestedOneWithoutLinesInput;
     product: Prisma.ProductCreateNestedOneWithoutSaleLinesInput;
+    storeMovement?: Prisma.StoreMovementCreateNestedOneWithoutSaleLineInput;
     servings?: Prisma.ServingCreateNestedManyWithoutSaleLineInput;
     exportLines?: Prisma.ProductExportLineCreateNestedManyWithoutSaleLineInput;
 };
@@ -951,6 +987,7 @@ export type SaleLineUncheckedCreateWithoutReplenishmentsInput = {
     productId: string;
     changes?: Prisma.SaleLineChangeUncheckedCreateNestedManyWithoutSaleLineInput;
     replacementChanges?: Prisma.SaleLineChangeUncheckedCreateNestedManyWithoutReplacementLineInput;
+    storeMovement?: Prisma.StoreMovementUncheckedCreateNestedOneWithoutSaleLineInput;
     servings?: Prisma.ServingUncheckedCreateNestedManyWithoutSaleLineInput;
     exportLines?: Prisma.ProductExportLineUncheckedCreateNestedManyWithoutSaleLineInput;
 };
@@ -980,6 +1017,7 @@ export type SaleLineUpdateWithoutReplenishmentsInput = {
     sentBy?: Prisma.EmployeeUpdateOneWithoutSentLinesNestedInput;
     sale?: Prisma.SaleUpdateOneRequiredWithoutLinesNestedInput;
     product?: Prisma.ProductUpdateOneRequiredWithoutSaleLinesNestedInput;
+    storeMovement?: Prisma.StoreMovementUpdateOneWithoutSaleLineNestedInput;
     servings?: Prisma.ServingUpdateManyWithoutSaleLineNestedInput;
     exportLines?: Prisma.ProductExportLineUpdateManyWithoutSaleLineNestedInput;
 };
@@ -996,6 +1034,7 @@ export type SaleLineUncheckedUpdateWithoutReplenishmentsInput = {
     productId?: Prisma.StringFieldUpdateOperationsInput | string;
     changes?: Prisma.SaleLineChangeUncheckedUpdateManyWithoutSaleLineNestedInput;
     replacementChanges?: Prisma.SaleLineChangeUncheckedUpdateManyWithoutReplacementLineNestedInput;
+    storeMovement?: Prisma.StoreMovementUncheckedUpdateOneWithoutSaleLineNestedInput;
     servings?: Prisma.ServingUncheckedUpdateManyWithoutSaleLineNestedInput;
     exportLines?: Prisma.ProductExportLineUncheckedUpdateManyWithoutSaleLineNestedInput;
 };
@@ -1011,6 +1050,7 @@ export type SaleLineCreateWithoutChangesInput = {
     sentBy?: Prisma.EmployeeCreateNestedOneWithoutSentLinesInput;
     sale: Prisma.SaleCreateNestedOneWithoutLinesInput;
     product: Prisma.ProductCreateNestedOneWithoutSaleLinesInput;
+    storeMovement?: Prisma.StoreMovementCreateNestedOneWithoutSaleLineInput;
     servings?: Prisma.ServingCreateNestedManyWithoutSaleLineInput;
     replenishments?: Prisma.ReplenishmentRequestCreateNestedManyWithoutSaleLineInput;
     exportLines?: Prisma.ProductExportLineCreateNestedManyWithoutSaleLineInput;
@@ -1027,6 +1067,7 @@ export type SaleLineUncheckedCreateWithoutChangesInput = {
     saleId: string;
     productId: string;
     replacementChanges?: Prisma.SaleLineChangeUncheckedCreateNestedManyWithoutReplacementLineInput;
+    storeMovement?: Prisma.StoreMovementUncheckedCreateNestedOneWithoutSaleLineInput;
     servings?: Prisma.ServingUncheckedCreateNestedManyWithoutSaleLineInput;
     replenishments?: Prisma.ReplenishmentRequestUncheckedCreateNestedManyWithoutSaleLineInput;
     exportLines?: Prisma.ProductExportLineUncheckedCreateNestedManyWithoutSaleLineInput;
@@ -1047,6 +1088,7 @@ export type SaleLineCreateWithoutReplacementChangesInput = {
     sentBy?: Prisma.EmployeeCreateNestedOneWithoutSentLinesInput;
     sale: Prisma.SaleCreateNestedOneWithoutLinesInput;
     product: Prisma.ProductCreateNestedOneWithoutSaleLinesInput;
+    storeMovement?: Prisma.StoreMovementCreateNestedOneWithoutSaleLineInput;
     servings?: Prisma.ServingCreateNestedManyWithoutSaleLineInput;
     replenishments?: Prisma.ReplenishmentRequestCreateNestedManyWithoutSaleLineInput;
     exportLines?: Prisma.ProductExportLineCreateNestedManyWithoutSaleLineInput;
@@ -1063,6 +1105,7 @@ export type SaleLineUncheckedCreateWithoutReplacementChangesInput = {
     saleId: string;
     productId: string;
     changes?: Prisma.SaleLineChangeUncheckedCreateNestedManyWithoutSaleLineInput;
+    storeMovement?: Prisma.StoreMovementUncheckedCreateNestedOneWithoutSaleLineInput;
     servings?: Prisma.ServingUncheckedCreateNestedManyWithoutSaleLineInput;
     replenishments?: Prisma.ReplenishmentRequestUncheckedCreateNestedManyWithoutSaleLineInput;
     exportLines?: Prisma.ProductExportLineUncheckedCreateNestedManyWithoutSaleLineInput;
@@ -1092,6 +1135,7 @@ export type SaleLineUpdateWithoutChangesInput = {
     sentBy?: Prisma.EmployeeUpdateOneWithoutSentLinesNestedInput;
     sale?: Prisma.SaleUpdateOneRequiredWithoutLinesNestedInput;
     product?: Prisma.ProductUpdateOneRequiredWithoutSaleLinesNestedInput;
+    storeMovement?: Prisma.StoreMovementUpdateOneWithoutSaleLineNestedInput;
     servings?: Prisma.ServingUpdateManyWithoutSaleLineNestedInput;
     replenishments?: Prisma.ReplenishmentRequestUpdateManyWithoutSaleLineNestedInput;
     exportLines?: Prisma.ProductExportLineUpdateManyWithoutSaleLineNestedInput;
@@ -1108,6 +1152,7 @@ export type SaleLineUncheckedUpdateWithoutChangesInput = {
     saleId?: Prisma.StringFieldUpdateOperationsInput | string;
     productId?: Prisma.StringFieldUpdateOperationsInput | string;
     replacementChanges?: Prisma.SaleLineChangeUncheckedUpdateManyWithoutReplacementLineNestedInput;
+    storeMovement?: Prisma.StoreMovementUncheckedUpdateOneWithoutSaleLineNestedInput;
     servings?: Prisma.ServingUncheckedUpdateManyWithoutSaleLineNestedInput;
     replenishments?: Prisma.ReplenishmentRequestUncheckedUpdateManyWithoutSaleLineNestedInput;
     exportLines?: Prisma.ProductExportLineUncheckedUpdateManyWithoutSaleLineNestedInput;
@@ -1133,6 +1178,7 @@ export type SaleLineUpdateWithoutReplacementChangesInput = {
     sentBy?: Prisma.EmployeeUpdateOneWithoutSentLinesNestedInput;
     sale?: Prisma.SaleUpdateOneRequiredWithoutLinesNestedInput;
     product?: Prisma.ProductUpdateOneRequiredWithoutSaleLinesNestedInput;
+    storeMovement?: Prisma.StoreMovementUpdateOneWithoutSaleLineNestedInput;
     servings?: Prisma.ServingUpdateManyWithoutSaleLineNestedInput;
     replenishments?: Prisma.ReplenishmentRequestUpdateManyWithoutSaleLineNestedInput;
     exportLines?: Prisma.ProductExportLineUpdateManyWithoutSaleLineNestedInput;
@@ -1149,6 +1195,88 @@ export type SaleLineUncheckedUpdateWithoutReplacementChangesInput = {
     saleId?: Prisma.StringFieldUpdateOperationsInput | string;
     productId?: Prisma.StringFieldUpdateOperationsInput | string;
     changes?: Prisma.SaleLineChangeUncheckedUpdateManyWithoutSaleLineNestedInput;
+    storeMovement?: Prisma.StoreMovementUncheckedUpdateOneWithoutSaleLineNestedInput;
+    servings?: Prisma.ServingUncheckedUpdateManyWithoutSaleLineNestedInput;
+    replenishments?: Prisma.ReplenishmentRequestUncheckedUpdateManyWithoutSaleLineNestedInput;
+    exportLines?: Prisma.ProductExportLineUncheckedUpdateManyWithoutSaleLineNestedInput;
+};
+export type SaleLineCreateWithoutStoreMovementInput = {
+    id?: string;
+    quantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    unitPrice: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    note?: string;
+    sentAt?: Date | string | null;
+    batch?: number | null;
+    productName: string;
+    changes?: Prisma.SaleLineChangeCreateNestedManyWithoutSaleLineInput;
+    replacementChanges?: Prisma.SaleLineChangeCreateNestedManyWithoutReplacementLineInput;
+    sentBy?: Prisma.EmployeeCreateNestedOneWithoutSentLinesInput;
+    sale: Prisma.SaleCreateNestedOneWithoutLinesInput;
+    product: Prisma.ProductCreateNestedOneWithoutSaleLinesInput;
+    servings?: Prisma.ServingCreateNestedManyWithoutSaleLineInput;
+    replenishments?: Prisma.ReplenishmentRequestCreateNestedManyWithoutSaleLineInput;
+    exportLines?: Prisma.ProductExportLineCreateNestedManyWithoutSaleLineInput;
+};
+export type SaleLineUncheckedCreateWithoutStoreMovementInput = {
+    id?: string;
+    quantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    unitPrice: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    sentById?: string | null;
+    note?: string;
+    sentAt?: Date | string | null;
+    batch?: number | null;
+    productName: string;
+    saleId: string;
+    productId: string;
+    changes?: Prisma.SaleLineChangeUncheckedCreateNestedManyWithoutSaleLineInput;
+    replacementChanges?: Prisma.SaleLineChangeUncheckedCreateNestedManyWithoutReplacementLineInput;
+    servings?: Prisma.ServingUncheckedCreateNestedManyWithoutSaleLineInput;
+    replenishments?: Prisma.ReplenishmentRequestUncheckedCreateNestedManyWithoutSaleLineInput;
+    exportLines?: Prisma.ProductExportLineUncheckedCreateNestedManyWithoutSaleLineInput;
+};
+export type SaleLineCreateOrConnectWithoutStoreMovementInput = {
+    where: Prisma.SaleLineWhereUniqueInput;
+    create: Prisma.XOR<Prisma.SaleLineCreateWithoutStoreMovementInput, Prisma.SaleLineUncheckedCreateWithoutStoreMovementInput>;
+};
+export type SaleLineUpsertWithoutStoreMovementInput = {
+    update: Prisma.XOR<Prisma.SaleLineUpdateWithoutStoreMovementInput, Prisma.SaleLineUncheckedUpdateWithoutStoreMovementInput>;
+    create: Prisma.XOR<Prisma.SaleLineCreateWithoutStoreMovementInput, Prisma.SaleLineUncheckedCreateWithoutStoreMovementInput>;
+    where?: Prisma.SaleLineWhereInput;
+};
+export type SaleLineUpdateToOneWithWhereWithoutStoreMovementInput = {
+    where?: Prisma.SaleLineWhereInput;
+    data: Prisma.XOR<Prisma.SaleLineUpdateWithoutStoreMovementInput, Prisma.SaleLineUncheckedUpdateWithoutStoreMovementInput>;
+};
+export type SaleLineUpdateWithoutStoreMovementInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    unitPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    note?: Prisma.StringFieldUpdateOperationsInput | string;
+    sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    batch?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+    productName?: Prisma.StringFieldUpdateOperationsInput | string;
+    changes?: Prisma.SaleLineChangeUpdateManyWithoutSaleLineNestedInput;
+    replacementChanges?: Prisma.SaleLineChangeUpdateManyWithoutReplacementLineNestedInput;
+    sentBy?: Prisma.EmployeeUpdateOneWithoutSentLinesNestedInput;
+    sale?: Prisma.SaleUpdateOneRequiredWithoutLinesNestedInput;
+    product?: Prisma.ProductUpdateOneRequiredWithoutSaleLinesNestedInput;
+    servings?: Prisma.ServingUpdateManyWithoutSaleLineNestedInput;
+    replenishments?: Prisma.ReplenishmentRequestUpdateManyWithoutSaleLineNestedInput;
+    exportLines?: Prisma.ProductExportLineUpdateManyWithoutSaleLineNestedInput;
+};
+export type SaleLineUncheckedUpdateWithoutStoreMovementInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    unitPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    sentById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    note?: Prisma.StringFieldUpdateOperationsInput | string;
+    sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    batch?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+    productName?: Prisma.StringFieldUpdateOperationsInput | string;
+    saleId?: Prisma.StringFieldUpdateOperationsInput | string;
+    productId?: Prisma.StringFieldUpdateOperationsInput | string;
+    changes?: Prisma.SaleLineChangeUncheckedUpdateManyWithoutSaleLineNestedInput;
+    replacementChanges?: Prisma.SaleLineChangeUncheckedUpdateManyWithoutReplacementLineNestedInput;
     servings?: Prisma.ServingUncheckedUpdateManyWithoutSaleLineNestedInput;
     replenishments?: Prisma.ReplenishmentRequestUncheckedUpdateManyWithoutSaleLineNestedInput;
     exportLines?: Prisma.ProductExportLineUncheckedUpdateManyWithoutSaleLineNestedInput;
@@ -1176,6 +1304,7 @@ export type SaleLineUpdateWithoutSentByInput = {
     replacementChanges?: Prisma.SaleLineChangeUpdateManyWithoutReplacementLineNestedInput;
     sale?: Prisma.SaleUpdateOneRequiredWithoutLinesNestedInput;
     product?: Prisma.ProductUpdateOneRequiredWithoutSaleLinesNestedInput;
+    storeMovement?: Prisma.StoreMovementUpdateOneWithoutSaleLineNestedInput;
     servings?: Prisma.ServingUpdateManyWithoutSaleLineNestedInput;
     replenishments?: Prisma.ReplenishmentRequestUpdateManyWithoutSaleLineNestedInput;
     exportLines?: Prisma.ProductExportLineUpdateManyWithoutSaleLineNestedInput;
@@ -1192,6 +1321,7 @@ export type SaleLineUncheckedUpdateWithoutSentByInput = {
     productId?: Prisma.StringFieldUpdateOperationsInput | string;
     changes?: Prisma.SaleLineChangeUncheckedUpdateManyWithoutSaleLineNestedInput;
     replacementChanges?: Prisma.SaleLineChangeUncheckedUpdateManyWithoutReplacementLineNestedInput;
+    storeMovement?: Prisma.StoreMovementUncheckedUpdateOneWithoutSaleLineNestedInput;
     servings?: Prisma.ServingUncheckedUpdateManyWithoutSaleLineNestedInput;
     replenishments?: Prisma.ReplenishmentRequestUncheckedUpdateManyWithoutSaleLineNestedInput;
     exportLines?: Prisma.ProductExportLineUncheckedUpdateManyWithoutSaleLineNestedInput;
@@ -1230,6 +1360,7 @@ export type SaleLineUpdateWithoutProductInput = {
     replacementChanges?: Prisma.SaleLineChangeUpdateManyWithoutReplacementLineNestedInput;
     sentBy?: Prisma.EmployeeUpdateOneWithoutSentLinesNestedInput;
     sale?: Prisma.SaleUpdateOneRequiredWithoutLinesNestedInput;
+    storeMovement?: Prisma.StoreMovementUpdateOneWithoutSaleLineNestedInput;
     servings?: Prisma.ServingUpdateManyWithoutSaleLineNestedInput;
     replenishments?: Prisma.ReplenishmentRequestUpdateManyWithoutSaleLineNestedInput;
     exportLines?: Prisma.ProductExportLineUpdateManyWithoutSaleLineNestedInput;
@@ -1246,6 +1377,7 @@ export type SaleLineUncheckedUpdateWithoutProductInput = {
     saleId?: Prisma.StringFieldUpdateOperationsInput | string;
     changes?: Prisma.SaleLineChangeUncheckedUpdateManyWithoutSaleLineNestedInput;
     replacementChanges?: Prisma.SaleLineChangeUncheckedUpdateManyWithoutReplacementLineNestedInput;
+    storeMovement?: Prisma.StoreMovementUncheckedUpdateOneWithoutSaleLineNestedInput;
     servings?: Prisma.ServingUncheckedUpdateManyWithoutSaleLineNestedInput;
     replenishments?: Prisma.ReplenishmentRequestUncheckedUpdateManyWithoutSaleLineNestedInput;
     exportLines?: Prisma.ProductExportLineUncheckedUpdateManyWithoutSaleLineNestedInput;
@@ -1284,6 +1416,7 @@ export type SaleLineUpdateWithoutSaleInput = {
     replacementChanges?: Prisma.SaleLineChangeUpdateManyWithoutReplacementLineNestedInput;
     sentBy?: Prisma.EmployeeUpdateOneWithoutSentLinesNestedInput;
     product?: Prisma.ProductUpdateOneRequiredWithoutSaleLinesNestedInput;
+    storeMovement?: Prisma.StoreMovementUpdateOneWithoutSaleLineNestedInput;
     servings?: Prisma.ServingUpdateManyWithoutSaleLineNestedInput;
     replenishments?: Prisma.ReplenishmentRequestUpdateManyWithoutSaleLineNestedInput;
     exportLines?: Prisma.ProductExportLineUpdateManyWithoutSaleLineNestedInput;
@@ -1300,6 +1433,7 @@ export type SaleLineUncheckedUpdateWithoutSaleInput = {
     productId?: Prisma.StringFieldUpdateOperationsInput | string;
     changes?: Prisma.SaleLineChangeUncheckedUpdateManyWithoutSaleLineNestedInput;
     replacementChanges?: Prisma.SaleLineChangeUncheckedUpdateManyWithoutReplacementLineNestedInput;
+    storeMovement?: Prisma.StoreMovementUncheckedUpdateOneWithoutSaleLineNestedInput;
     servings?: Prisma.ServingUncheckedUpdateManyWithoutSaleLineNestedInput;
     replenishments?: Prisma.ReplenishmentRequestUncheckedUpdateManyWithoutSaleLineNestedInput;
     exportLines?: Prisma.ProductExportLineUncheckedUpdateManyWithoutSaleLineNestedInput;
@@ -1363,6 +1497,7 @@ export type SaleLineSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
     sentBy?: boolean | Prisma.SaleLine$sentByArgs<ExtArgs>;
     sale?: boolean | Prisma.SaleDefaultArgs<ExtArgs>;
     product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>;
+    storeMovement?: boolean | Prisma.SaleLine$storeMovementArgs<ExtArgs>;
     servings?: boolean | Prisma.SaleLine$servingsArgs<ExtArgs>;
     replenishments?: boolean | Prisma.SaleLine$replenishmentsArgs<ExtArgs>;
     exportLines?: boolean | Prisma.SaleLine$exportLinesArgs<ExtArgs>;
@@ -1417,6 +1552,7 @@ export type SaleLineInclude<ExtArgs extends runtime.Types.Extensions.InternalArg
     sentBy?: boolean | Prisma.SaleLine$sentByArgs<ExtArgs>;
     sale?: boolean | Prisma.SaleDefaultArgs<ExtArgs>;
     product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>;
+    storeMovement?: boolean | Prisma.SaleLine$storeMovementArgs<ExtArgs>;
     servings?: boolean | Prisma.SaleLine$servingsArgs<ExtArgs>;
     replenishments?: boolean | Prisma.SaleLine$replenishmentsArgs<ExtArgs>;
     exportLines?: boolean | Prisma.SaleLine$exportLinesArgs<ExtArgs>;
@@ -1440,6 +1576,7 @@ export type $SaleLinePayload<ExtArgs extends runtime.Types.Extensions.InternalAr
         sentBy: Prisma.$EmployeePayload<ExtArgs> | null;
         sale: Prisma.$SalePayload<ExtArgs>;
         product: Prisma.$ProductPayload<ExtArgs>;
+        storeMovement: Prisma.$StoreMovementPayload<ExtArgs> | null;
         servings: Prisma.$ServingPayload<ExtArgs>[];
         replenishments: Prisma.$ReplenishmentRequestPayload<ExtArgs>[];
         exportLines: Prisma.$ProductExportLinePayload<ExtArgs>[];
@@ -1512,6 +1649,7 @@ export interface Prisma__SaleLineClient<T, Null = never, ExtArgs extends runtime
     sentBy<T extends Prisma.SaleLine$sentByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SaleLine$sentByArgs<ExtArgs>>): Prisma.Prisma__EmployeeClient<runtime.Types.Result.GetResult<Prisma.$EmployeePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>;
     sale<T extends Prisma.SaleDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SaleDefaultArgs<ExtArgs>>): Prisma.Prisma__SaleClient<runtime.Types.Result.GetResult<Prisma.$SalePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>;
     product<T extends Prisma.ProductDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProductDefaultArgs<ExtArgs>>): Prisma.Prisma__ProductClient<runtime.Types.Result.GetResult<Prisma.$ProductPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>;
+    storeMovement<T extends Prisma.SaleLine$storeMovementArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SaleLine$storeMovementArgs<ExtArgs>>): Prisma.Prisma__StoreMovementClient<runtime.Types.Result.GetResult<Prisma.$StoreMovementPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>;
     servings<T extends Prisma.SaleLine$servingsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SaleLine$servingsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ServingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     replenishments<T extends Prisma.SaleLine$replenishmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SaleLine$replenishmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReplenishmentRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     exportLines<T extends Prisma.SaleLine$exportLinesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SaleLine$exportLinesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProductExportLinePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
@@ -1658,6 +1796,12 @@ export type SaleLine$sentByArgs<ExtArgs extends runtime.Types.Extensions.Interna
     omit?: Prisma.EmployeeOmit<ExtArgs> | null;
     include?: Prisma.EmployeeInclude<ExtArgs> | null;
     where?: Prisma.EmployeeWhereInput;
+};
+export type SaleLine$storeMovementArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    select?: Prisma.StoreMovementSelect<ExtArgs> | null;
+    omit?: Prisma.StoreMovementOmit<ExtArgs> | null;
+    include?: Prisma.StoreMovementInclude<ExtArgs> | null;
+    where?: Prisma.StoreMovementWhereInput;
 };
 export type SaleLine$servingsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.ServingSelect<ExtArgs> | null;

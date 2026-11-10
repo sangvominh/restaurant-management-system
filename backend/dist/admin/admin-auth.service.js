@@ -39,17 +39,17 @@ let AdminAuthService = class AdminAuthService {
         const codes = account.role.permissions.map(p => p.permission.code).sort();
         if (adminOnly && !codes.includes('*'))
             throw new ForbiddenException('Tài khoản không có quyền System Admin');
-        if (!adminOnly && audience === 'sales' && !codes.some(code => ['*', 'sale:prepare', 'sale:view', 'sale:create', 'export:request', 'payment:create'].includes(code)))
+        if (!adminOnly && audience === 'sales' && !codes.some(code => ['*', 'sale:view', 'sale:create', 'payment:create', 'store:manage', 'product:price', 'dining:manage', 'report:sales'].includes(code)))
             throw new ForbiddenException('Tài khoản chưa được cấp quyền vào web Bán hàng');
-        if (!adminOnly && audience === 'warehouse' && !codes.some(code => ['*', 'catalog:manage', 'inventory:view', 'product:manage', 'export:request', 'export:approve', 'report:stock', 'material:approve', 'production:inspect', 'waste:approve', 'bom:manage', 'production:manage', 'production:perform', 'material:request', 'waste:request', 'receipt:create', 'receipt:post', 'sale:view'].includes(code)))
-            throw new ForbiddenException('Tài khoản chưa được cấp quyền vào web Kho và sản xuất');
+        if (!adminOnly && audience === 'warehouse' && !codes.some(code => ['*', 'catalog:manage', 'inventory:view', 'product:manage', 'export:request', 'export:approve', 'report:stock', 'material:view', 'material:approve', 'production:inspect', 'waste:approve', 'bom:manage', 'production:manage', 'production:perform', 'material:request', 'waste:request', 'receipt:create', 'receipt:post'].includes(code)))
+            throw new ForbiddenException('Tài khoản chưa được cấp quyền vào web Kho & Chế biến');
         for (const [id, session] of this.sessions)
             if (session.expiresAt <= Date.now())
                 this.sessions.delete(id);
         const token = randomBytes(32).toString('hex');
         this.sessions.set(key(token), { accountId: account.id, passwordHash: account.passwordHash,
             roleId: account.roleId, rights: codes.join(','), expiresAt: Date.now() + 8 * 60 * 60 * 1000 });
-        return { token, user: { id: account.id, username: account.username, name: account.employee?.name || account.username, permissions: codes } };
+        return { token, user: { id: account.id, username: account.username, name: account.employee?.name || account.username, roleName: account.role.name, permissions: codes } };
     }
     async authenticate(token, adminOnly = true) {
         const session = this.sessions.get(key(token));
@@ -65,7 +65,7 @@ let AdminAuthService = class AdminAuthService {
             this.sessions.delete(key(token));
             throw new UnauthorizedException('Tài khoản hoặc quyền đã thay đổi, vui lòng đăng nhập lại');
         }
-        return { id: account.id, username: account.username, name: account.employee?.name || account.username, permissions: codes };
+        return { id: account.id, username: account.username, name: account.employee?.name || account.username, roleName: account.role.name, permissions: codes };
     }
     logout(token) { this.sessions.delete(key(token)); return { message: 'Đã đăng xuất' }; }
 };

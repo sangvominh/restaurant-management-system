@@ -12,6 +12,9 @@ export default function RestaurantSession() {
     (sessionStorage.getItem(TOKEN) ? api<User>('auth/me') : Promise.resolve(null)).then(u => { if (active) setUser(u); }).catch(e => { if (active) setError(e instanceof Error ? e.message : 'Không kết nối được backend'); }).finally(() => { if (active) setReady(true); });
     return () => { active = false; window.removeEventListener('restaurant-session-ended', ended); };
   }, []);
+  useEffect(() => {
+    document.title = user ? `${user.roleName || user.username} · ${user.username} | Nhà hàng` : 'Đăng nhập | Nhà hàng';
+  }, [user]);
   async function login(e: FormEvent<HTMLFormElement>) {
     e.preventDefault(); const values = new FormData(e.currentTarget); setBusy(true); setError('');
     try { const r = await api<{ token: string; user: User }>('auth/login', 'POST', { username: String(values.get('username') || '').trim(), password: values.get('password') }); sessionStorage.setItem(TOKEN, r.token); setUser(r.user); }

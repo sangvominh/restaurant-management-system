@@ -23,7 +23,7 @@ export class WarehouseReportService {
     const inPeriod = (d: Date) => d >= from && d < until && d <= now;
     const today = vietnamDay(now);
     return this.db.$transaction(async tx => {
-      const [materials, products, materialMoves, productMoves, runs, activeOrders, saleLines, receipts, wasteLines, shortageCount] = await Promise.all([
+      const [materials, products, materialMoves, productMoves, runs, activeOrders, saleLines, receipts, wasteLines, shortageCount, storeMoves, storeWaste] = await Promise.all([
         tx.material.findMany({ include: { unit: true, category: true }, orderBy: { code: 'asc' } }),
         tx.product.findMany({ include: { unit: true, category: true, boms: { where: { status: 'ACTIVE', effectiveAt: { lte: now } }, orderBy: [{ effectiveAt: 'desc' }, { version: 'desc' }], take: 1, include: { lines: true } } }, orderBy: { code: 'asc' } }),
         tx.materialMovement.findMany({ where: { postedAt: { lte: now } }, include: { lot: true } }),
@@ -34,6 +34,8 @@ export class WarehouseReportService {
         tx.materialReceipt.findMany({ where: { status: 'POSTED', receivedAt: { gte: from, lt: until, lte: now } }, include: { lines: true, supplier: true } }),
         tx.wasteLine.findMany({ where: { waste: { status: 'APPROVED', approvedAt: { gte: from, lt: until, lte: now } } }, include: { waste: { include: { reviewedBy: { select: { name: true } } } }, lot: true, issueLine: { include: { lot: true } }, product: true } }),
         tx.materialShortage.count({ where: { status: { in: ['PENDING', 'PROCESSING'] } } }),
+        tx.storeMovement.findMany({ where: { postedAt: { lte: now } } }),
+        tx.storeAdjustment.findMany({ where: { kind: 'WASTE', status: 'APPROVED', approvedAt: { gte: from, lt: until, lte: now } }, include: { product: { include: { unit: true } }, reviewedBy: { select: { name: true } } } }),
       ]);
       type Movement = { quantity: Prisma.Decimal; date: Date; incoming: boolean; outgoing: boolean; label: string };
       function inventory(moves: Movement[]) {
@@ -55,18 +57,20 @@ export class WarehouseReportService {
       }
       const productRows = products.map(p => {
         const moves = productMoves.filter(m => m.productId === p.id);
-        const stock = sum(moves.map(m => m.movementType === 'NHAP_SAN_XUAT' ? m.quantity : m.quantity.negated()));
-        const exported = sum(moves.filter(m => inPeriod(m.postedAt) && m.movementType === 'XUAT_BAN').map(m => m.quantity));
+        const stock = sum(moves.map(m => ['NHAP_SAN_XUAT', 'HOAN_CUA_HANG'].includes(m.movementType) ? m.quantity : m.quantity.negated()));
+        const ownStore = storeMoves.filter(m => m.productId === p.id);
+        const storeStock = sum(ownStore.map(m => m.movementType === 'IN_TRANSFER' ? m.quantity : m.quantity.negated()));
+        const exported = sum(ownStore.filter(m => inPeriod(m.postedAt) && m.movementType === 'SALE').map(m => m.quantity));
         const demand = sum(saleLines.filter(l => l.productId === p.id).map(l => positive(l.quantity.minus(sum(l.exportLines.filter(e => e.export.status === 'APPROVED').map(e => e.exportedQuantity || 0))))));
         const orders = activeOrders.filter(o => o.bom.productId === p.id);
         const inProduction = sum(orders.map(o => positive(o.quantity.minus(sum(o.runs.map(r => r.actualQuantity))))));
         const awaitingInspection = sum(orders.flatMap(o => o.runs.filter(r => r.status === 'PENDING').map(r => r.actualQuantity)));
         const forecast = observedDays ? exported.div(observedDays).mul(horizon).toDecimalPlaces(3, Prisma.Decimal.ROUND_UP) : D();
-        const suggested = p.status === 'ACTIVE' ? positive(Prisma.Decimal.max(demand, forecast).minus(stock).minus(inProduction).minus(awaitingInspection)) : D();
+        const suggested = p.status === 'ACTIVE' ? positive(Prisma.Decimal.max(demand, forecast).minus(stock).minus(storeStock).minus(inProduction).minus(awaitingInspection)) : D();
         const ownRuns = runs.filter(r => r.productionOrder.bom.productId === p.id);
         const actual = sum(ownRuns.map(r => r.actualQuantity)), inspectedActual = sum(ownRuns.filter(r => r.status !== 'PENDING').map(r => r.actualQuantity)), accepted = sum(ownRuns.filter(r => r.status !== 'PENDING').map(r => r.acceptedQuantity || 0));
         const hasBom = !!p.boms[0]?.lines.length && p.boms[0].lines.every(l => materials.some(m => m.id === l.materialId && m.status === 'ACTIVE'));
-        return { id: p.id, code: p.code, name: p.name, unit: p.unit.symbol, status: p.status, category: p.category.name, ...inventory(moves.map(m => ({ quantity: m.quantity, date: m.postedAt, incoming: m.movementType === 'NHAP_SAN_XUAT', outgoing: m.movementType !== 'NHAP_SAN_XUAT', label: m.movementType === 'NHAP_SAN_XUAT' ? 'Nhập từ nghiệm thu' : m.movementType === 'XUAT_BAN' ? 'Xuất bán' : 'Xuất/hao hụt khác' }))), stock, exported, demand, inProduction, awaitingInspection, forecast, suggested, hasBom, actual, accepted, rejected: inspectedActual.minus(accepted), yieldPercent: percent(accepted, inspectedActual), runCount: ownRuns.length };
+        return { id: p.id, code: p.code, name: p.name, unit: p.unit.symbol, status: p.status, category: p.category.name, ...inventory(moves.map(m => ({ quantity: m.quantity, date: m.postedAt, incoming: ['NHAP_SAN_XUAT', 'HOAN_CUA_HANG'].includes(m.movementType), outgoing: !['NHAP_SAN_XUAT', 'HOAN_CUA_HANG'].includes(m.movementType), label: m.movementType === 'NHAP_SAN_XUAT' ? 'Nhập từ nghiệm thu' : m.movementType === 'HOAN_CUA_HANG' ? 'Hoàn từ cửa hàng' : m.movementType === 'CHUYEN_CUA_HANG' ? 'Chuyển sang cửa hàng' : m.movementType === 'XUAT_BAN' ? 'Xuất bán cũ' : 'Xuất/hao hụt khác' }))), stock, storeStock, totalStock: stock.plus(storeStock), exported, demand, inProduction, awaitingInspection, forecast, suggested, hasBom, actual, accepted, rejected: inspectedActual.minus(accepted), yieldPercent: percent(accepted, inspectedActual), runCount: ownRuns.length };
       });
       const openNeeds = new Map<string, Prisma.Decimal>(), suggestedNeeds = new Map<string, Prisma.Decimal>();
       for (const o of activeOrders) {
@@ -104,6 +108,7 @@ export class WarehouseReportService {
       }
       const formulas = [...formulaMap].map(([id, r]) => ({ id, bomId: r.bomId, version: r.version, product: r.product, material: r.material, unit: r.unit, expected: r.expected, actual: r.actual, delta: r.actual.minus(r.expected), deltaPercent: percent(r.actual.minus(r.expected), r.expected), runCount: r.runs, orderIds: [...r.orderIds] }));
       const wastes = wasteLines.map(w => { const materialId = w.lot?.materialId || w.issueLine?.lot.materialId; const m = materials.find(m => m.id === materialId); const p = products.find(p => p.id === w.productId); return { id: w.id, documentId: w.wasteId, name: m?.name || p?.name || 'Không xác định', unit: m?.unit.symbol || p?.unit.symbol || '', lot: w.lot?.code || w.issueLine?.lot.code || null, source: w.sourceType, quantity: w.quantity, at: w.waste.approvedAt, reason: w.waste.reason, by: w.waste.reviewedBy?.name || '' }; });
+      wastes.push(...storeWaste.map(w => ({ id: w.id, documentId: w.id, name: w.product.name, unit: w.product.unit.symbol, lot: null, source: 'CUA_HANG', quantity: w.quantity, at: w.approvedAt, reason: w.reason, by: w.reviewedBy?.name || '' })));
       return { asOf: now.toISOString(), period: { start, end, observedDays, previousStart: vietnamDay(previousFrom), previousEnd: vietnamDay(new Date(previousUntil.getTime() - 86400000)), horizon }, summary: { receiptCount: receipts.length, receiptValue: sum(receipts.flatMap(r => r.lines.map(l => l.quantity.mul(l.unitPrice)))).toDecimalPlaces(2), runCount: runs.length, wasteDocuments: new Set(wastes.map(w => w.documentId)).size, openOrderCount: activeOrders.length, overdueOrders: activeOrders.filter(o => o.dueAt && o.dueAt < now).length, openShortages: shortageCount, purchaseItems: materialRows.filter(m => m.suggestedPurchase.gt(0)).length, productionItems: productRows.filter(p => p.suggested.gt(0)).length, expiredItems: materialRows.filter(m => m.expired.gt(0)).length }, materials: materialRows, products: productRows, formulas, wastes };
     }, { isolationLevel: 'RepeatableRead', timeout: 15000 });
   }

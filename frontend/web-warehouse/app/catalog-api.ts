@@ -6,7 +6,7 @@ export interface CatalogItem {
   minStock?: string; sellingPrice?: string; status?: string; phone?: string | null; address?: string | null;
   currentBom?: { id: string; version: number; outputQuantity: string; effectiveAt: string; lines: { id: string; quantity: string; material: { name: string; status: string; unit: { symbol: string } } }[] } | null;
 }
-export interface User { id: string; username: string; name: string; permissions: string[] }
+export interface User { id: string; username: string; name: string; roleName?: string; permissions: string[] }
 export const TOKEN_KEY = 'warehouse_session';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 export async function api<T>(path: string, method = 'GET', body?: unknown): Promise<T> {

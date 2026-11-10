@@ -9,6 +9,7 @@ export const DbNull = runtime.DbNull;
 export const JsonNull = runtime.JsonNull;
 export const AnyNull = runtime.AnyNull;
 export const ModelName = {
+    RoleTemplate: 'RoleTemplate',
     Role: 'Role',
     Permission: 'Permission',
     RolePermission: 'RolePermission',
@@ -45,7 +46,11 @@ export const ModelName = {
     DiningArea: 'DiningArea',
     Serving: 'Serving',
     ReplenishmentRequest: 'ReplenishmentRequest',
-    SaleLineChange: 'SaleLineChange'
+    SaleLineChange: 'SaleLineChange',
+    StoreDispatch: 'StoreDispatch',
+    StoreDispatchLine: 'StoreDispatchLine',
+    StoreAdjustment: 'StoreAdjustment',
+    StoreMovement: 'StoreMovement'
 };
 export const TransactionIsolationLevel = runtime.makeStrictEnum({
     ReadUncommitted: 'ReadUncommitted',
@@ -53,6 +58,14 @@ export const TransactionIsolationLevel = runtime.makeStrictEnum({
     RepeatableRead: 'RepeatableRead',
     Serializable: 'Serializable'
 });
+export const RoleTemplateScalarFieldEnum = {
+    id: 'id',
+    name: 'name',
+    workspace: 'workspace',
+    description: 'description',
+    permissions: 'permissions',
+    updatedAt: 'updatedAt'
+};
 export const RoleScalarFieldEnum = {
     id: 'id',
     name: 'name',
@@ -148,6 +161,7 @@ export const MaterialIssueScalarFieldEnum = {
     approvedAt: 'approvedAt',
     status: 'status',
     reason: 'reason',
+    reviewNote: 'reviewNote',
     productionOrderId: 'productionOrderId',
     requestedById: 'requestedById',
     reviewedById: 'reviewedById'
@@ -317,6 +331,8 @@ export const ProductMovementScalarFieldEnum = {
     movementType: 'movementType',
     postedAt: 'postedAt',
     productId: 'productId',
+    dispatchLineId: 'dispatchLineId',
+    storeAdjustmentId: 'storeAdjustmentId',
     runId: 'runId',
     exportLineId: 'exportLineId',
     wasteLineId: 'wasteLineId'
@@ -361,6 +377,43 @@ export const SaleLineChangeScalarFieldEnum = {
     saleLineId: 'saleLineId',
     replacementLineId: 'replacementLineId',
     changedById: 'changedById'
+};
+export const StoreDispatchScalarFieldEnum = {
+    id: 'id',
+    requestedAt: 'requestedAt',
+    approvedAt: 'approvedAt',
+    status: 'status',
+    reason: 'reason',
+    requestedById: 'requestedById',
+    reviewedById: 'reviewedById'
+};
+export const StoreDispatchLineScalarFieldEnum = {
+    id: 'id',
+    dispatchId: 'dispatchId',
+    productId: 'productId',
+    quantity: 'quantity'
+};
+export const StoreAdjustmentScalarFieldEnum = {
+    id: 'id',
+    productId: 'productId',
+    quantity: 'quantity',
+    kind: 'kind',
+    reason: 'reason',
+    status: 'status',
+    requestedAt: 'requestedAt',
+    approvedAt: 'approvedAt',
+    requestedById: 'requestedById',
+    reviewedById: 'reviewedById'
+};
+export const StoreMovementScalarFieldEnum = {
+    id: 'id',
+    productId: 'productId',
+    quantity: 'quantity',
+    movementType: 'movementType',
+    postedAt: 'postedAt',
+    dispatchLineId: 'dispatchLineId',
+    saleLineId: 'saleLineId',
+    adjustmentId: 'adjustmentId'
 };
 export const SortOrder = {
     asc: 'asc',

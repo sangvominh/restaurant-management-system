@@ -7,6 +7,9 @@
   "license": "UNLICENSED",
   "type": "module",
   "scripts": {
+    "seed:sample": "node scripts/seed-sample.mjs",
+    "seed:sample:test": "node --test scripts/sample-bbq-data.test.mjs",
+    "seed:sample:verify-db": "node scripts/verify-sample-db.mjs",
     "admin:init": "npm run build && node scripts/init-admin.mjs",
     "build": "nest build",
     "deploy": "nest deploy",

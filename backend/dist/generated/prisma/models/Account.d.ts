@@ -285,9 +285,6 @@ export type AccountUncheckedUpdateManyWithoutRoleNestedInput = {
     updateMany?: Prisma.AccountUpdateManyWithWhereWithoutRoleInput | Prisma.AccountUpdateManyWithWhereWithoutRoleInput[];
     deleteMany?: Prisma.AccountScalarWhereInput | Prisma.AccountScalarWhereInput[];
 };
-export type DateTimeFieldUpdateOperationsInput = {
-    set?: Date | string;
-};
 export type AccountCreateNestedOneWithoutEmployeeInput = {
     create?: Prisma.XOR<Prisma.AccountCreateWithoutEmployeeInput, Prisma.AccountUncheckedCreateWithoutEmployeeInput>;
     connectOrCreate?: Prisma.AccountCreateOrConnectWithoutEmployeeInput;

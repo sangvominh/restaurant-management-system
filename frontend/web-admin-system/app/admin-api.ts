@@ -9,7 +9,7 @@ export interface Entry {
   _count?: { accounts: number };
 }
 export interface Permission { code: string; name: string; group: string }
-export interface AdminUser { id: string; username: string; name: string }
+export interface AdminUser { id: string; username: string; name: string; roleName?: string }
 export const TOKEN_KEY = 'restaurant_admin_session';
 export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 export async function api<T>(path: string, method = 'GET', body?: unknown): Promise<T> {

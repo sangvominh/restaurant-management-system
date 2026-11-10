@@ -11,12 +11,15 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
+import { RoleTemplateService } from './role-template.service.js';
 import { AdminService } from './admin.service.js';
 import { AdminAuthGuard, CurrentAdmin } from './admin-auth.guard.js';
 let AdminController = class AdminController {
     service;
-    constructor(service) {
+    templates;
+    constructor(service, templates) {
         this.service = service;
+        this.templates = templates;
     }
     accounts() { return this.service.accounts(); }
     createAccount(b) { return this.service.saveAccount(b); }
@@ -26,6 +29,9 @@ let AdminController = class AdminController {
     createRole(b) { return this.service.saveRole(b); }
     updateRole(id, b) { return this.service.saveRole(b, id); }
     deleteRole(id) { return this.service.deleteRole(id); }
+    presets() { return this.templates.list(); }
+    savePreset(id, b) { return this.templates.save(id, b); }
+    resetPreset(id) { return this.templates.reset(id); }
     permissions() { return this.service.permissions(); }
     employees() { return this.service.employees(); }
     createEmployee(b) { return this.service.saveEmployee(b); }
@@ -91,6 +97,27 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], AdminController.prototype, "deleteRole", null);
 __decorate([
+    Get('role-presets'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "presets", null);
+__decorate([
+    Put('role-presets/:id'),
+    __param(0, Param('id')),
+    __param(1, Body()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "savePreset", null);
+__decorate([
+    Delete('role-presets/:id'),
+    __param(0, Param('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "resetPreset", null);
+__decorate([
     Get('permissions'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
@@ -128,7 +155,7 @@ __decorate([
 AdminController = __decorate([
     UseGuards(AdminAuthGuard),
     Controller('api/admin'),
-    __metadata("design:paramtypes", [AdminService])
+    __metadata("design:paramtypes", [AdminService, RoleTemplateService])
 ], AdminController);
 export { AdminController };
 //# sourceMappingURL=admin.controller.js.map

@@ -12,6 +12,7 @@ export type MaterialIssueMinAggregateOutputType = {
     approvedAt: Date | null;
     status: string | null;
     reason: string | null;
+    reviewNote: string | null;
     productionOrderId: string | null;
     requestedById: string | null;
     reviewedById: string | null;
@@ -22,6 +23,7 @@ export type MaterialIssueMaxAggregateOutputType = {
     approvedAt: Date | null;
     status: string | null;
     reason: string | null;
+    reviewNote: string | null;
     productionOrderId: string | null;
     requestedById: string | null;
     reviewedById: string | null;
@@ -32,6 +34,7 @@ export type MaterialIssueCountAggregateOutputType = {
     approvedAt: number;
     status: number;
     reason: number;
+    reviewNote: number;
     productionOrderId: number;
     requestedById: number;
     reviewedById: number;
@@ -43,6 +46,7 @@ export type MaterialIssueMinAggregateInputType = {
     approvedAt?: true;
     status?: true;
     reason?: true;
+    reviewNote?: true;
     productionOrderId?: true;
     requestedById?: true;
     reviewedById?: true;
@@ -53,6 +57,7 @@ export type MaterialIssueMaxAggregateInputType = {
     approvedAt?: true;
     status?: true;
     reason?: true;
+    reviewNote?: true;
     productionOrderId?: true;
     requestedById?: true;
     reviewedById?: true;
@@ -63,6 +68,7 @@ export type MaterialIssueCountAggregateInputType = {
     approvedAt?: true;
     status?: true;
     reason?: true;
+    reviewNote?: true;
     productionOrderId?: true;
     requestedById?: true;
     reviewedById?: true;
@@ -98,6 +104,7 @@ export type MaterialIssueGroupByOutputType = {
     approvedAt: Date | null;
     status: string;
     reason: string | null;
+    reviewNote: string | null;
     productionOrderId: string;
     requestedById: string;
     reviewedById: string | null;
@@ -117,6 +124,7 @@ export type MaterialIssueWhereInput = {
     approvedAt?: Prisma.DateTimeNullableFilter<"MaterialIssue"> | Date | string | null;
     status?: Prisma.StringFilter<"MaterialIssue"> | string;
     reason?: Prisma.StringNullableFilter<"MaterialIssue"> | string | null;
+    reviewNote?: Prisma.StringNullableFilter<"MaterialIssue"> | string | null;
     productionOrderId?: Prisma.UuidFilter<"MaterialIssue"> | string;
     requestedById?: Prisma.UuidFilter<"MaterialIssue"> | string;
     reviewedById?: Prisma.UuidNullableFilter<"MaterialIssue"> | string | null;
@@ -131,6 +139,7 @@ export type MaterialIssueOrderByWithRelationInput = {
     approvedAt?: Prisma.SortOrderInput | Prisma.SortOrder;
     status?: Prisma.SortOrder;
     reason?: Prisma.SortOrderInput | Prisma.SortOrder;
+    reviewNote?: Prisma.SortOrderInput | Prisma.SortOrder;
     productionOrderId?: Prisma.SortOrder;
     requestedById?: Prisma.SortOrder;
     reviewedById?: Prisma.SortOrderInput | Prisma.SortOrder;
@@ -148,6 +157,7 @@ export type MaterialIssueWhereUniqueInput = Prisma.AtLeast<{
     approvedAt?: Prisma.DateTimeNullableFilter<"MaterialIssue"> | Date | string | null;
     status?: Prisma.StringFilter<"MaterialIssue"> | string;
     reason?: Prisma.StringNullableFilter<"MaterialIssue"> | string | null;
+    reviewNote?: Prisma.StringNullableFilter<"MaterialIssue"> | string | null;
     productionOrderId?: Prisma.UuidFilter<"MaterialIssue"> | string;
     requestedById?: Prisma.UuidFilter<"MaterialIssue"> | string;
     reviewedById?: Prisma.UuidNullableFilter<"MaterialIssue"> | string | null;
@@ -162,6 +172,7 @@ export type MaterialIssueOrderByWithAggregationInput = {
     approvedAt?: Prisma.SortOrderInput | Prisma.SortOrder;
     status?: Prisma.SortOrder;
     reason?: Prisma.SortOrderInput | Prisma.SortOrder;
+    reviewNote?: Prisma.SortOrderInput | Prisma.SortOrder;
     productionOrderId?: Prisma.SortOrder;
     requestedById?: Prisma.SortOrder;
     reviewedById?: Prisma.SortOrderInput | Prisma.SortOrder;
@@ -178,6 +189,7 @@ export type MaterialIssueScalarWhereWithAggregatesInput = {
     approvedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"MaterialIssue"> | Date | string | null;
     status?: Prisma.StringWithAggregatesFilter<"MaterialIssue"> | string;
     reason?: Prisma.StringNullableWithAggregatesFilter<"MaterialIssue"> | string | null;
+    reviewNote?: Prisma.StringNullableWithAggregatesFilter<"MaterialIssue"> | string | null;
     productionOrderId?: Prisma.UuidWithAggregatesFilter<"MaterialIssue"> | string;
     requestedById?: Prisma.UuidWithAggregatesFilter<"MaterialIssue"> | string;
     reviewedById?: Prisma.UuidNullableWithAggregatesFilter<"MaterialIssue"> | string | null;
@@ -188,6 +200,7 @@ export type MaterialIssueCreateInput = {
     approvedAt?: Date | string | null;
     status?: string;
     reason?: string | null;
+    reviewNote?: string | null;
     productionOrder: Prisma.ProductionOrderCreateNestedOneWithoutMaterialIssuesInput;
     requestedBy: Prisma.EmployeeCreateNestedOneWithoutRequestedIssuesInput;
     lines?: Prisma.MaterialIssueLineCreateNestedManyWithoutIssueInput;
@@ -199,6 +212,7 @@ export type MaterialIssueUncheckedCreateInput = {
     approvedAt?: Date | string | null;
     status?: string;
     reason?: string | null;
+    reviewNote?: string | null;
     productionOrderId: string;
     requestedById: string;
     reviewedById?: string | null;
@@ -210,6 +224,7 @@ export type MaterialIssueUpdateInput = {
     approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     status?: Prisma.StringFieldUpdateOperationsInput | string;
     reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    reviewNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     productionOrder?: Prisma.ProductionOrderUpdateOneRequiredWithoutMaterialIssuesNestedInput;
     requestedBy?: Prisma.EmployeeUpdateOneRequiredWithoutRequestedIssuesNestedInput;
     lines?: Prisma.MaterialIssueLineUpdateManyWithoutIssueNestedInput;
@@ -221,6 +236,7 @@ export type MaterialIssueUncheckedUpdateInput = {
     approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     status?: Prisma.StringFieldUpdateOperationsInput | string;
     reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    reviewNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     productionOrderId?: Prisma.StringFieldUpdateOperationsInput | string;
     requestedById?: Prisma.StringFieldUpdateOperationsInput | string;
     reviewedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -232,6 +248,7 @@ export type MaterialIssueCreateManyInput = {
     approvedAt?: Date | string | null;
     status?: string;
     reason?: string | null;
+    reviewNote?: string | null;
     productionOrderId: string;
     requestedById: string;
     reviewedById?: string | null;
@@ -242,6 +259,7 @@ export type MaterialIssueUpdateManyMutationInput = {
     approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     status?: Prisma.StringFieldUpdateOperationsInput | string;
     reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    reviewNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 };
 export type MaterialIssueUncheckedUpdateManyInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -249,6 +267,7 @@ export type MaterialIssueUncheckedUpdateManyInput = {
     approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     status?: Prisma.StringFieldUpdateOperationsInput | string;
     reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    reviewNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     productionOrderId?: Prisma.StringFieldUpdateOperationsInput | string;
     requestedById?: Prisma.StringFieldUpdateOperationsInput | string;
     reviewedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -267,6 +286,7 @@ export type MaterialIssueCountOrderByAggregateInput = {
     approvedAt?: Prisma.SortOrder;
     status?: Prisma.SortOrder;
     reason?: Prisma.SortOrder;
+    reviewNote?: Prisma.SortOrder;
     productionOrderId?: Prisma.SortOrder;
     requestedById?: Prisma.SortOrder;
     reviewedById?: Prisma.SortOrder;
@@ -277,6 +297,7 @@ export type MaterialIssueMaxOrderByAggregateInput = {
     approvedAt?: Prisma.SortOrder;
     status?: Prisma.SortOrder;
     reason?: Prisma.SortOrder;
+    reviewNote?: Prisma.SortOrder;
     productionOrderId?: Prisma.SortOrder;
     requestedById?: Prisma.SortOrder;
     reviewedById?: Prisma.SortOrder;
@@ -287,6 +308,7 @@ export type MaterialIssueMinOrderByAggregateInput = {
     approvedAt?: Prisma.SortOrder;
     status?: Prisma.SortOrder;
     reason?: Prisma.SortOrder;
+    reviewNote?: Prisma.SortOrder;
     productionOrderId?: Prisma.SortOrder;
     requestedById?: Prisma.SortOrder;
     reviewedById?: Prisma.SortOrder;
@@ -427,6 +449,7 @@ export type MaterialIssueCreateWithoutRequestedByInput = {
     approvedAt?: Date | string | null;
     status?: string;
     reason?: string | null;
+    reviewNote?: string | null;
     productionOrder: Prisma.ProductionOrderCreateNestedOneWithoutMaterialIssuesInput;
     lines?: Prisma.MaterialIssueLineCreateNestedManyWithoutIssueInput;
     reviewedBy?: Prisma.EmployeeCreateNestedOneWithoutReviewedIssuesInput;
@@ -437,6 +460,7 @@ export type MaterialIssueUncheckedCreateWithoutRequestedByInput = {
     approvedAt?: Date | string | null;
     status?: string;
     reason?: string | null;
+    reviewNote?: string | null;
     productionOrderId: string;
     reviewedById?: string | null;
     lines?: Prisma.MaterialIssueLineUncheckedCreateNestedManyWithoutIssueInput;
@@ -455,6 +479,7 @@ export type MaterialIssueCreateWithoutReviewedByInput = {
     approvedAt?: Date | string | null;
     status?: string;
     reason?: string | null;
+    reviewNote?: string | null;
     productionOrder: Prisma.ProductionOrderCreateNestedOneWithoutMaterialIssuesInput;
     requestedBy: Prisma.EmployeeCreateNestedOneWithoutRequestedIssuesInput;
     lines?: Prisma.MaterialIssueLineCreateNestedManyWithoutIssueInput;
@@ -465,6 +490,7 @@ export type MaterialIssueUncheckedCreateWithoutReviewedByInput = {
     approvedAt?: Date | string | null;
     status?: string;
     reason?: string | null;
+    reviewNote?: string | null;
     productionOrderId: string;
     requestedById: string;
     lines?: Prisma.MaterialIssueLineUncheckedCreateNestedManyWithoutIssueInput;
@@ -499,6 +525,7 @@ export type MaterialIssueScalarWhereInput = {
     approvedAt?: Prisma.DateTimeNullableFilter<"MaterialIssue"> | Date | string | null;
     status?: Prisma.StringFilter<"MaterialIssue"> | string;
     reason?: Prisma.StringNullableFilter<"MaterialIssue"> | string | null;
+    reviewNote?: Prisma.StringNullableFilter<"MaterialIssue"> | string | null;
     productionOrderId?: Prisma.UuidFilter<"MaterialIssue"> | string;
     requestedById?: Prisma.UuidFilter<"MaterialIssue"> | string;
     reviewedById?: Prisma.UuidNullableFilter<"MaterialIssue"> | string | null;
@@ -522,6 +549,7 @@ export type MaterialIssueCreateWithoutLinesInput = {
     approvedAt?: Date | string | null;
     status?: string;
     reason?: string | null;
+    reviewNote?: string | null;
     productionOrder: Prisma.ProductionOrderCreateNestedOneWithoutMaterialIssuesInput;
     requestedBy: Prisma.EmployeeCreateNestedOneWithoutRequestedIssuesInput;
     reviewedBy?: Prisma.EmployeeCreateNestedOneWithoutReviewedIssuesInput;
@@ -532,6 +560,7 @@ export type MaterialIssueUncheckedCreateWithoutLinesInput = {
     approvedAt?: Date | string | null;
     status?: string;
     reason?: string | null;
+    reviewNote?: string | null;
     productionOrderId: string;
     requestedById: string;
     reviewedById?: string | null;
@@ -555,6 +584,7 @@ export type MaterialIssueUpdateWithoutLinesInput = {
     approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     status?: Prisma.StringFieldUpdateOperationsInput | string;
     reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    reviewNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     productionOrder?: Prisma.ProductionOrderUpdateOneRequiredWithoutMaterialIssuesNestedInput;
     requestedBy?: Prisma.EmployeeUpdateOneRequiredWithoutRequestedIssuesNestedInput;
     reviewedBy?: Prisma.EmployeeUpdateOneWithoutReviewedIssuesNestedInput;
@@ -565,6 +595,7 @@ export type MaterialIssueUncheckedUpdateWithoutLinesInput = {
     approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     status?: Prisma.StringFieldUpdateOperationsInput | string;
     reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    reviewNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     productionOrderId?: Prisma.StringFieldUpdateOperationsInput | string;
     requestedById?: Prisma.StringFieldUpdateOperationsInput | string;
     reviewedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -575,6 +606,7 @@ export type MaterialIssueCreateWithoutProductionOrderInput = {
     approvedAt?: Date | string | null;
     status?: string;
     reason?: string | null;
+    reviewNote?: string | null;
     requestedBy: Prisma.EmployeeCreateNestedOneWithoutRequestedIssuesInput;
     lines?: Prisma.MaterialIssueLineCreateNestedManyWithoutIssueInput;
     reviewedBy?: Prisma.EmployeeCreateNestedOneWithoutReviewedIssuesInput;
@@ -585,6 +617,7 @@ export type MaterialIssueUncheckedCreateWithoutProductionOrderInput = {
     approvedAt?: Date | string | null;
     status?: string;
     reason?: string | null;
+    reviewNote?: string | null;
     requestedById: string;
     reviewedById?: string | null;
     lines?: Prisma.MaterialIssueLineUncheckedCreateNestedManyWithoutIssueInput;
@@ -616,6 +649,7 @@ export type MaterialIssueCreateManyRequestedByInput = {
     approvedAt?: Date | string | null;
     status?: string;
     reason?: string | null;
+    reviewNote?: string | null;
     productionOrderId: string;
     reviewedById?: string | null;
 };
@@ -625,6 +659,7 @@ export type MaterialIssueCreateManyReviewedByInput = {
     approvedAt?: Date | string | null;
     status?: string;
     reason?: string | null;
+    reviewNote?: string | null;
     productionOrderId: string;
     requestedById: string;
 };
@@ -634,6 +669,7 @@ export type MaterialIssueUpdateWithoutRequestedByInput = {
     approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     status?: Prisma.StringFieldUpdateOperationsInput | string;
     reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    reviewNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     productionOrder?: Prisma.ProductionOrderUpdateOneRequiredWithoutMaterialIssuesNestedInput;
     lines?: Prisma.MaterialIssueLineUpdateManyWithoutIssueNestedInput;
     reviewedBy?: Prisma.EmployeeUpdateOneWithoutReviewedIssuesNestedInput;
@@ -644,6 +680,7 @@ export type MaterialIssueUncheckedUpdateWithoutRequestedByInput = {
     approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     status?: Prisma.StringFieldUpdateOperationsInput | string;
     reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    reviewNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     productionOrderId?: Prisma.StringFieldUpdateOperationsInput | string;
     reviewedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     lines?: Prisma.MaterialIssueLineUncheckedUpdateManyWithoutIssueNestedInput;
@@ -654,6 +691,7 @@ export type MaterialIssueUncheckedUpdateManyWithoutRequestedByInput = {
     approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     status?: Prisma.StringFieldUpdateOperationsInput | string;
     reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    reviewNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     productionOrderId?: Prisma.StringFieldUpdateOperationsInput | string;
     reviewedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 };
@@ -663,6 +701,7 @@ export type MaterialIssueUpdateWithoutReviewedByInput = {
     approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     status?: Prisma.StringFieldUpdateOperationsInput | string;
     reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    reviewNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     productionOrder?: Prisma.ProductionOrderUpdateOneRequiredWithoutMaterialIssuesNestedInput;
     requestedBy?: Prisma.EmployeeUpdateOneRequiredWithoutRequestedIssuesNestedInput;
     lines?: Prisma.MaterialIssueLineUpdateManyWithoutIssueNestedInput;
@@ -673,6 +712,7 @@ export type MaterialIssueUncheckedUpdateWithoutReviewedByInput = {
     approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     status?: Prisma.StringFieldUpdateOperationsInput | string;
     reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    reviewNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     productionOrderId?: Prisma.StringFieldUpdateOperationsInput | string;
     requestedById?: Prisma.StringFieldUpdateOperationsInput | string;
     lines?: Prisma.MaterialIssueLineUncheckedUpdateManyWithoutIssueNestedInput;
@@ -683,6 +723,7 @@ export type MaterialIssueUncheckedUpdateManyWithoutReviewedByInput = {
     approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     status?: Prisma.StringFieldUpdateOperationsInput | string;
     reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    reviewNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     productionOrderId?: Prisma.StringFieldUpdateOperationsInput | string;
     requestedById?: Prisma.StringFieldUpdateOperationsInput | string;
 };
@@ -692,6 +733,7 @@ export type MaterialIssueCreateManyProductionOrderInput = {
     approvedAt?: Date | string | null;
     status?: string;
     reason?: string | null;
+    reviewNote?: string | null;
     requestedById: string;
     reviewedById?: string | null;
 };
@@ -701,6 +743,7 @@ export type MaterialIssueUpdateWithoutProductionOrderInput = {
     approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     status?: Prisma.StringFieldUpdateOperationsInput | string;
     reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    reviewNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     requestedBy?: Prisma.EmployeeUpdateOneRequiredWithoutRequestedIssuesNestedInput;
     lines?: Prisma.MaterialIssueLineUpdateManyWithoutIssueNestedInput;
     reviewedBy?: Prisma.EmployeeUpdateOneWithoutReviewedIssuesNestedInput;
@@ -711,6 +754,7 @@ export type MaterialIssueUncheckedUpdateWithoutProductionOrderInput = {
     approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     status?: Prisma.StringFieldUpdateOperationsInput | string;
     reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    reviewNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     requestedById?: Prisma.StringFieldUpdateOperationsInput | string;
     reviewedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     lines?: Prisma.MaterialIssueLineUncheckedUpdateManyWithoutIssueNestedInput;
@@ -721,6 +765,7 @@ export type MaterialIssueUncheckedUpdateManyWithoutProductionOrderInput = {
     approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     status?: Prisma.StringFieldUpdateOperationsInput | string;
     reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    reviewNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     requestedById?: Prisma.StringFieldUpdateOperationsInput | string;
     reviewedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 };
@@ -742,6 +787,7 @@ export type MaterialIssueSelect<ExtArgs extends runtime.Types.Extensions.Interna
     approvedAt?: boolean;
     status?: boolean;
     reason?: boolean;
+    reviewNote?: boolean;
     productionOrderId?: boolean;
     requestedById?: boolean;
     reviewedById?: boolean;
@@ -757,6 +803,7 @@ export type MaterialIssueSelectCreateManyAndReturn<ExtArgs extends runtime.Types
     approvedAt?: boolean;
     status?: boolean;
     reason?: boolean;
+    reviewNote?: boolean;
     productionOrderId?: boolean;
     requestedById?: boolean;
     reviewedById?: boolean;
@@ -770,6 +817,7 @@ export type MaterialIssueSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
     approvedAt?: boolean;
     status?: boolean;
     reason?: boolean;
+    reviewNote?: boolean;
     productionOrderId?: boolean;
     requestedById?: boolean;
     reviewedById?: boolean;
@@ -783,11 +831,12 @@ export type MaterialIssueSelectScalar = {
     approvedAt?: boolean;
     status?: boolean;
     reason?: boolean;
+    reviewNote?: boolean;
     productionOrderId?: boolean;
     requestedById?: boolean;
     reviewedById?: boolean;
 };
-export type MaterialIssueOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "requestedAt" | "approvedAt" | "status" | "reason" | "productionOrderId" | "requestedById" | "reviewedById", ExtArgs["result"]["materialIssue"]>;
+export type MaterialIssueOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "requestedAt" | "approvedAt" | "status" | "reason" | "reviewNote" | "productionOrderId" | "requestedById" | "reviewedById", ExtArgs["result"]["materialIssue"]>;
 export type MaterialIssueInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     productionOrder?: boolean | Prisma.ProductionOrderDefaultArgs<ExtArgs>;
     requestedBy?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>;
@@ -819,6 +868,7 @@ export type $MaterialIssuePayload<ExtArgs extends runtime.Types.Extensions.Inter
         approvedAt: Date | null;
         status: string;
         reason: string | null;
+        reviewNote: string | null;
         productionOrderId: string;
         requestedById: string;
         reviewedById: string | null;
@@ -888,6 +938,7 @@ export interface MaterialIssueFieldRefs {
     readonly approvedAt: Prisma.FieldRef<"MaterialIssue", 'DateTime'>;
     readonly status: Prisma.FieldRef<"MaterialIssue", 'String'>;
     readonly reason: Prisma.FieldRef<"MaterialIssue", 'String'>;
+    readonly reviewNote: Prisma.FieldRef<"MaterialIssue", 'String'>;
     readonly productionOrderId: Prisma.FieldRef<"MaterialIssue", 'String'>;
     readonly requestedById: Prisma.FieldRef<"MaterialIssue", 'String'>;
     readonly reviewedById: Prisma.FieldRef<"MaterialIssue", 'String'>;

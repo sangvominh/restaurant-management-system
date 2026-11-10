@@ -13,8 +13,8 @@ export declare class InventoryController {
     references(req: AuthRequest): Promise<{
         suppliers: {
             id: string;
-            status: string;
             name: string;
+            status: string;
             code: string;
             phone: string | null;
             address: string | null;
@@ -27,8 +27,8 @@ export declare class InventoryController {
             };
         } & {
             id: string;
-            status: string;
             name: string;
+            status: string;
             code: string;
             minStock: import("@prisma/client-runtime-utils").Decimal;
             unitId: string;
@@ -38,8 +38,8 @@ export declare class InventoryController {
     list(req: AuthRequest): import("../generated/prisma/internal/prismaNamespace.js").PrismaPromise<({
         supplier: {
             id: string;
-            status: string;
             name: string;
+            status: string;
             code: string;
             phone: string | null;
             address: string | null;
@@ -59,8 +59,8 @@ export declare class InventoryController {
                     };
                 } & {
                     id: string;
-                    status: string;
                     name: string;
+                    status: string;
                     code: string;
                     minStock: import("@prisma/client-runtime-utils").Decimal;
                     unitId: string;
@@ -84,15 +84,15 @@ export declare class InventoryController {
         status: string;
         code: string;
         createdById: string;
-        receivedAt: Date;
         note: string | null;
+        receivedAt: Date;
         supplierId: string;
     })[]>;
     create(b: unknown, req: AuthRequest): Promise<{
         supplier: {
             id: string;
-            status: string;
             name: string;
+            status: string;
             code: string;
             phone: string | null;
             address: string | null;
@@ -112,8 +112,8 @@ export declare class InventoryController {
                     };
                 } & {
                     id: string;
-                    status: string;
                     name: string;
+                    status: string;
                     code: string;
                     minStock: import("@prisma/client-runtime-utils").Decimal;
                     unitId: string;
@@ -137,15 +137,15 @@ export declare class InventoryController {
         status: string;
         code: string;
         createdById: string;
-        receivedAt: Date;
         note: string | null;
+        receivedAt: Date;
         supplierId: string;
     }>;
     update(id: string, b: unknown, req: AuthRequest): Promise<{
         supplier: {
             id: string;
-            status: string;
             name: string;
+            status: string;
             code: string;
             phone: string | null;
             address: string | null;
@@ -165,8 +165,8 @@ export declare class InventoryController {
                     };
                 } & {
                     id: string;
-                    status: string;
                     name: string;
+                    status: string;
                     code: string;
                     minStock: import("@prisma/client-runtime-utils").Decimal;
                     unitId: string;
@@ -190,8 +190,8 @@ export declare class InventoryController {
         status: string;
         code: string;
         createdById: string;
-        receivedAt: Date;
         note: string | null;
+        receivedAt: Date;
         supplierId: string;
     }>;
     remove(id: string, req: AuthRequest): Promise<{
@@ -200,8 +200,8 @@ export declare class InventoryController {
     post(id: string, req: AuthRequest): Promise<{
         supplier: {
             id: string;
-            status: string;
             name: string;
+            status: string;
             code: string;
             phone: string | null;
             address: string | null;
@@ -221,8 +221,8 @@ export declare class InventoryController {
                     };
                 } & {
                     id: string;
-                    status: string;
                     name: string;
+                    status: string;
                     code: string;
                     minStock: import("@prisma/client-runtime-utils").Decimal;
                     unitId: string;
@@ -246,8 +246,8 @@ export declare class InventoryController {
         status: string;
         code: string;
         createdById: string;
-        receivedAt: Date;
         note: string | null;
+        receivedAt: Date;
         supplierId: string;
     }>;
     stock(req: AuthRequest): import("../generated/prisma/internal/prismaNamespace.js").PrismaPromise<unknown>;
@@ -266,10 +266,10 @@ export declare class InventoryController {
         id: string;
         status: string;
         reason: string;
-        reportedAt: Date;
         approvedAt: Date | null;
-        reportedById: string;
         reviewedById: string | null;
+        reportedAt: Date;
+        reportedById: string;
     }>;
     minimum(id: string, b: unknown, req: AuthRequest): Promise<{
         id: string;
@@ -319,8 +319,10 @@ export declare class InventoryController {
             unit: string;
             category: string;
             stock: import("@prisma/client-runtime-utils").Decimal;
-            demand: import("@prisma/client-runtime-utils").Decimal;
+            storeStock: import("@prisma/client-runtime-utils").Decimal;
+            totalStock: import("@prisma/client-runtime-utils").Decimal;
             pending: import("@prisma/client-runtime-utils").Decimal;
+            demand: import("@prisma/client-runtime-utils").Decimal;
             shortage: import("@prisma/client-runtime-utils").Decimal;
             surplus: import("@prisma/client-runtime-utils").Decimal;
             orders: {

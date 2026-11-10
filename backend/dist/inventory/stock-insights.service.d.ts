@@ -47,8 +47,10 @@ export declare class StockInsightsService {
             unit: string;
             category: string;
             stock: import("@prisma/client-runtime-utils").Decimal;
-            demand: import("@prisma/client-runtime-utils").Decimal;
+            storeStock: import("@prisma/client-runtime-utils").Decimal;
+            totalStock: import("@prisma/client-runtime-utils").Decimal;
             pending: import("@prisma/client-runtime-utils").Decimal;
+            demand: import("@prisma/client-runtime-utils").Decimal;
             shortage: import("@prisma/client-runtime-utils").Decimal;
             surplus: import("@prisma/client-runtime-utils").Decimal;
             orders: {

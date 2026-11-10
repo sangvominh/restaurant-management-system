@@ -13,8 +13,8 @@ export declare class ProductionService {
             };
         } & {
             id: string;
-            status: string;
             name: string;
+            status: string;
             code: string;
             unitId: string;
             categoryId: string;
@@ -28,8 +28,8 @@ export declare class ProductionService {
             };
         } & {
             id: string;
-            status: string;
             name: string;
+            status: string;
             code: string;
             minStock: import("@prisma/client-runtime-utils").Decimal;
             unitId: string;
@@ -50,8 +50,8 @@ export declare class ProductionService {
             };
         } & {
             id: string;
-            status: string;
             name: string;
+            status: string;
             code: string;
             unitId: string;
             categoryId: string;
@@ -59,8 +59,8 @@ export declare class ProductionService {
         };
         createdBy: {
             id: string;
-            status: string;
             name: string;
+            status: string;
             code: string;
             phone: string | null;
             email: string | null;
@@ -75,8 +75,8 @@ export declare class ProductionService {
                 };
             } & {
                 id: string;
-                status: string;
                 name: string;
+                status: string;
                 code: string;
                 minStock: import("@prisma/client-runtime-utils").Decimal;
                 unitId: string;
@@ -106,8 +106,8 @@ export declare class ProductionService {
             };
         } & {
             id: string;
-            status: string;
             name: string;
+            status: string;
             code: string;
             unitId: string;
             categoryId: string;
@@ -115,8 +115,8 @@ export declare class ProductionService {
         };
         createdBy: {
             id: string;
-            status: string;
             name: string;
+            status: string;
             code: string;
             phone: string | null;
             email: string | null;
@@ -131,8 +131,8 @@ export declare class ProductionService {
                 };
             } & {
                 id: string;
-                status: string;
                 name: string;
+                status: string;
                 code: string;
                 minStock: import("@prisma/client-runtime-utils").Decimal;
                 unitId: string;
@@ -172,8 +172,8 @@ export declare class ProductionService {
                 };
             } & {
                 id: string;
-                status: string;
                 name: string;
+                status: string;
                 code: string;
                 unitId: string;
                 categoryId: string;
@@ -181,8 +181,8 @@ export declare class ProductionService {
             };
             createdBy: {
                 id: string;
-                status: string;
                 name: string;
+                status: string;
                 code: string;
                 phone: string | null;
                 email: string | null;
@@ -197,8 +197,8 @@ export declare class ProductionService {
                     };
                 } & {
                     id: string;
-                    status: string;
                     name: string;
+                    status: string;
                     code: string;
                     minStock: import("@prisma/client-runtime-utils").Decimal;
                     unitId: string;
@@ -219,10 +219,54 @@ export declare class ProductionService {
             productId: string;
             createdById: string;
         };
-        assignedBy: {
+        replenishments: ({
+            saleLine: {
+                sale: {
+                    table: {
+                        id: string;
+                        name: string;
+                        status: string;
+                        area: string;
+                        x: number;
+                        y: number;
+                    } | null;
+                } & {
+                    id: string;
+                    status: string;
+                    createdAt: Date;
+                    code: string;
+                    version: number;
+                    createdById: string;
+                    closedAt: Date | null;
+                    closedById: string | null;
+                    tableId: string | null;
+                };
+            } & {
+                id: string;
+                productId: string;
+                quantity: import("@prisma/client-runtime-utils").Decimal;
+                unitPrice: import("@prisma/client-runtime-utils").Decimal;
+                sentById: string | null;
+                note: string;
+                sentAt: Date | null;
+                batch: number | null;
+                productName: string;
+                saleId: string;
+            };
+        } & {
             id: string;
             status: string;
+            quantity: import("@prisma/client-runtime-utils").Decimal;
+            saleLineId: string;
+            note: string;
+            requestedAt: Date;
+            requestedById: string;
+            productionOrderId: string | null;
+        })[];
+        assignedBy: {
+            id: string;
             name: string;
+            status: string;
             code: string;
             phone: string | null;
             email: string | null;
@@ -230,8 +274,8 @@ export declare class ProductionService {
         };
         assignedTo: {
             id: string;
-            status: string;
             name: string;
+            status: string;
             code: string;
             phone: string | null;
             email: string | null;
@@ -247,78 +291,6 @@ export declare class ProductionService {
         assignedById: string;
         assignedToId: string;
     })[]>;
-    rejectReplenishment(id: string, input: unknown): Promise<{
-        id: string;
-        status: string;
-        quantity: import("@prisma/client-runtime-utils").Decimal;
-        note: string;
-        requestedAt: Date;
-        requestedById: string;
-        saleLineId: string;
-        productionOrderId: string | null;
-    }>;
-    replenishments(): Promise<({
-        saleLine: {
-            product: {
-                unit: {
-                    symbol: string;
-                    id: string;
-                    name: string;
-                };
-            } & {
-                id: string;
-                status: string;
-                name: string;
-                code: string;
-                unitId: string;
-                categoryId: string;
-                sellingPrice: import("@prisma/client-runtime-utils").Decimal;
-            };
-            sale: {
-                table: {
-                    id: string;
-                    status: string;
-                    name: string;
-                    area: string;
-                    x: number;
-                    y: number;
-                } | null;
-            } & {
-                id: string;
-                status: string;
-                createdAt: Date;
-                code: string;
-                version: number;
-                createdById: string;
-                closedAt: Date | null;
-                closedById: string | null;
-                tableId: string | null;
-            };
-        } & {
-            id: string;
-            productId: string;
-            quantity: import("@prisma/client-runtime-utils").Decimal;
-            note: string;
-            unitPrice: import("@prisma/client-runtime-utils").Decimal;
-            sentById: string | null;
-            sentAt: Date | null;
-            batch: number | null;
-            productName: string;
-            saleId: string;
-        };
-        requestedBy: {
-            name: string;
-        };
-    } & {
-        id: string;
-        status: string;
-        quantity: import("@prisma/client-runtime-utils").Decimal;
-        note: string;
-        requestedAt: Date;
-        requestedById: string;
-        saleLineId: string;
-        productionOrderId: string | null;
-    })[]>;
     createOrder(input: unknown, user: AdminUser): Promise<{
         bom: {
             product: {
@@ -329,8 +301,8 @@ export declare class ProductionService {
                 };
             } & {
                 id: string;
-                status: string;
                 name: string;
+                status: string;
                 code: string;
                 unitId: string;
                 categoryId: string;
@@ -338,8 +310,8 @@ export declare class ProductionService {
             };
             createdBy: {
                 id: string;
-                status: string;
                 name: string;
+                status: string;
                 code: string;
                 phone: string | null;
                 email: string | null;
@@ -354,8 +326,8 @@ export declare class ProductionService {
                     };
                 } & {
                     id: string;
-                    status: string;
                     name: string;
+                    status: string;
                     code: string;
                     minStock: import("@prisma/client-runtime-utils").Decimal;
                     unitId: string;
@@ -376,10 +348,54 @@ export declare class ProductionService {
             productId: string;
             createdById: string;
         };
-        assignedBy: {
+        replenishments: ({
+            saleLine: {
+                sale: {
+                    table: {
+                        id: string;
+                        name: string;
+                        status: string;
+                        area: string;
+                        x: number;
+                        y: number;
+                    } | null;
+                } & {
+                    id: string;
+                    status: string;
+                    createdAt: Date;
+                    code: string;
+                    version: number;
+                    createdById: string;
+                    closedAt: Date | null;
+                    closedById: string | null;
+                    tableId: string | null;
+                };
+            } & {
+                id: string;
+                productId: string;
+                quantity: import("@prisma/client-runtime-utils").Decimal;
+                unitPrice: import("@prisma/client-runtime-utils").Decimal;
+                sentById: string | null;
+                note: string;
+                sentAt: Date | null;
+                batch: number | null;
+                productName: string;
+                saleId: string;
+            };
+        } & {
             id: string;
             status: string;
+            quantity: import("@prisma/client-runtime-utils").Decimal;
+            saleLineId: string;
+            note: string;
+            requestedAt: Date;
+            requestedById: string;
+            productionOrderId: string | null;
+        })[];
+        assignedBy: {
+            id: string;
             name: string;
+            status: string;
             code: string;
             phone: string | null;
             email: string | null;
@@ -387,8 +403,8 @@ export declare class ProductionService {
         };
         assignedTo: {
             id: string;
-            status: string;
             name: string;
+            status: string;
             code: string;
             phone: string | null;
             email: string | null;

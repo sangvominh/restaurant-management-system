@@ -11,7 +11,7 @@ import { BadRequestException, ConflictException, ForbiddenException, Injectable 
 import { PrismaService } from '../prisma/prisma.service.js';
 import { Prisma } from '../generated/prisma/client.js';
 import { daysRemaining } from '../inventory/expiry.js';
-const lineInclude = { lot: { include: { material: { include: { unit: true } } } }, consumptions: true, returnLines: { include: { return: true } }, wasteLines: { include: { waste: true } } };
+const lineInclude = { lot: { include: { material: { include: { unit: true } } } }, consumptions: true, returnLines: { include: { return: { include: { requestedBy: { select: { name: true } }, reviewedBy: { select: { name: true } } } } } }, wasteLines: { include: { waste: { include: { reportedBy: { select: { name: true } }, reviewedBy: { select: { name: true } } } } } } };
 function uuid(v) { if (typeof v !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v))
     throw new BadRequestException('ID không hợp lệ'); return v; }
 function qty(v, zero = false) { if (!['string', 'number'].includes(typeof v) || !/^\d{1,15}(\.\d{1,3})?$/.test(String(v)))
@@ -31,12 +31,20 @@ let ExecutionService = class ExecutionService {
         this.db = db;
     }
     async detail(id, user) {
-        const order = await this.db.productionOrder.findUniqueOrThrow({ where: { id: uuid(id) }, include: { assignedTo: true, bom: { include: { product: { include: { unit: true } }, lines: { include: { material: { include: { unit: true } } } } } }, materialIssues: { include: { requestedBy: true, lines: { include: lineInclude } }, orderBy: { requestedAt: 'asc' } }, runs: { include: { consumptions: true }, orderBy: { recordedAt: 'asc' } } } });
-        if (order.assignedTo.accountId !== user.id && !user.permissions.some(p => ['*', 'production:manage', 'material:approve', 'production:inspect', 'waste:approve'].includes(p)))
-            throw new ForbiddenException('Không có quyền xem lệnh');
-        const materialIds = [...new Set([...order.bom.lines.map(l => l.materialId), ...order.materialIssues.flatMap(i => i.lines.map(l => l.lot.materialId))])];
-        const lots = await this.db.materialLot.findMany({ where: { materialId: { in: materialIds } }, include: { material: { include: { unit: true } }, movements: true }, orderBy: { expiryDate: 'asc' } });
-        return { order, lots: lots.map(({ movements, ...l }) => ({ ...l, daysRemaining: daysRemaining(l.expiryDate?.toISOString().slice(0, 10) || null), stock: movements.reduce((q, m) => q.plus(m.toSource === 'TRONG_KHO' ? m.quantity : 0).minus(m.fromSource === 'TRONG_KHO' ? m.quantity : 0), new Prisma.Decimal(0)) })), balances: order.materialIssues.flatMap(i => i.lines.map(l => ({ id: l.id, remaining: remaining(l) }))) };
+        return this.db.$transaction(async (tx) => {
+            const order = await tx.productionOrder.findUniqueOrThrow({ where: { id: uuid(id) }, include: { assignedBy: true, assignedTo: true, replenishments: { include: { saleLine: { include: { sale: { include: { table: true } } } } } }, bom: { include: { product: { include: { unit: true } }, lines: { include: { material: { include: { unit: true } } } } } }, materialIssues: { include: { requestedBy: { select: { name: true } }, reviewedBy: { select: { name: true } }, lines: { include: lineInclude } }, orderBy: { requestedAt: 'asc' } }, runs: { include: { consumptions: true, performedBy: { select: { accountId: true, name: true } }, inspectedBy: { select: { name: true } } }, orderBy: { recordedAt: 'asc' } } } });
+            if (order.assignedTo.accountId !== user.id && !user.permissions.some(p => ['*', 'material:view', 'production:manage', 'material:approve', 'production:inspect', 'waste:approve'].includes(p)))
+                throw new ForbiddenException('Không có quyền xem lệnh');
+            const materialIds = [...new Set([...order.bom.lines.map(l => l.materialId), ...order.materialIssues.flatMap(i => i.lines.map(l => l.lot.materialId))])];
+            const lots = await tx.materialLot.findMany({ where: { materialId: { in: materialIds } }, include: { material: { include: { unit: true } }, movements: true }, orderBy: { expiryDate: 'asc' } });
+            return { asOf: new Date().toISOString(), order, lots: lots.map(({ movements, ...l }) => ({ ...l, daysRemaining: daysRemaining(l.expiryDate?.toISOString().slice(0, 10) || null), stock: movements.reduce((q, m) => q.plus(m.toSource === 'TRONG_KHO' ? m.quantity : 0).minus(m.fromSource === 'TRONG_KHO' ? m.quantity : 0), new Prisma.Decimal(0)) })), balances: order.materialIssues.filter(i => i.status === 'APPROVED').flatMap(i => i.lines.map(l => {
+                    const consumed = Prisma.Decimal.sum(0, ...l.consumptions.map(c => c.quantity));
+                    const returned = Prisma.Decimal.sum(0, ...l.returnLines.filter(r => r.return.status === 'APPROVED').map(r => r.quantity));
+                    const wasted = Prisma.Decimal.sum(0, ...l.wasteLines.filter(w => w.waste.status === 'APPROVED').map(w => w.quantity));
+                    const pending = Prisma.Decimal.sum(0, ...l.returnLines.filter(r => r.return.status === 'PENDING').map(r => r.quantity), ...l.wasteLines.filter(w => w.waste.status === 'PENDING').map(w => w.quantity));
+                    return { id: l.id, consumed, returned, wasted, pending, unsettled: (l.issuedQuantity || new Prisma.Decimal(0)).minus(consumed).minus(returned).minus(wasted), remaining: remaining(l) };
+                })) };
+        }, { isolationLevel: 'RepeatableRead', timeout: 15000 });
     }
     async act(id, input, user) {
         if (!input || typeof input !== 'object' || Array.isArray(input))
@@ -45,7 +53,7 @@ let ExecutionService = class ExecutionService {
         return this.db.$transaction(async (tx) => {
             await tx.$queryRaw `SELECT pg_advisory_xact_lock(8112027)::text`;
             await tx.$queryRaw `SELECT pg_advisory_xact_lock(8112028)::text`;
-            const order = await tx.productionOrder.findUniqueOrThrow({ where: { id: uuid(id) }, include: { assignedTo: true, bom: { include: { lines: true } } } });
+            const order = await tx.productionOrder.findUniqueOrThrow({ where: { id: uuid(id) }, include: { assignedBy: true, assignedTo: true, replenishments: { include: { saleLine: { include: { sale: { include: { table: true } } } } } }, bom: { include: { lines: true } } } });
             const employee = await tx.employee.findUnique({ where: { accountId: user.id } });
             if (!employee || employee.status !== 'ACTIVE')
                 throw new ForbiddenException('Cần hồ sơ người sử dụng hoạt động');
@@ -61,6 +69,11 @@ let ExecutionService = class ExecutionService {
             }
             if (b.action === 'approveIssue' || b.action === 'rejectIssue') {
                 allow(user, 'material:approve');
+                if (b.reviewNote !== undefined && (typeof b.reviewNote !== 'string' || b.reviewNote.length > 1000))
+                    throw new BadRequestException('Phản hồi tối đa 1000 ký tự');
+                const reviewNote = typeof b.reviewNote === 'string' ? b.reviewNote.trim() : '';
+                if (b.action === 'rejectIssue' && !reviewNote)
+                    throw new BadRequestException('Cần ghi rõ lý do từ chối cấp nguyên liệu');
                 const issue = await tx.materialIssue.findUniqueOrThrow({ where: { id: uuid(b.targetId) }, include: { lines: { include: { lot: { include: { material: true, movements: true } } } } } });
                 if (issue.productionOrderId !== id || issue.status !== 'PENDING' || !['RECEIVED', 'IN_PROGRESS'].includes(order.status))
                     throw new ConflictException('Phiếu không thể duyệt');
@@ -72,7 +85,7 @@ let ExecutionService = class ExecutionService {
                         await tx.materialIssueLine.update({ where: { id: l.id }, data: { issuedQuantity: l.requestedQuantity } });
                         await tx.materialMovement.create({ data: { lotId: l.lotId, quantity: l.requestedQuantity, fromSource: 'TRONG_KHO', toSource: 'DA_CAP', issueLineId: l.id } });
                     }
-                return tx.materialIssue.update({ where: { id: issue.id }, data: { status: b.action === 'approveIssue' ? 'APPROVED' : 'REJECTED', approvedAt: new Date(), reviewedById: employee.id } });
+                return tx.materialIssue.update({ where: { id: issue.id }, data: { status: b.action === 'approveIssue' ? 'APPROVED' : 'REJECTED', approvedAt: new Date(), reviewedById: employee.id, reviewNote: reviewNote || null } });
             }
             if (b.action === 'run') {
                 worker('production:perform');

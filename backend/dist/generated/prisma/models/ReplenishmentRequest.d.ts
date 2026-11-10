@@ -159,7 +159,6 @@ export type ReplenishmentRequestOrderByWithRelationInput = {
 };
 export type ReplenishmentRequestWhereUniqueInput = Prisma.AtLeast<{
     id?: string;
-    productionOrderId?: string;
     AND?: Prisma.ReplenishmentRequestWhereInput | Prisma.ReplenishmentRequestWhereInput[];
     OR?: Prisma.ReplenishmentRequestWhereInput[];
     NOT?: Prisma.ReplenishmentRequestWhereInput | Prisma.ReplenishmentRequestWhereInput[];
@@ -169,10 +168,11 @@ export type ReplenishmentRequestWhereUniqueInput = Prisma.AtLeast<{
     note?: Prisma.StringFilter<"ReplenishmentRequest"> | string;
     saleLineId?: Prisma.UuidFilter<"ReplenishmentRequest"> | string;
     requestedById?: Prisma.UuidFilter<"ReplenishmentRequest"> | string;
+    productionOrderId?: Prisma.UuidNullableFilter<"ReplenishmentRequest"> | string | null;
     saleLine?: Prisma.XOR<Prisma.SaleLineScalarRelationFilter, Prisma.SaleLineWhereInput>;
     requestedBy?: Prisma.XOR<Prisma.EmployeeScalarRelationFilter, Prisma.EmployeeWhereInput>;
     productionOrder?: Prisma.XOR<Prisma.ProductionOrderNullableScalarRelationFilter, Prisma.ProductionOrderWhereInput> | null;
-}, "id" | "productionOrderId">;
+}, "id">;
 export type ReplenishmentRequestOrderByWithAggregationInput = {
     id?: Prisma.SortOrder;
     quantity?: Prisma.SortOrder;
@@ -209,7 +209,7 @@ export type ReplenishmentRequestCreateInput = {
     note?: string;
     saleLine: Prisma.SaleLineCreateNestedOneWithoutReplenishmentsInput;
     requestedBy: Prisma.EmployeeCreateNestedOneWithoutReplenishmentsInput;
-    productionOrder?: Prisma.ProductionOrderCreateNestedOneWithoutReplenishmentInput;
+    productionOrder?: Prisma.ProductionOrderCreateNestedOneWithoutReplenishmentsInput;
 };
 export type ReplenishmentRequestUncheckedCreateInput = {
     id?: string;
@@ -229,7 +229,7 @@ export type ReplenishmentRequestUpdateInput = {
     note?: Prisma.StringFieldUpdateOperationsInput | string;
     saleLine?: Prisma.SaleLineUpdateOneRequiredWithoutReplenishmentsNestedInput;
     requestedBy?: Prisma.EmployeeUpdateOneRequiredWithoutReplenishmentsNestedInput;
-    productionOrder?: Prisma.ProductionOrderUpdateOneWithoutReplenishmentNestedInput;
+    productionOrder?: Prisma.ProductionOrderUpdateOneWithoutReplenishmentsNestedInput;
 };
 export type ReplenishmentRequestUncheckedUpdateInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -275,10 +275,6 @@ export type ReplenishmentRequestListRelationFilter = {
 };
 export type ReplenishmentRequestOrderByRelationAggregateInput = {
     _count?: Prisma.SortOrder;
-};
-export type ReplenishmentRequestNullableScalarRelationFilter = {
-    is?: Prisma.ReplenishmentRequestWhereInput | null;
-    isNot?: Prisma.ReplenishmentRequestWhereInput | null;
 };
 export type ReplenishmentRequestCountOrderByAggregateInput = {
     id?: Prisma.SortOrder;
@@ -354,33 +350,43 @@ export type ReplenishmentRequestUncheckedUpdateManyWithoutRequestedByNestedInput
     updateMany?: Prisma.ReplenishmentRequestUpdateManyWithWhereWithoutRequestedByInput | Prisma.ReplenishmentRequestUpdateManyWithWhereWithoutRequestedByInput[];
     deleteMany?: Prisma.ReplenishmentRequestScalarWhereInput | Prisma.ReplenishmentRequestScalarWhereInput[];
 };
-export type ReplenishmentRequestCreateNestedOneWithoutProductionOrderInput = {
-    create?: Prisma.XOR<Prisma.ReplenishmentRequestCreateWithoutProductionOrderInput, Prisma.ReplenishmentRequestUncheckedCreateWithoutProductionOrderInput>;
-    connectOrCreate?: Prisma.ReplenishmentRequestCreateOrConnectWithoutProductionOrderInput;
-    connect?: Prisma.ReplenishmentRequestWhereUniqueInput;
+export type ReplenishmentRequestCreateNestedManyWithoutProductionOrderInput = {
+    create?: Prisma.XOR<Prisma.ReplenishmentRequestCreateWithoutProductionOrderInput, Prisma.ReplenishmentRequestUncheckedCreateWithoutProductionOrderInput> | Prisma.ReplenishmentRequestCreateWithoutProductionOrderInput[] | Prisma.ReplenishmentRequestUncheckedCreateWithoutProductionOrderInput[];
+    connectOrCreate?: Prisma.ReplenishmentRequestCreateOrConnectWithoutProductionOrderInput | Prisma.ReplenishmentRequestCreateOrConnectWithoutProductionOrderInput[];
+    createMany?: Prisma.ReplenishmentRequestCreateManyProductionOrderInputEnvelope;
+    connect?: Prisma.ReplenishmentRequestWhereUniqueInput | Prisma.ReplenishmentRequestWhereUniqueInput[];
 };
-export type ReplenishmentRequestUncheckedCreateNestedOneWithoutProductionOrderInput = {
-    create?: Prisma.XOR<Prisma.ReplenishmentRequestCreateWithoutProductionOrderInput, Prisma.ReplenishmentRequestUncheckedCreateWithoutProductionOrderInput>;
-    connectOrCreate?: Prisma.ReplenishmentRequestCreateOrConnectWithoutProductionOrderInput;
-    connect?: Prisma.ReplenishmentRequestWhereUniqueInput;
+export type ReplenishmentRequestUncheckedCreateNestedManyWithoutProductionOrderInput = {
+    create?: Prisma.XOR<Prisma.ReplenishmentRequestCreateWithoutProductionOrderInput, Prisma.ReplenishmentRequestUncheckedCreateWithoutProductionOrderInput> | Prisma.ReplenishmentRequestCreateWithoutProductionOrderInput[] | Prisma.ReplenishmentRequestUncheckedCreateWithoutProductionOrderInput[];
+    connectOrCreate?: Prisma.ReplenishmentRequestCreateOrConnectWithoutProductionOrderInput | Prisma.ReplenishmentRequestCreateOrConnectWithoutProductionOrderInput[];
+    createMany?: Prisma.ReplenishmentRequestCreateManyProductionOrderInputEnvelope;
+    connect?: Prisma.ReplenishmentRequestWhereUniqueInput | Prisma.ReplenishmentRequestWhereUniqueInput[];
 };
-export type ReplenishmentRequestUpdateOneWithoutProductionOrderNestedInput = {
-    create?: Prisma.XOR<Prisma.ReplenishmentRequestCreateWithoutProductionOrderInput, Prisma.ReplenishmentRequestUncheckedCreateWithoutProductionOrderInput>;
-    connectOrCreate?: Prisma.ReplenishmentRequestCreateOrConnectWithoutProductionOrderInput;
-    upsert?: Prisma.ReplenishmentRequestUpsertWithoutProductionOrderInput;
-    disconnect?: Prisma.ReplenishmentRequestWhereInput | boolean;
-    delete?: Prisma.ReplenishmentRequestWhereInput | boolean;
-    connect?: Prisma.ReplenishmentRequestWhereUniqueInput;
-    update?: Prisma.XOR<Prisma.XOR<Prisma.ReplenishmentRequestUpdateToOneWithWhereWithoutProductionOrderInput, Prisma.ReplenishmentRequestUpdateWithoutProductionOrderInput>, Prisma.ReplenishmentRequestUncheckedUpdateWithoutProductionOrderInput>;
+export type ReplenishmentRequestUpdateManyWithoutProductionOrderNestedInput = {
+    create?: Prisma.XOR<Prisma.ReplenishmentRequestCreateWithoutProductionOrderInput, Prisma.ReplenishmentRequestUncheckedCreateWithoutProductionOrderInput> | Prisma.ReplenishmentRequestCreateWithoutProductionOrderInput[] | Prisma.ReplenishmentRequestUncheckedCreateWithoutProductionOrderInput[];
+    connectOrCreate?: Prisma.ReplenishmentRequestCreateOrConnectWithoutProductionOrderInput | Prisma.ReplenishmentRequestCreateOrConnectWithoutProductionOrderInput[];
+    upsert?: Prisma.ReplenishmentRequestUpsertWithWhereUniqueWithoutProductionOrderInput | Prisma.ReplenishmentRequestUpsertWithWhereUniqueWithoutProductionOrderInput[];
+    createMany?: Prisma.ReplenishmentRequestCreateManyProductionOrderInputEnvelope;
+    set?: Prisma.ReplenishmentRequestWhereUniqueInput | Prisma.ReplenishmentRequestWhereUniqueInput[];
+    disconnect?: Prisma.ReplenishmentRequestWhereUniqueInput | Prisma.ReplenishmentRequestWhereUniqueInput[];
+    delete?: Prisma.ReplenishmentRequestWhereUniqueInput | Prisma.ReplenishmentRequestWhereUniqueInput[];
+    connect?: Prisma.ReplenishmentRequestWhereUniqueInput | Prisma.ReplenishmentRequestWhereUniqueInput[];
+    update?: Prisma.ReplenishmentRequestUpdateWithWhereUniqueWithoutProductionOrderInput | Prisma.ReplenishmentRequestUpdateWithWhereUniqueWithoutProductionOrderInput[];
+    updateMany?: Prisma.ReplenishmentRequestUpdateManyWithWhereWithoutProductionOrderInput | Prisma.ReplenishmentRequestUpdateManyWithWhereWithoutProductionOrderInput[];
+    deleteMany?: Prisma.ReplenishmentRequestScalarWhereInput | Prisma.ReplenishmentRequestScalarWhereInput[];
 };
-export type ReplenishmentRequestUncheckedUpdateOneWithoutProductionOrderNestedInput = {
-    create?: Prisma.XOR<Prisma.ReplenishmentRequestCreateWithoutProductionOrderInput, Prisma.ReplenishmentRequestUncheckedCreateWithoutProductionOrderInput>;
-    connectOrCreate?: Prisma.ReplenishmentRequestCreateOrConnectWithoutProductionOrderInput;
-    upsert?: Prisma.ReplenishmentRequestUpsertWithoutProductionOrderInput;
-    disconnect?: Prisma.ReplenishmentRequestWhereInput | boolean;
-    delete?: Prisma.ReplenishmentRequestWhereInput | boolean;
-    connect?: Prisma.ReplenishmentRequestWhereUniqueInput;
-    update?: Prisma.XOR<Prisma.XOR<Prisma.ReplenishmentRequestUpdateToOneWithWhereWithoutProductionOrderInput, Prisma.ReplenishmentRequestUpdateWithoutProductionOrderInput>, Prisma.ReplenishmentRequestUncheckedUpdateWithoutProductionOrderInput>;
+export type ReplenishmentRequestUncheckedUpdateManyWithoutProductionOrderNestedInput = {
+    create?: Prisma.XOR<Prisma.ReplenishmentRequestCreateWithoutProductionOrderInput, Prisma.ReplenishmentRequestUncheckedCreateWithoutProductionOrderInput> | Prisma.ReplenishmentRequestCreateWithoutProductionOrderInput[] | Prisma.ReplenishmentRequestUncheckedCreateWithoutProductionOrderInput[];
+    connectOrCreate?: Prisma.ReplenishmentRequestCreateOrConnectWithoutProductionOrderInput | Prisma.ReplenishmentRequestCreateOrConnectWithoutProductionOrderInput[];
+    upsert?: Prisma.ReplenishmentRequestUpsertWithWhereUniqueWithoutProductionOrderInput | Prisma.ReplenishmentRequestUpsertWithWhereUniqueWithoutProductionOrderInput[];
+    createMany?: Prisma.ReplenishmentRequestCreateManyProductionOrderInputEnvelope;
+    set?: Prisma.ReplenishmentRequestWhereUniqueInput | Prisma.ReplenishmentRequestWhereUniqueInput[];
+    disconnect?: Prisma.ReplenishmentRequestWhereUniqueInput | Prisma.ReplenishmentRequestWhereUniqueInput[];
+    delete?: Prisma.ReplenishmentRequestWhereUniqueInput | Prisma.ReplenishmentRequestWhereUniqueInput[];
+    connect?: Prisma.ReplenishmentRequestWhereUniqueInput | Prisma.ReplenishmentRequestWhereUniqueInput[];
+    update?: Prisma.ReplenishmentRequestUpdateWithWhereUniqueWithoutProductionOrderInput | Prisma.ReplenishmentRequestUpdateWithWhereUniqueWithoutProductionOrderInput[];
+    updateMany?: Prisma.ReplenishmentRequestUpdateManyWithWhereWithoutProductionOrderInput | Prisma.ReplenishmentRequestUpdateManyWithWhereWithoutProductionOrderInput[];
+    deleteMany?: Prisma.ReplenishmentRequestScalarWhereInput | Prisma.ReplenishmentRequestScalarWhereInput[];
 };
 export type ReplenishmentRequestCreateNestedManyWithoutSaleLineInput = {
     create?: Prisma.XOR<Prisma.ReplenishmentRequestCreateWithoutSaleLineInput, Prisma.ReplenishmentRequestUncheckedCreateWithoutSaleLineInput> | Prisma.ReplenishmentRequestCreateWithoutSaleLineInput[] | Prisma.ReplenishmentRequestUncheckedCreateWithoutSaleLineInput[];
@@ -427,7 +433,7 @@ export type ReplenishmentRequestCreateWithoutRequestedByInput = {
     status?: string;
     note?: string;
     saleLine: Prisma.SaleLineCreateNestedOneWithoutReplenishmentsInput;
-    productionOrder?: Prisma.ProductionOrderCreateNestedOneWithoutReplenishmentInput;
+    productionOrder?: Prisma.ProductionOrderCreateNestedOneWithoutReplenishmentsInput;
 };
 export type ReplenishmentRequestUncheckedCreateWithoutRequestedByInput = {
     id?: string;
@@ -494,32 +500,22 @@ export type ReplenishmentRequestCreateOrConnectWithoutProductionOrderInput = {
     where: Prisma.ReplenishmentRequestWhereUniqueInput;
     create: Prisma.XOR<Prisma.ReplenishmentRequestCreateWithoutProductionOrderInput, Prisma.ReplenishmentRequestUncheckedCreateWithoutProductionOrderInput>;
 };
-export type ReplenishmentRequestUpsertWithoutProductionOrderInput = {
+export type ReplenishmentRequestCreateManyProductionOrderInputEnvelope = {
+    data: Prisma.ReplenishmentRequestCreateManyProductionOrderInput | Prisma.ReplenishmentRequestCreateManyProductionOrderInput[];
+    skipDuplicates?: boolean;
+};
+export type ReplenishmentRequestUpsertWithWhereUniqueWithoutProductionOrderInput = {
+    where: Prisma.ReplenishmentRequestWhereUniqueInput;
     update: Prisma.XOR<Prisma.ReplenishmentRequestUpdateWithoutProductionOrderInput, Prisma.ReplenishmentRequestUncheckedUpdateWithoutProductionOrderInput>;
     create: Prisma.XOR<Prisma.ReplenishmentRequestCreateWithoutProductionOrderInput, Prisma.ReplenishmentRequestUncheckedCreateWithoutProductionOrderInput>;
-    where?: Prisma.ReplenishmentRequestWhereInput;
 };
-export type ReplenishmentRequestUpdateToOneWithWhereWithoutProductionOrderInput = {
-    where?: Prisma.ReplenishmentRequestWhereInput;
+export type ReplenishmentRequestUpdateWithWhereUniqueWithoutProductionOrderInput = {
+    where: Prisma.ReplenishmentRequestWhereUniqueInput;
     data: Prisma.XOR<Prisma.ReplenishmentRequestUpdateWithoutProductionOrderInput, Prisma.ReplenishmentRequestUncheckedUpdateWithoutProductionOrderInput>;
 };
-export type ReplenishmentRequestUpdateWithoutProductionOrderInput = {
-    id?: Prisma.StringFieldUpdateOperationsInput | string;
-    quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
-    requestedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
-    status?: Prisma.StringFieldUpdateOperationsInput | string;
-    note?: Prisma.StringFieldUpdateOperationsInput | string;
-    saleLine?: Prisma.SaleLineUpdateOneRequiredWithoutReplenishmentsNestedInput;
-    requestedBy?: Prisma.EmployeeUpdateOneRequiredWithoutReplenishmentsNestedInput;
-};
-export type ReplenishmentRequestUncheckedUpdateWithoutProductionOrderInput = {
-    id?: Prisma.StringFieldUpdateOperationsInput | string;
-    quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
-    requestedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
-    status?: Prisma.StringFieldUpdateOperationsInput | string;
-    note?: Prisma.StringFieldUpdateOperationsInput | string;
-    saleLineId?: Prisma.StringFieldUpdateOperationsInput | string;
-    requestedById?: Prisma.StringFieldUpdateOperationsInput | string;
+export type ReplenishmentRequestUpdateManyWithWhereWithoutProductionOrderInput = {
+    where: Prisma.ReplenishmentRequestScalarWhereInput;
+    data: Prisma.XOR<Prisma.ReplenishmentRequestUpdateManyMutationInput, Prisma.ReplenishmentRequestUncheckedUpdateManyWithoutProductionOrderInput>;
 };
 export type ReplenishmentRequestCreateWithoutSaleLineInput = {
     id?: string;
@@ -528,7 +524,7 @@ export type ReplenishmentRequestCreateWithoutSaleLineInput = {
     status?: string;
     note?: string;
     requestedBy: Prisma.EmployeeCreateNestedOneWithoutReplenishmentsInput;
-    productionOrder?: Prisma.ProductionOrderCreateNestedOneWithoutReplenishmentInput;
+    productionOrder?: Prisma.ProductionOrderCreateNestedOneWithoutReplenishmentsInput;
 };
 export type ReplenishmentRequestUncheckedCreateWithoutSaleLineInput = {
     id?: string;
@@ -576,7 +572,7 @@ export type ReplenishmentRequestUpdateWithoutRequestedByInput = {
     status?: Prisma.StringFieldUpdateOperationsInput | string;
     note?: Prisma.StringFieldUpdateOperationsInput | string;
     saleLine?: Prisma.SaleLineUpdateOneRequiredWithoutReplenishmentsNestedInput;
-    productionOrder?: Prisma.ProductionOrderUpdateOneWithoutReplenishmentNestedInput;
+    productionOrder?: Prisma.ProductionOrderUpdateOneWithoutReplenishmentsNestedInput;
 };
 export type ReplenishmentRequestUncheckedUpdateWithoutRequestedByInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -596,6 +592,42 @@ export type ReplenishmentRequestUncheckedUpdateManyWithoutRequestedByInput = {
     saleLineId?: Prisma.StringFieldUpdateOperationsInput | string;
     productionOrderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 };
+export type ReplenishmentRequestCreateManyProductionOrderInput = {
+    id?: string;
+    quantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    requestedAt?: Date | string;
+    status?: string;
+    note?: string;
+    saleLineId: string;
+    requestedById: string;
+};
+export type ReplenishmentRequestUpdateWithoutProductionOrderInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    requestedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    status?: Prisma.StringFieldUpdateOperationsInput | string;
+    note?: Prisma.StringFieldUpdateOperationsInput | string;
+    saleLine?: Prisma.SaleLineUpdateOneRequiredWithoutReplenishmentsNestedInput;
+    requestedBy?: Prisma.EmployeeUpdateOneRequiredWithoutReplenishmentsNestedInput;
+};
+export type ReplenishmentRequestUncheckedUpdateWithoutProductionOrderInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    requestedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    status?: Prisma.StringFieldUpdateOperationsInput | string;
+    note?: Prisma.StringFieldUpdateOperationsInput | string;
+    saleLineId?: Prisma.StringFieldUpdateOperationsInput | string;
+    requestedById?: Prisma.StringFieldUpdateOperationsInput | string;
+};
+export type ReplenishmentRequestUncheckedUpdateManyWithoutProductionOrderInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    requestedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    status?: Prisma.StringFieldUpdateOperationsInput | string;
+    note?: Prisma.StringFieldUpdateOperationsInput | string;
+    saleLineId?: Prisma.StringFieldUpdateOperationsInput | string;
+    requestedById?: Prisma.StringFieldUpdateOperationsInput | string;
+};
 export type ReplenishmentRequestCreateManySaleLineInput = {
     id?: string;
     quantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
@@ -612,7 +644,7 @@ export type ReplenishmentRequestUpdateWithoutSaleLineInput = {
     status?: Prisma.StringFieldUpdateOperationsInput | string;
     note?: Prisma.StringFieldUpdateOperationsInput | string;
     requestedBy?: Prisma.EmployeeUpdateOneRequiredWithoutReplenishmentsNestedInput;
-    productionOrder?: Prisma.ProductionOrderUpdateOneWithoutReplenishmentNestedInput;
+    productionOrder?: Prisma.ProductionOrderUpdateOneWithoutReplenishmentsNestedInput;
 };
 export type ReplenishmentRequestUncheckedUpdateWithoutSaleLineInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;

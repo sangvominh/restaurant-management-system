@@ -11,6 +11,7 @@ export declare const DbNull: import("@prisma/client-runtime-utils").DbNullClass;
 export declare const JsonNull: import("@prisma/client-runtime-utils").JsonNullClass;
 export declare const AnyNull: import("@prisma/client-runtime-utils").AnyNullClass;
 export declare const ModelName: {
+    readonly RoleTemplate: "RoleTemplate";
     readonly Role: "Role";
     readonly Permission: "Permission";
     readonly RolePermission: "RolePermission";
@@ -48,6 +49,10 @@ export declare const ModelName: {
     readonly Serving: "Serving";
     readonly ReplenishmentRequest: "ReplenishmentRequest";
     readonly SaleLineChange: "SaleLineChange";
+    readonly StoreDispatch: "StoreDispatch";
+    readonly StoreDispatchLine: "StoreDispatchLine";
+    readonly StoreAdjustment: "StoreAdjustment";
+    readonly StoreMovement: "StoreMovement";
 };
 export type ModelName = (typeof ModelName)[keyof typeof ModelName];
 export declare const TransactionIsolationLevel: {
@@ -57,6 +62,15 @@ export declare const TransactionIsolationLevel: {
     readonly Serializable: "Serializable";
 };
 export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel];
+export declare const RoleTemplateScalarFieldEnum: {
+    readonly id: "id";
+    readonly name: "name";
+    readonly workspace: "workspace";
+    readonly description: "description";
+    readonly permissions: "permissions";
+    readonly updatedAt: "updatedAt";
+};
+export type RoleTemplateScalarFieldEnum = (typeof RoleTemplateScalarFieldEnum)[keyof typeof RoleTemplateScalarFieldEnum];
 export declare const RoleScalarFieldEnum: {
     readonly id: "id";
     readonly name: "name";
@@ -165,6 +179,7 @@ export declare const MaterialIssueScalarFieldEnum: {
     readonly approvedAt: "approvedAt";
     readonly status: "status";
     readonly reason: "reason";
+    readonly reviewNote: "reviewNote";
     readonly productionOrderId: "productionOrderId";
     readonly requestedById: "requestedById";
     readonly reviewedById: "reviewedById";
@@ -352,6 +367,8 @@ export declare const ProductMovementScalarFieldEnum: {
     readonly movementType: "movementType";
     readonly postedAt: "postedAt";
     readonly productId: "productId";
+    readonly dispatchLineId: "dispatchLineId";
+    readonly storeAdjustmentId: "storeAdjustmentId";
     readonly runId: "runId";
     readonly exportLineId: "exportLineId";
     readonly wasteLineId: "wasteLineId";
@@ -403,6 +420,47 @@ export declare const SaleLineChangeScalarFieldEnum: {
     readonly changedById: "changedById";
 };
 export type SaleLineChangeScalarFieldEnum = (typeof SaleLineChangeScalarFieldEnum)[keyof typeof SaleLineChangeScalarFieldEnum];
+export declare const StoreDispatchScalarFieldEnum: {
+    readonly id: "id";
+    readonly requestedAt: "requestedAt";
+    readonly approvedAt: "approvedAt";
+    readonly status: "status";
+    readonly reason: "reason";
+    readonly requestedById: "requestedById";
+    readonly reviewedById: "reviewedById";
+};
+export type StoreDispatchScalarFieldEnum = (typeof StoreDispatchScalarFieldEnum)[keyof typeof StoreDispatchScalarFieldEnum];
+export declare const StoreDispatchLineScalarFieldEnum: {
+    readonly id: "id";
+    readonly dispatchId: "dispatchId";
+    readonly productId: "productId";
+    readonly quantity: "quantity";
+};
+export type StoreDispatchLineScalarFieldEnum = (typeof StoreDispatchLineScalarFieldEnum)[keyof typeof StoreDispatchLineScalarFieldEnum];
+export declare const StoreAdjustmentScalarFieldEnum: {
+    readonly id: "id";
+    readonly productId: "productId";
+    readonly quantity: "quantity";
+    readonly kind: "kind";
+    readonly reason: "reason";
+    readonly status: "status";
+    readonly requestedAt: "requestedAt";
+    readonly approvedAt: "approvedAt";
+    readonly requestedById: "requestedById";
+    readonly reviewedById: "reviewedById";
+};
+export type StoreAdjustmentScalarFieldEnum = (typeof StoreAdjustmentScalarFieldEnum)[keyof typeof StoreAdjustmentScalarFieldEnum];
+export declare const StoreMovementScalarFieldEnum: {
+    readonly id: "id";
+    readonly productId: "productId";
+    readonly quantity: "quantity";
+    readonly movementType: "movementType";
+    readonly postedAt: "postedAt";
+    readonly dispatchLineId: "dispatchLineId";
+    readonly saleLineId: "saleLineId";
+    readonly adjustmentId: "adjustmentId";
+};
+export type StoreMovementScalarFieldEnum = (typeof StoreMovementScalarFieldEnum)[keyof typeof StoreMovementScalarFieldEnum];
 export declare const SortOrder: {
     readonly asc: "asc";
     readonly desc: "desc";

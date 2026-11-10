@@ -12,22 +12,25 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 import { Body, Controller, ForbiddenException, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { CatalogGuard } from '../catalog/catalog.guard.js';
+import { StoreService } from './store.service.js';
 import { FinishedService } from './finished.service.js';
 import { WarehouseReportService } from './warehouse-report.service.js';
 let FinishedController = class FinishedController {
     service;
     reports;
-    constructor(service, reports) {
+    store;
+    constructor(service, reports, store) {
         this.service = service;
         this.reports = reports;
+        this.store = store;
     }
     allow(r, ...rights) { if (!r.catalogUser.permissions.includes('*') && !rights.some(p => r.catalogUser.permissions.includes(p)))
         throw new ForbiddenException('Chưa có quyền chức năng này'); }
-    list(r) { this.allow(r, 'export:request', 'export:approve'); return this.service.list(); }
-    sales(r) { this.allow(r, 'export:request'); return this.service.sales(); }
-    create(b, r) { this.allow(r, 'export:request'); return this.service.create(b, r.catalogUser); }
-    approve(id, r) { this.allow(r, 'export:approve'); return this.service.review(id, true, r.catalogUser); }
-    reject(id, r) { this.allow(r, 'export:approve'); return this.service.review(id, false, r.catalogUser); }
+    list(r) { this.allow(r, 'export:request', 'export:approve'); return this.store.list(); }
+    sales(r) { this.allow(r, 'export:request'); return this.store.stock(); }
+    create(b, r) { this.allow(r, 'export:request'); return this.store.create(b, r.catalogUser); }
+    approve(id, r) { this.allow(r, 'export:approve'); return this.store.review(id, true, r.catalogUser); }
+    reject(id, r) { this.allow(r, 'export:approve'); return this.store.review(id, false, r.catalogUser); }
     stock(r) { this.allow(r, 'inventory:view'); return this.service.report('products'); }
     analytics(start, end, horizon, r) { this.allow(r, 'report:stock'); return this.reports.read(start, end, horizon); }
     report(kind, start, end, r) { this.allow(r, 'report:stock'); if (!start || !end)
@@ -41,7 +44,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], FinishedController.prototype, "list", null);
 __decorate([
-    Get('exports/sales'),
+    Get('exports/products'),
     __param(0, Req()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -101,7 +104,7 @@ __decorate([
 FinishedController = __decorate([
     Controller('api/warehouse'),
     UseGuards(CatalogGuard),
-    __metadata("design:paramtypes", [FinishedService, WarehouseReportService])
+    __metadata("design:paramtypes", [FinishedService, WarehouseReportService, StoreService])
 ], FinishedController);
 export { FinishedController };
 //# sourceMappingURL=finished.controller.js.map

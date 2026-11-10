@@ -7,6 +7,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '../prisma/prisma.module.js';
 import { AdminController } from './admin.controller.js';
+import { RoleTemplateService } from './role-template.service.js';
 import { AdminService } from './admin.service.js';
 import { AdminAuthService } from './admin-auth.service.js';
 import { AdminAuthGuard } from './admin-auth.guard.js';
@@ -14,7 +15,7 @@ import { AdminAuthController } from './admin-auth.controller.js';
 let AdminModule = class AdminModule {
 };
 AdminModule = __decorate([
-    Module({ imports: [PrismaModule], controllers: [AdminController, AdminAuthController], providers: [AdminService, AdminAuthService, AdminAuthGuard], exports: [AdminAuthService] })
+    Module({ imports: [PrismaModule], controllers: [AdminController, AdminAuthController], providers: [RoleTemplateService, AdminService, AdminAuthService, AdminAuthGuard], exports: [AdminAuthService] })
 ], AdminModule);
 export { AdminModule };
 //# sourceMappingURL=admin.module.js.map

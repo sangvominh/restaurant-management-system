@@ -1,0 +1,56 @@
+/// Bàn giao TP từ kho sang một cửa hàng; độc lập với đơn khách.
+model StoreDispatch {
+  id String @id @default(uuid()) @db.Uuid
+  requestedAt DateTime @default(now()) @db.Timestamptz(3)
+  approvedAt DateTime? @db.Timestamptz(3)
+  status String @default("PENDING")
+  reason String
+  requestedById String @db.Uuid
+  requestedBy Employee @relation("DispatchRequester", fields: [requestedById], references: [id], onDelete: Restrict)
+  reviewedById String? @db.Uuid
+  reviewedBy Employee? @relation("DispatchReviewer", fields: [reviewedById], references: [id], onDelete: Restrict)
+  lines StoreDispatchLine[]
+}
+model StoreDispatchLine {
+  id String @id @default(uuid()) @db.Uuid
+  dispatchId String @db.Uuid
+  dispatch StoreDispatch @relation(fields: [dispatchId], references: [id], onDelete: Restrict)
+  productId String @db.Uuid
+  product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+  quantity Decimal @db.Decimal(18, 3)
+  warehouseMovement ProductMovement?
+  storeMovement StoreMovement?
+  @@unique([dispatchId, productId])
+}
+model StoreAdjustment {
+  id String @id @default(uuid()) @db.Uuid
+  productId String @db.Uuid
+  product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+  quantity Decimal @db.Decimal(18, 3)
+  kind String
+  reason String
+  status String @default("PENDING")
+  requestedAt DateTime @default(now()) @db.Timestamptz(3)
+  approvedAt DateTime? @db.Timestamptz(3)
+  requestedById String @db.Uuid
+  requestedBy Employee @relation("StoreAdjustmentRequester", fields: [requestedById], references: [id], onDelete: Restrict)
+  reviewedById String? @db.Uuid
+  reviewedBy Employee? @relation("StoreAdjustmentReviewer", fields: [reviewedById], references: [id], onDelete: Restrict)
+  storeMovement StoreMovement?
+  warehouseMovement ProductMovement?
+}
+model StoreMovement {
+  id String @id @default(uuid()) @db.Uuid
+  productId String @db.Uuid
+  product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+  quantity Decimal @db.Decimal(18, 3)
+  movementType String
+  postedAt DateTime @default(now()) @db.Timestamptz(3)
+  dispatchLineId String? @unique @db.Uuid
+  dispatchLine StoreDispatchLine? @relation(fields: [dispatchLineId], references: [id], onDelete: Restrict)
+  saleLineId String? @unique @db.Uuid
+  saleLine SaleLine? @relation(fields: [saleLineId], references: [id], onDelete: Restrict)
+  adjustmentId String? @unique @db.Uuid
+  adjustment StoreAdjustment? @relation(fields: [adjustmentId], references: [id], onDelete: Restrict)
+  @@index([productId, postedAt])
+}

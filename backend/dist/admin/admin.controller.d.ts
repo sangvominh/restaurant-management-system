@@ -1,14 +1,11 @@
+import { RoleTemplateService } from './role-template.service.js';
 import { AdminService } from './admin.service.js';
 import type { AdminUser } from './admin-auth.service.js';
 export declare class AdminController {
     private readonly service;
-    constructor(service: AdminService);
+    private readonly templates;
+    constructor(service: AdminService, templates: RoleTemplateService);
     accounts(): import("../generated/prisma/internal/prismaNamespace.js").PrismaPromise<{
-        id: string;
-        username: string;
-        status: string;
-        createdAt: Date;
-        roleId: string;
         role: {
             id: string;
             name: string;
@@ -18,13 +15,13 @@ export declare class AdminController {
             name: string;
             code: string;
         } | null;
+        id: string;
+        username: string;
+        status: string;
+        createdAt: Date;
+        roleId: string;
     }[]>;
     createAccount(b: unknown): Promise<{
-        id: string;
-        username: string;
-        status: string;
-        createdAt: Date;
-        roleId: string;
         role: {
             id: string;
             name: string;
@@ -34,13 +31,13 @@ export declare class AdminController {
             name: string;
             code: string;
         } | null;
+        id: string;
+        username: string;
+        status: string;
+        createdAt: Date;
+        roleId: string;
     }>;
     updateAccount(id: string, b: unknown, user: AdminUser): Promise<{
-        id: string;
-        username: string;
-        status: string;
-        createdAt: Date;
-        roleId: string;
         role: {
             id: string;
             name: string;
@@ -50,6 +47,11 @@ export declare class AdminController {
             name: string;
             code: string;
         } | null;
+        id: string;
+        username: string;
+        status: string;
+        createdAt: Date;
+        roleId: string;
     }>;
     deleteAccount(id: string, user: AdminUser): Promise<{
         message: string;
@@ -114,6 +116,27 @@ export declare class AdminController {
     deleteRole(id: string): Promise<{
         message: string;
     }>;
+    presets(): Promise<{
+        permissions: string[];
+        customized: boolean;
+        id: string;
+        name: string;
+        workspace: string;
+        description: string;
+        updatedAt?: Date | undefined;
+    }[]>;
+    savePreset(id: string, b: unknown): Promise<{
+        customized: boolean;
+        id: string;
+        name: string;
+        workspace: string;
+        description: string;
+        permissions: string[];
+        updatedAt: Date;
+    }>;
+    resetPreset(id: string): Promise<{
+        message: string;
+    }>;
     permissions(): {
         code: string;
         name: string;
@@ -121,8 +144,8 @@ export declare class AdminController {
     }[];
     employees(): import("../generated/prisma/internal/prismaNamespace.js").PrismaPromise<{
         id: string;
-        status: string;
         name: string;
+        status: string;
         code: string;
         phone: string | null;
         email: string | null;
@@ -130,8 +153,8 @@ export declare class AdminController {
     }[]>;
     createEmployee(b: unknown): Promise<{
         id: string;
-        status: string;
         name: string;
+        status: string;
         code: string;
         phone: string | null;
         email: string | null;
@@ -139,8 +162,8 @@ export declare class AdminController {
     }>;
     updateEmployee(id: string, b: unknown, user: AdminUser): Promise<{
         id: string;
-        status: string;
         name: string;
+        status: string;
         code: string;
         phone: string | null;
         email: string | null;

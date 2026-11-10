@@ -13,7 +13,7 @@ import { SalesService } from './sales.service.js';
 let SalesModule = class SalesModule {
 };
 SalesModule = __decorate([
-    Module({ imports: [PrismaModule, CatalogModule, InventoryModule], controllers: [RestaurantAuthController, SalesController], providers: [SalesService] })
+    Module({ imports: [PrismaModule, CatalogModule, InventoryModule], controllers: [RestaurantAuthController, SalesController], providers: [SalesService], exports: [SalesService] })
 ], SalesModule);
 export { SalesModule };
 //# sourceMappingURL=sales.module.js.map

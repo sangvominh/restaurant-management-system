@@ -64,6 +64,8 @@ export declare class WarehouseReportService {
         }[];
         products: {
             stock: import("@prisma/client-runtime-utils").Decimal;
+            storeStock: import("@prisma/client-runtime-utils").Decimal;
+            totalStock: import("@prisma/client-runtime-utils").Decimal;
             exported: import("@prisma/client-runtime-utils").Decimal;
             demand: import("@prisma/client-runtime-utils").Decimal;
             inProduction: import("@prisma/client-runtime-utils").Decimal;

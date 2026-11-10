@@ -14,6 +14,7 @@ export declare class WarehouseAuthController {
             id: string;
             username: string;
             name: string;
+            roleName: string;
             permissions: string[];
         };
     }>;
@@ -52,8 +53,8 @@ export declare class CatalogController {
             objectType: string;
         };
         id: string;
-        status: string;
         name: string;
+        status: string;
         code: string;
         minStock: import("@prisma/client-runtime-utils").Decimal;
         unitId: string;
@@ -62,8 +63,8 @@ export declare class CatalogController {
         canDelete: boolean;
         canEdit: boolean;
         id: string;
-        status: string;
         name: string;
+        status: string;
         code: string;
         phone: string | null;
         address: string | null;
@@ -80,8 +81,8 @@ export declare class CatalogController {
                     };
                 } & {
                     id: string;
-                    status: string;
                     name: string;
+                    status: string;
                     code: string;
                     minStock: import("@prisma/client-runtime-utils").Decimal;
                     unitId: string;
@@ -113,8 +114,8 @@ export declare class CatalogController {
             objectType: string;
         };
         id: string;
-        status: string;
         name: string;
+        status: string;
         code: string;
         unitId: string;
         categoryId: string;
@@ -130,23 +131,23 @@ export declare class CatalogController {
         objectType: string;
     } | {
         id: string;
-        status: string;
         name: string;
+        status: string;
         code: string;
         phone: string | null;
         address: string | null;
     } | {
         id: string;
-        status: string;
         name: string;
+        status: string;
         code: string;
         minStock: import("@prisma/client-runtime-utils").Decimal;
         unitId: string;
         categoryId: string;
     } | {
         id: string;
-        status: string;
         name: string;
+        status: string;
         code: string;
         unitId: string;
         categoryId: string;
@@ -162,23 +163,23 @@ export declare class CatalogController {
         objectType: string;
     } | {
         id: string;
-        status: string;
         name: string;
+        status: string;
         code: string;
         phone: string | null;
         address: string | null;
     } | {
         id: string;
-        status: string;
         name: string;
+        status: string;
         code: string;
         minStock: import("@prisma/client-runtime-utils").Decimal;
         unitId: string;
         categoryId: string;
     } | {
         id: string;
-        status: string;
         name: string;
+        status: string;
         code: string;
         unitId: string;
         categoryId: string;

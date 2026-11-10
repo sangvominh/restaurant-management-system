@@ -22,9 +22,7 @@ export class ProductionController {
   @Put('boms/:id') updateBom(@Param('id') id: string, @Body() b: unknown, @Req() r: AuthRequest) { this.allow(r, 'bom:manage'); return this.service.saveBom(b, r.catalogUser, id); }
   @Delete('boms/:id') deleteBom(@Param('id') id: string, @Req() r: AuthRequest) { this.allow(r, 'bom:manage'); return this.service.bomAction(id, 'delete'); }
   @Post('boms/:id/activate') activate(@Param('id') id: string, @Req() r: AuthRequest) { this.allow(r, 'bom:manage'); return this.service.bomAction(id, 'activate'); }
-  @Post('replenishments/:id/reject') rejectReplenishment(@Param('id') id: string, @Body() b: unknown, @Req() r: AuthRequest) { this.allow(r, 'production:manage'); return this.service.rejectReplenishment(id, b); }
-  @Get('replenishments') replenishments(@Req() r: AuthRequest) { this.allow(r, 'production:manage'); return this.service.replenishments(); }
-  @Get('orders') orders(@Req() r: AuthRequest) { this.allow(r, 'production:manage', 'production:perform', 'material:approve', 'production:inspect', 'waste:approve', 'material:request', 'waste:request'); return this.service.orders(r.catalogUser); }
+  @Get('orders') orders(@Req() r: AuthRequest) { this.allow(r, 'material:view', 'production:manage', 'production:perform', 'material:approve', 'production:inspect', 'waste:approve', 'material:request', 'waste:request'); return this.service.orders(r.catalogUser); }
   @Get('orders/:id/execution') detail(@Param('id') id: string, @Req() r: AuthRequest) { return this.execution.detail(id, r.catalogUser); }
   @Post('orders/:id/execution') execute(@Param('id') id: string, @Body() b: unknown, @Req() r: AuthRequest) { return this.execution.act(id, b, r.catalogUser); }
   @Post('orders') createOrder(@Body() b: unknown, @Req() r: AuthRequest) { this.allow(r, 'production:manage'); return this.service.createOrder(b, r.catalogUser); }

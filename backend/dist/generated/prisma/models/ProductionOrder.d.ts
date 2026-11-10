@@ -143,7 +143,7 @@ export type ProductionOrderWhereInput = {
     bom?: Prisma.XOR<Prisma.BomScalarRelationFilter, Prisma.BomWhereInput>;
     assignedBy?: Prisma.XOR<Prisma.EmployeeScalarRelationFilter, Prisma.EmployeeWhereInput>;
     assignedTo?: Prisma.XOR<Prisma.EmployeeScalarRelationFilter, Prisma.EmployeeWhereInput>;
-    replenishment?: Prisma.XOR<Prisma.ReplenishmentRequestNullableScalarRelationFilter, Prisma.ReplenishmentRequestWhereInput> | null;
+    replenishments?: Prisma.ReplenishmentRequestListRelationFilter;
     materialShortages?: Prisma.MaterialShortageListRelationFilter;
     materialIssues?: Prisma.MaterialIssueListRelationFilter;
     runs?: Prisma.ProductionRunListRelationFilter;
@@ -160,7 +160,7 @@ export type ProductionOrderOrderByWithRelationInput = {
     bom?: Prisma.BomOrderByWithRelationInput;
     assignedBy?: Prisma.EmployeeOrderByWithRelationInput;
     assignedTo?: Prisma.EmployeeOrderByWithRelationInput;
-    replenishment?: Prisma.ReplenishmentRequestOrderByWithRelationInput;
+    replenishments?: Prisma.ReplenishmentRequestOrderByRelationAggregateInput;
     materialShortages?: Prisma.MaterialShortageOrderByRelationAggregateInput;
     materialIssues?: Prisma.MaterialIssueOrderByRelationAggregateInput;
     runs?: Prisma.ProductionRunOrderByRelationAggregateInput;
@@ -180,7 +180,7 @@ export type ProductionOrderWhereUniqueInput = Prisma.AtLeast<{
     bom?: Prisma.XOR<Prisma.BomScalarRelationFilter, Prisma.BomWhereInput>;
     assignedBy?: Prisma.XOR<Prisma.EmployeeScalarRelationFilter, Prisma.EmployeeWhereInput>;
     assignedTo?: Prisma.XOR<Prisma.EmployeeScalarRelationFilter, Prisma.EmployeeWhereInput>;
-    replenishment?: Prisma.XOR<Prisma.ReplenishmentRequestNullableScalarRelationFilter, Prisma.ReplenishmentRequestWhereInput> | null;
+    replenishments?: Prisma.ReplenishmentRequestListRelationFilter;
     materialShortages?: Prisma.MaterialShortageListRelationFilter;
     materialIssues?: Prisma.MaterialIssueListRelationFilter;
     runs?: Prisma.ProductionRunListRelationFilter;
@@ -222,7 +222,7 @@ export type ProductionOrderCreateInput = {
     bom: Prisma.BomCreateNestedOneWithoutProductionOrdersInput;
     assignedBy: Prisma.EmployeeCreateNestedOneWithoutAssignedOrdersInput;
     assignedTo: Prisma.EmployeeCreateNestedOneWithoutReceivedOrdersInput;
-    replenishment?: Prisma.ReplenishmentRequestCreateNestedOneWithoutProductionOrderInput;
+    replenishments?: Prisma.ReplenishmentRequestCreateNestedManyWithoutProductionOrderInput;
     materialShortages?: Prisma.MaterialShortageCreateNestedManyWithoutProductionOrderInput;
     materialIssues?: Prisma.MaterialIssueCreateNestedManyWithoutProductionOrderInput;
     runs?: Prisma.ProductionRunCreateNestedManyWithoutProductionOrderInput;
@@ -236,7 +236,7 @@ export type ProductionOrderUncheckedCreateInput = {
     bomId: string;
     assignedById: string;
     assignedToId: string;
-    replenishment?: Prisma.ReplenishmentRequestUncheckedCreateNestedOneWithoutProductionOrderInput;
+    replenishments?: Prisma.ReplenishmentRequestUncheckedCreateNestedManyWithoutProductionOrderInput;
     materialShortages?: Prisma.MaterialShortageUncheckedCreateNestedManyWithoutProductionOrderInput;
     materialIssues?: Prisma.MaterialIssueUncheckedCreateNestedManyWithoutProductionOrderInput;
     runs?: Prisma.ProductionRunUncheckedCreateNestedManyWithoutProductionOrderInput;
@@ -250,7 +250,7 @@ export type ProductionOrderUpdateInput = {
     bom?: Prisma.BomUpdateOneRequiredWithoutProductionOrdersNestedInput;
     assignedBy?: Prisma.EmployeeUpdateOneRequiredWithoutAssignedOrdersNestedInput;
     assignedTo?: Prisma.EmployeeUpdateOneRequiredWithoutReceivedOrdersNestedInput;
-    replenishment?: Prisma.ReplenishmentRequestUpdateOneWithoutProductionOrderNestedInput;
+    replenishments?: Prisma.ReplenishmentRequestUpdateManyWithoutProductionOrderNestedInput;
     materialShortages?: Prisma.MaterialShortageUpdateManyWithoutProductionOrderNestedInput;
     materialIssues?: Prisma.MaterialIssueUpdateManyWithoutProductionOrderNestedInput;
     runs?: Prisma.ProductionRunUpdateManyWithoutProductionOrderNestedInput;
@@ -264,7 +264,7 @@ export type ProductionOrderUncheckedUpdateInput = {
     bomId?: Prisma.StringFieldUpdateOperationsInput | string;
     assignedById?: Prisma.StringFieldUpdateOperationsInput | string;
     assignedToId?: Prisma.StringFieldUpdateOperationsInput | string;
-    replenishment?: Prisma.ReplenishmentRequestUncheckedUpdateOneWithoutProductionOrderNestedInput;
+    replenishments?: Prisma.ReplenishmentRequestUncheckedUpdateManyWithoutProductionOrderNestedInput;
     materialShortages?: Prisma.MaterialShortageUncheckedUpdateManyWithoutProductionOrderNestedInput;
     materialIssues?: Prisma.MaterialIssueUncheckedUpdateManyWithoutProductionOrderNestedInput;
     runs?: Prisma.ProductionRunUncheckedUpdateManyWithoutProductionOrderNestedInput;
@@ -498,19 +498,19 @@ export type ProductionOrderUpdateOneRequiredWithoutRunsNestedInput = {
     connect?: Prisma.ProductionOrderWhereUniqueInput;
     update?: Prisma.XOR<Prisma.XOR<Prisma.ProductionOrderUpdateToOneWithWhereWithoutRunsInput, Prisma.ProductionOrderUpdateWithoutRunsInput>, Prisma.ProductionOrderUncheckedUpdateWithoutRunsInput>;
 };
-export type ProductionOrderCreateNestedOneWithoutReplenishmentInput = {
-    create?: Prisma.XOR<Prisma.ProductionOrderCreateWithoutReplenishmentInput, Prisma.ProductionOrderUncheckedCreateWithoutReplenishmentInput>;
-    connectOrCreate?: Prisma.ProductionOrderCreateOrConnectWithoutReplenishmentInput;
+export type ProductionOrderCreateNestedOneWithoutReplenishmentsInput = {
+    create?: Prisma.XOR<Prisma.ProductionOrderCreateWithoutReplenishmentsInput, Prisma.ProductionOrderUncheckedCreateWithoutReplenishmentsInput>;
+    connectOrCreate?: Prisma.ProductionOrderCreateOrConnectWithoutReplenishmentsInput;
     connect?: Prisma.ProductionOrderWhereUniqueInput;
 };
-export type ProductionOrderUpdateOneWithoutReplenishmentNestedInput = {
-    create?: Prisma.XOR<Prisma.ProductionOrderCreateWithoutReplenishmentInput, Prisma.ProductionOrderUncheckedCreateWithoutReplenishmentInput>;
-    connectOrCreate?: Prisma.ProductionOrderCreateOrConnectWithoutReplenishmentInput;
-    upsert?: Prisma.ProductionOrderUpsertWithoutReplenishmentInput;
+export type ProductionOrderUpdateOneWithoutReplenishmentsNestedInput = {
+    create?: Prisma.XOR<Prisma.ProductionOrderCreateWithoutReplenishmentsInput, Prisma.ProductionOrderUncheckedCreateWithoutReplenishmentsInput>;
+    connectOrCreate?: Prisma.ProductionOrderCreateOrConnectWithoutReplenishmentsInput;
+    upsert?: Prisma.ProductionOrderUpsertWithoutReplenishmentsInput;
     disconnect?: Prisma.ProductionOrderWhereInput | boolean;
     delete?: Prisma.ProductionOrderWhereInput | boolean;
     connect?: Prisma.ProductionOrderWhereUniqueInput;
-    update?: Prisma.XOR<Prisma.XOR<Prisma.ProductionOrderUpdateToOneWithWhereWithoutReplenishmentInput, Prisma.ProductionOrderUpdateWithoutReplenishmentInput>, Prisma.ProductionOrderUncheckedUpdateWithoutReplenishmentInput>;
+    update?: Prisma.XOR<Prisma.XOR<Prisma.ProductionOrderUpdateToOneWithWhereWithoutReplenishmentsInput, Prisma.ProductionOrderUpdateWithoutReplenishmentsInput>, Prisma.ProductionOrderUncheckedUpdateWithoutReplenishmentsInput>;
 };
 export type ProductionOrderCreateWithoutAssignedByInput = {
     id?: string;
@@ -520,7 +520,7 @@ export type ProductionOrderCreateWithoutAssignedByInput = {
     status?: string;
     bom: Prisma.BomCreateNestedOneWithoutProductionOrdersInput;
     assignedTo: Prisma.EmployeeCreateNestedOneWithoutReceivedOrdersInput;
-    replenishment?: Prisma.ReplenishmentRequestCreateNestedOneWithoutProductionOrderInput;
+    replenishments?: Prisma.ReplenishmentRequestCreateNestedManyWithoutProductionOrderInput;
     materialShortages?: Prisma.MaterialShortageCreateNestedManyWithoutProductionOrderInput;
     materialIssues?: Prisma.MaterialIssueCreateNestedManyWithoutProductionOrderInput;
     runs?: Prisma.ProductionRunCreateNestedManyWithoutProductionOrderInput;
@@ -533,7 +533,7 @@ export type ProductionOrderUncheckedCreateWithoutAssignedByInput = {
     status?: string;
     bomId: string;
     assignedToId: string;
-    replenishment?: Prisma.ReplenishmentRequestUncheckedCreateNestedOneWithoutProductionOrderInput;
+    replenishments?: Prisma.ReplenishmentRequestUncheckedCreateNestedManyWithoutProductionOrderInput;
     materialShortages?: Prisma.MaterialShortageUncheckedCreateNestedManyWithoutProductionOrderInput;
     materialIssues?: Prisma.MaterialIssueUncheckedCreateNestedManyWithoutProductionOrderInput;
     runs?: Prisma.ProductionRunUncheckedCreateNestedManyWithoutProductionOrderInput;
@@ -554,7 +554,7 @@ export type ProductionOrderCreateWithoutAssignedToInput = {
     status?: string;
     bom: Prisma.BomCreateNestedOneWithoutProductionOrdersInput;
     assignedBy: Prisma.EmployeeCreateNestedOneWithoutAssignedOrdersInput;
-    replenishment?: Prisma.ReplenishmentRequestCreateNestedOneWithoutProductionOrderInput;
+    replenishments?: Prisma.ReplenishmentRequestCreateNestedManyWithoutProductionOrderInput;
     materialShortages?: Prisma.MaterialShortageCreateNestedManyWithoutProductionOrderInput;
     materialIssues?: Prisma.MaterialIssueCreateNestedManyWithoutProductionOrderInput;
     runs?: Prisma.ProductionRunCreateNestedManyWithoutProductionOrderInput;
@@ -567,7 +567,7 @@ export type ProductionOrderUncheckedCreateWithoutAssignedToInput = {
     status?: string;
     bomId: string;
     assignedById: string;
-    replenishment?: Prisma.ReplenishmentRequestUncheckedCreateNestedOneWithoutProductionOrderInput;
+    replenishments?: Prisma.ReplenishmentRequestUncheckedCreateNestedManyWithoutProductionOrderInput;
     materialShortages?: Prisma.MaterialShortageUncheckedCreateNestedManyWithoutProductionOrderInput;
     materialIssues?: Prisma.MaterialIssueUncheckedCreateNestedManyWithoutProductionOrderInput;
     runs?: Prisma.ProductionRunUncheckedCreateNestedManyWithoutProductionOrderInput;
@@ -628,7 +628,7 @@ export type ProductionOrderCreateWithoutMaterialIssuesInput = {
     bom: Prisma.BomCreateNestedOneWithoutProductionOrdersInput;
     assignedBy: Prisma.EmployeeCreateNestedOneWithoutAssignedOrdersInput;
     assignedTo: Prisma.EmployeeCreateNestedOneWithoutReceivedOrdersInput;
-    replenishment?: Prisma.ReplenishmentRequestCreateNestedOneWithoutProductionOrderInput;
+    replenishments?: Prisma.ReplenishmentRequestCreateNestedManyWithoutProductionOrderInput;
     materialShortages?: Prisma.MaterialShortageCreateNestedManyWithoutProductionOrderInput;
     runs?: Prisma.ProductionRunCreateNestedManyWithoutProductionOrderInput;
 };
@@ -641,7 +641,7 @@ export type ProductionOrderUncheckedCreateWithoutMaterialIssuesInput = {
     bomId: string;
     assignedById: string;
     assignedToId: string;
-    replenishment?: Prisma.ReplenishmentRequestUncheckedCreateNestedOneWithoutProductionOrderInput;
+    replenishments?: Prisma.ReplenishmentRequestUncheckedCreateNestedManyWithoutProductionOrderInput;
     materialShortages?: Prisma.MaterialShortageUncheckedCreateNestedManyWithoutProductionOrderInput;
     runs?: Prisma.ProductionRunUncheckedCreateNestedManyWithoutProductionOrderInput;
 };
@@ -667,7 +667,7 @@ export type ProductionOrderUpdateWithoutMaterialIssuesInput = {
     bom?: Prisma.BomUpdateOneRequiredWithoutProductionOrdersNestedInput;
     assignedBy?: Prisma.EmployeeUpdateOneRequiredWithoutAssignedOrdersNestedInput;
     assignedTo?: Prisma.EmployeeUpdateOneRequiredWithoutReceivedOrdersNestedInput;
-    replenishment?: Prisma.ReplenishmentRequestUpdateOneWithoutProductionOrderNestedInput;
+    replenishments?: Prisma.ReplenishmentRequestUpdateManyWithoutProductionOrderNestedInput;
     materialShortages?: Prisma.MaterialShortageUpdateManyWithoutProductionOrderNestedInput;
     runs?: Prisma.ProductionRunUpdateManyWithoutProductionOrderNestedInput;
 };
@@ -680,7 +680,7 @@ export type ProductionOrderUncheckedUpdateWithoutMaterialIssuesInput = {
     bomId?: Prisma.StringFieldUpdateOperationsInput | string;
     assignedById?: Prisma.StringFieldUpdateOperationsInput | string;
     assignedToId?: Prisma.StringFieldUpdateOperationsInput | string;
-    replenishment?: Prisma.ReplenishmentRequestUncheckedUpdateOneWithoutProductionOrderNestedInput;
+    replenishments?: Prisma.ReplenishmentRequestUncheckedUpdateManyWithoutProductionOrderNestedInput;
     materialShortages?: Prisma.MaterialShortageUncheckedUpdateManyWithoutProductionOrderNestedInput;
     runs?: Prisma.ProductionRunUncheckedUpdateManyWithoutProductionOrderNestedInput;
 };
@@ -692,7 +692,7 @@ export type ProductionOrderCreateWithoutBomInput = {
     status?: string;
     assignedBy: Prisma.EmployeeCreateNestedOneWithoutAssignedOrdersInput;
     assignedTo: Prisma.EmployeeCreateNestedOneWithoutReceivedOrdersInput;
-    replenishment?: Prisma.ReplenishmentRequestCreateNestedOneWithoutProductionOrderInput;
+    replenishments?: Prisma.ReplenishmentRequestCreateNestedManyWithoutProductionOrderInput;
     materialShortages?: Prisma.MaterialShortageCreateNestedManyWithoutProductionOrderInput;
     materialIssues?: Prisma.MaterialIssueCreateNestedManyWithoutProductionOrderInput;
     runs?: Prisma.ProductionRunCreateNestedManyWithoutProductionOrderInput;
@@ -705,7 +705,7 @@ export type ProductionOrderUncheckedCreateWithoutBomInput = {
     status?: string;
     assignedById: string;
     assignedToId: string;
-    replenishment?: Prisma.ReplenishmentRequestUncheckedCreateNestedOneWithoutProductionOrderInput;
+    replenishments?: Prisma.ReplenishmentRequestUncheckedCreateNestedManyWithoutProductionOrderInput;
     materialShortages?: Prisma.MaterialShortageUncheckedCreateNestedManyWithoutProductionOrderInput;
     materialIssues?: Prisma.MaterialIssueUncheckedCreateNestedManyWithoutProductionOrderInput;
     runs?: Prisma.ProductionRunUncheckedCreateNestedManyWithoutProductionOrderInput;
@@ -740,7 +740,7 @@ export type ProductionOrderCreateWithoutMaterialShortagesInput = {
     bom: Prisma.BomCreateNestedOneWithoutProductionOrdersInput;
     assignedBy: Prisma.EmployeeCreateNestedOneWithoutAssignedOrdersInput;
     assignedTo: Prisma.EmployeeCreateNestedOneWithoutReceivedOrdersInput;
-    replenishment?: Prisma.ReplenishmentRequestCreateNestedOneWithoutProductionOrderInput;
+    replenishments?: Prisma.ReplenishmentRequestCreateNestedManyWithoutProductionOrderInput;
     materialIssues?: Prisma.MaterialIssueCreateNestedManyWithoutProductionOrderInput;
     runs?: Prisma.ProductionRunCreateNestedManyWithoutProductionOrderInput;
 };
@@ -753,7 +753,7 @@ export type ProductionOrderUncheckedCreateWithoutMaterialShortagesInput = {
     bomId: string;
     assignedById: string;
     assignedToId: string;
-    replenishment?: Prisma.ReplenishmentRequestUncheckedCreateNestedOneWithoutProductionOrderInput;
+    replenishments?: Prisma.ReplenishmentRequestUncheckedCreateNestedManyWithoutProductionOrderInput;
     materialIssues?: Prisma.MaterialIssueUncheckedCreateNestedManyWithoutProductionOrderInput;
     runs?: Prisma.ProductionRunUncheckedCreateNestedManyWithoutProductionOrderInput;
 };
@@ -779,7 +779,7 @@ export type ProductionOrderUpdateWithoutMaterialShortagesInput = {
     bom?: Prisma.BomUpdateOneRequiredWithoutProductionOrdersNestedInput;
     assignedBy?: Prisma.EmployeeUpdateOneRequiredWithoutAssignedOrdersNestedInput;
     assignedTo?: Prisma.EmployeeUpdateOneRequiredWithoutReceivedOrdersNestedInput;
-    replenishment?: Prisma.ReplenishmentRequestUpdateOneWithoutProductionOrderNestedInput;
+    replenishments?: Prisma.ReplenishmentRequestUpdateManyWithoutProductionOrderNestedInput;
     materialIssues?: Prisma.MaterialIssueUpdateManyWithoutProductionOrderNestedInput;
     runs?: Prisma.ProductionRunUpdateManyWithoutProductionOrderNestedInput;
 };
@@ -792,7 +792,7 @@ export type ProductionOrderUncheckedUpdateWithoutMaterialShortagesInput = {
     bomId?: Prisma.StringFieldUpdateOperationsInput | string;
     assignedById?: Prisma.StringFieldUpdateOperationsInput | string;
     assignedToId?: Prisma.StringFieldUpdateOperationsInput | string;
-    replenishment?: Prisma.ReplenishmentRequestUncheckedUpdateOneWithoutProductionOrderNestedInput;
+    replenishments?: Prisma.ReplenishmentRequestUncheckedUpdateManyWithoutProductionOrderNestedInput;
     materialIssues?: Prisma.MaterialIssueUncheckedUpdateManyWithoutProductionOrderNestedInput;
     runs?: Prisma.ProductionRunUncheckedUpdateManyWithoutProductionOrderNestedInput;
 };
@@ -805,7 +805,7 @@ export type ProductionOrderCreateWithoutRunsInput = {
     bom: Prisma.BomCreateNestedOneWithoutProductionOrdersInput;
     assignedBy: Prisma.EmployeeCreateNestedOneWithoutAssignedOrdersInput;
     assignedTo: Prisma.EmployeeCreateNestedOneWithoutReceivedOrdersInput;
-    replenishment?: Prisma.ReplenishmentRequestCreateNestedOneWithoutProductionOrderInput;
+    replenishments?: Prisma.ReplenishmentRequestCreateNestedManyWithoutProductionOrderInput;
     materialShortages?: Prisma.MaterialShortageCreateNestedManyWithoutProductionOrderInput;
     materialIssues?: Prisma.MaterialIssueCreateNestedManyWithoutProductionOrderInput;
 };
@@ -818,7 +818,7 @@ export type ProductionOrderUncheckedCreateWithoutRunsInput = {
     bomId: string;
     assignedById: string;
     assignedToId: string;
-    replenishment?: Prisma.ReplenishmentRequestUncheckedCreateNestedOneWithoutProductionOrderInput;
+    replenishments?: Prisma.ReplenishmentRequestUncheckedCreateNestedManyWithoutProductionOrderInput;
     materialShortages?: Prisma.MaterialShortageUncheckedCreateNestedManyWithoutProductionOrderInput;
     materialIssues?: Prisma.MaterialIssueUncheckedCreateNestedManyWithoutProductionOrderInput;
 };
@@ -844,7 +844,7 @@ export type ProductionOrderUpdateWithoutRunsInput = {
     bom?: Prisma.BomUpdateOneRequiredWithoutProductionOrdersNestedInput;
     assignedBy?: Prisma.EmployeeUpdateOneRequiredWithoutAssignedOrdersNestedInput;
     assignedTo?: Prisma.EmployeeUpdateOneRequiredWithoutReceivedOrdersNestedInput;
-    replenishment?: Prisma.ReplenishmentRequestUpdateOneWithoutProductionOrderNestedInput;
+    replenishments?: Prisma.ReplenishmentRequestUpdateManyWithoutProductionOrderNestedInput;
     materialShortages?: Prisma.MaterialShortageUpdateManyWithoutProductionOrderNestedInput;
     materialIssues?: Prisma.MaterialIssueUpdateManyWithoutProductionOrderNestedInput;
 };
@@ -857,11 +857,11 @@ export type ProductionOrderUncheckedUpdateWithoutRunsInput = {
     bomId?: Prisma.StringFieldUpdateOperationsInput | string;
     assignedById?: Prisma.StringFieldUpdateOperationsInput | string;
     assignedToId?: Prisma.StringFieldUpdateOperationsInput | string;
-    replenishment?: Prisma.ReplenishmentRequestUncheckedUpdateOneWithoutProductionOrderNestedInput;
+    replenishments?: Prisma.ReplenishmentRequestUncheckedUpdateManyWithoutProductionOrderNestedInput;
     materialShortages?: Prisma.MaterialShortageUncheckedUpdateManyWithoutProductionOrderNestedInput;
     materialIssues?: Prisma.MaterialIssueUncheckedUpdateManyWithoutProductionOrderNestedInput;
 };
-export type ProductionOrderCreateWithoutReplenishmentInput = {
+export type ProductionOrderCreateWithoutReplenishmentsInput = {
     id?: string;
     quantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
     assignedAt?: Date | string;
@@ -874,7 +874,7 @@ export type ProductionOrderCreateWithoutReplenishmentInput = {
     materialIssues?: Prisma.MaterialIssueCreateNestedManyWithoutProductionOrderInput;
     runs?: Prisma.ProductionRunCreateNestedManyWithoutProductionOrderInput;
 };
-export type ProductionOrderUncheckedCreateWithoutReplenishmentInput = {
+export type ProductionOrderUncheckedCreateWithoutReplenishmentsInput = {
     id?: string;
     quantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
     assignedAt?: Date | string;
@@ -887,20 +887,20 @@ export type ProductionOrderUncheckedCreateWithoutReplenishmentInput = {
     materialIssues?: Prisma.MaterialIssueUncheckedCreateNestedManyWithoutProductionOrderInput;
     runs?: Prisma.ProductionRunUncheckedCreateNestedManyWithoutProductionOrderInput;
 };
-export type ProductionOrderCreateOrConnectWithoutReplenishmentInput = {
+export type ProductionOrderCreateOrConnectWithoutReplenishmentsInput = {
     where: Prisma.ProductionOrderWhereUniqueInput;
-    create: Prisma.XOR<Prisma.ProductionOrderCreateWithoutReplenishmentInput, Prisma.ProductionOrderUncheckedCreateWithoutReplenishmentInput>;
+    create: Prisma.XOR<Prisma.ProductionOrderCreateWithoutReplenishmentsInput, Prisma.ProductionOrderUncheckedCreateWithoutReplenishmentsInput>;
 };
-export type ProductionOrderUpsertWithoutReplenishmentInput = {
-    update: Prisma.XOR<Prisma.ProductionOrderUpdateWithoutReplenishmentInput, Prisma.ProductionOrderUncheckedUpdateWithoutReplenishmentInput>;
-    create: Prisma.XOR<Prisma.ProductionOrderCreateWithoutReplenishmentInput, Prisma.ProductionOrderUncheckedCreateWithoutReplenishmentInput>;
+export type ProductionOrderUpsertWithoutReplenishmentsInput = {
+    update: Prisma.XOR<Prisma.ProductionOrderUpdateWithoutReplenishmentsInput, Prisma.ProductionOrderUncheckedUpdateWithoutReplenishmentsInput>;
+    create: Prisma.XOR<Prisma.ProductionOrderCreateWithoutReplenishmentsInput, Prisma.ProductionOrderUncheckedCreateWithoutReplenishmentsInput>;
     where?: Prisma.ProductionOrderWhereInput;
 };
-export type ProductionOrderUpdateToOneWithWhereWithoutReplenishmentInput = {
+export type ProductionOrderUpdateToOneWithWhereWithoutReplenishmentsInput = {
     where?: Prisma.ProductionOrderWhereInput;
-    data: Prisma.XOR<Prisma.ProductionOrderUpdateWithoutReplenishmentInput, Prisma.ProductionOrderUncheckedUpdateWithoutReplenishmentInput>;
+    data: Prisma.XOR<Prisma.ProductionOrderUpdateWithoutReplenishmentsInput, Prisma.ProductionOrderUncheckedUpdateWithoutReplenishmentsInput>;
 };
-export type ProductionOrderUpdateWithoutReplenishmentInput = {
+export type ProductionOrderUpdateWithoutReplenishmentsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     assignedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -913,7 +913,7 @@ export type ProductionOrderUpdateWithoutReplenishmentInput = {
     materialIssues?: Prisma.MaterialIssueUpdateManyWithoutProductionOrderNestedInput;
     runs?: Prisma.ProductionRunUpdateManyWithoutProductionOrderNestedInput;
 };
-export type ProductionOrderUncheckedUpdateWithoutReplenishmentInput = {
+export type ProductionOrderUncheckedUpdateWithoutReplenishmentsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     assignedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
@@ -952,7 +952,7 @@ export type ProductionOrderUpdateWithoutAssignedByInput = {
     status?: Prisma.StringFieldUpdateOperationsInput | string;
     bom?: Prisma.BomUpdateOneRequiredWithoutProductionOrdersNestedInput;
     assignedTo?: Prisma.EmployeeUpdateOneRequiredWithoutReceivedOrdersNestedInput;
-    replenishment?: Prisma.ReplenishmentRequestUpdateOneWithoutProductionOrderNestedInput;
+    replenishments?: Prisma.ReplenishmentRequestUpdateManyWithoutProductionOrderNestedInput;
     materialShortages?: Prisma.MaterialShortageUpdateManyWithoutProductionOrderNestedInput;
     materialIssues?: Prisma.MaterialIssueUpdateManyWithoutProductionOrderNestedInput;
     runs?: Prisma.ProductionRunUpdateManyWithoutProductionOrderNestedInput;
@@ -965,7 +965,7 @@ export type ProductionOrderUncheckedUpdateWithoutAssignedByInput = {
     status?: Prisma.StringFieldUpdateOperationsInput | string;
     bomId?: Prisma.StringFieldUpdateOperationsInput | string;
     assignedToId?: Prisma.StringFieldUpdateOperationsInput | string;
-    replenishment?: Prisma.ReplenishmentRequestUncheckedUpdateOneWithoutProductionOrderNestedInput;
+    replenishments?: Prisma.ReplenishmentRequestUncheckedUpdateManyWithoutProductionOrderNestedInput;
     materialShortages?: Prisma.MaterialShortageUncheckedUpdateManyWithoutProductionOrderNestedInput;
     materialIssues?: Prisma.MaterialIssueUncheckedUpdateManyWithoutProductionOrderNestedInput;
     runs?: Prisma.ProductionRunUncheckedUpdateManyWithoutProductionOrderNestedInput;
@@ -987,7 +987,7 @@ export type ProductionOrderUpdateWithoutAssignedToInput = {
     status?: Prisma.StringFieldUpdateOperationsInput | string;
     bom?: Prisma.BomUpdateOneRequiredWithoutProductionOrdersNestedInput;
     assignedBy?: Prisma.EmployeeUpdateOneRequiredWithoutAssignedOrdersNestedInput;
-    replenishment?: Prisma.ReplenishmentRequestUpdateOneWithoutProductionOrderNestedInput;
+    replenishments?: Prisma.ReplenishmentRequestUpdateManyWithoutProductionOrderNestedInput;
     materialShortages?: Prisma.MaterialShortageUpdateManyWithoutProductionOrderNestedInput;
     materialIssues?: Prisma.MaterialIssueUpdateManyWithoutProductionOrderNestedInput;
     runs?: Prisma.ProductionRunUpdateManyWithoutProductionOrderNestedInput;
@@ -1000,7 +1000,7 @@ export type ProductionOrderUncheckedUpdateWithoutAssignedToInput = {
     status?: Prisma.StringFieldUpdateOperationsInput | string;
     bomId?: Prisma.StringFieldUpdateOperationsInput | string;
     assignedById?: Prisma.StringFieldUpdateOperationsInput | string;
-    replenishment?: Prisma.ReplenishmentRequestUncheckedUpdateOneWithoutProductionOrderNestedInput;
+    replenishments?: Prisma.ReplenishmentRequestUncheckedUpdateManyWithoutProductionOrderNestedInput;
     materialShortages?: Prisma.MaterialShortageUncheckedUpdateManyWithoutProductionOrderNestedInput;
     materialIssues?: Prisma.MaterialIssueUncheckedUpdateManyWithoutProductionOrderNestedInput;
     runs?: Prisma.ProductionRunUncheckedUpdateManyWithoutProductionOrderNestedInput;
@@ -1031,7 +1031,7 @@ export type ProductionOrderUpdateWithoutBomInput = {
     status?: Prisma.StringFieldUpdateOperationsInput | string;
     assignedBy?: Prisma.EmployeeUpdateOneRequiredWithoutAssignedOrdersNestedInput;
     assignedTo?: Prisma.EmployeeUpdateOneRequiredWithoutReceivedOrdersNestedInput;
-    replenishment?: Prisma.ReplenishmentRequestUpdateOneWithoutProductionOrderNestedInput;
+    replenishments?: Prisma.ReplenishmentRequestUpdateManyWithoutProductionOrderNestedInput;
     materialShortages?: Prisma.MaterialShortageUpdateManyWithoutProductionOrderNestedInput;
     materialIssues?: Prisma.MaterialIssueUpdateManyWithoutProductionOrderNestedInput;
     runs?: Prisma.ProductionRunUpdateManyWithoutProductionOrderNestedInput;
@@ -1044,7 +1044,7 @@ export type ProductionOrderUncheckedUpdateWithoutBomInput = {
     status?: Prisma.StringFieldUpdateOperationsInput | string;
     assignedById?: Prisma.StringFieldUpdateOperationsInput | string;
     assignedToId?: Prisma.StringFieldUpdateOperationsInput | string;
-    replenishment?: Prisma.ReplenishmentRequestUncheckedUpdateOneWithoutProductionOrderNestedInput;
+    replenishments?: Prisma.ReplenishmentRequestUncheckedUpdateManyWithoutProductionOrderNestedInput;
     materialShortages?: Prisma.MaterialShortageUncheckedUpdateManyWithoutProductionOrderNestedInput;
     materialIssues?: Prisma.MaterialIssueUncheckedUpdateManyWithoutProductionOrderNestedInput;
     runs?: Prisma.ProductionRunUncheckedUpdateManyWithoutProductionOrderNestedInput;
@@ -1059,17 +1059,22 @@ export type ProductionOrderUncheckedUpdateManyWithoutBomInput = {
     assignedToId?: Prisma.StringFieldUpdateOperationsInput | string;
 };
 export type ProductionOrderCountOutputType = {
+    replenishments: number;
     materialShortages: number;
     materialIssues: number;
     runs: number;
 };
 export type ProductionOrderCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    replenishments?: boolean | ProductionOrderCountOutputTypeCountReplenishmentsArgs;
     materialShortages?: boolean | ProductionOrderCountOutputTypeCountMaterialShortagesArgs;
     materialIssues?: boolean | ProductionOrderCountOutputTypeCountMaterialIssuesArgs;
     runs?: boolean | ProductionOrderCountOutputTypeCountRunsArgs;
 };
 export type ProductionOrderCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.ProductionOrderCountOutputTypeSelect<ExtArgs> | null;
+};
+export type ProductionOrderCountOutputTypeCountReplenishmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    where?: Prisma.ReplenishmentRequestWhereInput;
 };
 export type ProductionOrderCountOutputTypeCountMaterialShortagesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     where?: Prisma.MaterialShortageWhereInput;
@@ -1092,7 +1097,7 @@ export type ProductionOrderSelect<ExtArgs extends runtime.Types.Extensions.Inter
     bom?: boolean | Prisma.BomDefaultArgs<ExtArgs>;
     assignedBy?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>;
     assignedTo?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>;
-    replenishment?: boolean | Prisma.ProductionOrder$replenishmentArgs<ExtArgs>;
+    replenishments?: boolean | Prisma.ProductionOrder$replenishmentsArgs<ExtArgs>;
     materialShortages?: boolean | Prisma.ProductionOrder$materialShortagesArgs<ExtArgs>;
     materialIssues?: boolean | Prisma.ProductionOrder$materialIssuesArgs<ExtArgs>;
     runs?: boolean | Prisma.ProductionOrder$runsArgs<ExtArgs>;
@@ -1139,7 +1144,7 @@ export type ProductionOrderInclude<ExtArgs extends runtime.Types.Extensions.Inte
     bom?: boolean | Prisma.BomDefaultArgs<ExtArgs>;
     assignedBy?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>;
     assignedTo?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>;
-    replenishment?: boolean | Prisma.ProductionOrder$replenishmentArgs<ExtArgs>;
+    replenishments?: boolean | Prisma.ProductionOrder$replenishmentsArgs<ExtArgs>;
     materialShortages?: boolean | Prisma.ProductionOrder$materialShortagesArgs<ExtArgs>;
     materialIssues?: boolean | Prisma.ProductionOrder$materialIssuesArgs<ExtArgs>;
     runs?: boolean | Prisma.ProductionOrder$runsArgs<ExtArgs>;
@@ -1161,7 +1166,7 @@ export type $ProductionOrderPayload<ExtArgs extends runtime.Types.Extensions.Int
         bom: Prisma.$BomPayload<ExtArgs>;
         assignedBy: Prisma.$EmployeePayload<ExtArgs>;
         assignedTo: Prisma.$EmployeePayload<ExtArgs>;
-        replenishment: Prisma.$ReplenishmentRequestPayload<ExtArgs> | null;
+        replenishments: Prisma.$ReplenishmentRequestPayload<ExtArgs>[];
         materialShortages: Prisma.$MaterialShortagePayload<ExtArgs>[];
         materialIssues: Prisma.$MaterialIssuePayload<ExtArgs>[];
         runs: Prisma.$ProductionRunPayload<ExtArgs>[];
@@ -1230,7 +1235,7 @@ export interface Prisma__ProductionOrderClient<T, Null = never, ExtArgs extends 
     bom<T extends Prisma.BomDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.BomDefaultArgs<ExtArgs>>): Prisma.Prisma__BomClient<runtime.Types.Result.GetResult<Prisma.$BomPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>;
     assignedBy<T extends Prisma.EmployeeDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EmployeeDefaultArgs<ExtArgs>>): Prisma.Prisma__EmployeeClient<runtime.Types.Result.GetResult<Prisma.$EmployeePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>;
     assignedTo<T extends Prisma.EmployeeDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EmployeeDefaultArgs<ExtArgs>>): Prisma.Prisma__EmployeeClient<runtime.Types.Result.GetResult<Prisma.$EmployeePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>;
-    replenishment<T extends Prisma.ProductionOrder$replenishmentArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProductionOrder$replenishmentArgs<ExtArgs>>): Prisma.Prisma__ReplenishmentRequestClient<runtime.Types.Result.GetResult<Prisma.$ReplenishmentRequestPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>;
+    replenishments<T extends Prisma.ProductionOrder$replenishmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProductionOrder$replenishmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReplenishmentRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     materialShortages<T extends Prisma.ProductionOrder$materialShortagesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProductionOrder$materialShortagesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MaterialShortagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     materialIssues<T extends Prisma.ProductionOrder$materialIssuesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProductionOrder$materialIssuesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MaterialIssuePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     runs<T extends Prisma.ProductionOrder$runsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProductionOrder$runsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProductionRunPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
@@ -1348,11 +1353,16 @@ export type ProductionOrderDeleteManyArgs<ExtArgs extends runtime.Types.Extensio
     where?: Prisma.ProductionOrderWhereInput;
     limit?: number;
 };
-export type ProductionOrder$replenishmentArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type ProductionOrder$replenishmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.ReplenishmentRequestSelect<ExtArgs> | null;
     omit?: Prisma.ReplenishmentRequestOmit<ExtArgs> | null;
     include?: Prisma.ReplenishmentRequestInclude<ExtArgs> | null;
     where?: Prisma.ReplenishmentRequestWhereInput;
+    orderBy?: Prisma.ReplenishmentRequestOrderByWithRelationInput | Prisma.ReplenishmentRequestOrderByWithRelationInput[];
+    cursor?: Prisma.ReplenishmentRequestWhereUniqueInput;
+    take?: number;
+    skip?: number;
+    distinct?: Prisma.ReplenishmentRequestScalarFieldEnum | Prisma.ReplenishmentRequestScalarFieldEnum[];
 };
 export type ProductionOrder$materialShortagesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.MaterialShortageSelect<ExtArgs> | null;

@@ -1,0 +1,11 @@
+export const ROLE_PRESETS = [
+    { id: 'warehouse-manager', name: 'Quản lý kho', workspace: 'Kho & Chế biến', description: 'Quản lý danh mục, nhập/cấp/hoàn, hao hụt và duyệt xuất. Có thể giao lệnh, nghiệm thu thay trưởng bếp.', permissions: ['catalog:manage', 'inventory:view', 'receipt:create', 'receipt:post', 'material:approve', 'waste:approve', 'export:approve', 'production:manage', 'production:inspect', 'bom:manage', 'report:stock'] },
+    { id: 'warehouse-staff', name: 'Nhân viên kho', workspace: 'Kho & Chế biến', description: 'Lập phiếu nhập và phiếu chuyển thành phẩm sang cửa hàng; không tự duyệt ghi sổ.', permissions: ['inventory:view', 'receipt:create', 'material:view', 'export:request'] },
+    { id: 'head-chef', name: 'Trưởng bếp', workspace: 'Kho & Chế biến', description: 'Quản lý công thức, lập kế hoạch chế biến, giao lệnh và nghiệm thu theo quyền được cấp.', permissions: ['bom:manage', 'production:manage', 'production:inspect', 'production:perform', 'material:request', 'waste:request', 'inventory:view', 'report:stock'] },
+    { id: 'cook', name: 'Nhân viên chế biến', workspace: 'Kho & Chế biến', description: 'Thực hiện lệnh được giao, cấp/hoàn/báo thiếu và ghi tiêu hao tại web Kho & Chế biến.', permissions: ['production:perform', 'material:request', 'waste:request'] },
+    { id: 'restaurant-manager', name: 'Quản lý nhà hàng', workspace: 'Quản lý nhà hàng', description: 'Điều hành bàn/đơn, tồn cửa hàng, hoàn/hao hụt, giá bán, thu tiền và báo cáo.', permissions: ['sale:view', 'sale:create', 'dining:manage', 'product:price', 'payment:create', 'store:manage', 'report:sales'] },
+    { id: 'waiter', name: 'Nhân viên phục vụ', workspace: 'Quản lý nhà hàng', description: 'Nhận món trong lượng cửa hàng còn sẵn, đổi/hủy món chưa mang ra và theo dõi phục vụ.', permissions: ['sale:view', 'sale:create'] },
+    { id: 'cashier', name: 'Thu ngân', workspace: 'Quản lý nhà hàng', description: 'Đối chiếu đơn đã phục vụ và thu tiền; không tự xuất kho.', permissions: ['sale:view', 'payment:create'] },
+    { id: 'system-admin', name: 'Admin hệ thống', workspace: 'Admin system', description: 'Quản trị toàn hệ thống; không phải bước duyệt bắt buộc trong luồng phục vụ.', permissions: ['*'] },
+];
+//# sourceMappingURL=role-presets.js.map

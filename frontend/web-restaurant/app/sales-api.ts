@@ -1,7 +1,7 @@
-export type User = { id: string; username: string; name: string; permissions: string[] };
-export type Product = { available: string; allocations: { lineId: string; ready: string; missing: string }[]; id: string; code: string; name: string; sellingPrice: string; stock: string; unit: { symbol: string }; category: { name: string } };
+export type User = { id: string; username: string; name: string; roleName?: string; permissions: string[] };
+export type Product = { available: string; allocations: { lineId: string; ready: string; missing: string; pending: string }[]; id: string; code: string; name: string; sellingPrice: string; stock: string; unit: { symbol: string }; category: { name: string } };
 export type DiningTable = { x: number; y: number; id: string; name: string; area: string; status: string };
-export type SaleLine = { changes: { id: string; changedAt: string; previousQuantity: string; quantity: string; reason: string; replacementLineId: string | null; changedBy: { name: string } }[]; servings: { id: string; quantity: string; servedAt: string; servedBy: { name: string } }[]; replenishments: { id: string; quantity: string; status: string; productionOrder: { id: string; status: string } | null }[]; note: string; sentAt: string | null; batch: number | null; id: string; productId: string; productName: string; quantity: string; unitPrice: string; product: { unit: { symbol: string } } };
+export type SaleLine = { changes: { id: string; changedAt: string; previousQuantity: string; quantity: string; reason: string; replacementLineId: string | null; changedBy: { name: string } }[]; replenishments: { id: string; quantity: string; status: string; note: string; productionOrder: { id: string; status: string; dueAt: string | null; assignedTo: { name: string }; assignedBy: { name: string }; runs: { status: string; actualQuantity: string; acceptedQuantity: string | null }[] } | null }[]; note: string; sentAt: string | null; batch: number | null; id: string; productId: string; productName: string; quantity: string; unitPrice: string; product: { unit: { symbol: string } } };
 export type ExportDoc = { id: string; status: string; requestedAt: string; reason: string; requestedBy: { name: string }; reviewedBy: { name: string } | null; lines: { id: string; saleLineId: string; requestedQuantity: string; exportedQuantity: string | null }[] };
 export type Sale = { version: number; tableId: string | null; table: DiningTable | null; id: string; code: string; status: string; createdAt: string; total: string; createdBy: { name: string }; lines: SaleLine[]; exports: ExportDoc[]; payment: { amount: string; method: string; status: string; paidAt: string } | null };
 export const TOKEN = 'restaurant_session';
@@ -14,7 +14,7 @@ export async function api<T>(path: string, method = 'GET', body?: unknown): Prom
   const token = sessionStorage.getItem(TOKEN);
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/restaurant/${path}`, { method, cache: 'no-store', headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...(body === undefined ? {} : { 'Content-Type': 'application/json' }) }, body: body === undefined ? undefined : JSON.stringify(body) });
   const result = await response.json().catch(() => ({ message: 'Phản hồi không hợp lệ' }));
-  if (response.status === 401 && path !== 'auth/login') { sessionStorage.removeItem(TOKEN); window.dispatchEvent(new Event('restaurant-session-ended')); }
+  if (response.status === 401 && path !== 'auth/login' && token && sessionStorage.getItem(TOKEN) === token) { sessionStorage.removeItem(TOKEN); window.dispatchEvent(new Event('restaurant-session-ended')); }
   if (!response.ok) throw new Error(Array.isArray(result.message) ? result.message.join('; ') : result.message || 'Thao tác thất bại');
   return result as T;
 }

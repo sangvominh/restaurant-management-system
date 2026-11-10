@@ -2,8 +2,9 @@ import { randomUUID } from 'node:crypto';
 import { BadRequestException, ConflictException, ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { Prisma } from '../generated/prisma/client.js';
+import { productAvailability } from '../inventory/product-availability.js';
 import type { AdminUser } from '../admin/admin-auth.service.js';
-const include = { table: true, createdBy: { select: { id: true, name: true } }, lines: { orderBy: { id: 'asc' as const }, include: { changes: { include: { changedBy: { select: { name: true } } } }, servings: { include: { servedBy: { select: { name: true } } } }, replenishments: { include: { productionOrder: { select: { id: true, status: true } } } }, product: { include: { unit: true } } } }, payment: true, exports: { include: { requestedBy: { select: { name: true } }, reviewedBy: { select: { name: true } }, lines: true }, orderBy: { requestedAt: 'desc' as const } } } as const;
+const include = { table: true, createdBy: { select: { id: true, name: true } }, lines: { orderBy: { id: 'asc' as const }, include: { changes: { include: { changedBy: { select: { name: true } } } }, replenishments: { orderBy: { requestedAt: 'desc' as const }, include: { productionOrder: { select: { id: true, status: true, dueAt: true, assignedTo: { select: { name: true, accountId: true } }, assignedBy: { select: { name: true } }, runs: { select: { status: true, actualQuantity: true, acceptedQuantity: true } } } } } }, product: { include: { unit: true } } } }, payment: true, exports: { include: { requestedBy: { select: { name: true } }, reviewedBy: { select: { name: true } }, lines: true }, orderBy: { requestedAt: 'desc' as const } } } as const;
 function object(v: unknown): Record<string, unknown> { if (!v || typeof v !== 'object' || Array.isArray(v)) throw new BadRequestException('Dữ liệu không hợp lệ'); return v as Record<string, unknown>; }
 function uuid(v: unknown) { if (typeof v !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v)) throw new BadRequestException('ID không hợp lệ'); return v; }
 function quantity(v: unknown) { if (!['string', 'number'].includes(typeof v) || !/^\d{1,15}(\.\d{1,3})?$/.test(String(v))) throw new BadRequestException('Số lượng không hợp lệ'); const q = new Prisma.Decimal(String(v)); if (q.lte(0)) throw new BadRequestException('Số lượng phải dương'); return q; }
@@ -14,23 +15,33 @@ export class SalesService {
   constructor(private readonly db: PrismaService) {}
   async products() {
     return this.db.$transaction(async tx => {
-      const [products, moves, demand] = await Promise.all([tx.product.findMany({ where: { status: 'ACTIVE' }, include: { unit: true, category: true }, orderBy: { code: 'asc' } }), tx.productMovement.findMany(), tx.saleLine.findMany({ where: { sentAt: { not: null }, sale: { status: 'CONFIRMED' } }, orderBy: [{ sentAt: 'asc' }, { id: 'asc' }], include: { exportLines: { include: { export: true } } } })]);
-      return products.map(p => {
-        const stock = moves.filter(m => m.productId === p.id).reduce((q, m) => m.movementType === 'NHAP_SAN_XUAT' ? q.plus(m.quantity) : q.minus(m.quantity), new Prisma.Decimal(0));
-        let remaining = Prisma.Decimal.max(0, stock);
-        const allocations = demand.filter(l => l.productId === p.id).map(l => {
-          const exported = Prisma.Decimal.sum(0, ...l.exportLines.filter(e => e.export.status === 'APPROVED').map(e => e.exportedQuantity || 0));
-          const needed = Prisma.Decimal.max(0, l.quantity.minus(exported));
-          const ready = Prisma.Decimal.min(remaining, needed); remaining = remaining.minus(ready);
-          return { lineId: l.id, ready, missing: needed.minus(ready) };
-        });
-        return { ...p, stock, available: remaining, allocations };
-      });
-    }, { isolationLevel: 'RepeatableRead' });
+      const products = await tx.product.findMany({ where: { status: 'ACTIVE' }, include: { unit: true, category: true }, orderBy: { code: 'asc' } });
+      return Promise.all(products.map(async p => ({ ...p, ...await productAvailability(tx, p.id) })));
+    }, { isolationLevel: 'RepeatableRead', timeout: 15000 });
+  }
+  async salesReport(month: string) {
+    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month || '')) throw new BadRequestException('Chọn tháng báo cáo hợp lệ');
+    const [year, numberMonth] = month.split('-').map(Number);
+    if (year < 2000 || year > 9999) throw new BadRequestException('Chọn năm từ 2000 đến 9999');
+    const start = new Date(month + '-01T00:00:00+07:00'), end = new Date(Date.UTC(year, numberMonth, 1) - 25200000);
+    const sales = await this.db.sale.findMany({ where: { status: 'COMPLETED', payment: { status: 'PAID', paidAt: { gte: start, lt: end } } }, include: { payment: true, lines: { include: { product: { include: { unit: true } } } } } });
+    const products = new Map<string, { id: string; name: string; unit: string; quantity: Prisma.Decimal; revenue: Prisma.Decimal }>();
+    for (const s of sales) for (const l of s.lines.filter(l => l.quantity.gt(0))) {
+      const p = products.get(l.productId) || { id: l.productId, name: l.productName, unit: l.product.unit.symbol, quantity: new Prisma.Decimal(0), revenue: new Prisma.Decimal(0) };
+      p.quantity = p.quantity.plus(l.quantity); p.revenue = p.revenue.plus(l.quantity.mul(l.unitPrice)); products.set(p.id, p);
+    }
+    const paid = (method?: string) => Prisma.Decimal.sum(0, ...sales.filter(s => !method || s.payment?.method === method).map(s => s.payment!.amount));
+    return { month, orders: sales.length, paid: paid(), cash: paid('CASH'), transfer: paid('TRANSFER'), products: [...products.values()].sort((a, b) => b.revenue.cmp(a.revenue)) };
+  }
+  async setPrice(productId: string, input: unknown) {
+    const b = object(input);
+    if (!['string', 'number'].includes(typeof b.price) || !/^\d{1,16}(\.\d{1,2})?$/.test(String(b.price))) throw new BadRequestException('Giá bán phải không âm, tối đa 2 chữ số lẻ');
+    return this.db.product.update({ where: { id: uuid(productId) }, data: { sellingPrice: new Prisma.Decimal(String(b.price)) }, select: { id: true, sellingPrice: true } });
   }
   async list() { return (await this.db.sale.findMany({ include, orderBy: { createdAt: 'desc' } })).map(serialized); }
   async save(input: unknown, user: AdminUser, existingId?: string) {
     const b = object(input);
+    if (b.confirm !== undefined && typeof b.confirm !== 'boolean') throw new BadRequestException('Trạng thái xác nhận không hợp lệ');
     if (!Array.isArray(b.lines) || b.lines.length > 100) throw new BadRequestException('Tối đa 100 dòng mỗi lần sửa');
     const requested = b.lines.map(v => {
       const l = object(v);
@@ -70,9 +81,11 @@ export class SalesService {
           if (id) await tx.saleLine.update({ where: { id }, data: fields });
           else await tx.saleLine.create({ data: { ...fields, saleId: current.id } });
         }
-        return serialized(await tx.sale.update({ where: { id: current.id }, data: { version: { increment: 1 } }, include }));
+        const updated = await tx.sale.update({ where: { id: current.id }, data: { version: { increment: 1 } }, include });
+        return serialized(b.confirm ? await this.confirmLines(tx, updated, employee.id) : updated);
       }
-      return serialized(await tx.sale.create({ data: { code: 'DB-' + randomUUID().replaceAll('-', '').slice(0, 16).toUpperCase(), tableId, createdById: employee.id, lines: { create: lines.map(({ id, ...l }) => l) } }, include }));
+      const created = await tx.sale.create({ data: { code: 'DB-' + randomUUID().replaceAll('-', '').slice(0, 16).toUpperCase(), tableId, createdById: employee.id, lines: { create: lines.map(({ id, ...l }) => l) } }, include });
+      return serialized(b.confirm ? await this.confirmLines(tx, created, employee.id) : created);
     });
   }
   async changeLine(saleId: string, input: unknown, user: AdminUser) {
@@ -88,8 +101,7 @@ export class SalesService {
       const line = sale.lines.find(l => l.id === lineId);
       if (!line?.sentAt) throw new BadRequestException('Chỉ đổi/hủy món đã gửi');
       const exported = Prisma.Decimal.sum(0, ...sale.exports.filter(e => e.status === 'APPROVED').flatMap(e => e.lines.filter(l => l.saleLineId === lineId).map(l => l.exportedQuantity || 0)));
-      const served = Prisma.Decimal.sum(0, ...line.servings.map(v => v.quantity));
-      if (amount.gt(line.quantity.minus(Prisma.Decimal.max(exported, served)))) throw new ConflictException('Chỉ hủy/đổi phần chưa ra món. Phần đã làm cần xử lý hao hụt/miễn phí riêng');
+      if (amount.gt(line.quantity.minus(exported))) throw new ConflictException('Số lượng giảm vượt lượng món còn trên đơn');
       if (line.replenishments.some(r => r.status === 'LINKED' && r.productionOrder && !['COMPLETED','CANCELLED'].includes(r.productionOrder.status))) throw new ConflictException('Có lệnh bổ sung đang chạy; xử lý lệnh trước');
       if (sale.exports.some(e => e.status === 'PENDING' && e.lines.some(l => l.saleLineId === lineId))) throw new ConflictException('Xử lý phiếu xuất chờ duyệt trước khi đổi/hủy');
       let replacementLineId: string | null = null;
@@ -104,49 +116,11 @@ export class SalesService {
       await tx.saleLineChange.create({ data: { saleLineId: lineId, previousQuantity: line.quantity, quantity: amount, reason, changedById: employee.id, replacementLineId } });
       await tx.saleLine.update({ where: { id: lineId }, data: { quantity: line.quantity.minus(amount) } });
       await tx.replenishmentRequest.updateMany({ where: { saleLineId: lineId, status: 'PENDING' }, data: { status: 'CANCELLED', note: 'Thay đổi món: ' + reason } });
-      return serialized(await tx.sale.update({ where: { id: sale.id }, data: { version: { increment: 1 } }, include }));
-    });
-  }
-  async serve(saleId: string, input: unknown, user: AdminUser) {
-    const b = object(input), lineId = uuid(b.lineId), amount = quantity(b.quantity);
-    return this.db.$transaction(async tx => {
-      await tx.$queryRaw`SELECT pg_advisory_xact_lock(8112028)::text`;
-      const employee = await tx.employee.findUnique({ where: { accountId: user.id } });
-      if (!employee || employee.status !== 'ACTIVE') throw new ForbiddenException('Cần liên kết người sử dụng đang hoạt động');
-      const sale = await tx.sale.findUniqueOrThrow({ where: { id: uuid(saleId) }, include });
-      if (sale.status !== 'CONFIRMED' || b.version !== sale.version) throw new ConflictException('Đơn đã thay đổi hoặc đã đóng; mở lại để cập nhật');
-      const line = sale.lines.find(l => l.id === lineId);
-      if (!line?.sentAt) throw new BadRequestException('Món chưa gửi hoặc không thuộc đơn');
-      const exported = Prisma.Decimal.sum(0, ...sale.exports.filter(e => e.status === 'APPROVED').flatMap(e => e.lines.filter(l => l.saleLineId === lineId).map(l => l.exportedQuantity || 0)));
-      const served = Prisma.Decimal.sum(0, ...line.servings.map(v => v.quantity));
-      if (served.plus(amount).gt(exported) || served.plus(amount).gt(line.quantity)) throw new ConflictException('Chỉ ghi phục vụ trong lượng đã xuất và chưa phục vụ');
-      await tx.serving.create({ data: { saleLineId: lineId, servedById: employee.id, quantity: amount } });
-      return serialized(await tx.sale.update({ where: { id: sale.id }, data: { version: { increment: 1 } }, include }));
-    });
-  }
-  async replenish(saleId: string, input: unknown, user: AdminUser) {
-    const b = object(input), lineId = uuid(b.lineId), amount = quantity(b.quantity);
-    return this.db.$transaction(async tx => {
-      await tx.$queryRaw`SELECT pg_advisory_xact_lock(8112028)::text`;
-      const employee = await tx.employee.findUnique({ where: { accountId: user.id } });
-      if (!employee || employee.status !== 'ACTIVE') throw new ForbiddenException('Cần liên kết người sử dụng đang hoạt động');
-      const sale = await tx.sale.findUniqueOrThrow({ where: { id: uuid(saleId) }, include });
-      if (sale.status !== 'CONFIRMED') throw new ConflictException('Đơn không còn phục vụ');
-      const line = sale.lines.find(l => l.id === lineId);
-      if (!line?.sentAt || amount.gt(line.quantity)) throw new BadRequestException('Số lượng bổ sung không hợp lệ');
-      const moves = await tx.productMovement.findMany({ where: { productId: line.productId } });
-      let ready = Prisma.Decimal.max(0, moves.reduce((q, m) => m.movementType === 'NHAP_SAN_XUAT' ? q.plus(m.quantity) : q.minus(m.quantity), new Prisma.Decimal(0)));
-      const demand = await tx.saleLine.findMany({ where: { productId: line.productId, sentAt: { not: null }, sale: { status: 'CONFIRMED' } }, orderBy: [{ sentAt: 'asc' }, { id: 'asc' }], include: { exportLines: { include: { export: true } } } });
-      let missing = new Prisma.Decimal(0);
-      for (const l of demand) {
-        const exported = Prisma.Decimal.sum(0, ...l.exportLines.filter(e => e.export.status === 'APPROVED').map(e => e.exportedQuantity || 0));
-        const needed = Prisma.Decimal.max(0, l.quantity.minus(exported)), allocated = Prisma.Decimal.min(ready, needed);
-        ready = ready.minus(allocated);
-        if (l.id === lineId) missing = needed.minus(allocated);
+      if (replacementLineId) {
+        const replacement = await tx.saleLine.findUniqueOrThrow({ where: { id: replacementLineId } });
+        const allocation = (await productAvailability(tx, replacement.productId)).allocations.find(a => a.lineId === replacement.id);
+        if (!allocation || allocation.missing.gt(0)) throw new ConflictException('Cửa hàng không đủ món thay thế; chọn giảm số lượng hoặc món khác');
       }
-      if (!missing.gt(0) || !amount.eq(missing)) throw new ConflictException('Lượng thiếu đã thay đổi; cập nhật tồn rồi yêu cầu lại');
-      if (line.replenishments.some(r => r.status === 'PENDING' || r.status === 'LINKED' && r.productionOrder && !['CANCELLED','COMPLETED'].includes(r.productionOrder.status))) throw new ConflictException('Đã có yêu cầu bổ sung đang xử lý cho dòng này');
-      await tx.replenishmentRequest.create({ data: { saleLineId: lineId, quantity: amount, requestedById: employee.id } });
       return serialized(await tx.sale.update({ where: { id: sale.id }, data: { version: { increment: 1 } }, include }));
     });
   }
@@ -177,28 +151,6 @@ export class SalesService {
       return tx.diningTable.delete({ where: { id } });
     });
   }
-  async ready(saleId: string, input: unknown, user: AdminUser) {
-    const b = object(input), lineId = uuid(b.lineId), amount = quantity(b.quantity);
-    return this.db.$transaction(async tx => {
-      await tx.$queryRaw`SELECT pg_advisory_xact_lock(8112028)::text`;
-      const employee = await tx.employee.findUnique({ where: { accountId: user.id } });
-      if (!employee || employee.status !== 'ACTIVE') throw new ForbiddenException('Cần liên kết người sử dụng đang hoạt động');
-      const sale = await tx.sale.findUniqueOrThrow({ where: { id: uuid(saleId) }, include });
-      if (sale.status !== 'CONFIRMED' || b.version !== sale.version) throw new ConflictException('Đơn đã thay đổi; cập nhật lại');
-      const line = sale.lines.find(l => l.id === lineId);
-      if (!line?.sentAt) throw new BadRequestException('Món chưa gửi');
-      const exported = Prisma.Decimal.sum(0, ...sale.exports.filter(e => e.status === 'APPROVED').flatMap(e => e.lines.filter(l => l.saleLineId === lineId).map(l => l.exportedQuantity || 0)));
-      if (exported.plus(amount).gt(line.quantity)) throw new ConflictException('Vượt số lượng còn cần chuẩn bị');
-      if (sale.exports.some(e => e.status === 'PENDING' && e.lines.some(l => l.saleLineId === lineId))) throw new ConflictException('Có phiếu xuất cũ chờ kho duyệt; xử lý phiếu đó trước');
-      const moves = await tx.productMovement.findMany({ where: { productId: line.productId } });
-      const stock = moves.reduce((q,m) => m.movementType === 'NHAP_SAN_XUAT' ? q.plus(m.quantity) : q.minus(m.quantity), new Prisma.Decimal(0));
-      const pending = await tx.productExportLine.findMany({ where: { saleLine: { productId: line.productId }, export: { status: 'PENDING' } } });
-      if (line.product.status !== 'ACTIVE' || stock.minus(Prisma.Decimal.sum(0, ...pending.map(l=>l.requestedQuantity))).lt(amount)) throw new ConflictException('Chưa đủ thành phẩm sẵn. Báo quản lý yêu cầu bổ sung');
-      const doc = await tx.productExport.create({ data: { saleId: sale.id, requestedById: employee.id, reviewedById: employee.id, approvedAt: new Date(), status: 'APPROVED', reason: 'Ra món theo đơn ' + sale.code, lines: { create: { saleLineId: lineId, requestedQuantity: amount, exportedQuantity: amount } } }, include: { lines: true } });
-      await tx.productMovement.create({ data: { productId: line.productId, quantity: amount, movementType: 'XUAT_BAN', exportLineId: doc.lines[0].id } });
-      return serialized(await tx.sale.update({ where: { id: sale.id }, data: { version: { increment: 1 } }, include }));
-    });
-  }
   async tables() { return this.db.diningTable.findMany({ orderBy: [{ area: 'asc' }, { name: 'asc' }] }); }
   async saveTable(input: unknown, tableId?: string) {
     const b = object(input);
@@ -224,42 +176,49 @@ export class SalesService {
       return tableId ? tx.diningTable.update({ where: { id: uuid(tableId) }, data }) : tx.diningTable.create({ data });
     });
   }
+  private async confirmLines(tx: Prisma.TransactionClient, sale: Prisma.SaleGetPayload<{ include: typeof include }>, employeeId: string) {
+    if (!['DRAFT', 'CONFIRMED'].includes(sale.status) || sale.payment) throw new ConflictException('Đơn đã đóng');
+    if (sale.exports.some(e => ['PENDING', 'APPROVED'].includes(e.status))) throw new ConflictException('Đơn đang dùng chứng từ xuất bán cũ; dùng đơn mới cho luồng cửa hàng');
+    const draft = sale.lines.filter(l => !l.sentAt);
+    if (!draft.length) return sale;
+    if (draft.some(l => l.product.status !== 'ACTIVE')) throw new ConflictException('Có món đã ngừng bán; bỏ món này khỏi phần đang chọn');
+    const batch = Math.max(0, ...sale.lines.map(l => l.batch || 0)) + 1;
+    await tx.saleLine.updateMany({ where: { saleId: sale.id, sentAt: null }, data: { sentAt: new Date(), batch, sentById: employeeId } });
+    await tx.sale.update({ where: { id: sale.id }, data: { status: 'CONFIRMED' } });
+    for (const productId of new Set(draft.map(l => l.productId))) {
+      const availability = await productAvailability(tx, productId);
+      if (draft.some(l => l.productId === productId && (!availability.allocations.find(a => a.lineId === l.id) || availability.allocations.find(a => a.lineId === l.id)!.missing.gt(0)))) {
+        const productName = draft.find(l => l.productId === productId)!.productName;
+        throw new ConflictException('Cửa hàng không đủ ' + productName + '. Đơn chưa được thay đổi; giảm số lượng hoặc chọn món khác');
+      }
+    }
+    return tx.sale.update({ where: { id: sale.id }, data: { version: { increment: 1 } }, include });
+  }
   async send(saleId: string, input: unknown, user: AdminUser) {
     const b = object(input);
     return this.db.$transaction(async tx => {
       await tx.$queryRaw`SELECT pg_advisory_xact_lock(8112028)::text`;
       const sale = await tx.sale.findUniqueOrThrow({ where: { id: uuid(saleId) }, include });
-      if (!['DRAFT','CONFIRMED'].includes(sale.status)) throw new ConflictException('Đơn đã đóng');
-      const draft = sale.lines.filter(l => !l.sentAt);
-      if (!draft.length) return serialized(sale);
-      if (b.version !== sale.version) throw new ConflictException('Đơn đã thay đổi, mở lại đơn trước khi gửi món');
-      const sender = await tx.employee.findUnique({ where: { accountId: user.id } });
-      if (!sender || sender.status !== 'ACTIVE') throw new ForbiddenException('Cần liên kết người sử dụng đang hoạt động');
-      if (draft.some(l => l.product.status !== 'ACTIVE')) throw new ConflictException('Có món ngừng bán');
-      const batch = Math.max(0, ...sale.lines.map(l => l.batch || 0)) + 1;
-      await tx.saleLine.updateMany({ where: { saleId, sentAt: null }, data: { sentAt: new Date(), batch, sentById: sender.id } });
-      return serialized(await tx.sale.update({ where: { id: saleId }, data: { status: 'CONFIRMED', version: { increment: 1 } }, include }));
+      if (b.version !== sale.version) throw new ConflictException('Đơn đã thay đổi; tải lại trước khi xác nhận món');
+      const employee = await tx.employee.findUnique({ where: { accountId: user.id } });
+      if (!employee || employee.status !== 'ACTIVE') throw new ForbiddenException('Cần liên kết người sử dụng đang hoạt động');
+      return serialized(await this.confirmLines(tx, sale, employee.id));
     });
   }
 
-  async action(saleId: string, action: 'confirm' | 'cancel' | 'pay', input: unknown, user: AdminUser) {
+  async action(saleId: string, action: 'cancel' | 'pay', input: unknown, user: AdminUser) {
     return this.db.$transaction(async tx => {
       await tx.$queryRaw`SELECT pg_advisory_xact_lock(8112028)::text`;
       const sale = await tx.sale.findUniqueOrThrow({ where: { id: uuid(saleId) }, include });
       const employee = await tx.employee.findUnique({ where: { accountId: user.id } });
       if (!employee || employee.status !== 'ACTIVE') throw new ForbiddenException('Cần liên kết người sử dụng đang hoạt động');
-      if (action === 'confirm') {
-        if (sale.status !== 'DRAFT' || !sale.lines.length) throw new ConflictException('Chỉ xác nhận đơn nháp có thành phẩm');
-        if (sale.lines.some(l => l.product.status !== 'ACTIVE')) throw new BadRequestException('Đơn có thành phẩm ngừng bán');
-        await tx.saleLine.updateMany({ where: { saleId: sale.id, sentAt: null }, data: { sentAt: new Date(), batch: 1, sentById: employee.id } });
-        return serialized(await tx.sale.update({ where: { id: sale.id }, data: { status: 'CONFIRMED', version: { increment: 1 } }, include }));
-      }
       if (action === 'cancel') {
         const b = object(input);
         if(typeof b.reason !== 'string' || !b.reason.trim() || b.reason.length>500 || b.version!==sale.version) throw new ConflictException('Cần lý do hủy và phiên bản đơn hiện tại');
         const reason = b.reason.trim();
-        if (sale.lines.some(l => l.replenishments.some(r => r.status === 'PENDING' || r.status === 'LINKED' && r.productionOrder && !['CANCELLED','COMPLETED'].includes(r.productionOrder.status)))) throw new ConflictException('Cần xử lý yêu cầu/lệnh bổ sung đang chạy trước khi hủy đơn');
+        if (sale.lines.some(l => l.replenishments.some(r => r.status === 'LINKED' && r.productionOrder && !['CANCELLED','COMPLETED'].includes(r.productionOrder.status)))) throw new ConflictException('Cần xử lý yêu cầu/lệnh bổ sung đang chạy trước khi hủy đơn');
         if (!['DRAFT', 'CONFIRMED'].includes(sale.status) || sale.payment || sale.exports.some(e => ['PENDING', 'APPROVED'].includes(e.status))) throw new ConflictException('Chỉ hủy đơn chưa thanh toán và không có phiếu xuất chờ duyệt/đã xuất');
+        await tx.replenishmentRequest.updateMany({ where: { saleLine: { saleId: sale.id }, status: 'PENDING' }, data: { status: 'CANCELLED', note: 'Hủy đơn: ' + reason } });
         for(const l of sale.lines.filter(l=>l.quantity.gt(0))) {
           await tx.saleLineChange.create({data:{saleLineId:l.id,previousQuantity:l.quantity,quantity:l.quantity,reason,changedById:employee.id}});
           await tx.saleLine.update({where:{id:l.id},data:{quantity:0}});
@@ -269,24 +228,17 @@ export class SalesService {
       const b = object(input);
       if (!['CASH', 'TRANSFER'].includes(String(b.method))) throw new BadRequestException('Chọn tiền mặt hoặc chuyển khoản');
       if (sale.status !== 'CONFIRMED' || sale.payment) throw new ConflictException('Đơn phải đã xác nhận và chưa thanh toán');
-      if (sale.lines.some(l => !l.sentAt)) throw new ConflictException('Còn món chưa gửi, cần xử lý trước thanh toán');
+      if (sale.lines.some(l => !l.sentAt)) throw new ConflictException('Còn món chưa xác nhận, cần xử lý trước thanh toán');
       if (b.version !== sale.version) throw new ConflictException('Hóa đơn đã thay đổi, kiểm tra lại trước khi thu tiền');
       if (total(sale.lines).lte(0)) throw new BadRequestException('Đơn không còn món tính tiền; hãy đóng đơn không tính tiền');
-      if (sale.lines.some(l => l.replenishments.some(r => r.status === 'PENDING' || r.status === 'LINKED' && r.productionOrder && !['CANCELLED','COMPLETED'].includes(r.productionOrder.status)))) throw new ConflictException('Còn yêu cầu bổ sung đang xử lý; chốt kết quả trước khi tính tiền');
       if (sale.exports.some(e => e.status === 'PENDING')) throw new ConflictException('Xử lý phiếu xuất cũ đang chờ trước khi đóng đơn');
-      const missing = sale.lines.map(l => ({ line: l, quantity: l.quantity.minus(Prisma.Decimal.sum(0, ...sale.exports.filter(e => e.status === 'APPROVED').flatMap(e => e.lines.filter(x => x.saleLineId === l.id).map(x => x.exportedQuantity || 0)))) }));
-      if (missing.some(l => l.quantity.lt(0))) throw new ConflictException('Lượng đã xuất vượt hóa đơn, cần đối chiếu');
-      const needs = missing.filter(l => l.quantity.gt(0));
-      for (const productId of new Set(needs.map(l=>l.line.productId))) {
-        const moves = await tx.productMovement.findMany({ where: { productId } });
-        const stock = moves.reduce((q,m)=>m.movementType === 'NHAP_SAN_XUAT'?q.plus(m.quantity):q.minus(m.quantity),new Prisma.Decimal(0));
-        const pending = await tx.productExportLine.findMany({ where: { saleLine: { productId }, export: { status:'PENDING' } } });
-        const needed = Prisma.Decimal.sum(0,...needs.filter(l=>l.line.productId===productId).map(l=>l.quantity));
-        if (stock.minus(Prisma.Decimal.sum(0,...pending.map(l=>l.requestedQuantity))).lt(needed)) throw new ConflictException('Tồn thành phẩm không khớp: bổ sung hoặc xử lý món không phục vụ trước khi chốt');
+      if (sale.exports.some(e => e.status === 'APPROVED')) throw new ConflictException('Đơn thuộc luồng xuất bán cũ. Không chuyển sang tồn cửa hàng tự động; dùng đơn mới để kiểm thử luồng mới');
+      for (const productId of new Set(sale.lines.map(l => l.productId))) {
+        const availability = await productAvailability(tx, productId);
+        if (sale.lines.some(l => l.productId === productId && l.quantity.gt(0) && (!availability.allocations.find(a => a.lineId === l.id) || availability.allocations.find(a => a.lineId === l.id)!.missing.gt(0)))) throw new ConflictException('Tồn cửa hàng không đủ cho đơn; đối chiếu trước khi thanh toán');
       }
-      if (needs.length) {
-        const doc = await tx.productExport.create({ data: { saleId:sale.id,status:'APPROVED',requestedById:employee.id,reviewedById:employee.id,approvedAt:new Date(),reason:'Chốt bán hàng '+sale.code,lines:{create:needs.map(l=>({saleLineId:l.line.id,requestedQuantity:l.quantity,exportedQuantity:l.quantity}))} },include:{lines:true} });
-        for(const l of doc.lines) await tx.productMovement.create({data:{productId:sale.lines.find(x=>x.id===l.saleLineId)!.productId,quantity:l.exportedQuantity!,movementType:'XUAT_BAN',exportLineId:l.id}});
+      for (const line of sale.lines.filter(l => l.quantity.gt(0))) {
+        await tx.storeMovement.create({ data: { productId: line.productId, quantity: line.quantity, movementType: 'SALE', saleLineId: line.id } });
       }
       await tx.payment.create({ data: { saleId: sale.id, amount: total(sale.lines), receivedById: employee.id, method: String(b.method), status: 'PAID', paidAt: new Date() } });
       return serialized(await tx.sale.update({ where: { id: sale.id }, data: { status: 'COMPLETED', closedAt: new Date(), closedById: employee.id, version: { increment: 1 } }, include }));

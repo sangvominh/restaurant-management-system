@@ -178,9 +178,6 @@ export type RoleScalarRelationFilter = {
     is?: Prisma.RoleWhereInput;
     isNot?: Prisma.RoleWhereInput;
 };
-export type StringFieldUpdateOperationsInput = {
-    set?: string;
-};
 export type NullableStringFieldUpdateOperationsInput = {
     set?: string | null;
 };

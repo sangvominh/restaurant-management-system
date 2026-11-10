@@ -3,6 +3,7 @@ export interface AdminUser {
     id: string;
     username: string;
     name: string;
+    roleName: string;
     permissions: string[];
 }
 export declare class AdminAuthService {
@@ -15,6 +16,7 @@ export declare class AdminAuthService {
             id: string;
             username: string;
             name: string;
+            roleName: string;
             permissions: string[];
         };
     }>;

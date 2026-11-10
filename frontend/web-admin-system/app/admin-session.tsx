@@ -20,6 +20,9 @@ export default function AdminSession() {
     return () => { active = false; window.removeEventListener('admin-session-ended', ended); };
   }, []);
 
+  useEffect(() => {
+    document.title = user ? `${user.roleName || user.username} · ${user.username} | Admin system` : 'Đăng nhập | Admin system';
+  }, [user]);
   async function login(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setBusy(true); setError('');
     const form = new FormData(event.currentTarget);

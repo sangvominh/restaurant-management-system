@@ -43,7 +43,7 @@ model ProductionOrder {
   assignedBy Employee @relation("ProductionOrder_assignedBy", fields: [assignedById], references: [id], onDelete: Restrict)
   assignedToId String @db.Uuid
   assignedTo Employee @relation("ProductionOrder_assignedTo", fields: [assignedToId], references: [id], onDelete: Restrict)
-  replenishment ReplenishmentRequest?
+  replenishments ReplenishmentRequest[]
   materialShortages MaterialShortage[]
   materialIssues MaterialIssue[] @relation("MaterialIssue_productionOrder")
   runs ProductionRun[] @relation("ProductionRun_productionOrder")

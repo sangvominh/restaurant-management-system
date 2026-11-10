@@ -1,5 +1,17 @@
 # Khởi tạo Admin
 
+## Dữ liệu mẫu nhà hàng BBQ
+
+Xem [hướng dẫn và các ca kiểm thử](../prisma/SAMPLE-BBQ.md). Bộ mẫu dành cho mô hình chuẩn bị trước, bán hết thì nghỉ, gồm kịch bản `service` và `sold-out`.
+
+```powershell
+npm run seed:sample -- --date=2026-11-10
+```
+
+Mặc định chỉ xem trước, không kết nối DB. Nạp vào CSDL test bằng `--apply` và biến môi trường `SAMPLE_DATA_PASSWORD` theo hướng dẫn.
+
+## Tài khoản Admin ban đầu
+
 Thêm INITIAL_ADMIN_USERNAME và INITIAL_ADMIN_PASSWORD vào backend/.env. Mật khẩu từ 8 đến 128 ký tự, không commit .env.
 
 Sau khi đã generate Prisma Client và chạy migration, chạy trong backend:
