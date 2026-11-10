@@ -43,21 +43,6 @@ export declare class SalesController {
             name: string;
         };
         lines: ({
-            product: {
-                unit: {
-                    symbol: string;
-                    id: string;
-                    name: string;
-                };
-            } & {
-                id: string;
-                status: string;
-                name: string;
-                code: string;
-                unitId: string;
-                categoryId: string;
-                sellingPrice: import("@prisma/client-runtime-utils").Decimal;
-            };
             servings: ({
                 servedBy: {
                     name: string;
@@ -84,6 +69,21 @@ export declare class SalesController {
                 saleLineId: string;
                 productionOrderId: string | null;
             })[];
+            product: {
+                unit: {
+                    symbol: string;
+                    id: string;
+                    name: string;
+                };
+            } & {
+                id: string;
+                status: string;
+                name: string;
+                code: string;
+                unitId: string;
+                categoryId: string;
+                sellingPrice: import("@prisma/client-runtime-utils").Decimal;
+            };
             changes: ({
                 changedBy: {
                     name: string;
@@ -214,21 +214,6 @@ export declare class SalesController {
             name: string;
         };
         lines: ({
-            product: {
-                unit: {
-                    symbol: string;
-                    id: string;
-                    name: string;
-                };
-            } & {
-                id: string;
-                status: string;
-                name: string;
-                code: string;
-                unitId: string;
-                categoryId: string;
-                sellingPrice: import("@prisma/client-runtime-utils").Decimal;
-            };
             servings: ({
                 servedBy: {
                     name: string;
@@ -255,6 +240,21 @@ export declare class SalesController {
                 saleLineId: string;
                 productionOrderId: string | null;
             })[];
+            product: {
+                unit: {
+                    symbol: string;
+                    id: string;
+                    name: string;
+                };
+            } & {
+                id: string;
+                status: string;
+                name: string;
+                code: string;
+                unitId: string;
+                categoryId: string;
+                sellingPrice: import("@prisma/client-runtime-utils").Decimal;
+            };
             changes: ({
                 changedBy: {
                     name: string;
@@ -339,21 +339,6 @@ export declare class SalesController {
             name: string;
         };
         lines: ({
-            product: {
-                unit: {
-                    symbol: string;
-                    id: string;
-                    name: string;
-                };
-            } & {
-                id: string;
-                status: string;
-                name: string;
-                code: string;
-                unitId: string;
-                categoryId: string;
-                sellingPrice: import("@prisma/client-runtime-utils").Decimal;
-            };
             servings: ({
                 servedBy: {
                     name: string;
@@ -380,6 +365,21 @@ export declare class SalesController {
                 saleLineId: string;
                 productionOrderId: string | null;
             })[];
+            product: {
+                unit: {
+                    symbol: string;
+                    id: string;
+                    name: string;
+                };
+            } & {
+                id: string;
+                status: string;
+                name: string;
+                code: string;
+                unitId: string;
+                categoryId: string;
+                sellingPrice: import("@prisma/client-runtime-utils").Decimal;
+            };
             changes: ({
                 changedBy: {
                     name: string;
@@ -464,21 +464,6 @@ export declare class SalesController {
             name: string;
         };
         lines: ({
-            product: {
-                unit: {
-                    symbol: string;
-                    id: string;
-                    name: string;
-                };
-            } & {
-                id: string;
-                status: string;
-                name: string;
-                code: string;
-                unitId: string;
-                categoryId: string;
-                sellingPrice: import("@prisma/client-runtime-utils").Decimal;
-            };
             servings: ({
                 servedBy: {
                     name: string;
@@ -505,6 +490,21 @@ export declare class SalesController {
                 saleLineId: string;
                 productionOrderId: string | null;
             })[];
+            product: {
+                unit: {
+                    symbol: string;
+                    id: string;
+                    name: string;
+                };
+            } & {
+                id: string;
+                status: string;
+                name: string;
+                code: string;
+                unitId: string;
+                categoryId: string;
+                sellingPrice: import("@prisma/client-runtime-utils").Decimal;
+            };
             changes: ({
                 changedBy: {
                     name: string;
@@ -625,21 +625,6 @@ export declare class SalesController {
             name: string;
         };
         lines: ({
-            product: {
-                unit: {
-                    symbol: string;
-                    id: string;
-                    name: string;
-                };
-            } & {
-                id: string;
-                status: string;
-                name: string;
-                code: string;
-                unitId: string;
-                categoryId: string;
-                sellingPrice: import("@prisma/client-runtime-utils").Decimal;
-            };
             servings: ({
                 servedBy: {
                     name: string;
@@ -666,6 +651,21 @@ export declare class SalesController {
                 saleLineId: string;
                 productionOrderId: string | null;
             })[];
+            product: {
+                unit: {
+                    symbol: string;
+                    id: string;
+                    name: string;
+                };
+            } & {
+                id: string;
+                status: string;
+                name: string;
+                code: string;
+                unitId: string;
+                categoryId: string;
+                sellingPrice: import("@prisma/client-runtime-utils").Decimal;
+            };
             changes: ({
                 changedBy: {
                     name: string;
@@ -750,21 +750,6 @@ export declare class SalesController {
             name: string;
         };
         lines: ({
-            product: {
-                unit: {
-                    symbol: string;
-                    id: string;
-                    name: string;
-                };
-            } & {
-                id: string;
-                status: string;
-                name: string;
-                code: string;
-                unitId: string;
-                categoryId: string;
-                sellingPrice: import("@prisma/client-runtime-utils").Decimal;
-            };
             servings: ({
                 servedBy: {
                     name: string;
@@ -791,6 +776,21 @@ export declare class SalesController {
                 saleLineId: string;
                 productionOrderId: string | null;
             })[];
+            product: {
+                unit: {
+                    symbol: string;
+                    id: string;
+                    name: string;
+                };
+            } & {
+                id: string;
+                status: string;
+                name: string;
+                code: string;
+                unitId: string;
+                categoryId: string;
+                sellingPrice: import("@prisma/client-runtime-utils").Decimal;
+            };
             changes: ({
                 changedBy: {
                     name: string;
@@ -875,21 +875,6 @@ export declare class SalesController {
             name: string;
         };
         lines: ({
-            product: {
-                unit: {
-                    symbol: string;
-                    id: string;
-                    name: string;
-                };
-            } & {
-                id: string;
-                status: string;
-                name: string;
-                code: string;
-                unitId: string;
-                categoryId: string;
-                sellingPrice: import("@prisma/client-runtime-utils").Decimal;
-            };
             servings: ({
                 servedBy: {
                     name: string;
@@ -916,6 +901,21 @@ export declare class SalesController {
                 saleLineId: string;
                 productionOrderId: string | null;
             })[];
+            product: {
+                unit: {
+                    symbol: string;
+                    id: string;
+                    name: string;
+                };
+            } & {
+                id: string;
+                status: string;
+                name: string;
+                code: string;
+                unitId: string;
+                categoryId: string;
+                sellingPrice: import("@prisma/client-runtime-utils").Decimal;
+            };
             changes: ({
                 changedBy: {
                     name: string;
@@ -1000,21 +1000,6 @@ export declare class SalesController {
             name: string;
         };
         lines: ({
-            product: {
-                unit: {
-                    symbol: string;
-                    id: string;
-                    name: string;
-                };
-            } & {
-                id: string;
-                status: string;
-                name: string;
-                code: string;
-                unitId: string;
-                categoryId: string;
-                sellingPrice: import("@prisma/client-runtime-utils").Decimal;
-            };
             servings: ({
                 servedBy: {
                     name: string;
@@ -1041,6 +1026,21 @@ export declare class SalesController {
                 saleLineId: string;
                 productionOrderId: string | null;
             })[];
+            product: {
+                unit: {
+                    symbol: string;
+                    id: string;
+                    name: string;
+                };
+            } & {
+                id: string;
+                status: string;
+                name: string;
+                code: string;
+                unitId: string;
+                categoryId: string;
+                sellingPrice: import("@prisma/client-runtime-utils").Decimal;
+            };
             changes: ({
                 changedBy: {
                     name: string;
@@ -1125,21 +1125,6 @@ export declare class SalesController {
             name: string;
         };
         lines: ({
-            product: {
-                unit: {
-                    symbol: string;
-                    id: string;
-                    name: string;
-                };
-            } & {
-                id: string;
-                status: string;
-                name: string;
-                code: string;
-                unitId: string;
-                categoryId: string;
-                sellingPrice: import("@prisma/client-runtime-utils").Decimal;
-            };
             servings: ({
                 servedBy: {
                     name: string;
@@ -1166,6 +1151,21 @@ export declare class SalesController {
                 saleLineId: string;
                 productionOrderId: string | null;
             })[];
+            product: {
+                unit: {
+                    symbol: string;
+                    id: string;
+                    name: string;
+                };
+            } & {
+                id: string;
+                status: string;
+                name: string;
+                code: string;
+                unitId: string;
+                categoryId: string;
+                sellingPrice: import("@prisma/client-runtime-utils").Decimal;
+            };
             changes: ({
                 changedBy: {
                     name: string;
@@ -1250,21 +1250,6 @@ export declare class SalesController {
             name: string;
         };
         lines: ({
-            product: {
-                unit: {
-                    symbol: string;
-                    id: string;
-                    name: string;
-                };
-            } & {
-                id: string;
-                status: string;
-                name: string;
-                code: string;
-                unitId: string;
-                categoryId: string;
-                sellingPrice: import("@prisma/client-runtime-utils").Decimal;
-            };
             servings: ({
                 servedBy: {
                     name: string;
@@ -1291,6 +1276,21 @@ export declare class SalesController {
                 saleLineId: string;
                 productionOrderId: string | null;
             })[];
+            product: {
+                unit: {
+                    symbol: string;
+                    id: string;
+                    name: string;
+                };
+            } & {
+                id: string;
+                status: string;
+                name: string;
+                code: string;
+                unitId: string;
+                categoryId: string;
+                sellingPrice: import("@prisma/client-runtime-utils").Decimal;
+            };
             changes: ({
                 changedBy: {
                     name: string;
@@ -1375,21 +1375,6 @@ export declare class SalesController {
             name: string;
         };
         lines: ({
-            product: {
-                unit: {
-                    symbol: string;
-                    id: string;
-                    name: string;
-                };
-            } & {
-                id: string;
-                status: string;
-                name: string;
-                code: string;
-                unitId: string;
-                categoryId: string;
-                sellingPrice: import("@prisma/client-runtime-utils").Decimal;
-            };
             servings: ({
                 servedBy: {
                     name: string;
@@ -1416,6 +1401,21 @@ export declare class SalesController {
                 saleLineId: string;
                 productionOrderId: string | null;
             })[];
+            product: {
+                unit: {
+                    symbol: string;
+                    id: string;
+                    name: string;
+                };
+            } & {
+                id: string;
+                status: string;
+                name: string;
+                code: string;
+                unitId: string;
+                categoryId: string;
+                sellingPrice: import("@prisma/client-runtime-utils").Decimal;
+            };
             changes: ({
                 changedBy: {
                     name: string;

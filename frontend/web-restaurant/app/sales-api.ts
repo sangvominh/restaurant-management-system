@@ -8,7 +8,7 @@ export const TOKEN = 'restaurant_session';
 export const can = (u: User, ...rights: string[]) => u.permissions.includes('*') || rights.some(p => u.permissions.includes(p));
 export const fmt = (v: string | number) => Number(v).toLocaleString('vi-VN', { maximumFractionDigits: 3 });
 export const money = (v: string | number) => Number(v).toLocaleString('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 2 });
-export const statuses: Record<string, string> = { DRAFT: 'Nháp', CONFIRMED: 'Đã xác nhận', COMPLETED: 'Đã thanh toán', CANCELLED: 'Đã hủy', PENDING: 'Chờ kho duyệt', APPROVED: 'Đã xuất', REJECTED: 'Từ chối' };
+export const statuses: Record<string, string> = { DRAFT: 'Nháp', CONFIRMED: 'Đang phục vụ', COMPLETED: 'Đã thanh toán', CANCELLED: 'Đã hủy', PENDING: 'Chờ kho duyệt', APPROVED: 'Đã xuất', REJECTED: 'Từ chối' };
 export function dispatched(sale: Sale, lineId: string, reserve = false) { return sale.exports.reduce((n, e) => n + e.lines.filter(l => l.saleLineId === lineId).reduce((s, l) => s + (e.status === 'APPROVED' ? Number(l.exportedQuantity || 0) : reserve && e.status === 'PENDING' ? Number(l.requestedQuantity) : 0), 0), 0); }
 export async function api<T>(path: string, method = 'GET', body?: unknown): Promise<T> {
   const token = sessionStorage.getItem(TOKEN);

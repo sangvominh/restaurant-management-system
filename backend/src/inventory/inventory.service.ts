@@ -86,7 +86,9 @@ export class InventoryService {
       const data = { supplierId, note: b.note ? text(b.note, 'Ghi chú', 1000) : null };
       if (receiptId) {
         await tx.materialReceiptLine.deleteMany({ where: { receiptId } });
-        return tx.materialReceipt.update({ where: { id: receiptId }, data: { ...data, lines: { create: details } }, include });
+        const updated = await tx.materialReceipt.update({ where: { id: receiptId }, data: { ...data, lines: { create: details } }, include });
+        await tx.materialLot.deleteMany({ where: { id: { in: current!.lines.map(l => l.lotId) }, receiptLines: { none: {} }, issueLines: { none: {} }, movements: { none: {} }, wasteLines: { none: {} } } });
+        return updated;
       }
       let code: string;
       do { code = generatedCode('PN'); } while (await tx.materialReceipt.findUnique({ where: { code } }));
@@ -113,10 +115,11 @@ export class InventoryService {
   async remove(receiptId: string, user: AdminUser) {
     return this.db.$transaction(async tx => {
       await tx.$queryRaw`SELECT pg_advisory_xact_lock(8112027)::text`;
-      const receipt = await tx.materialReceipt.findUniqueOrThrow({ where: { id: id(receiptId) }, include: { createdBy: true } });
+      const receipt = await tx.materialReceipt.findUniqueOrThrow({ where: { id: id(receiptId) }, include: { createdBy: true, lines: true } });
       this.editable(receipt, user);
       await tx.materialReceiptLine.deleteMany({ where: { receiptId } });
       await tx.materialReceipt.delete({ where: { id: receiptId } });
+      await tx.materialLot.deleteMany({ where: { id: { in: receipt.lines.map(l => l.lotId) }, receiptLines: { none: {} }, issueLines: { none: {} }, movements: { none: {} }, wasteLines: { none: {} } } });
       return { message: 'Đã xóa phiếu nháp' };
     });
   }

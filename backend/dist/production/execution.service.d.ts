@@ -163,12 +163,12 @@ export declare class ExecutionService {
             } & {
                 id: string;
                 status: string;
-                productionOrderId: string;
                 recordedAt: Date;
                 actualQuantity: import("@prisma/client-runtime-utils").Decimal;
                 acceptedQuantity: import("@prisma/client-runtime-utils").Decimal | null;
                 inspectedAt: Date | null;
                 inspectionNote: string | null;
+                productionOrderId: string;
                 performedById: string;
                 inspectedById: string | null;
             })[];
@@ -213,6 +213,17 @@ export declare class ExecutionService {
     act(id: string, input: unknown, user: AdminUser): Promise<{
         id: string;
         status: string;
+        recordedAt: Date;
+        actualQuantity: import("@prisma/client-runtime-utils").Decimal;
+        acceptedQuantity: import("@prisma/client-runtime-utils").Decimal | null;
+        inspectedAt: Date | null;
+        inspectionNote: string | null;
+        productionOrderId: string;
+        performedById: string;
+        inspectedById: string | null;
+    } | {
+        id: string;
+        status: string;
         quantity: import("@prisma/client-runtime-utils").Decimal;
         bomId: string;
         assignedAt: Date;
@@ -244,16 +255,5 @@ export declare class ExecutionService {
         requestedAt: Date;
         requestedById: string;
         productionOrderId: string;
-    } | {
-        id: string;
-        status: string;
-        productionOrderId: string;
-        recordedAt: Date;
-        actualQuantity: import("@prisma/client-runtime-utils").Decimal;
-        acceptedQuantity: import("@prisma/client-runtime-utils").Decimal | null;
-        inspectedAt: Date | null;
-        inspectionNote: string | null;
-        performedById: string;
-        inspectedById: string | null;
     }>;
 }

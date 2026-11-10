@@ -57,8 +57,10 @@ let ShortageService = class ShortageService {
                     const lots = await tx.materialLot.findMany({ where: { materialId: current.materialId }, include: { movements: true } });
                     const today = vietnamDay();
                     const stock = lots.filter(l => !l.expiryDate || l.expiryDate.toISOString().slice(0, 10) >= today).reduce((sum, l) => sum.plus(l.movements.reduce((q, m) => q.plus(m.toSource === 'TRONG_KHO' ? m.quantity : 0).minus(m.fromSource === 'TRONG_KHO' ? m.quantity : 0), new Prisma.Decimal(0))), new Prisma.Decimal(0));
-                    if (material.status !== 'ACTIVE' || stock.lt(current.quantity))
-                        throw new ConflictException('Kho chưa đủ lượng còn hạn theo báo thiếu. Nhập và ghi sổ bổ sung trước');
+                    const deliveredLines = await tx.materialIssueLine.findMany({ where: { lotId: { in: lots.filter(l => !l.expiryDate || l.expiryDate.toISOString().slice(0, 10) >= today).map(l => l.id) }, issue: { productionOrderId: current.productionOrderId, status: 'APPROVED', approvedAt: { gte: current.requestedAt } } }, include: { returnLines: { include: { return: true } } } });
+                    const delivered = Prisma.Decimal.sum(0, ...deliveredLines.map(l => Prisma.Decimal.max(0, (l.issuedQuantity || new Prisma.Decimal(0)).minus(Prisma.Decimal.sum(0, ...l.returnLines.filter(r => r.return.status !== 'REJECTED').map(r => r.quantity))))));
+                    if (material.status !== 'ACTIVE' || stock.plus(delivered).lt(current.quantity))
+                        throw new ConflictException('Tồn còn hạn và lượng đã cấp sau báo thiếu chưa đủ. Cần bổ sung hoặc phản hồi không đáp ứng');
                 }
                 return tx.materialShortage.update({ where: { id: current.id }, data: { status: String(b.status), reviewNote: text(b.reviewNote), reviewedById: employee.id }, include });
             }

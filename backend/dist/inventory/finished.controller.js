@@ -13,10 +13,13 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 import { Body, Controller, ForbiddenException, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { CatalogGuard } from '../catalog/catalog.guard.js';
 import { FinishedService } from './finished.service.js';
+import { WarehouseReportService } from './warehouse-report.service.js';
 let FinishedController = class FinishedController {
     service;
-    constructor(service) {
+    reports;
+    constructor(service, reports) {
         this.service = service;
+        this.reports = reports;
     }
     allow(r, ...rights) { if (!r.catalogUser.permissions.includes('*') && !rights.some(p => r.catalogUser.permissions.includes(p)))
         throw new ForbiddenException('Chưa có quyền chức năng này'); }
@@ -26,6 +29,7 @@ let FinishedController = class FinishedController {
     approve(id, r) { this.allow(r, 'export:approve'); return this.service.review(id, true, r.catalogUser); }
     reject(id, r) { this.allow(r, 'export:approve'); return this.service.review(id, false, r.catalogUser); }
     stock(r) { this.allow(r, 'inventory:view'); return this.service.report('products'); }
+    analytics(start, end, horizon, r) { this.allow(r, 'report:stock'); return this.reports.read(start, end, horizon); }
     report(kind, start, end, r) { this.allow(r, 'report:stock'); if (!start || !end)
         throw new ForbiddenException('Cần chọn kỳ báo cáo'); return this.service.report(kind, start, end); }
 };
@@ -75,6 +79,16 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], FinishedController.prototype, "stock", null);
 __decorate([
+    Get('warehouse-report'),
+    __param(0, Query('start')),
+    __param(1, Query('end')),
+    __param(2, Query('horizon')),
+    __param(3, Req()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String, Object]),
+    __metadata("design:returntype", void 0)
+], FinishedController.prototype, "analytics", null);
+__decorate([
     Get('stock-report'),
     __param(0, Query('kind')),
     __param(1, Query('start')),
@@ -87,7 +101,7 @@ __decorate([
 FinishedController = __decorate([
     Controller('api/warehouse'),
     UseGuards(CatalogGuard),
-    __metadata("design:paramtypes", [FinishedService])
+    __metadata("design:paramtypes", [FinishedService, WarehouseReportService])
 ], FinishedController);
 export { FinishedController };
 //# sourceMappingURL=finished.controller.js.map

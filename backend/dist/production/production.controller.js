@@ -39,7 +39,7 @@ let ProductionController = class ProductionController {
     activate(id, r) { this.allow(r, 'bom:manage'); return this.service.bomAction(id, 'activate'); }
     rejectReplenishment(id, b, r) { this.allow(r, 'production:manage'); return this.service.rejectReplenishment(id, b); }
     replenishments(r) { this.allow(r, 'production:manage'); return this.service.replenishments(); }
-    orders(r) { this.allow(r, 'production:manage', 'production:perform', 'material:approve', 'production:inspect', 'waste:approve'); return this.service.orders(r.catalogUser); }
+    orders(r) { this.allow(r, 'production:manage', 'production:perform', 'material:approve', 'production:inspect', 'waste:approve', 'material:request', 'waste:request'); return this.service.orders(r.catalogUser); }
     detail(id, r) { return this.execution.detail(id, r.catalogUser); }
     execute(id, b, r) { return this.execution.act(id, b, r.catalogUser); }
     createOrder(b, r) { this.allow(r, 'production:manage'); return this.service.createOrder(b, r.catalogUser); }

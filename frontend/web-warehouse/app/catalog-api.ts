@@ -17,7 +17,8 @@ export async function api<T>(path: string, method = 'GET', body?: unknown): Prom
     body: body === undefined ? undefined : JSON.stringify(body),
   });
   const result = await response.json().catch(() => ({ message: 'Phản hồi từ backend không hợp lệ' }));
-  if (response.status === 401 && path !== 'auth/login') {
+  // Phản hồi trễ của phiên cũ không được xóa phiên vừa đăng nhập lại.
+  if (response.status === 401 && path !== 'auth/login' && token && sessionStorage.getItem(TOKEN_KEY) === token) {
     sessionStorage.removeItem(TOKEN_KEY); window.dispatchEvent(new Event('warehouse-session-ended'));
   }
   if (!response.ok) throw new Error(Array.isArray(result.message) ? result.message.join('; ') : result.message || 'Thao tác thất bại');

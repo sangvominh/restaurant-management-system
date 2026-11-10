@@ -18,7 +18,9 @@ export class ExecutionService {
   async detail(id: string, user: AdminUser) {
     const order = await this.db.productionOrder.findUniqueOrThrow({ where: { id: uuid(id) }, include: { assignedTo: true, bom: { include: { product: { include: { unit: true } }, lines: { include: { material: { include: { unit: true } } } } } }, materialIssues: { include: { requestedBy: true, lines: { include: lineInclude } }, orderBy: { requestedAt: 'asc' } }, runs: { include: { consumptions: true }, orderBy: { recordedAt: 'asc' } } } });
     if (order.assignedTo.accountId !== user.id && !user.permissions.some(p => ['*', 'production:manage', 'material:approve', 'production:inspect', 'waste:approve'].includes(p))) throw new ForbiddenException('Không có quyền xem lệnh');
-    const lots = await this.db.materialLot.findMany({ where: { materialId: { in: order.bom.lines.map(l => l.materialId) } }, include: { material: { include: { unit: true } }, movements: true }, orderBy: { expiryDate: 'asc' } });
+    // Bao gồm cả lô đã cấp ngoài BOM ở dữ liệu cũ để vẫn xử lý hoàn/hao hụt được.
+    const materialIds = [...new Set([...order.bom.lines.map(l => l.materialId), ...order.materialIssues.flatMap(i => i.lines.map(l => l.lot.materialId))])];
+    const lots = await this.db.materialLot.findMany({ where: { materialId: { in: materialIds } }, include: { material: { include: { unit: true } }, movements: true }, orderBy: { expiryDate: 'asc' } });
     return { order, lots: lots.map(({ movements, ...l }) => ({ ...l, daysRemaining: daysRemaining(l.expiryDate?.toISOString().slice(0, 10) || null), stock: movements.reduce((q, m) => q.plus(m.toSource === 'TRONG_KHO' ? m.quantity : 0).minus(m.fromSource === 'TRONG_KHO' ? m.quantity : 0), new Prisma.Decimal(0)) })), balances: order.materialIssues.flatMap(i => i.lines.map(l => ({ id: l.id, remaining: remaining(l) }))) };
   }
   async act(id: string, input: unknown, user: AdminUser) {

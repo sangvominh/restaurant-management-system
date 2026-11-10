@@ -41,7 +41,7 @@ let AdminAuthService = class AdminAuthService {
             throw new ForbiddenException('Tài khoản không có quyền System Admin');
         if (!adminOnly && audience === 'sales' && !codes.some(code => ['*', 'sale:prepare', 'sale:view', 'sale:create', 'export:request', 'payment:create'].includes(code)))
             throw new ForbiddenException('Tài khoản chưa được cấp quyền vào web Bán hàng');
-        if (!adminOnly && audience === 'warehouse' && !codes.some(code => ['*', 'catalog:manage', 'inventory:view', 'product:manage', 'export:request', 'export:approve', 'report:stock', 'material:approve', 'production:inspect', 'waste:approve', 'bom:manage', 'production:manage', 'production:perform', 'receipt:create', 'receipt:post', 'sale:view'].includes(code)))
+        if (!adminOnly && audience === 'warehouse' && !codes.some(code => ['*', 'catalog:manage', 'inventory:view', 'product:manage', 'export:request', 'export:approve', 'report:stock', 'material:approve', 'production:inspect', 'waste:approve', 'bom:manage', 'production:manage', 'production:perform', 'material:request', 'waste:request', 'receipt:create', 'receipt:post', 'sale:view'].includes(code)))
             throw new ForbiddenException('Tài khoản chưa được cấp quyền vào web Kho và sản xuất');
         for (const [id, session] of this.sessions)
             if (session.expiresAt <= Date.now())

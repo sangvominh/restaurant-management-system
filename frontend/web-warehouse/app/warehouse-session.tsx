@@ -1,4 +1,5 @@
 'use client';
+import LoginView from './login-view';
 import { useEffect, useState, type FormEvent } from 'react';
 import { api, TOKEN_KEY, type User } from './catalog-api';
 import WarehouseApp from './warehouse-app';
@@ -7,7 +8,6 @@ export default function WarehouseSession() {
   const [ready, setReady] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [retry, setRetry] = useState(0);
   useEffect(() => {
     let active = true;
     const ended = () => { setUser(null); setError('Phiên đã kết thúc, vui lòng đăng nhập lại.'); };
@@ -17,10 +17,10 @@ export default function WarehouseSession() {
       .catch(err => { if (active) setError(err instanceof Error ? err.message : 'Không kết nối được backend'); })
       .finally(() => { if (active) setReady(true); });
     return () => { active = false; window.removeEventListener('warehouse-session-ended', ended); };
-  }, [retry]);
+  }, []);
   async function login(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); const data = new FormData(event.currentTarget); setBusy(true); setError('');
-    try { const result = await api<{ token: string; user: User }>('auth/login', 'POST', { username: data.get('username'), password: data.get('password') }); sessionStorage.setItem(TOKEN_KEY, result.token); setUser(result.user); }
+    try { const result = await api<{ token: string; user: User }>('auth/login', 'POST', { username: String(data.get('username') || '').trim(), password: data.get('password') }); sessionStorage.setItem(TOKEN_KEY, result.token); setUser(result.user); }
     catch (err) { setError(err instanceof Error ? err.message : 'Không kết nối được backend'); }
     finally { setBusy(false); }
   }
@@ -30,7 +30,8 @@ export default function WarehouseSession() {
     catch (err) { setError(err instanceof Error ? err.message : 'Không đăng xuất được'); }
     finally { setBusy(false); }
   }
-  if (!ready) return <div className="login-screen"><p role="status">Đang kiểm tra phiên…</p></div>;
+  if (!ready) return <LoginView variant="warehouse" ready={false} busy={busy} error="" onSubmit={login} />;
   if (user) return <><WarehouseApp user={user} logout={logout} busy={busy} />{error && <p className="error session-error" role="alert">{error}</p>}</>;
-  return <div className="login-screen"><section className="login-card"><div className="brand">Quản lý kho</div><h1>Đăng nhập kho</h1><p className="login-description">Dùng tài khoản được cấp từ Admin server.</p><form onSubmit={login}><fieldset disabled={busy}><div className="field"><label htmlFor="username">Tên đăng nhập</label><input id="username" name="username" autoComplete="username" required maxLength={100} /></div><div className="field"><label htmlFor="password">Mật khẩu</label><input id="password" name="password" type="password" autoComplete="current-password" required maxLength={128} /></div>{error && <p className="error" role="alert">{error}</p>}<button className="primary">{busy ? 'Đang đăng nhập…' : 'Đăng nhập'}</button></fieldset></form><button className="text-button" style={{ marginTop: 18 }} onClick={() => { setReady(false); setError(''); setRetry(value => value + 1); }}>Kiểm tra lại phiên</button></section></div>;
+  return <LoginView variant="warehouse" busy={busy} error={error} onSubmit={login} />;
 }
+

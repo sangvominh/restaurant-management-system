@@ -1,4 +1,5 @@
 'use client';
+import LoginView from './login-view';
 import { useEffect, useState, type FormEvent } from 'react';
 import { api, TOKEN, type User } from './sales-api';
 import SalesApp from './sales-app';
@@ -13,11 +14,12 @@ export default function RestaurantSession() {
   }, []);
   async function login(e: FormEvent<HTMLFormElement>) {
     e.preventDefault(); const values = new FormData(e.currentTarget); setBusy(true); setError('');
-    try { const r = await api<{ token: string; user: User }>('auth/login', 'POST', { username: values.get('username'), password: values.get('password') }); sessionStorage.setItem(TOKEN, r.token); setUser(r.user); }
+    try { const r = await api<{ token: string; user: User }>('auth/login', 'POST', { username: String(values.get('username') || '').trim(), password: values.get('password') }); sessionStorage.setItem(TOKEN, r.token); setUser(r.user); }
     catch (e) { setError(e instanceof Error ? e.message : 'Không đăng nhập được'); } finally { setBusy(false); }
   }
   async function logout() { setBusy(true); setError(''); try { await api('auth/logout', 'POST'); sessionStorage.removeItem(TOKEN); setUser(null); } catch (e) { setError(e instanceof Error ? e.message : 'Không đăng xuất được'); } finally { setBusy(false); } }
-  if (!ready) return <div className="login-screen">Đang kiểm tra phiên…</div>;
+  if (!ready) return <LoginView variant="restaurant" ready={false} busy={busy} error="" onSubmit={login} />;
   if (user) return <><SalesApp user={user} logout={logout} logoutBusy={busy} />{error && <p className="error session-error">{error}</p>}</>;
-  return <div className="login-screen"><section className="login-card"><p className="eyebrow">NHÀ HÀNG / BÁN HÀNG</p><h1>Đăng nhập</h1><p>Dùng tài khoản được cấp từ Admin System.</p><form onSubmit={login}><fieldset disabled={busy}><label>Tên đăng nhập<input name="username" autoComplete="username" required maxLength={100} /></label><label>Mật khẩu<input name="password" type="password" autoComplete="current-password" required maxLength={128} /></label>{error && <p className="error" role="alert">{error}</p>}<button className="primary">{busy ? 'Đang đăng nhập…' : 'Đăng nhập'}</button></fieldset></form></section></div>;
+  return <LoginView variant="restaurant" busy={busy} error={error} onSubmit={login} />;
 }
+

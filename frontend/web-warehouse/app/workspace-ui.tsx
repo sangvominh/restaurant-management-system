@@ -9,6 +9,7 @@ export function DocumentCard({ type, title, status, tone = '', children, footer,
 }
 export function Drawer({ title, children, onClose, locked = false, form = false }: { title: string; children: ReactNode; onClose: () => void; locked?: boolean; form?: boolean }) {
   const heading = useId(), panel = useRef<HTMLElement>(null), closeRef = useRef(onClose), lockedRef = useRef(locked);
+  const backdropStart = useRef(false);
   useEffect(() => { closeRef.current = onClose; lockedRef.current = locked; });
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null, overflow = document.body.style.overflow;
@@ -25,7 +26,7 @@ export function Drawer({ title, children, onClose, locked = false, form = false 
     document.addEventListener('keydown', key);
     return () => { document.removeEventListener('keydown', key); document.body.style.overflow = overflow; if (previous?.isConnected) previous.focus(); };
   }, []);
-  return <div className="drawer-backdrop" onClick={e => { if (e.target === e.currentTarget && !locked) onClose(); }}><section ref={panel} tabIndex={-1} className={`document-drawer${form ? ' form-dialog' : ''}`} role="dialog" aria-modal="true" aria-labelledby={heading}><div className="drawer-heading"><h2 id={heading}>{title}</h2></div><div className="drawer-body">{children}</div>{!form && <div className="drawer-close-action"><button type="button" disabled={locked} onClick={onClose}>Hủy</button></div>}</section></div>;
+  return <div className="drawer-backdrop" onPointerDown={e => { backdropStart.current = e.target === e.currentTarget; }} onClick={e => { if (backdropStart.current && e.target === e.currentTarget && !locked) onClose(); backdropStart.current = false; }}><section ref={panel} tabIndex={-1} className={`document-drawer${form ? ' form-dialog' : ''}`} role="dialog" aria-modal="true" aria-labelledby={heading}><div className="drawer-heading"><h2 id={heading}>{title}</h2></div><div className="drawer-body">{children}</div>{!form && <div className="drawer-close-action"><button type="button" disabled={locked} onClick={onClose}>Hủy</button></div>}</section></div>;
 }
 export function Modal({ title, children, onClose, locked = false }: { title: string; children: ReactNode; onClose: () => void; locked?: boolean }) {
   return <Drawer title={title} onClose={onClose} locked={locked} form>{children}</Drawer>;
