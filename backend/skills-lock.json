@@ -53,7 +53,7 @@
       "source": "prisma/skills",
       "sourceType": "github",
       "skillPath": "prisma-postgres-setup/SKILL.md",
-      "computedHash": "b6bcd59a53087f398c90983d22e2ee2b6167a69d6474213ed9cd997230237056"
+      "computedHash": "ca3bd8455dccc8fe062da0f842c3d263f013f97608f4806aceb1a05d11577345"
     },
     "prisma-upgrade-v7": {
       "source": "prisma/skills",

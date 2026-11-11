@@ -1,16 +1,10 @@
-import './globals.css';
-import { RestaurantBrandingProvider } from './lib/restaurant-branding';
-
-export const metadata = {
-  title: 'Admin server',
+import type { Metadata } from 'next';
+import type { ReactNode } from 'react';
+import './admin.css';
+export const metadata: Metadata = {
+  title: 'Admin server — MRP Nhà hàng',
+  description: 'Quản lý tài khoản, vai trò và người sử dụng',
 };
-
-// Layout gốc chỉ có html/body để trang /login không bị bọc sidebar.
-// Giao diện quản trị nằm ở app/(admin)/layout.tsx.
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="vi">
-      <body style={{ margin: 0, padding: 0 }}><RestaurantBrandingProvider>{children}</RestaurantBrandingProvider></body>
-    </html>
-  );
+export default function RootLayout({ children }: { children: ReactNode }) {
+  return <html lang="vi"><body>{children}</body></html>;
 }

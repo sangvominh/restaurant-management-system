@@ -1,30 +1,16 @@
-import { StaffModule } from './staff/staff.module.js';
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { PrismaModule } from './prisma/prisma.module.js';
-import { AdminModule } from './api/admin/admin.module.js';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
-import { AuthModule } from './auth/auth.module.js';
-import { BackupModule } from './backup/backup.module.js';
-import { WarehouseModule } from './warehouse/warehouse.module.js';
-import { ProductsModule } from './products/products.module.js';
-import { ReportModule } from './report/report.module.js';
-import { BrandingController } from './branding/branding.controller.js';
+import { PrismaModule } from './prisma/prisma.module.js';
+import { AdminModule } from './admin/admin.module.js';
+import { CatalogModule } from './catalog/catalog.module.js';
+import { InventoryModule } from './inventory/inventory.module.js';
+import { ProductionModule } from './production/production.module.js';
+import { SalesModule } from './sales/sales.module.js';
 
 @Module({
-  imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
-    PrismaModule,
-    AuthModule,
-    AdminModule,
-    BackupModule,
-    ReportModule,
-    WarehouseModule,
-    StaffModule,
-    ProductsModule,
-  ],
-  controllers: [AppController, BrandingController],
+  imports: [PrismaModule, AdminModule, CatalogModule, InventoryModule, ProductionModule, SalesModule],
+  controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {}
