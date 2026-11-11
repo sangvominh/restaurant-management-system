@@ -54,8 +54,8 @@ export declare class CatalogController {
         };
         id: string;
         name: string;
-        status: string;
         code: string;
+        status: string;
         minStock: import("@prisma/client-runtime-utils").Decimal;
         unitId: string;
         categoryId: string;
@@ -64,8 +64,8 @@ export declare class CatalogController {
         canEdit: boolean;
         id: string;
         name: string;
-        status: string;
         code: string;
+        status: string;
         phone: string | null;
         address: string | null;
     } | {
@@ -82,26 +82,26 @@ export declare class CatalogController {
                 } & {
                     id: string;
                     name: string;
-                    status: string;
                     code: string;
+                    status: string;
                     minStock: import("@prisma/client-runtime-utils").Decimal;
                     unitId: string;
                     categoryId: string;
                 };
             } & {
                 id: string;
+                materialId: string;
                 quantity: import("@prisma/client-runtime-utils").Decimal;
                 bomId: string;
-                materialId: string;
             })[];
         } & {
             id: string;
             status: string;
-            version: number;
-            effectiveAt: Date;
-            outputQuantity: import("@prisma/client-runtime-utils").Decimal;
-            productId: string;
             createdById: string;
+            productId: string;
+            version: number;
+            outputQuantity: import("@prisma/client-runtime-utils").Decimal;
+            effectiveAt: Date;
         };
         unit: {
             symbol: string;
@@ -115,10 +115,11 @@ export declare class CatalogController {
         };
         id: string;
         name: string;
-        status: string;
         code: string;
+        status: string;
         unitId: string;
         categoryId: string;
+        supplyType: string;
         sellingPrice: import("@prisma/client-runtime-utils").Decimal;
     })[]>;
     create(value: string, b: unknown, req: CatalogRequest): Promise<{
@@ -132,25 +133,26 @@ export declare class CatalogController {
     } | {
         id: string;
         name: string;
-        status: string;
         code: string;
+        status: string;
         phone: string | null;
         address: string | null;
     } | {
         id: string;
         name: string;
-        status: string;
         code: string;
+        status: string;
         minStock: import("@prisma/client-runtime-utils").Decimal;
         unitId: string;
         categoryId: string;
     } | {
         id: string;
         name: string;
-        status: string;
         code: string;
+        status: string;
         unitId: string;
         categoryId: string;
+        supplyType: string;
         sellingPrice: import("@prisma/client-runtime-utils").Decimal;
     }>;
     update(value: string, id: string, b: unknown, req: CatalogRequest): Promise<{
@@ -164,25 +166,26 @@ export declare class CatalogController {
     } | {
         id: string;
         name: string;
-        status: string;
         code: string;
+        status: string;
         phone: string | null;
         address: string | null;
     } | {
         id: string;
         name: string;
-        status: string;
         code: string;
+        status: string;
         minStock: import("@prisma/client-runtime-utils").Decimal;
         unitId: string;
         categoryId: string;
     } | {
         id: string;
         name: string;
-        status: string;
         code: string;
+        status: string;
         unitId: string;
         categoryId: string;
+        supplyType: string;
         sellingPrice: import("@prisma/client-runtime-utils").Decimal;
     }>;
     remove(value: string, id: string, req: CatalogRequest): Promise<{

@@ -22,10 +22,11 @@ export declare class ProductionController {
         } & {
             id: string;
             name: string;
-            status: string;
             code: string;
+            status: string;
             unitId: string;
             categoryId: string;
+            supplyType: string;
             sellingPrice: import("@prisma/client-runtime-utils").Decimal;
         })[];
         materials: ({
@@ -37,8 +38,8 @@ export declare class ProductionController {
         } & {
             id: string;
             name: string;
-            status: string;
             code: string;
+            status: string;
             minStock: import("@prisma/client-runtime-utils").Decimal;
             unitId: string;
             categoryId: string;
@@ -59,8 +60,8 @@ export declare class ProductionController {
         } & {
             id: string;
             name: string;
-            status: string;
             code: string;
+            status: string;
             minStock: import("@prisma/client-runtime-utils").Decimal;
             unitId: string;
             categoryId: string;
@@ -70,20 +71,21 @@ export declare class ProductionController {
                 product: {
                     id: string;
                     name: string;
-                    status: string;
                     code: string;
+                    status: string;
                     unitId: string;
                     categoryId: string;
+                    supplyType: string;
                     sellingPrice: import("@prisma/client-runtime-utils").Decimal;
                 };
             } & {
                 id: string;
                 status: string;
-                version: number;
-                effectiveAt: Date;
-                outputQuantity: import("@prisma/client-runtime-utils").Decimal;
-                productId: string;
                 createdById: string;
+                productId: string;
+                version: number;
+                outputQuantity: import("@prisma/client-runtime-utils").Decimal;
+                effectiveAt: Date;
             };
         } & {
             id: string;
@@ -105,14 +107,14 @@ export declare class ProductionController {
         id: string;
         updatedAt: Date;
         status: string;
-        quantity: import("@prisma/client-runtime-utils").Decimal;
         materialId: string;
-        reason: string;
+        quantity: import("@prisma/client-runtime-utils").Decimal;
         requestedAt: Date;
+        reason: string;
+        reviewNote: string | null;
+        productionOrderId: string;
         requestedById: string;
         reviewedById: string | null;
-        productionOrderId: string;
-        reviewNote: string | null;
     })[]>;
     reportShortage(b: unknown, r: AuthRequest): Promise<{
         material: {
@@ -124,8 +126,8 @@ export declare class ProductionController {
         } & {
             id: string;
             name: string;
-            status: string;
             code: string;
+            status: string;
             minStock: import("@prisma/client-runtime-utils").Decimal;
             unitId: string;
             categoryId: string;
@@ -135,20 +137,21 @@ export declare class ProductionController {
                 product: {
                     id: string;
                     name: string;
-                    status: string;
                     code: string;
+                    status: string;
                     unitId: string;
                     categoryId: string;
+                    supplyType: string;
                     sellingPrice: import("@prisma/client-runtime-utils").Decimal;
                 };
             } & {
                 id: string;
                 status: string;
-                version: number;
-                effectiveAt: Date;
-                outputQuantity: import("@prisma/client-runtime-utils").Decimal;
-                productId: string;
                 createdById: string;
+                productId: string;
+                version: number;
+                outputQuantity: import("@prisma/client-runtime-utils").Decimal;
+                effectiveAt: Date;
             };
         } & {
             id: string;
@@ -170,14 +173,14 @@ export declare class ProductionController {
         id: string;
         updatedAt: Date;
         status: string;
-        quantity: import("@prisma/client-runtime-utils").Decimal;
         materialId: string;
-        reason: string;
+        quantity: import("@prisma/client-runtime-utils").Decimal;
         requestedAt: Date;
+        reason: string;
+        reviewNote: string | null;
+        productionOrderId: string;
         requestedById: string;
         reviewedById: string | null;
-        productionOrderId: string;
-        reviewNote: string | null;
     }>;
     reviewShortage(id: string, b: unknown, r: AuthRequest): Promise<{
         material: {
@@ -189,8 +192,8 @@ export declare class ProductionController {
         } & {
             id: string;
             name: string;
-            status: string;
             code: string;
+            status: string;
             minStock: import("@prisma/client-runtime-utils").Decimal;
             unitId: string;
             categoryId: string;
@@ -200,20 +203,21 @@ export declare class ProductionController {
                 product: {
                     id: string;
                     name: string;
-                    status: string;
                     code: string;
+                    status: string;
                     unitId: string;
                     categoryId: string;
+                    supplyType: string;
                     sellingPrice: import("@prisma/client-runtime-utils").Decimal;
                 };
             } & {
                 id: string;
                 status: string;
-                version: number;
-                effectiveAt: Date;
-                outputQuantity: import("@prisma/client-runtime-utils").Decimal;
-                productId: string;
                 createdById: string;
+                productId: string;
+                version: number;
+                outputQuantity: import("@prisma/client-runtime-utils").Decimal;
+                effectiveAt: Date;
             };
         } & {
             id: string;
@@ -235,14 +239,14 @@ export declare class ProductionController {
         id: string;
         updatedAt: Date;
         status: string;
-        quantity: import("@prisma/client-runtime-utils").Decimal;
         materialId: string;
-        reason: string;
+        quantity: import("@prisma/client-runtime-utils").Decimal;
         requestedAt: Date;
+        reason: string;
+        reviewNote: string | null;
+        productionOrderId: string;
         requestedById: string;
         reviewedById: string | null;
-        productionOrderId: string;
-        reviewNote: string | null;
     }>;
     boms(r: AuthRequest): import("../generated/prisma/internal/prismaNamespace.js").PrismaPromise<({
         product: {
@@ -254,17 +258,18 @@ export declare class ProductionController {
         } & {
             id: string;
             name: string;
-            status: string;
             code: string;
+            status: string;
             unitId: string;
             categoryId: string;
+            supplyType: string;
             sellingPrice: import("@prisma/client-runtime-utils").Decimal;
         };
         createdBy: {
             id: string;
             name: string;
-            status: string;
             code: string;
+            status: string;
             phone: string | null;
             email: string | null;
             accountId: string | null;
@@ -279,26 +284,26 @@ export declare class ProductionController {
             } & {
                 id: string;
                 name: string;
-                status: string;
                 code: string;
+                status: string;
                 minStock: import("@prisma/client-runtime-utils").Decimal;
                 unitId: string;
                 categoryId: string;
             };
         } & {
             id: string;
+            materialId: string;
             quantity: import("@prisma/client-runtime-utils").Decimal;
             bomId: string;
-            materialId: string;
         })[];
     } & {
         id: string;
         status: string;
-        version: number;
-        effectiveAt: Date;
-        outputQuantity: import("@prisma/client-runtime-utils").Decimal;
-        productId: string;
         createdById: string;
+        productId: string;
+        version: number;
+        outputQuantity: import("@prisma/client-runtime-utils").Decimal;
+        effectiveAt: Date;
     })[]>;
     createBom(b: unknown, r: AuthRequest): Promise<{
         product: {
@@ -310,17 +315,18 @@ export declare class ProductionController {
         } & {
             id: string;
             name: string;
-            status: string;
             code: string;
+            status: string;
             unitId: string;
             categoryId: string;
+            supplyType: string;
             sellingPrice: import("@prisma/client-runtime-utils").Decimal;
         };
         createdBy: {
             id: string;
             name: string;
-            status: string;
             code: string;
+            status: string;
             phone: string | null;
             email: string | null;
             accountId: string | null;
@@ -335,26 +341,26 @@ export declare class ProductionController {
             } & {
                 id: string;
                 name: string;
-                status: string;
                 code: string;
+                status: string;
                 minStock: import("@prisma/client-runtime-utils").Decimal;
                 unitId: string;
                 categoryId: string;
             };
         } & {
             id: string;
+            materialId: string;
             quantity: import("@prisma/client-runtime-utils").Decimal;
             bomId: string;
-            materialId: string;
         })[];
     } & {
         id: string;
         status: string;
-        version: number;
-        effectiveAt: Date;
-        outputQuantity: import("@prisma/client-runtime-utils").Decimal;
-        productId: string;
         createdById: string;
+        productId: string;
+        version: number;
+        outputQuantity: import("@prisma/client-runtime-utils").Decimal;
+        effectiveAt: Date;
     }>;
     updateBom(id: string, b: unknown, r: AuthRequest): Promise<{
         product: {
@@ -366,17 +372,18 @@ export declare class ProductionController {
         } & {
             id: string;
             name: string;
-            status: string;
             code: string;
+            status: string;
             unitId: string;
             categoryId: string;
+            supplyType: string;
             sellingPrice: import("@prisma/client-runtime-utils").Decimal;
         };
         createdBy: {
             id: string;
             name: string;
-            status: string;
             code: string;
+            status: string;
             phone: string | null;
             email: string | null;
             accountId: string | null;
@@ -391,44 +398,44 @@ export declare class ProductionController {
             } & {
                 id: string;
                 name: string;
-                status: string;
                 code: string;
+                status: string;
                 minStock: import("@prisma/client-runtime-utils").Decimal;
                 unitId: string;
                 categoryId: string;
             };
         } & {
             id: string;
+            materialId: string;
             quantity: import("@prisma/client-runtime-utils").Decimal;
             bomId: string;
-            materialId: string;
         })[];
     } & {
         id: string;
         status: string;
-        version: number;
-        effectiveAt: Date;
-        outputQuantity: import("@prisma/client-runtime-utils").Decimal;
-        productId: string;
         createdById: string;
+        productId: string;
+        version: number;
+        outputQuantity: import("@prisma/client-runtime-utils").Decimal;
+        effectiveAt: Date;
     }>;
     deleteBom(id: string, r: AuthRequest): Promise<{
         id: string;
         status: string;
-        version: number;
-        effectiveAt: Date;
-        outputQuantity: import("@prisma/client-runtime-utils").Decimal;
-        productId: string;
         createdById: string;
+        productId: string;
+        version: number;
+        outputQuantity: import("@prisma/client-runtime-utils").Decimal;
+        effectiveAt: Date;
     }>;
     activate(id: string, r: AuthRequest): Promise<{
         id: string;
         status: string;
-        version: number;
-        effectiveAt: Date;
-        outputQuantity: import("@prisma/client-runtime-utils").Decimal;
-        productId: string;
         createdById: string;
+        productId: string;
+        version: number;
+        outputQuantity: import("@prisma/client-runtime-utils").Decimal;
+        effectiveAt: Date;
     }>;
     orders(r: AuthRequest): import("../generated/prisma/internal/prismaNamespace.js").PrismaPromise<({
         bom: {
@@ -441,17 +448,18 @@ export declare class ProductionController {
             } & {
                 id: string;
                 name: string;
-                status: string;
                 code: string;
+                status: string;
                 unitId: string;
                 categoryId: string;
+                supplyType: string;
                 sellingPrice: import("@prisma/client-runtime-utils").Decimal;
             };
             createdBy: {
                 id: string;
                 name: string;
-                status: string;
                 code: string;
+                status: string;
                 phone: string | null;
                 email: string | null;
                 accountId: string | null;
@@ -466,26 +474,26 @@ export declare class ProductionController {
                 } & {
                     id: string;
                     name: string;
-                    status: string;
                     code: string;
+                    status: string;
                     minStock: import("@prisma/client-runtime-utils").Decimal;
                     unitId: string;
                     categoryId: string;
                 };
             } & {
                 id: string;
+                materialId: string;
                 quantity: import("@prisma/client-runtime-utils").Decimal;
                 bomId: string;
-                materialId: string;
             })[];
         } & {
             id: string;
             status: string;
-            version: number;
-            effectiveAt: Date;
-            outputQuantity: import("@prisma/client-runtime-utils").Decimal;
-            productId: string;
             createdById: string;
+            productId: string;
+            version: number;
+            outputQuantity: import("@prisma/client-runtime-utils").Decimal;
+            effectiveAt: Date;
         };
         replenishments: ({
             saleLine: {
@@ -500,22 +508,22 @@ export declare class ProductionController {
                     } | null;
                 } & {
                     id: string;
+                    code: string;
                     status: string;
                     createdAt: Date;
-                    code: string;
-                    version: number;
                     createdById: string;
+                    version: number;
                     closedAt: Date | null;
                     closedById: string | null;
                     tableId: string | null;
                 };
             } & {
                 id: string;
-                productId: string;
+                note: string;
                 quantity: import("@prisma/client-runtime-utils").Decimal;
                 unitPrice: import("@prisma/client-runtime-utils").Decimal;
+                productId: string;
                 sentById: string | null;
-                note: string;
                 sentAt: Date | null;
                 batch: number | null;
                 productName: string;
@@ -524,18 +532,18 @@ export declare class ProductionController {
         } & {
             id: string;
             status: string;
-            quantity: import("@prisma/client-runtime-utils").Decimal;
-            saleLineId: string;
             note: string;
+            quantity: import("@prisma/client-runtime-utils").Decimal;
             requestedAt: Date;
-            requestedById: string;
             productionOrderId: string | null;
+            requestedById: string;
+            saleLineId: string;
         })[];
         assignedBy: {
             id: string;
             name: string;
-            status: string;
             code: string;
+            status: string;
             phone: string | null;
             email: string | null;
             accountId: string | null;
@@ -543,8 +551,8 @@ export declare class ProductionController {
         assignedTo: {
             id: string;
             name: string;
-            status: string;
             code: string;
+            status: string;
             phone: string | null;
             email: string | null;
             accountId: string | null;
@@ -572,10 +580,11 @@ export declare class ProductionController {
                 } & {
                     id: string;
                     name: string;
-                    status: string;
                     code: string;
+                    status: string;
                     unitId: string;
                     categoryId: string;
+                    supplyType: string;
                     sellingPrice: import("@prisma/client-runtime-utils").Decimal;
                 };
                 lines: ({
@@ -588,26 +597,26 @@ export declare class ProductionController {
                     } & {
                         id: string;
                         name: string;
-                        status: string;
                         code: string;
+                        status: string;
                         minStock: import("@prisma/client-runtime-utils").Decimal;
                         unitId: string;
                         categoryId: string;
                     };
                 } & {
                     id: string;
+                    materialId: string;
                     quantity: import("@prisma/client-runtime-utils").Decimal;
                     bomId: string;
-                    materialId: string;
                 })[];
             } & {
                 id: string;
                 status: string;
-                version: number;
-                effectiveAt: Date;
-                outputQuantity: import("@prisma/client-runtime-utils").Decimal;
-                productId: string;
                 createdById: string;
+                productId: string;
+                version: number;
+                outputQuantity: import("@prisma/client-runtime-utils").Decimal;
+                effectiveAt: Date;
             };
             replenishments: ({
                 saleLine: {
@@ -622,22 +631,22 @@ export declare class ProductionController {
                         } | null;
                     } & {
                         id: string;
+                        code: string;
                         status: string;
                         createdAt: Date;
-                        code: string;
-                        version: number;
                         createdById: string;
+                        version: number;
                         closedAt: Date | null;
                         closedById: string | null;
                         tableId: string | null;
                     };
                 } & {
                     id: string;
-                    productId: string;
+                    note: string;
                     quantity: import("@prisma/client-runtime-utils").Decimal;
                     unitPrice: import("@prisma/client-runtime-utils").Decimal;
+                    productId: string;
                     sentById: string | null;
-                    note: string;
                     sentAt: Date | null;
                     batch: number | null;
                     productName: string;
@@ -646,18 +655,18 @@ export declare class ProductionController {
             } & {
                 id: string;
                 status: string;
-                quantity: import("@prisma/client-runtime-utils").Decimal;
-                saleLineId: string;
                 note: string;
+                quantity: import("@prisma/client-runtime-utils").Decimal;
                 requestedAt: Date;
-                requestedById: string;
                 productionOrderId: string | null;
+                requestedById: string;
+                saleLineId: string;
             })[];
             assignedBy: {
                 id: string;
                 name: string;
-                status: string;
                 code: string;
+                status: string;
                 phone: string | null;
                 email: string | null;
                 accountId: string | null;
@@ -665,8 +674,8 @@ export declare class ProductionController {
             assignedTo: {
                 id: string;
                 name: string;
-                status: string;
                 code: string;
+                status: string;
                 phone: string | null;
                 email: string | null;
                 accountId: string | null;
@@ -684,21 +693,21 @@ export declare class ProductionController {
                         } & {
                             id: string;
                             status: string;
-                            reason: string;
                             approvedAt: Date | null;
+                            reason: string;
                             reviewedById: string | null;
                             reportedAt: Date;
                             reportedById: string;
                         };
                     } & {
                         id: string;
-                        productId: string | null;
-                        quantity: import("@prisma/client-runtime-utils").Decimal;
                         note: string | null;
+                        quantity: import("@prisma/client-runtime-utils").Decimal;
                         lotId: string | null;
-                        sourceType: string;
                         issueLineId: string | null;
+                        sourceType: string;
                         wasteId: string;
+                        productId: string | null;
                     })[];
                     lot: {
                         material: {
@@ -710,8 +719,8 @@ export declare class ProductionController {
                         } & {
                             id: string;
                             name: string;
-                            status: string;
                             code: string;
+                            status: string;
                             minStock: import("@prisma/client-runtime-utils").Decimal;
                             unitId: string;
                             categoryId: string;
@@ -719,14 +728,14 @@ export declare class ProductionController {
                     } & {
                         id: string;
                         code: string;
-                        materialId: string;
                         expiryDate: Date | null;
+                        materialId: string;
                     };
                     consumptions: {
                         id: string;
                         quantity: import("@prisma/client-runtime-utils").Decimal;
-                        runId: string;
                         issueLineId: string;
+                        runId: string;
                     }[];
                     returnLines: ({
                         return: {
@@ -739,17 +748,17 @@ export declare class ProductionController {
                         } & {
                             id: string;
                             status: string;
-                            reason: string;
                             requestedAt: Date;
                             approvedAt: Date | null;
+                            reason: string;
                             requestedById: string;
                             reviewedById: string | null;
                         };
                     } & {
                         id: string;
                         quantity: import("@prisma/client-runtime-utils").Decimal;
-                        issueLineId: string;
                         returnId: string;
+                        issueLineId: string;
                     })[];
                 } & {
                     id: string;
@@ -767,15 +776,25 @@ export declare class ProductionController {
             } & {
                 id: string;
                 status: string;
-                reason: string | null;
                 requestedAt: Date;
                 approvedAt: Date | null;
+                reason: string | null;
+                reviewNote: string | null;
+                productionOrderId: string;
                 requestedById: string;
                 reviewedById: string | null;
-                productionOrderId: string;
-                reviewNote: string | null;
             })[];
             runs: ({
+                productLot: {
+                    id: string;
+                    code: string;
+                    createdAt: Date;
+                    expiryDate: Date;
+                    productId: string;
+                    receiptLineId: string | null;
+                    manufacturedAt: Date;
+                    runId: string | null;
+                } | null;
                 performedBy: {
                     name: string;
                     accountId: string | null;
@@ -783,8 +802,8 @@ export declare class ProductionController {
                 consumptions: {
                     id: string;
                     quantity: import("@prisma/client-runtime-utils").Decimal;
-                    runId: string;
                     issueLineId: string;
+                    runId: string;
                 }[];
                 inspectedBy: {
                     name: string;
@@ -792,12 +811,12 @@ export declare class ProductionController {
             } & {
                 id: string;
                 status: string;
+                productionOrderId: string;
                 recordedAt: Date;
                 actualQuantity: import("@prisma/client-runtime-utils").Decimal;
                 acceptedQuantity: import("@prisma/client-runtime-utils").Decimal | null;
                 inspectedAt: Date | null;
                 inspectionNote: string | null;
-                productionOrderId: string;
                 performedById: string;
                 inspectedById: string | null;
             })[];
@@ -823,16 +842,16 @@ export declare class ProductionController {
             } & {
                 id: string;
                 name: string;
-                status: string;
                 code: string;
+                status: string;
                 minStock: import("@prisma/client-runtime-utils").Decimal;
                 unitId: string;
                 categoryId: string;
             };
             id: string;
             code: string;
-            materialId: string;
             expiryDate: Date | null;
+            materialId: string;
         }[];
         balances: {
             id: string;
@@ -847,27 +866,27 @@ export declare class ProductionController {
     execute(id: string, b: unknown, r: AuthRequest): Promise<{
         id: string;
         status: string;
+        productionOrderId: string;
         recordedAt: Date;
         actualQuantity: import("@prisma/client-runtime-utils").Decimal;
         acceptedQuantity: import("@prisma/client-runtime-utils").Decimal | null;
         inspectedAt: Date | null;
         inspectionNote: string | null;
-        productionOrderId: string;
         performedById: string;
         inspectedById: string | null;
     } | {
         id: string;
         status: string;
-        reason: string;
         requestedAt: Date;
         approvedAt: Date | null;
+        reason: string;
         requestedById: string;
         reviewedById: string | null;
     } | {
         id: string;
         status: string;
-        reason: string;
         approvedAt: Date | null;
+        reason: string;
         reviewedById: string | null;
         reportedAt: Date;
         reportedById: string;
@@ -883,13 +902,13 @@ export declare class ProductionController {
     } | {
         id: string;
         status: string;
-        reason: string | null;
         requestedAt: Date;
         approvedAt: Date | null;
+        reason: string | null;
+        reviewNote: string | null;
+        productionOrderId: string;
         requestedById: string;
         reviewedById: string | null;
-        productionOrderId: string;
-        reviewNote: string | null;
     }>;
     createOrder(b: unknown, r: AuthRequest): Promise<{
         bom: {
@@ -902,17 +921,18 @@ export declare class ProductionController {
             } & {
                 id: string;
                 name: string;
-                status: string;
                 code: string;
+                status: string;
                 unitId: string;
                 categoryId: string;
+                supplyType: string;
                 sellingPrice: import("@prisma/client-runtime-utils").Decimal;
             };
             createdBy: {
                 id: string;
                 name: string;
-                status: string;
                 code: string;
+                status: string;
                 phone: string | null;
                 email: string | null;
                 accountId: string | null;
@@ -927,26 +947,26 @@ export declare class ProductionController {
                 } & {
                     id: string;
                     name: string;
-                    status: string;
                     code: string;
+                    status: string;
                     minStock: import("@prisma/client-runtime-utils").Decimal;
                     unitId: string;
                     categoryId: string;
                 };
             } & {
                 id: string;
+                materialId: string;
                 quantity: import("@prisma/client-runtime-utils").Decimal;
                 bomId: string;
-                materialId: string;
             })[];
         } & {
             id: string;
             status: string;
-            version: number;
-            effectiveAt: Date;
-            outputQuantity: import("@prisma/client-runtime-utils").Decimal;
-            productId: string;
             createdById: string;
+            productId: string;
+            version: number;
+            outputQuantity: import("@prisma/client-runtime-utils").Decimal;
+            effectiveAt: Date;
         };
         replenishments: ({
             saleLine: {
@@ -961,22 +981,22 @@ export declare class ProductionController {
                     } | null;
                 } & {
                     id: string;
+                    code: string;
                     status: string;
                     createdAt: Date;
-                    code: string;
-                    version: number;
                     createdById: string;
+                    version: number;
                     closedAt: Date | null;
                     closedById: string | null;
                     tableId: string | null;
                 };
             } & {
                 id: string;
-                productId: string;
+                note: string;
                 quantity: import("@prisma/client-runtime-utils").Decimal;
                 unitPrice: import("@prisma/client-runtime-utils").Decimal;
+                productId: string;
                 sentById: string | null;
-                note: string;
                 sentAt: Date | null;
                 batch: number | null;
                 productName: string;
@@ -985,18 +1005,18 @@ export declare class ProductionController {
         } & {
             id: string;
             status: string;
-            quantity: import("@prisma/client-runtime-utils").Decimal;
-            saleLineId: string;
             note: string;
+            quantity: import("@prisma/client-runtime-utils").Decimal;
             requestedAt: Date;
-            requestedById: string;
             productionOrderId: string | null;
+            requestedById: string;
+            saleLineId: string;
         })[];
         assignedBy: {
             id: string;
             name: string;
-            status: string;
             code: string;
+            status: string;
             phone: string | null;
             email: string | null;
             accountId: string | null;
@@ -1004,8 +1024,8 @@ export declare class ProductionController {
         assignedTo: {
             id: string;
             name: string;
-            status: string;
             code: string;
+            status: string;
             phone: string | null;
             email: string | null;
             accountId: string | null;

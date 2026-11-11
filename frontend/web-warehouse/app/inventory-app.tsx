@@ -39,7 +39,7 @@ function InventoryWorkspace({ user, mode }: { user: User; mode: 'receipts' | 'in
     } catch (err) { setError(err instanceof Error ? err.message : 'Không tải được dữ liệu'); }
     finally { setLoading(false); }
   }, [mode, create]);
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => { const initial = window.setTimeout(() => void load(), 0); return () => window.clearTimeout(initial); }, [load]);
   async function action(receipt: Receipt, remove = false) {
     if (!window.confirm(remove ? `Xóa phiếu nháp ${receipt.code}?` : `Ghi sổ ${receipt.code} và tăng tồn kho? Sau đó không thể sửa/xóa phiếu.`)) return;
     setBusy(true); setError('');

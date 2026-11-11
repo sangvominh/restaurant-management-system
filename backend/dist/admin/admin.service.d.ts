@@ -3,6 +3,11 @@ export declare class AdminService {
     private readonly db;
     constructor(db: PrismaService);
     accounts(): import("../generated/prisma/internal/prismaNamespace.js").PrismaPromise<{
+        id: string;
+        roleId: string;
+        username: string;
+        status: string;
+        createdAt: Date;
         role: {
             id: string;
             name: string;
@@ -12,11 +17,6 @@ export declare class AdminService {
             name: string;
             code: string;
         } | null;
-        id: string;
-        username: string;
-        status: string;
-        createdAt: Date;
-        roleId: string;
     }[]>;
     roles(): import("../generated/prisma/internal/prismaNamespace.js").PrismaPromise<({
         permissions: ({
@@ -40,8 +40,8 @@ export declare class AdminService {
     employees(): import("../generated/prisma/internal/prismaNamespace.js").PrismaPromise<{
         id: string;
         name: string;
-        status: string;
         code: string;
+        status: string;
         phone: string | null;
         email: string | null;
         accountId: string | null;
@@ -52,6 +52,11 @@ export declare class AdminService {
         group: string;
     }[];
     saveAccount(input: unknown, accountId?: string, actorId?: string): Promise<{
+        id: string;
+        roleId: string;
+        username: string;
+        status: string;
+        createdAt: Date;
         role: {
             id: string;
             name: string;
@@ -61,11 +66,6 @@ export declare class AdminService {
             name: string;
             code: string;
         } | null;
-        id: string;
-        username: string;
-        status: string;
-        createdAt: Date;
-        roleId: string;
     }>;
     deleteAccount(accountId: string, actorId?: string): Promise<{
         message: string;
@@ -95,8 +95,8 @@ export declare class AdminService {
     saveEmployee(input: unknown, employeeId?: string, actorId?: string): Promise<{
         id: string;
         name: string;
-        status: string;
         code: string;
+        status: string;
         phone: string | null;
         email: string | null;
         accountId: string | null;

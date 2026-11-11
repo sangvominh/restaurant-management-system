@@ -1,13 +1,13 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import JsBarcode from 'jsbarcode';
 export type PrintSection = { title: string; columns: string[]; rows: string[][]; note?: string };
 export type PrintDocument = { tableTitle?: string; sections?: PrintSection[]; title: string; reference: string; status: string; draft?: boolean; fields: [string, string][]; columns: string[]; rows: string[][]; totals?: [string, string][]; note?: string | null; signatures: string[] };
 const options = { format: 'CODE128', width: 2, height: 55, displayValue: false, margin: 12, background: '#ffffff', lineColor: '#000000' };
 export function Barcode({ value, compact = false }: { value: string; compact?: boolean }) {
   const ref = useRef<SVGSVGElement>(null);
-  const [error, setError] = useState(false);
-  useEffect(() => { try { if (ref.current) JsBarcode(ref.current, value, options); setError(false); } catch { setError(true); } }, [value]);
+  const error = useMemo(() => { try { JsBarcode({}, value, options); return false; } catch { return true; } }, [value]);
+  useEffect(() => { if (!error && ref.current) JsBarcode(ref.current, value, options); }, [value, error]);
   return <div className={`document-barcode${compact ? ' compact' : ''}`} title={value}>{error ? <small>Không thể tạo mã vạch cho mã này.</small> : <svg ref={ref} role="img" aria-label={`Mã vạch ${value}`} />}{!compact && <code>{value}</code>}</div>;
 }
 const esc = (v: string) => v.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));

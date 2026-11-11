@@ -160,6 +160,8 @@ export type ProductionRunWhereInput = {
     productionOrderId?: Prisma.UuidFilter<"ProductionRun"> | string;
     performedById?: Prisma.UuidFilter<"ProductionRun"> | string;
     inspectedById?: Prisma.UuidNullableFilter<"ProductionRun"> | string | null;
+    productLot?: Prisma.XOR<Prisma.ProductLotNullableScalarRelationFilter, Prisma.ProductLotWhereInput> | null;
+    lotMovements?: Prisma.ProductLotMovementListRelationFilter;
     productionOrder?: Prisma.XOR<Prisma.ProductionOrderScalarRelationFilter, Prisma.ProductionOrderWhereInput>;
     performedBy?: Prisma.XOR<Prisma.EmployeeScalarRelationFilter, Prisma.EmployeeWhereInput>;
     consumptions?: Prisma.ConsumptionLineListRelationFilter;
@@ -177,6 +179,8 @@ export type ProductionRunOrderByWithRelationInput = {
     productionOrderId?: Prisma.SortOrder;
     performedById?: Prisma.SortOrder;
     inspectedById?: Prisma.SortOrderInput | Prisma.SortOrder;
+    productLot?: Prisma.ProductLotOrderByWithRelationInput;
+    lotMovements?: Prisma.ProductLotMovementOrderByRelationAggregateInput;
     productionOrder?: Prisma.ProductionOrderOrderByWithRelationInput;
     performedBy?: Prisma.EmployeeOrderByWithRelationInput;
     consumptions?: Prisma.ConsumptionLineOrderByRelationAggregateInput;
@@ -197,6 +201,8 @@ export type ProductionRunWhereUniqueInput = Prisma.AtLeast<{
     productionOrderId?: Prisma.UuidFilter<"ProductionRun"> | string;
     performedById?: Prisma.UuidFilter<"ProductionRun"> | string;
     inspectedById?: Prisma.UuidNullableFilter<"ProductionRun"> | string | null;
+    productLot?: Prisma.XOR<Prisma.ProductLotNullableScalarRelationFilter, Prisma.ProductLotWhereInput> | null;
+    lotMovements?: Prisma.ProductLotMovementListRelationFilter;
     productionOrder?: Prisma.XOR<Prisma.ProductionOrderScalarRelationFilter, Prisma.ProductionOrderWhereInput>;
     performedBy?: Prisma.XOR<Prisma.EmployeeScalarRelationFilter, Prisma.EmployeeWhereInput>;
     consumptions?: Prisma.ConsumptionLineListRelationFilter;
@@ -243,6 +249,8 @@ export type ProductionRunCreateInput = {
     status?: string;
     inspectedAt?: Date | string | null;
     inspectionNote?: string | null;
+    productLot?: Prisma.ProductLotCreateNestedOneWithoutRunInput;
+    lotMovements?: Prisma.ProductLotMovementCreateNestedManyWithoutRunInput;
     productionOrder: Prisma.ProductionOrderCreateNestedOneWithoutRunsInput;
     performedBy: Prisma.EmployeeCreateNestedOneWithoutPerformedRunsInput;
     consumptions?: Prisma.ConsumptionLineCreateNestedManyWithoutRunInput;
@@ -260,6 +268,8 @@ export type ProductionRunUncheckedCreateInput = {
     productionOrderId: string;
     performedById: string;
     inspectedById?: string | null;
+    productLot?: Prisma.ProductLotUncheckedCreateNestedOneWithoutRunInput;
+    lotMovements?: Prisma.ProductLotMovementUncheckedCreateNestedManyWithoutRunInput;
     consumptions?: Prisma.ConsumptionLineUncheckedCreateNestedManyWithoutRunInput;
     productMovement?: Prisma.ProductMovementUncheckedCreateNestedOneWithoutRunInput;
 };
@@ -271,6 +281,8 @@ export type ProductionRunUpdateInput = {
     status?: Prisma.StringFieldUpdateOperationsInput | string;
     inspectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     inspectionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    productLot?: Prisma.ProductLotUpdateOneWithoutRunNestedInput;
+    lotMovements?: Prisma.ProductLotMovementUpdateManyWithoutRunNestedInput;
     productionOrder?: Prisma.ProductionOrderUpdateOneRequiredWithoutRunsNestedInput;
     performedBy?: Prisma.EmployeeUpdateOneRequiredWithoutPerformedRunsNestedInput;
     consumptions?: Prisma.ConsumptionLineUpdateManyWithoutRunNestedInput;
@@ -288,6 +300,8 @@ export type ProductionRunUncheckedUpdateInput = {
     productionOrderId?: Prisma.StringFieldUpdateOperationsInput | string;
     performedById?: Prisma.StringFieldUpdateOperationsInput | string;
     inspectedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    productLot?: Prisma.ProductLotUncheckedUpdateOneWithoutRunNestedInput;
+    lotMovements?: Prisma.ProductLotMovementUncheckedUpdateManyWithoutRunNestedInput;
     consumptions?: Prisma.ConsumptionLineUncheckedUpdateManyWithoutRunNestedInput;
     productMovement?: Prisma.ProductMovementUncheckedUpdateOneWithoutRunNestedInput;
 };
@@ -331,6 +345,10 @@ export type ProductionRunListRelationFilter = {
 };
 export type ProductionRunOrderByRelationAggregateInput = {
     _count?: Prisma.SortOrder;
+};
+export type ProductionRunNullableScalarRelationFilter = {
+    is?: Prisma.ProductionRunWhereInput | null;
+    isNot?: Prisma.ProductionRunWhereInput | null;
 };
 export type ProductionRunCountOrderByAggregateInput = {
     id?: Prisma.SortOrder;
@@ -379,10 +397,6 @@ export type ProductionRunSumOrderByAggregateInput = {
 export type ProductionRunScalarRelationFilter = {
     is?: Prisma.ProductionRunWhereInput;
     isNot?: Prisma.ProductionRunWhereInput;
-};
-export type ProductionRunNullableScalarRelationFilter = {
-    is?: Prisma.ProductionRunWhereInput | null;
-    isNot?: Prisma.ProductionRunWhereInput | null;
 };
 export type ProductionRunCreateNestedManyWithoutPerformedByInput = {
     create?: Prisma.XOR<Prisma.ProductionRunCreateWithoutPerformedByInput, Prisma.ProductionRunUncheckedCreateWithoutPerformedByInput> | Prisma.ProductionRunCreateWithoutPerformedByInput[] | Prisma.ProductionRunUncheckedCreateWithoutPerformedByInput[];
@@ -460,6 +474,34 @@ export type ProductionRunUncheckedUpdateManyWithoutInspectedByNestedInput = {
     updateMany?: Prisma.ProductionRunUpdateManyWithWhereWithoutInspectedByInput | Prisma.ProductionRunUpdateManyWithWhereWithoutInspectedByInput[];
     deleteMany?: Prisma.ProductionRunScalarWhereInput | Prisma.ProductionRunScalarWhereInput[];
 };
+export type ProductionRunCreateNestedOneWithoutProductLotInput = {
+    create?: Prisma.XOR<Prisma.ProductionRunCreateWithoutProductLotInput, Prisma.ProductionRunUncheckedCreateWithoutProductLotInput>;
+    connectOrCreate?: Prisma.ProductionRunCreateOrConnectWithoutProductLotInput;
+    connect?: Prisma.ProductionRunWhereUniqueInput;
+};
+export type ProductionRunUpdateOneWithoutProductLotNestedInput = {
+    create?: Prisma.XOR<Prisma.ProductionRunCreateWithoutProductLotInput, Prisma.ProductionRunUncheckedCreateWithoutProductLotInput>;
+    connectOrCreate?: Prisma.ProductionRunCreateOrConnectWithoutProductLotInput;
+    upsert?: Prisma.ProductionRunUpsertWithoutProductLotInput;
+    disconnect?: Prisma.ProductionRunWhereInput | boolean;
+    delete?: Prisma.ProductionRunWhereInput | boolean;
+    connect?: Prisma.ProductionRunWhereUniqueInput;
+    update?: Prisma.XOR<Prisma.XOR<Prisma.ProductionRunUpdateToOneWithWhereWithoutProductLotInput, Prisma.ProductionRunUpdateWithoutProductLotInput>, Prisma.ProductionRunUncheckedUpdateWithoutProductLotInput>;
+};
+export type ProductionRunCreateNestedOneWithoutLotMovementsInput = {
+    create?: Prisma.XOR<Prisma.ProductionRunCreateWithoutLotMovementsInput, Prisma.ProductionRunUncheckedCreateWithoutLotMovementsInput>;
+    connectOrCreate?: Prisma.ProductionRunCreateOrConnectWithoutLotMovementsInput;
+    connect?: Prisma.ProductionRunWhereUniqueInput;
+};
+export type ProductionRunUpdateOneWithoutLotMovementsNestedInput = {
+    create?: Prisma.XOR<Prisma.ProductionRunCreateWithoutLotMovementsInput, Prisma.ProductionRunUncheckedCreateWithoutLotMovementsInput>;
+    connectOrCreate?: Prisma.ProductionRunCreateOrConnectWithoutLotMovementsInput;
+    upsert?: Prisma.ProductionRunUpsertWithoutLotMovementsInput;
+    disconnect?: Prisma.ProductionRunWhereInput | boolean;
+    delete?: Prisma.ProductionRunWhereInput | boolean;
+    connect?: Prisma.ProductionRunWhereUniqueInput;
+    update?: Prisma.XOR<Prisma.XOR<Prisma.ProductionRunUpdateToOneWithWhereWithoutLotMovementsInput, Prisma.ProductionRunUpdateWithoutLotMovementsInput>, Prisma.ProductionRunUncheckedUpdateWithoutLotMovementsInput>;
+};
 export type ProductionRunCreateNestedManyWithoutProductionOrderInput = {
     create?: Prisma.XOR<Prisma.ProductionRunCreateWithoutProductionOrderInput, Prisma.ProductionRunUncheckedCreateWithoutProductionOrderInput> | Prisma.ProductionRunCreateWithoutProductionOrderInput[] | Prisma.ProductionRunUncheckedCreateWithoutProductionOrderInput[];
     connectOrCreate?: Prisma.ProductionRunCreateOrConnectWithoutProductionOrderInput | Prisma.ProductionRunCreateOrConnectWithoutProductionOrderInput[];
@@ -532,6 +574,8 @@ export type ProductionRunCreateWithoutPerformedByInput = {
     status?: string;
     inspectedAt?: Date | string | null;
     inspectionNote?: string | null;
+    productLot?: Prisma.ProductLotCreateNestedOneWithoutRunInput;
+    lotMovements?: Prisma.ProductLotMovementCreateNestedManyWithoutRunInput;
     productionOrder: Prisma.ProductionOrderCreateNestedOneWithoutRunsInput;
     consumptions?: Prisma.ConsumptionLineCreateNestedManyWithoutRunInput;
     inspectedBy?: Prisma.EmployeeCreateNestedOneWithoutInspectedRunsInput;
@@ -547,6 +591,8 @@ export type ProductionRunUncheckedCreateWithoutPerformedByInput = {
     inspectionNote?: string | null;
     productionOrderId: string;
     inspectedById?: string | null;
+    productLot?: Prisma.ProductLotUncheckedCreateNestedOneWithoutRunInput;
+    lotMovements?: Prisma.ProductLotMovementUncheckedCreateNestedManyWithoutRunInput;
     consumptions?: Prisma.ConsumptionLineUncheckedCreateNestedManyWithoutRunInput;
     productMovement?: Prisma.ProductMovementUncheckedCreateNestedOneWithoutRunInput;
 };
@@ -566,6 +612,8 @@ export type ProductionRunCreateWithoutInspectedByInput = {
     status?: string;
     inspectedAt?: Date | string | null;
     inspectionNote?: string | null;
+    productLot?: Prisma.ProductLotCreateNestedOneWithoutRunInput;
+    lotMovements?: Prisma.ProductLotMovementCreateNestedManyWithoutRunInput;
     productionOrder: Prisma.ProductionOrderCreateNestedOneWithoutRunsInput;
     performedBy: Prisma.EmployeeCreateNestedOneWithoutPerformedRunsInput;
     consumptions?: Prisma.ConsumptionLineCreateNestedManyWithoutRunInput;
@@ -581,6 +629,8 @@ export type ProductionRunUncheckedCreateWithoutInspectedByInput = {
     inspectionNote?: string | null;
     productionOrderId: string;
     performedById: string;
+    productLot?: Prisma.ProductLotUncheckedCreateNestedOneWithoutRunInput;
+    lotMovements?: Prisma.ProductLotMovementUncheckedCreateNestedManyWithoutRunInput;
     consumptions?: Prisma.ConsumptionLineUncheckedCreateNestedManyWithoutRunInput;
     productMovement?: Prisma.ProductMovementUncheckedCreateNestedOneWithoutRunInput;
 };
@@ -633,6 +683,152 @@ export type ProductionRunUpdateManyWithWhereWithoutInspectedByInput = {
     where: Prisma.ProductionRunScalarWhereInput;
     data: Prisma.XOR<Prisma.ProductionRunUpdateManyMutationInput, Prisma.ProductionRunUncheckedUpdateManyWithoutInspectedByInput>;
 };
+export type ProductionRunCreateWithoutProductLotInput = {
+    id?: string;
+    recordedAt?: Date | string;
+    actualQuantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    acceptedQuantity?: runtime.Decimal | runtime.DecimalJsLike | number | string | null;
+    status?: string;
+    inspectedAt?: Date | string | null;
+    inspectionNote?: string | null;
+    lotMovements?: Prisma.ProductLotMovementCreateNestedManyWithoutRunInput;
+    productionOrder: Prisma.ProductionOrderCreateNestedOneWithoutRunsInput;
+    performedBy: Prisma.EmployeeCreateNestedOneWithoutPerformedRunsInput;
+    consumptions?: Prisma.ConsumptionLineCreateNestedManyWithoutRunInput;
+    inspectedBy?: Prisma.EmployeeCreateNestedOneWithoutInspectedRunsInput;
+    productMovement?: Prisma.ProductMovementCreateNestedOneWithoutRunInput;
+};
+export type ProductionRunUncheckedCreateWithoutProductLotInput = {
+    id?: string;
+    recordedAt?: Date | string;
+    actualQuantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    acceptedQuantity?: runtime.Decimal | runtime.DecimalJsLike | number | string | null;
+    status?: string;
+    inspectedAt?: Date | string | null;
+    inspectionNote?: string | null;
+    productionOrderId: string;
+    performedById: string;
+    inspectedById?: string | null;
+    lotMovements?: Prisma.ProductLotMovementUncheckedCreateNestedManyWithoutRunInput;
+    consumptions?: Prisma.ConsumptionLineUncheckedCreateNestedManyWithoutRunInput;
+    productMovement?: Prisma.ProductMovementUncheckedCreateNestedOneWithoutRunInput;
+};
+export type ProductionRunCreateOrConnectWithoutProductLotInput = {
+    where: Prisma.ProductionRunWhereUniqueInput;
+    create: Prisma.XOR<Prisma.ProductionRunCreateWithoutProductLotInput, Prisma.ProductionRunUncheckedCreateWithoutProductLotInput>;
+};
+export type ProductionRunUpsertWithoutProductLotInput = {
+    update: Prisma.XOR<Prisma.ProductionRunUpdateWithoutProductLotInput, Prisma.ProductionRunUncheckedUpdateWithoutProductLotInput>;
+    create: Prisma.XOR<Prisma.ProductionRunCreateWithoutProductLotInput, Prisma.ProductionRunUncheckedCreateWithoutProductLotInput>;
+    where?: Prisma.ProductionRunWhereInput;
+};
+export type ProductionRunUpdateToOneWithWhereWithoutProductLotInput = {
+    where?: Prisma.ProductionRunWhereInput;
+    data: Prisma.XOR<Prisma.ProductionRunUpdateWithoutProductLotInput, Prisma.ProductionRunUncheckedUpdateWithoutProductLotInput>;
+};
+export type ProductionRunUpdateWithoutProductLotInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    recordedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    actualQuantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    acceptedQuantity?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null;
+    status?: Prisma.StringFieldUpdateOperationsInput | string;
+    inspectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    inspectionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    lotMovements?: Prisma.ProductLotMovementUpdateManyWithoutRunNestedInput;
+    productionOrder?: Prisma.ProductionOrderUpdateOneRequiredWithoutRunsNestedInput;
+    performedBy?: Prisma.EmployeeUpdateOneRequiredWithoutPerformedRunsNestedInput;
+    consumptions?: Prisma.ConsumptionLineUpdateManyWithoutRunNestedInput;
+    inspectedBy?: Prisma.EmployeeUpdateOneWithoutInspectedRunsNestedInput;
+    productMovement?: Prisma.ProductMovementUpdateOneWithoutRunNestedInput;
+};
+export type ProductionRunUncheckedUpdateWithoutProductLotInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    recordedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    actualQuantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    acceptedQuantity?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null;
+    status?: Prisma.StringFieldUpdateOperationsInput | string;
+    inspectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    inspectionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    productionOrderId?: Prisma.StringFieldUpdateOperationsInput | string;
+    performedById?: Prisma.StringFieldUpdateOperationsInput | string;
+    inspectedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    lotMovements?: Prisma.ProductLotMovementUncheckedUpdateManyWithoutRunNestedInput;
+    consumptions?: Prisma.ConsumptionLineUncheckedUpdateManyWithoutRunNestedInput;
+    productMovement?: Prisma.ProductMovementUncheckedUpdateOneWithoutRunNestedInput;
+};
+export type ProductionRunCreateWithoutLotMovementsInput = {
+    id?: string;
+    recordedAt?: Date | string;
+    actualQuantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    acceptedQuantity?: runtime.Decimal | runtime.DecimalJsLike | number | string | null;
+    status?: string;
+    inspectedAt?: Date | string | null;
+    inspectionNote?: string | null;
+    productLot?: Prisma.ProductLotCreateNestedOneWithoutRunInput;
+    productionOrder: Prisma.ProductionOrderCreateNestedOneWithoutRunsInput;
+    performedBy: Prisma.EmployeeCreateNestedOneWithoutPerformedRunsInput;
+    consumptions?: Prisma.ConsumptionLineCreateNestedManyWithoutRunInput;
+    inspectedBy?: Prisma.EmployeeCreateNestedOneWithoutInspectedRunsInput;
+    productMovement?: Prisma.ProductMovementCreateNestedOneWithoutRunInput;
+};
+export type ProductionRunUncheckedCreateWithoutLotMovementsInput = {
+    id?: string;
+    recordedAt?: Date | string;
+    actualQuantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    acceptedQuantity?: runtime.Decimal | runtime.DecimalJsLike | number | string | null;
+    status?: string;
+    inspectedAt?: Date | string | null;
+    inspectionNote?: string | null;
+    productionOrderId: string;
+    performedById: string;
+    inspectedById?: string | null;
+    productLot?: Prisma.ProductLotUncheckedCreateNestedOneWithoutRunInput;
+    consumptions?: Prisma.ConsumptionLineUncheckedCreateNestedManyWithoutRunInput;
+    productMovement?: Prisma.ProductMovementUncheckedCreateNestedOneWithoutRunInput;
+};
+export type ProductionRunCreateOrConnectWithoutLotMovementsInput = {
+    where: Prisma.ProductionRunWhereUniqueInput;
+    create: Prisma.XOR<Prisma.ProductionRunCreateWithoutLotMovementsInput, Prisma.ProductionRunUncheckedCreateWithoutLotMovementsInput>;
+};
+export type ProductionRunUpsertWithoutLotMovementsInput = {
+    update: Prisma.XOR<Prisma.ProductionRunUpdateWithoutLotMovementsInput, Prisma.ProductionRunUncheckedUpdateWithoutLotMovementsInput>;
+    create: Prisma.XOR<Prisma.ProductionRunCreateWithoutLotMovementsInput, Prisma.ProductionRunUncheckedCreateWithoutLotMovementsInput>;
+    where?: Prisma.ProductionRunWhereInput;
+};
+export type ProductionRunUpdateToOneWithWhereWithoutLotMovementsInput = {
+    where?: Prisma.ProductionRunWhereInput;
+    data: Prisma.XOR<Prisma.ProductionRunUpdateWithoutLotMovementsInput, Prisma.ProductionRunUncheckedUpdateWithoutLotMovementsInput>;
+};
+export type ProductionRunUpdateWithoutLotMovementsInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    recordedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    actualQuantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    acceptedQuantity?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null;
+    status?: Prisma.StringFieldUpdateOperationsInput | string;
+    inspectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    inspectionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    productLot?: Prisma.ProductLotUpdateOneWithoutRunNestedInput;
+    productionOrder?: Prisma.ProductionOrderUpdateOneRequiredWithoutRunsNestedInput;
+    performedBy?: Prisma.EmployeeUpdateOneRequiredWithoutPerformedRunsNestedInput;
+    consumptions?: Prisma.ConsumptionLineUpdateManyWithoutRunNestedInput;
+    inspectedBy?: Prisma.EmployeeUpdateOneWithoutInspectedRunsNestedInput;
+    productMovement?: Prisma.ProductMovementUpdateOneWithoutRunNestedInput;
+};
+export type ProductionRunUncheckedUpdateWithoutLotMovementsInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    recordedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    actualQuantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    acceptedQuantity?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null;
+    status?: Prisma.StringFieldUpdateOperationsInput | string;
+    inspectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    inspectionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    productionOrderId?: Prisma.StringFieldUpdateOperationsInput | string;
+    performedById?: Prisma.StringFieldUpdateOperationsInput | string;
+    inspectedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    productLot?: Prisma.ProductLotUncheckedUpdateOneWithoutRunNestedInput;
+    consumptions?: Prisma.ConsumptionLineUncheckedUpdateManyWithoutRunNestedInput;
+    productMovement?: Prisma.ProductMovementUncheckedUpdateOneWithoutRunNestedInput;
+};
 export type ProductionRunCreateWithoutProductionOrderInput = {
     id?: string;
     recordedAt?: Date | string;
@@ -641,6 +837,8 @@ export type ProductionRunCreateWithoutProductionOrderInput = {
     status?: string;
     inspectedAt?: Date | string | null;
     inspectionNote?: string | null;
+    productLot?: Prisma.ProductLotCreateNestedOneWithoutRunInput;
+    lotMovements?: Prisma.ProductLotMovementCreateNestedManyWithoutRunInput;
     performedBy: Prisma.EmployeeCreateNestedOneWithoutPerformedRunsInput;
     consumptions?: Prisma.ConsumptionLineCreateNestedManyWithoutRunInput;
     inspectedBy?: Prisma.EmployeeCreateNestedOneWithoutInspectedRunsInput;
@@ -656,6 +854,8 @@ export type ProductionRunUncheckedCreateWithoutProductionOrderInput = {
     inspectionNote?: string | null;
     performedById: string;
     inspectedById?: string | null;
+    productLot?: Prisma.ProductLotUncheckedCreateNestedOneWithoutRunInput;
+    lotMovements?: Prisma.ProductLotMovementUncheckedCreateNestedManyWithoutRunInput;
     consumptions?: Prisma.ConsumptionLineUncheckedCreateNestedManyWithoutRunInput;
     productMovement?: Prisma.ProductMovementUncheckedCreateNestedOneWithoutRunInput;
 };
@@ -688,6 +888,8 @@ export type ProductionRunCreateWithoutConsumptionsInput = {
     status?: string;
     inspectedAt?: Date | string | null;
     inspectionNote?: string | null;
+    productLot?: Prisma.ProductLotCreateNestedOneWithoutRunInput;
+    lotMovements?: Prisma.ProductLotMovementCreateNestedManyWithoutRunInput;
     productionOrder: Prisma.ProductionOrderCreateNestedOneWithoutRunsInput;
     performedBy: Prisma.EmployeeCreateNestedOneWithoutPerformedRunsInput;
     inspectedBy?: Prisma.EmployeeCreateNestedOneWithoutInspectedRunsInput;
@@ -704,6 +906,8 @@ export type ProductionRunUncheckedCreateWithoutConsumptionsInput = {
     productionOrderId: string;
     performedById: string;
     inspectedById?: string | null;
+    productLot?: Prisma.ProductLotUncheckedCreateNestedOneWithoutRunInput;
+    lotMovements?: Prisma.ProductLotMovementUncheckedCreateNestedManyWithoutRunInput;
     productMovement?: Prisma.ProductMovementUncheckedCreateNestedOneWithoutRunInput;
 };
 export type ProductionRunCreateOrConnectWithoutConsumptionsInput = {
@@ -727,6 +931,8 @@ export type ProductionRunUpdateWithoutConsumptionsInput = {
     status?: Prisma.StringFieldUpdateOperationsInput | string;
     inspectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     inspectionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    productLot?: Prisma.ProductLotUpdateOneWithoutRunNestedInput;
+    lotMovements?: Prisma.ProductLotMovementUpdateManyWithoutRunNestedInput;
     productionOrder?: Prisma.ProductionOrderUpdateOneRequiredWithoutRunsNestedInput;
     performedBy?: Prisma.EmployeeUpdateOneRequiredWithoutPerformedRunsNestedInput;
     inspectedBy?: Prisma.EmployeeUpdateOneWithoutInspectedRunsNestedInput;
@@ -743,6 +949,8 @@ export type ProductionRunUncheckedUpdateWithoutConsumptionsInput = {
     productionOrderId?: Prisma.StringFieldUpdateOperationsInput | string;
     performedById?: Prisma.StringFieldUpdateOperationsInput | string;
     inspectedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    productLot?: Prisma.ProductLotUncheckedUpdateOneWithoutRunNestedInput;
+    lotMovements?: Prisma.ProductLotMovementUncheckedUpdateManyWithoutRunNestedInput;
     productMovement?: Prisma.ProductMovementUncheckedUpdateOneWithoutRunNestedInput;
 };
 export type ProductionRunCreateWithoutProductMovementInput = {
@@ -753,6 +961,8 @@ export type ProductionRunCreateWithoutProductMovementInput = {
     status?: string;
     inspectedAt?: Date | string | null;
     inspectionNote?: string | null;
+    productLot?: Prisma.ProductLotCreateNestedOneWithoutRunInput;
+    lotMovements?: Prisma.ProductLotMovementCreateNestedManyWithoutRunInput;
     productionOrder: Prisma.ProductionOrderCreateNestedOneWithoutRunsInput;
     performedBy: Prisma.EmployeeCreateNestedOneWithoutPerformedRunsInput;
     consumptions?: Prisma.ConsumptionLineCreateNestedManyWithoutRunInput;
@@ -769,6 +979,8 @@ export type ProductionRunUncheckedCreateWithoutProductMovementInput = {
     productionOrderId: string;
     performedById: string;
     inspectedById?: string | null;
+    productLot?: Prisma.ProductLotUncheckedCreateNestedOneWithoutRunInput;
+    lotMovements?: Prisma.ProductLotMovementUncheckedCreateNestedManyWithoutRunInput;
     consumptions?: Prisma.ConsumptionLineUncheckedCreateNestedManyWithoutRunInput;
 };
 export type ProductionRunCreateOrConnectWithoutProductMovementInput = {
@@ -792,6 +1004,8 @@ export type ProductionRunUpdateWithoutProductMovementInput = {
     status?: Prisma.StringFieldUpdateOperationsInput | string;
     inspectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     inspectionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    productLot?: Prisma.ProductLotUpdateOneWithoutRunNestedInput;
+    lotMovements?: Prisma.ProductLotMovementUpdateManyWithoutRunNestedInput;
     productionOrder?: Prisma.ProductionOrderUpdateOneRequiredWithoutRunsNestedInput;
     performedBy?: Prisma.EmployeeUpdateOneRequiredWithoutPerformedRunsNestedInput;
     consumptions?: Prisma.ConsumptionLineUpdateManyWithoutRunNestedInput;
@@ -808,6 +1022,8 @@ export type ProductionRunUncheckedUpdateWithoutProductMovementInput = {
     productionOrderId?: Prisma.StringFieldUpdateOperationsInput | string;
     performedById?: Prisma.StringFieldUpdateOperationsInput | string;
     inspectedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    productLot?: Prisma.ProductLotUncheckedUpdateOneWithoutRunNestedInput;
+    lotMovements?: Prisma.ProductLotMovementUncheckedUpdateManyWithoutRunNestedInput;
     consumptions?: Prisma.ConsumptionLineUncheckedUpdateManyWithoutRunNestedInput;
 };
 export type ProductionRunCreateManyPerformedByInput = {
@@ -840,6 +1056,8 @@ export type ProductionRunUpdateWithoutPerformedByInput = {
     status?: Prisma.StringFieldUpdateOperationsInput | string;
     inspectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     inspectionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    productLot?: Prisma.ProductLotUpdateOneWithoutRunNestedInput;
+    lotMovements?: Prisma.ProductLotMovementUpdateManyWithoutRunNestedInput;
     productionOrder?: Prisma.ProductionOrderUpdateOneRequiredWithoutRunsNestedInput;
     consumptions?: Prisma.ConsumptionLineUpdateManyWithoutRunNestedInput;
     inspectedBy?: Prisma.EmployeeUpdateOneWithoutInspectedRunsNestedInput;
@@ -855,6 +1073,8 @@ export type ProductionRunUncheckedUpdateWithoutPerformedByInput = {
     inspectionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     productionOrderId?: Prisma.StringFieldUpdateOperationsInput | string;
     inspectedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    productLot?: Prisma.ProductLotUncheckedUpdateOneWithoutRunNestedInput;
+    lotMovements?: Prisma.ProductLotMovementUncheckedUpdateManyWithoutRunNestedInput;
     consumptions?: Prisma.ConsumptionLineUncheckedUpdateManyWithoutRunNestedInput;
     productMovement?: Prisma.ProductMovementUncheckedUpdateOneWithoutRunNestedInput;
 };
@@ -877,6 +1097,8 @@ export type ProductionRunUpdateWithoutInspectedByInput = {
     status?: Prisma.StringFieldUpdateOperationsInput | string;
     inspectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     inspectionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    productLot?: Prisma.ProductLotUpdateOneWithoutRunNestedInput;
+    lotMovements?: Prisma.ProductLotMovementUpdateManyWithoutRunNestedInput;
     productionOrder?: Prisma.ProductionOrderUpdateOneRequiredWithoutRunsNestedInput;
     performedBy?: Prisma.EmployeeUpdateOneRequiredWithoutPerformedRunsNestedInput;
     consumptions?: Prisma.ConsumptionLineUpdateManyWithoutRunNestedInput;
@@ -892,6 +1114,8 @@ export type ProductionRunUncheckedUpdateWithoutInspectedByInput = {
     inspectionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     productionOrderId?: Prisma.StringFieldUpdateOperationsInput | string;
     performedById?: Prisma.StringFieldUpdateOperationsInput | string;
+    productLot?: Prisma.ProductLotUncheckedUpdateOneWithoutRunNestedInput;
+    lotMovements?: Prisma.ProductLotMovementUncheckedUpdateManyWithoutRunNestedInput;
     consumptions?: Prisma.ConsumptionLineUncheckedUpdateManyWithoutRunNestedInput;
     productMovement?: Prisma.ProductMovementUncheckedUpdateOneWithoutRunNestedInput;
 };
@@ -925,6 +1149,8 @@ export type ProductionRunUpdateWithoutProductionOrderInput = {
     status?: Prisma.StringFieldUpdateOperationsInput | string;
     inspectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     inspectionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    productLot?: Prisma.ProductLotUpdateOneWithoutRunNestedInput;
+    lotMovements?: Prisma.ProductLotMovementUpdateManyWithoutRunNestedInput;
     performedBy?: Prisma.EmployeeUpdateOneRequiredWithoutPerformedRunsNestedInput;
     consumptions?: Prisma.ConsumptionLineUpdateManyWithoutRunNestedInput;
     inspectedBy?: Prisma.EmployeeUpdateOneWithoutInspectedRunsNestedInput;
@@ -940,6 +1166,8 @@ export type ProductionRunUncheckedUpdateWithoutProductionOrderInput = {
     inspectionNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     performedById?: Prisma.StringFieldUpdateOperationsInput | string;
     inspectedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    productLot?: Prisma.ProductLotUncheckedUpdateOneWithoutRunNestedInput;
+    lotMovements?: Prisma.ProductLotMovementUncheckedUpdateManyWithoutRunNestedInput;
     consumptions?: Prisma.ConsumptionLineUncheckedUpdateManyWithoutRunNestedInput;
     productMovement?: Prisma.ProductMovementUncheckedUpdateOneWithoutRunNestedInput;
 };
@@ -955,13 +1183,18 @@ export type ProductionRunUncheckedUpdateManyWithoutProductionOrderInput = {
     inspectedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 };
 export type ProductionRunCountOutputType = {
+    lotMovements: number;
     consumptions: number;
 };
 export type ProductionRunCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    lotMovements?: boolean | ProductionRunCountOutputTypeCountLotMovementsArgs;
     consumptions?: boolean | ProductionRunCountOutputTypeCountConsumptionsArgs;
 };
 export type ProductionRunCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.ProductionRunCountOutputTypeSelect<ExtArgs> | null;
+};
+export type ProductionRunCountOutputTypeCountLotMovementsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    where?: Prisma.ProductLotMovementWhereInput;
 };
 export type ProductionRunCountOutputTypeCountConsumptionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     where?: Prisma.ConsumptionLineWhereInput;
@@ -977,6 +1210,8 @@ export type ProductionRunSelect<ExtArgs extends runtime.Types.Extensions.Interna
     productionOrderId?: boolean;
     performedById?: boolean;
     inspectedById?: boolean;
+    productLot?: boolean | Prisma.ProductionRun$productLotArgs<ExtArgs>;
+    lotMovements?: boolean | Prisma.ProductionRun$lotMovementsArgs<ExtArgs>;
     productionOrder?: boolean | Prisma.ProductionOrderDefaultArgs<ExtArgs>;
     performedBy?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>;
     consumptions?: boolean | Prisma.ProductionRun$consumptionsArgs<ExtArgs>;
@@ -1028,6 +1263,8 @@ export type ProductionRunSelectScalar = {
 };
 export type ProductionRunOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "recordedAt" | "actualQuantity" | "acceptedQuantity" | "status" | "inspectedAt" | "inspectionNote" | "productionOrderId" | "performedById" | "inspectedById", ExtArgs["result"]["productionRun"]>;
 export type ProductionRunInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    productLot?: boolean | Prisma.ProductionRun$productLotArgs<ExtArgs>;
+    lotMovements?: boolean | Prisma.ProductionRun$lotMovementsArgs<ExtArgs>;
     productionOrder?: boolean | Prisma.ProductionOrderDefaultArgs<ExtArgs>;
     performedBy?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>;
     consumptions?: boolean | Prisma.ProductionRun$consumptionsArgs<ExtArgs>;
@@ -1048,6 +1285,8 @@ export type ProductionRunIncludeUpdateManyAndReturn<ExtArgs extends runtime.Type
 export type $ProductionRunPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     name: "ProductionRun";
     objects: {
+        productLot: Prisma.$ProductLotPayload<ExtArgs> | null;
+        lotMovements: Prisma.$ProductLotMovementPayload<ExtArgs>[];
         productionOrder: Prisma.$ProductionOrderPayload<ExtArgs>;
         performedBy: Prisma.$EmployeePayload<ExtArgs>;
         consumptions: Prisma.$ConsumptionLinePayload<ExtArgs>[];
@@ -1117,6 +1356,8 @@ export interface ProductionRunDelegate<ExtArgs extends runtime.Types.Extensions.
 }
 export interface Prisma__ProductionRunClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise";
+    productLot<T extends Prisma.ProductionRun$productLotArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProductionRun$productLotArgs<ExtArgs>>): Prisma.Prisma__ProductLotClient<runtime.Types.Result.GetResult<Prisma.$ProductLotPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>;
+    lotMovements<T extends Prisma.ProductionRun$lotMovementsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProductionRun$lotMovementsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProductLotMovementPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     productionOrder<T extends Prisma.ProductionOrderDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProductionOrderDefaultArgs<ExtArgs>>): Prisma.Prisma__ProductionOrderClient<runtime.Types.Result.GetResult<Prisma.$ProductionOrderPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>;
     performedBy<T extends Prisma.EmployeeDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EmployeeDefaultArgs<ExtArgs>>): Prisma.Prisma__EmployeeClient<runtime.Types.Result.GetResult<Prisma.$EmployeePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>;
     consumptions<T extends Prisma.ProductionRun$consumptionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProductionRun$consumptionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ConsumptionLinePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
@@ -1237,6 +1478,23 @@ export type ProductionRunDeleteArgs<ExtArgs extends runtime.Types.Extensions.Int
 export type ProductionRunDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     where?: Prisma.ProductionRunWhereInput;
     limit?: number;
+};
+export type ProductionRun$productLotArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    select?: Prisma.ProductLotSelect<ExtArgs> | null;
+    omit?: Prisma.ProductLotOmit<ExtArgs> | null;
+    include?: Prisma.ProductLotInclude<ExtArgs> | null;
+    where?: Prisma.ProductLotWhereInput;
+};
+export type ProductionRun$lotMovementsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    select?: Prisma.ProductLotMovementSelect<ExtArgs> | null;
+    omit?: Prisma.ProductLotMovementOmit<ExtArgs> | null;
+    include?: Prisma.ProductLotMovementInclude<ExtArgs> | null;
+    where?: Prisma.ProductLotMovementWhereInput;
+    orderBy?: Prisma.ProductLotMovementOrderByWithRelationInput | Prisma.ProductLotMovementOrderByWithRelationInput[];
+    cursor?: Prisma.ProductLotMovementWhereUniqueInput;
+    take?: number;
+    skip?: number;
+    distinct?: Prisma.ProductLotMovementScalarFieldEnum | Prisma.ProductLotMovementScalarFieldEnum[];
 };
 export type ProductionRun$consumptionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.ConsumptionLineSelect<ExtArgs> | null;

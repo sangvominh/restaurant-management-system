@@ -1,3 +1,4 @@
+import { lotStocks } from './product-lots.js';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { Prisma } from '../generated/prisma/client.js';
@@ -34,12 +35,16 @@ export class StockInsightsService {
         tx.storeMovement.findMany(),
         tx.storeDispatchLine.findMany({ where: { dispatch: { status: 'PENDING' } }, include: { dispatch: true } }),
       ]);
-      return { asOf: now.toISOString(), rows: products.map(p => {
-        const stock = moves.filter(m => m.productId === p.id).reduce((q, m) => ['NHAP_SAN_XUAT', 'HOAN_CUA_HANG'].includes(m.movementType) ? q.plus(m.quantity) : q.minus(m.quantity), new Prisma.Decimal(0));
+      return { asOf: now.toISOString(), rows: await Promise.all(products.map(async p => {
+        const productLots = await lotStocks(tx, p.id);
+        const usable = Prisma.Decimal.sum(0, ...productLots.filter(l => !l.expired).map(l => l.warehouse));
+        const expired = Prisma.Decimal.sum(0, ...productLots.filter(l => l.expired).map(l => l.warehouse));
+        const expiring = Prisma.Decimal.sum(0, ...productLots.filter(l => l.soon).map(l => l.warehouse));
+        const stock = moves.filter(m => m.productId === p.id).reduce((q, m) => ['NHAP_SAN_XUAT', 'NHAP_MUA', 'HOAN_CUA_HANG'].includes(m.movementType) ? q.plus(m.quantity) : q.minus(m.quantity), new Prisma.Decimal(0));
         const storeStock = storeMoves.filter(m => m.productId === p.id).reduce((q, m) => m.movementType === 'IN_TRANSFER' ? q.plus(m.quantity) : q.minus(m.quantity), new Prisma.Decimal(0));
         const own = pendingLines.filter(l => l.productId === p.id), pending = Prisma.Decimal.sum(0, ...own.map(l => l.quantity));
-        return { id: p.id, code: p.code, name: p.name, status: p.status, unit: p.unit.symbol, category: p.category.name, stock, storeStock, totalStock: stock.plus(storeStock), pending, demand: pending, shortage: Prisma.Decimal.max(0, pending.minus(stock)), surplus: Prisma.Decimal.max(0, stock.minus(pending)), orders: own.map(l => ({ code: 'Chuyển ' + l.dispatch.id.slice(0, 8), remaining: l.quantity, pending: l.quantity })) };
-      }) };
+        return { id: p.id, code: p.code, name: p.name, status: p.status, unit: p.unit.symbol, category: p.category.name, supplyType: p.supplyType, usable, expired, expiring, untracked: stock.minus(Prisma.Decimal.sum(0, ...productLots.map(l => l.warehouse))), stock, storeStock, totalStock: stock.plus(storeStock), pending, demand: pending, shortage: Prisma.Decimal.max(0, pending.minus(usable)), surplus: Prisma.Decimal.max(0, stock.minus(pending)), orders: own.map(l => ({ code: 'Chuyển ' + l.dispatch.id.slice(0, 8), remaining: l.quantity, pending: l.quantity })) };
+      })) };
 
     }, { isolationLevel: 'RepeatableRead' });
   }

@@ -1,6 +1,7 @@
 export type Kind = 'units' | 'categories' | 'materials' | 'suppliers' | 'products';
 export interface CatalogItem {
   canDelete?: boolean; canEdit?: boolean;
+  supplyType?: string;
   id: string; name: string; code?: string; symbol?: string; objectType?: string;
   unitId?: string; categoryId?: string; unit?: { name: string; symbol: string }; category?: { name: string };
   minStock?: string; sellingPrice?: string; status?: string; phone?: string | null; address?: string | null;

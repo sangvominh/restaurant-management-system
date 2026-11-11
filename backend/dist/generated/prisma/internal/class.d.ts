@@ -93,6 +93,24 @@ export interface PrismaClient<in LogOpts extends Prisma.LogLevel = never, in out
     get materialMovement(): Prisma.MaterialMovementDelegate<ExtArgs, {
         omit: OmitOpts;
     }>;
+    get productLot(): Prisma.ProductLotDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
+    get productReceipt(): Prisma.ProductReceiptDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
+    get productReceiptLine(): Prisma.ProductReceiptLineDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
+    get storeDispatchLot(): Prisma.StoreDispatchLotDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
+    get productLotDisposal(): Prisma.ProductLotDisposalDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
+    get productLotMovement(): Prisma.ProductLotMovementDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
     get bom(): Prisma.BomDelegate<ExtArgs, {
         omit: OmitOpts;
     }>;

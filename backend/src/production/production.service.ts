@@ -28,7 +28,7 @@ export class ProductionService {
   constructor(private readonly db: PrismaService) {}
   async references() {
     const [products, materials, employees] = await Promise.all([
-      this.db.product.findMany({ where: { status: 'ACTIVE' }, include: { unit: true }, orderBy: { code: 'asc' } }),
+      this.db.product.findMany({ where: { status: 'ACTIVE', supplyType: 'PRODUCED' }, include: { unit: true }, orderBy: { code: 'asc' } }),
       this.db.material.findMany({ where: { status: 'ACTIVE' }, include: { unit: true }, orderBy: { code: 'asc' } }),
       this.db.employee.findMany({ where: { status: 'ACTIVE', account: { status: 'ACTIVE', role: { permissions: { some: { permission: { code: { in: ['*', 'production:perform'] } } } } } } }, select: { id: true, name: true, code: true }, orderBy: { name: 'asc' } }),
     ]);
@@ -54,6 +54,7 @@ export class ProductionService {
       const version = current?.version ?? (highest?._max.version ?? 0) + 1;
       if (version > 2147483647) throw new ConflictException('Đã đạt giới hạn phiên bản công thức');
       const product = await tx.product.findUniqueOrThrow({ where: { id: productId } });
+      if (product.supplyType !== 'PRODUCED') throw new BadRequestException('Thành phẩm nhập trực tiếp không lập công thức/lệnh chế biến');
       if (product.status !== 'ACTIVE' || await tx.material.count({ where: { id: { in: lines.map(l => l.materialId) }, status: 'ACTIVE' } }) !== lines.length) throw new BadRequestException('Thành phẩm và nguyên liệu phải đang hoạt động');
       const data = { productId, version, outputQuantity, effectiveAt, lines: { create: lines } };
       if (existingId) {
@@ -72,6 +73,7 @@ export class ProductionService {
         await tx.bomLine.deleteMany({ where: { bomId: id } });
         return tx.bom.delete({ where: { id } });
       }
+      if (bom.product.supplyType !== 'PRODUCED') throw new BadRequestException('Thành phẩm nhập trực tiếp không áp dụng công thức chế biến');
       if (!bom.lines.length || bom.product.status !== 'ACTIVE' || bom.lines.some(l => l.material.status !== 'ACTIVE')) throw new BadRequestException('BOM cần nguyên liệu và thành phẩm đang hoạt động');
       if (!bom.outputQuantity.eq(1)) throw new BadRequestException('BOM nháp cũ cần sửa định mức về 1 đơn vị thành phẩm trước khi áp dụng');
       return tx.bom.update({ where: { id }, data: { status: 'ACTIVE' } });
@@ -87,7 +89,9 @@ export class ProductionService {
       const employee = await tx.employee.findUnique({ where: { accountId: user.id } });
       if (!employee || employee.status !== 'ACTIVE') throw new ForbiddenException('Cần liên kết người sử dụng đang hoạt động');
       const bom = await tx.bom.findFirst({ where: { productId, status: 'ACTIVE', effectiveAt: { lte: new Date() } }, orderBy: [{ effectiveAt: 'desc' }, { version: 'desc' }], include: bomInclude });
+      if (bom?.product.supplyType === 'PURCHASED') throw new BadRequestException('Thành phẩm nhập trực tiếp dùng phiếu nhập TP, không lập lệnh chế biến');
       if (!bom) throw new BadRequestException('Thành phẩm chưa có công thức được áp dụng và đến ngày hiệu lực');
+      if (!bom.outputQuantity.eq(1)) throw new BadRequestException('Công thức cũ có định mức khác 1 đơn vị; tạo phiên bản mới cho 1 đơn vị trước khi giao lệnh');
       if (b.expectedBomId !== undefined && uuid(b.expectedBomId) !== bom.id) throw new ConflictException('Công thức đang áp dụng đã thay đổi. Hãy tải lại trước khi giao lệnh');
       if (bom.status !== 'ACTIVE' || bom.effectiveAt > new Date() || bom.product.status !== 'ACTIVE' || !bom.lines.length || bom.lines.some(l => l.material.status !== 'ACTIVE')) throw new BadRequestException('BOM chưa có hiệu lực hoặc có thành phẩm/nguyên liệu ngừng hoạt động');
       if (dueAt && dueAt <= new Date()) throw new BadRequestException('Hạn hoàn thành phải ở tương lai');

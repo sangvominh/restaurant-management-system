@@ -32,6 +32,12 @@ export declare const ModelName: {
     readonly Waste: "Waste";
     readonly WasteLine: "WasteLine";
     readonly MaterialMovement: "MaterialMovement";
+    readonly ProductLot: "ProductLot";
+    readonly ProductReceipt: "ProductReceipt";
+    readonly ProductReceiptLine: "ProductReceiptLine";
+    readonly StoreDispatchLot: "StoreDispatchLot";
+    readonly ProductLotDisposal: "ProductLotDisposal";
+    readonly ProductLotMovement: "ProductLotMovement";
     readonly Bom: "Bom";
     readonly BomLine: "BomLine";
     readonly ProductionOrder: "ProductionOrder";
@@ -130,6 +136,7 @@ export declare const MaterialScalarFieldEnum: {
 };
 export type MaterialScalarFieldEnum = (typeof MaterialScalarFieldEnum)[keyof typeof MaterialScalarFieldEnum];
 export declare const ProductScalarFieldEnum: {
+    readonly supplyType: "supplyType";
     readonly id: "id";
     readonly code: "code";
     readonly name: "name";
@@ -245,6 +252,70 @@ export declare const MaterialMovementScalarFieldEnum: {
     readonly wasteLineId: "wasteLineId";
 };
 export type MaterialMovementScalarFieldEnum = (typeof MaterialMovementScalarFieldEnum)[keyof typeof MaterialMovementScalarFieldEnum];
+export declare const ProductLotScalarFieldEnum: {
+    readonly id: "id";
+    readonly productId: "productId";
+    readonly code: "code";
+    readonly manufacturedAt: "manufacturedAt";
+    readonly expiryDate: "expiryDate";
+    readonly createdAt: "createdAt";
+    readonly runId: "runId";
+    readonly receiptLineId: "receiptLineId";
+};
+export type ProductLotScalarFieldEnum = (typeof ProductLotScalarFieldEnum)[keyof typeof ProductLotScalarFieldEnum];
+export declare const ProductReceiptScalarFieldEnum: {
+    readonly id: "id";
+    readonly code: "code";
+    readonly receivedAt: "receivedAt";
+    readonly status: "status";
+    readonly note: "note";
+    readonly supplierId: "supplierId";
+    readonly createdById: "createdById";
+    readonly postedById: "postedById";
+    readonly postedAt: "postedAt";
+};
+export type ProductReceiptScalarFieldEnum = (typeof ProductReceiptScalarFieldEnum)[keyof typeof ProductReceiptScalarFieldEnum];
+export declare const ProductReceiptLineScalarFieldEnum: {
+    readonly id: "id";
+    readonly receiptId: "receiptId";
+    readonly productId: "productId";
+    readonly lotCode: "lotCode";
+    readonly manufacturedAt: "manufacturedAt";
+    readonly expiryDate: "expiryDate";
+    readonly quantity: "quantity";
+    readonly unitPrice: "unitPrice";
+};
+export type ProductReceiptLineScalarFieldEnum = (typeof ProductReceiptLineScalarFieldEnum)[keyof typeof ProductReceiptLineScalarFieldEnum];
+export declare const StoreDispatchLotScalarFieldEnum: {
+    readonly id: "id";
+    readonly dispatchLineId: "dispatchLineId";
+    readonly lotId: "lotId";
+    readonly quantity: "quantity";
+};
+export type StoreDispatchLotScalarFieldEnum = (typeof StoreDispatchLotScalarFieldEnum)[keyof typeof StoreDispatchLotScalarFieldEnum];
+export declare const ProductLotDisposalScalarFieldEnum: {
+    readonly id: "id";
+    readonly lotId: "lotId";
+    readonly quantity: "quantity";
+    readonly reason: "reason";
+    readonly postedAt: "postedAt";
+    readonly createdById: "createdById";
+};
+export type ProductLotDisposalScalarFieldEnum = (typeof ProductLotDisposalScalarFieldEnum)[keyof typeof ProductLotDisposalScalarFieldEnum];
+export declare const ProductLotMovementScalarFieldEnum: {
+    readonly id: "id";
+    readonly lotId: "lotId";
+    readonly location: "location";
+    readonly quantity: "quantity";
+    readonly postedAt: "postedAt";
+    readonly runId: "runId";
+    readonly receiptLineId: "receiptLineId";
+    readonly dispatchLineId: "dispatchLineId";
+    readonly saleLineId: "saleLineId";
+    readonly adjustmentId: "adjustmentId";
+    readonly disposalId: "disposalId";
+};
+export type ProductLotMovementScalarFieldEnum = (typeof ProductLotMovementScalarFieldEnum)[keyof typeof ProductLotMovementScalarFieldEnum];
 export declare const BomScalarFieldEnum: {
     readonly id: "id";
     readonly version: "version";
@@ -362,6 +433,8 @@ export declare const PaymentScalarFieldEnum: {
 };
 export type PaymentScalarFieldEnum = (typeof PaymentScalarFieldEnum)[keyof typeof PaymentScalarFieldEnum];
 export declare const ProductMovementScalarFieldEnum: {
+    readonly receiptLineId: "receiptLineId";
+    readonly lotDisposalId: "lotDisposalId";
     readonly id: "id";
     readonly quantity: "quantity";
     readonly movementType: "movementType";
@@ -438,6 +511,7 @@ export declare const StoreDispatchLineScalarFieldEnum: {
 };
 export type StoreDispatchLineScalarFieldEnum = (typeof StoreDispatchLineScalarFieldEnum)[keyof typeof StoreDispatchLineScalarFieldEnum];
 export declare const StoreAdjustmentScalarFieldEnum: {
+    readonly lotId: "lotId";
     readonly id: "id";
     readonly productId: "productId";
     readonly quantity: "quantity";

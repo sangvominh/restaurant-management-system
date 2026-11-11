@@ -27,11 +27,6 @@ function uuid(value) {
         throw new BadRequestException('ID không hợp lệ');
     return result;
 }
-function decimal(value, label, scale) {
-    if ((typeof value !== 'string' && typeof value !== 'number') || !new RegExp(`^\\d{1,${18 - scale}}(?:\\.\\d{1,${scale}})?$`).test(String(value)))
-        throw new BadRequestException(`${label} phải không âm, tối đa ${scale} chữ số thập phân`);
-    return new Prisma.Decimal(value);
-}
 let CatalogService = class CatalogService {
     db;
     constructor(db) {
@@ -124,10 +119,14 @@ let CatalogService = class CatalogService {
                 }
                 return tx.material.create({ data: { code, name, status, unitId, categoryId } });
             }
+            if (b.supplyType !== undefined && b.supplyType !== 'PRODUCED' && b.supplyType !== 'PURCHASED')
+                throw new BadRequestException('Nguồn thành phẩm không hợp lệ');
+            if (b.sellingPrice !== undefined)
+                throw new BadRequestException('Giá bán chỉ được chỉnh tại Thiết lập bán hàng của web nhà hàng');
             if (itemId) {
                 const current = await tx.product.findUniqueOrThrow({ where: { id: itemId } });
-                if (current.code !== code || current.name !== name || current.unitId !== unitId)
-                    throw new ConflictException('Mã, tên và đơn vị thành phẩm không thay đổi sau khi tạo');
+                if (current.code !== code || current.name !== name || current.unitId !== unitId || b.supplyType !== undefined && b.supplyType !== current.supplyType)
+                    throw new ConflictException('Mã, tên, đơn vị và nguồn thành phẩm không thay đổi sau khi tạo. Tạo mặt hàng mới khi đổi nguồn');
                 if (status === 'INACTIVE' && current.status === 'ACTIVE') {
                     const [orders, sales] = await Promise.all([
                         tx.productionOrder.count({ where: { bom: { productId: itemId }, status: { in: ['NEW', 'RECEIVED', 'IN_PROGRESS'] } } }),
@@ -136,9 +135,9 @@ let CatalogService = class CatalogService {
                     if (orders || sales)
                         throw new ConflictException('Thành phẩm còn lệnh chế biến hoặc đơn bán đang xử lý. Hoàn tất/hủy nghiệp vụ trước khi ngừng sử dụng');
                 }
-                return tx.product.update({ where: { id: itemId }, data: { status, categoryId, sellingPrice: decimal(b.sellingPrice, 'Giá bán', 2) } });
+                return tx.product.update({ where: { id: itemId }, data: { status, categoryId } });
             }
-            const data = { code, name, status, unitId, categoryId, sellingPrice: decimal(b.sellingPrice, 'Giá bán', 2) };
+            const data = { code, name, status, unitId, categoryId, supplyType: b.supplyType === 'PURCHASED' ? 'PURCHASED' : 'PRODUCED', sellingPrice: new Prisma.Decimal(0) };
             return tx.product.create({ data });
         });
     }

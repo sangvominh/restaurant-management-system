@@ -64,8 +64,9 @@ let SalesController = class SalesController {
     updateArea(name, b, r) { allow(r, ['dining:manage']); return this.service.saveArea(b, name); }
     deleteArea(name, r) { allow(r, ['dining:manage']); return this.service.deleteArea(name); }
     deleteTable(id, r) { allow(r, ['dining:manage']); return this.service.deleteTable(id); }
-    report(month, r) { allow(r, ['report:sales']); return this.service.salesReport(month); }
-    price(id, b, r) { allow(r, ['product:price', 'product:manage']); return this.service.setPrice(id, b); }
+    report(start, end, method, r) { allow(r, ['report:sales']); return this.service.salesReport(start, end, method); }
+    price(id, b, r) { allow(r, ['product:price']); return this.service.setPrice(id, b); }
+    settings(r) { allow(r, ['product:price']); return this.service.priceProducts(); }
     products(r) { allow(r); return this.service.products(); }
     changeLine(id, b, r) { allow(r, ['sale:create']); return this.service.changeLine(id, b, r.catalogUser); }
     areas(r) { allow(r); return this.service.areas(); }
@@ -108,10 +109,12 @@ __decorate([
 ], SalesController.prototype, "deleteTable", null);
 __decorate([
     Get('reports/sales'),
-    __param(0, Query('month')),
-    __param(1, Req()),
+    __param(0, Query('start')),
+    __param(1, Query('end')),
+    __param(2, Query('method')),
+    __param(3, Req()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, String, String, Object]),
     __metadata("design:returntype", void 0)
 ], SalesController.prototype, "report", null);
 __decorate([
@@ -123,6 +126,13 @@ __decorate([
     __metadata("design:paramtypes", [String, Object, Object]),
     __metadata("design:returntype", void 0)
 ], SalesController.prototype, "price", null);
+__decorate([
+    Get('settings/products'),
+    __param(0, Req()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], SalesController.prototype, "settings", null);
 __decorate([
     Get('products'),
     __param(0, Req()),

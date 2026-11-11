@@ -24,6 +24,7 @@ export type Detail = {
       requestedBy: Person; lines: IssueLine[];
     })[];
     runs: {
+      productLot: { code: string; manufacturedAt: string; expiryDate: string } | null;
       id: string; recordedAt: string; performedBy: Person & { accountId: string | null }; status: string;
       actualQuantity: string; acceptedQuantity: string | null; inspectionNote: string | null;
       inspectedAt: string | null; inspectedBy: Person | null;

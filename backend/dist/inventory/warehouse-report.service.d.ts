@@ -99,6 +99,10 @@ export declare class WarehouseReportService {
             unit: string;
             status: string;
             category: string;
+            supplyType: string;
+            usable: import("@prisma/client-runtime-utils").Decimal;
+            storeUsable: import("@prisma/client-runtime-utils").Decimal;
+            expired: import("@prisma/client-runtime-utils").Decimal;
         }[];
         formulas: {
             id: string;

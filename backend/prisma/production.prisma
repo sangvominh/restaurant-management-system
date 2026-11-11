@@ -80,6 +80,8 @@ model MaterialShortage {
 
 /// LAN_SAN_XUAT
 model ProductionRun {
+  productLot ProductLot?
+  lotMovements ProductLotMovement[]
   id String @id @default(uuid()) @db.Uuid
   recordedAt DateTime @default(now()) @db.Timestamptz(3)
   actualQuantity Decimal @db.Decimal(18, 3)

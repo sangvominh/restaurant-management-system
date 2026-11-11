@@ -15,6 +15,8 @@ export type ProductMovementSumAggregateOutputType = {
     quantity: runtime.Decimal | null;
 };
 export type ProductMovementMinAggregateOutputType = {
+    receiptLineId: string | null;
+    lotDisposalId: string | null;
     id: string | null;
     quantity: runtime.Decimal | null;
     movementType: string | null;
@@ -27,6 +29,8 @@ export type ProductMovementMinAggregateOutputType = {
     wasteLineId: string | null;
 };
 export type ProductMovementMaxAggregateOutputType = {
+    receiptLineId: string | null;
+    lotDisposalId: string | null;
     id: string | null;
     quantity: runtime.Decimal | null;
     movementType: string | null;
@@ -39,6 +43,8 @@ export type ProductMovementMaxAggregateOutputType = {
     wasteLineId: string | null;
 };
 export type ProductMovementCountAggregateOutputType = {
+    receiptLineId: number;
+    lotDisposalId: number;
     id: number;
     quantity: number;
     movementType: number;
@@ -58,6 +64,8 @@ export type ProductMovementSumAggregateInputType = {
     quantity?: true;
 };
 export type ProductMovementMinAggregateInputType = {
+    receiptLineId?: true;
+    lotDisposalId?: true;
     id?: true;
     quantity?: true;
     movementType?: true;
@@ -70,6 +78,8 @@ export type ProductMovementMinAggregateInputType = {
     wasteLineId?: true;
 };
 export type ProductMovementMaxAggregateInputType = {
+    receiptLineId?: true;
+    lotDisposalId?: true;
     id?: true;
     quantity?: true;
     movementType?: true;
@@ -82,6 +92,8 @@ export type ProductMovementMaxAggregateInputType = {
     wasteLineId?: true;
 };
 export type ProductMovementCountAggregateInputType = {
+    receiptLineId?: true;
+    lotDisposalId?: true;
     id?: true;
     quantity?: true;
     movementType?: true;
@@ -123,6 +135,8 @@ export type ProductMovementGroupByArgs<ExtArgs extends runtime.Types.Extensions.
     _max?: ProductMovementMaxAggregateInputType;
 };
 export type ProductMovementGroupByOutputType = {
+    receiptLineId: string | null;
+    lotDisposalId: string | null;
     id: string;
     quantity: runtime.Decimal;
     movementType: string;
@@ -146,6 +160,8 @@ export type ProductMovementWhereInput = {
     AND?: Prisma.ProductMovementWhereInput | Prisma.ProductMovementWhereInput[];
     OR?: Prisma.ProductMovementWhereInput[];
     NOT?: Prisma.ProductMovementWhereInput | Prisma.ProductMovementWhereInput[];
+    receiptLineId?: Prisma.UuidNullableFilter<"ProductMovement"> | string | null;
+    lotDisposalId?: Prisma.UuidNullableFilter<"ProductMovement"> | string | null;
     id?: Prisma.UuidFilter<"ProductMovement"> | string;
     quantity?: Prisma.DecimalFilter<"ProductMovement"> | runtime.Decimal | runtime.DecimalJsLike | number | string;
     movementType?: Prisma.StringFilter<"ProductMovement"> | string;
@@ -156,6 +172,8 @@ export type ProductMovementWhereInput = {
     runId?: Prisma.UuidNullableFilter<"ProductMovement"> | string | null;
     exportLineId?: Prisma.UuidNullableFilter<"ProductMovement"> | string | null;
     wasteLineId?: Prisma.UuidNullableFilter<"ProductMovement"> | string | null;
+    receiptLine?: Prisma.XOR<Prisma.ProductReceiptLineNullableScalarRelationFilter, Prisma.ProductReceiptLineWhereInput> | null;
+    lotDisposal?: Prisma.XOR<Prisma.ProductLotDisposalNullableScalarRelationFilter, Prisma.ProductLotDisposalWhereInput> | null;
     product?: Prisma.XOR<Prisma.ProductScalarRelationFilter, Prisma.ProductWhereInput>;
     dispatchLine?: Prisma.XOR<Prisma.StoreDispatchLineNullableScalarRelationFilter, Prisma.StoreDispatchLineWhereInput> | null;
     storeAdjustment?: Prisma.XOR<Prisma.StoreAdjustmentNullableScalarRelationFilter, Prisma.StoreAdjustmentWhereInput> | null;
@@ -164,6 +182,8 @@ export type ProductMovementWhereInput = {
     wasteLine?: Prisma.XOR<Prisma.WasteLineNullableScalarRelationFilter, Prisma.WasteLineWhereInput> | null;
 };
 export type ProductMovementOrderByWithRelationInput = {
+    receiptLineId?: Prisma.SortOrderInput | Prisma.SortOrder;
+    lotDisposalId?: Prisma.SortOrderInput | Prisma.SortOrder;
     id?: Prisma.SortOrder;
     quantity?: Prisma.SortOrder;
     movementType?: Prisma.SortOrder;
@@ -174,6 +194,8 @@ export type ProductMovementOrderByWithRelationInput = {
     runId?: Prisma.SortOrderInput | Prisma.SortOrder;
     exportLineId?: Prisma.SortOrderInput | Prisma.SortOrder;
     wasteLineId?: Prisma.SortOrderInput | Prisma.SortOrder;
+    receiptLine?: Prisma.ProductReceiptLineOrderByWithRelationInput;
+    lotDisposal?: Prisma.ProductLotDisposalOrderByWithRelationInput;
     product?: Prisma.ProductOrderByWithRelationInput;
     dispatchLine?: Prisma.StoreDispatchLineOrderByWithRelationInput;
     storeAdjustment?: Prisma.StoreAdjustmentOrderByWithRelationInput;
@@ -182,6 +204,8 @@ export type ProductMovementOrderByWithRelationInput = {
     wasteLine?: Prisma.WasteLineOrderByWithRelationInput;
 };
 export type ProductMovementWhereUniqueInput = Prisma.AtLeast<{
+    receiptLineId?: string;
+    lotDisposalId?: string;
     id?: string;
     dispatchLineId?: string;
     storeAdjustmentId?: string;
@@ -195,14 +219,18 @@ export type ProductMovementWhereUniqueInput = Prisma.AtLeast<{
     movementType?: Prisma.StringFilter<"ProductMovement"> | string;
     postedAt?: Prisma.DateTimeFilter<"ProductMovement"> | Date | string;
     productId?: Prisma.UuidFilter<"ProductMovement"> | string;
+    receiptLine?: Prisma.XOR<Prisma.ProductReceiptLineNullableScalarRelationFilter, Prisma.ProductReceiptLineWhereInput> | null;
+    lotDisposal?: Prisma.XOR<Prisma.ProductLotDisposalNullableScalarRelationFilter, Prisma.ProductLotDisposalWhereInput> | null;
     product?: Prisma.XOR<Prisma.ProductScalarRelationFilter, Prisma.ProductWhereInput>;
     dispatchLine?: Prisma.XOR<Prisma.StoreDispatchLineNullableScalarRelationFilter, Prisma.StoreDispatchLineWhereInput> | null;
     storeAdjustment?: Prisma.XOR<Prisma.StoreAdjustmentNullableScalarRelationFilter, Prisma.StoreAdjustmentWhereInput> | null;
     run?: Prisma.XOR<Prisma.ProductionRunNullableScalarRelationFilter, Prisma.ProductionRunWhereInput> | null;
     exportLine?: Prisma.XOR<Prisma.ProductExportLineNullableScalarRelationFilter, Prisma.ProductExportLineWhereInput> | null;
     wasteLine?: Prisma.XOR<Prisma.WasteLineNullableScalarRelationFilter, Prisma.WasteLineWhereInput> | null;
-}, "id" | "dispatchLineId" | "storeAdjustmentId" | "runId" | "exportLineId" | "wasteLineId">;
+}, "id" | "receiptLineId" | "lotDisposalId" | "dispatchLineId" | "storeAdjustmentId" | "runId" | "exportLineId" | "wasteLineId">;
 export type ProductMovementOrderByWithAggregationInput = {
+    receiptLineId?: Prisma.SortOrderInput | Prisma.SortOrder;
+    lotDisposalId?: Prisma.SortOrderInput | Prisma.SortOrder;
     id?: Prisma.SortOrder;
     quantity?: Prisma.SortOrder;
     movementType?: Prisma.SortOrder;
@@ -223,6 +251,8 @@ export type ProductMovementScalarWhereWithAggregatesInput = {
     AND?: Prisma.ProductMovementScalarWhereWithAggregatesInput | Prisma.ProductMovementScalarWhereWithAggregatesInput[];
     OR?: Prisma.ProductMovementScalarWhereWithAggregatesInput[];
     NOT?: Prisma.ProductMovementScalarWhereWithAggregatesInput | Prisma.ProductMovementScalarWhereWithAggregatesInput[];
+    receiptLineId?: Prisma.UuidNullableWithAggregatesFilter<"ProductMovement"> | string | null;
+    lotDisposalId?: Prisma.UuidNullableWithAggregatesFilter<"ProductMovement"> | string | null;
     id?: Prisma.UuidWithAggregatesFilter<"ProductMovement"> | string;
     quantity?: Prisma.DecimalWithAggregatesFilter<"ProductMovement"> | runtime.Decimal | runtime.DecimalJsLike | number | string;
     movementType?: Prisma.StringWithAggregatesFilter<"ProductMovement"> | string;
@@ -239,6 +269,8 @@ export type ProductMovementCreateInput = {
     quantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
     movementType: string;
     postedAt?: Date | string;
+    receiptLine?: Prisma.ProductReceiptLineCreateNestedOneWithoutMovementInput;
+    lotDisposal?: Prisma.ProductLotDisposalCreateNestedOneWithoutMovementInput;
     product: Prisma.ProductCreateNestedOneWithoutMovementsInput;
     dispatchLine?: Prisma.StoreDispatchLineCreateNestedOneWithoutWarehouseMovementInput;
     storeAdjustment?: Prisma.StoreAdjustmentCreateNestedOneWithoutWarehouseMovementInput;
@@ -247,6 +279,8 @@ export type ProductMovementCreateInput = {
     wasteLine?: Prisma.WasteLineCreateNestedOneWithoutProductMovementInput;
 };
 export type ProductMovementUncheckedCreateInput = {
+    receiptLineId?: string | null;
+    lotDisposalId?: string | null;
     id?: string;
     quantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
     movementType: string;
@@ -263,6 +297,8 @@ export type ProductMovementUpdateInput = {
     quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     movementType?: Prisma.StringFieldUpdateOperationsInput | string;
     postedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    receiptLine?: Prisma.ProductReceiptLineUpdateOneWithoutMovementNestedInput;
+    lotDisposal?: Prisma.ProductLotDisposalUpdateOneWithoutMovementNestedInput;
     product?: Prisma.ProductUpdateOneRequiredWithoutMovementsNestedInput;
     dispatchLine?: Prisma.StoreDispatchLineUpdateOneWithoutWarehouseMovementNestedInput;
     storeAdjustment?: Prisma.StoreAdjustmentUpdateOneWithoutWarehouseMovementNestedInput;
@@ -271,6 +307,8 @@ export type ProductMovementUpdateInput = {
     wasteLine?: Prisma.WasteLineUpdateOneWithoutProductMovementNestedInput;
 };
 export type ProductMovementUncheckedUpdateInput = {
+    receiptLineId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    lotDisposalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     movementType?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -283,6 +321,8 @@ export type ProductMovementUncheckedUpdateInput = {
     wasteLineId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 };
 export type ProductMovementCreateManyInput = {
+    receiptLineId?: string | null;
+    lotDisposalId?: string | null;
     id?: string;
     quantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
     movementType: string;
@@ -301,6 +341,8 @@ export type ProductMovementUpdateManyMutationInput = {
     postedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 };
 export type ProductMovementUncheckedUpdateManyInput = {
+    receiptLineId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    lotDisposalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     movementType?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -325,6 +367,8 @@ export type ProductMovementNullableScalarRelationFilter = {
     isNot?: Prisma.ProductMovementWhereInput | null;
 };
 export type ProductMovementCountOrderByAggregateInput = {
+    receiptLineId?: Prisma.SortOrder;
+    lotDisposalId?: Prisma.SortOrder;
     id?: Prisma.SortOrder;
     quantity?: Prisma.SortOrder;
     movementType?: Prisma.SortOrder;
@@ -340,6 +384,8 @@ export type ProductMovementAvgOrderByAggregateInput = {
     quantity?: Prisma.SortOrder;
 };
 export type ProductMovementMaxOrderByAggregateInput = {
+    receiptLineId?: Prisma.SortOrder;
+    lotDisposalId?: Prisma.SortOrder;
     id?: Prisma.SortOrder;
     quantity?: Prisma.SortOrder;
     movementType?: Prisma.SortOrder;
@@ -352,6 +398,8 @@ export type ProductMovementMaxOrderByAggregateInput = {
     wasteLineId?: Prisma.SortOrder;
 };
 export type ProductMovementMinOrderByAggregateInput = {
+    receiptLineId?: Prisma.SortOrder;
+    lotDisposalId?: Prisma.SortOrder;
     id?: Prisma.SortOrder;
     quantity?: Prisma.SortOrder;
     movementType?: Prisma.SortOrder;
@@ -431,6 +479,62 @@ export type ProductMovementUncheckedUpdateOneWithoutWasteLineNestedInput = {
     delete?: Prisma.ProductMovementWhereInput | boolean;
     connect?: Prisma.ProductMovementWhereUniqueInput;
     update?: Prisma.XOR<Prisma.XOR<Prisma.ProductMovementUpdateToOneWithWhereWithoutWasteLineInput, Prisma.ProductMovementUpdateWithoutWasteLineInput>, Prisma.ProductMovementUncheckedUpdateWithoutWasteLineInput>;
+};
+export type ProductMovementCreateNestedOneWithoutReceiptLineInput = {
+    create?: Prisma.XOR<Prisma.ProductMovementCreateWithoutReceiptLineInput, Prisma.ProductMovementUncheckedCreateWithoutReceiptLineInput>;
+    connectOrCreate?: Prisma.ProductMovementCreateOrConnectWithoutReceiptLineInput;
+    connect?: Prisma.ProductMovementWhereUniqueInput;
+};
+export type ProductMovementUncheckedCreateNestedOneWithoutReceiptLineInput = {
+    create?: Prisma.XOR<Prisma.ProductMovementCreateWithoutReceiptLineInput, Prisma.ProductMovementUncheckedCreateWithoutReceiptLineInput>;
+    connectOrCreate?: Prisma.ProductMovementCreateOrConnectWithoutReceiptLineInput;
+    connect?: Prisma.ProductMovementWhereUniqueInput;
+};
+export type ProductMovementUpdateOneWithoutReceiptLineNestedInput = {
+    create?: Prisma.XOR<Prisma.ProductMovementCreateWithoutReceiptLineInput, Prisma.ProductMovementUncheckedCreateWithoutReceiptLineInput>;
+    connectOrCreate?: Prisma.ProductMovementCreateOrConnectWithoutReceiptLineInput;
+    upsert?: Prisma.ProductMovementUpsertWithoutReceiptLineInput;
+    disconnect?: Prisma.ProductMovementWhereInput | boolean;
+    delete?: Prisma.ProductMovementWhereInput | boolean;
+    connect?: Prisma.ProductMovementWhereUniqueInput;
+    update?: Prisma.XOR<Prisma.XOR<Prisma.ProductMovementUpdateToOneWithWhereWithoutReceiptLineInput, Prisma.ProductMovementUpdateWithoutReceiptLineInput>, Prisma.ProductMovementUncheckedUpdateWithoutReceiptLineInput>;
+};
+export type ProductMovementUncheckedUpdateOneWithoutReceiptLineNestedInput = {
+    create?: Prisma.XOR<Prisma.ProductMovementCreateWithoutReceiptLineInput, Prisma.ProductMovementUncheckedCreateWithoutReceiptLineInput>;
+    connectOrCreate?: Prisma.ProductMovementCreateOrConnectWithoutReceiptLineInput;
+    upsert?: Prisma.ProductMovementUpsertWithoutReceiptLineInput;
+    disconnect?: Prisma.ProductMovementWhereInput | boolean;
+    delete?: Prisma.ProductMovementWhereInput | boolean;
+    connect?: Prisma.ProductMovementWhereUniqueInput;
+    update?: Prisma.XOR<Prisma.XOR<Prisma.ProductMovementUpdateToOneWithWhereWithoutReceiptLineInput, Prisma.ProductMovementUpdateWithoutReceiptLineInput>, Prisma.ProductMovementUncheckedUpdateWithoutReceiptLineInput>;
+};
+export type ProductMovementCreateNestedOneWithoutLotDisposalInput = {
+    create?: Prisma.XOR<Prisma.ProductMovementCreateWithoutLotDisposalInput, Prisma.ProductMovementUncheckedCreateWithoutLotDisposalInput>;
+    connectOrCreate?: Prisma.ProductMovementCreateOrConnectWithoutLotDisposalInput;
+    connect?: Prisma.ProductMovementWhereUniqueInput;
+};
+export type ProductMovementUncheckedCreateNestedOneWithoutLotDisposalInput = {
+    create?: Prisma.XOR<Prisma.ProductMovementCreateWithoutLotDisposalInput, Prisma.ProductMovementUncheckedCreateWithoutLotDisposalInput>;
+    connectOrCreate?: Prisma.ProductMovementCreateOrConnectWithoutLotDisposalInput;
+    connect?: Prisma.ProductMovementWhereUniqueInput;
+};
+export type ProductMovementUpdateOneWithoutLotDisposalNestedInput = {
+    create?: Prisma.XOR<Prisma.ProductMovementCreateWithoutLotDisposalInput, Prisma.ProductMovementUncheckedCreateWithoutLotDisposalInput>;
+    connectOrCreate?: Prisma.ProductMovementCreateOrConnectWithoutLotDisposalInput;
+    upsert?: Prisma.ProductMovementUpsertWithoutLotDisposalInput;
+    disconnect?: Prisma.ProductMovementWhereInput | boolean;
+    delete?: Prisma.ProductMovementWhereInput | boolean;
+    connect?: Prisma.ProductMovementWhereUniqueInput;
+    update?: Prisma.XOR<Prisma.XOR<Prisma.ProductMovementUpdateToOneWithWhereWithoutLotDisposalInput, Prisma.ProductMovementUpdateWithoutLotDisposalInput>, Prisma.ProductMovementUncheckedUpdateWithoutLotDisposalInput>;
+};
+export type ProductMovementUncheckedUpdateOneWithoutLotDisposalNestedInput = {
+    create?: Prisma.XOR<Prisma.ProductMovementCreateWithoutLotDisposalInput, Prisma.ProductMovementUncheckedCreateWithoutLotDisposalInput>;
+    connectOrCreate?: Prisma.ProductMovementCreateOrConnectWithoutLotDisposalInput;
+    upsert?: Prisma.ProductMovementUpsertWithoutLotDisposalInput;
+    disconnect?: Prisma.ProductMovementWhereInput | boolean;
+    delete?: Prisma.ProductMovementWhereInput | boolean;
+    connect?: Prisma.ProductMovementWhereUniqueInput;
+    update?: Prisma.XOR<Prisma.XOR<Prisma.ProductMovementUpdateToOneWithWhereWithoutLotDisposalInput, Prisma.ProductMovementUpdateWithoutLotDisposalInput>, Prisma.ProductMovementUncheckedUpdateWithoutLotDisposalInput>;
 };
 export type ProductMovementCreateNestedOneWithoutRunInput = {
     create?: Prisma.XOR<Prisma.ProductMovementCreateWithoutRunInput, Prisma.ProductMovementUncheckedCreateWithoutRunInput>;
@@ -549,6 +653,8 @@ export type ProductMovementCreateWithoutProductInput = {
     quantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
     movementType: string;
     postedAt?: Date | string;
+    receiptLine?: Prisma.ProductReceiptLineCreateNestedOneWithoutMovementInput;
+    lotDisposal?: Prisma.ProductLotDisposalCreateNestedOneWithoutMovementInput;
     dispatchLine?: Prisma.StoreDispatchLineCreateNestedOneWithoutWarehouseMovementInput;
     storeAdjustment?: Prisma.StoreAdjustmentCreateNestedOneWithoutWarehouseMovementInput;
     run?: Prisma.ProductionRunCreateNestedOneWithoutProductMovementInput;
@@ -556,6 +662,8 @@ export type ProductMovementCreateWithoutProductInput = {
     wasteLine?: Prisma.WasteLineCreateNestedOneWithoutProductMovementInput;
 };
 export type ProductMovementUncheckedCreateWithoutProductInput = {
+    receiptLineId?: string | null;
+    lotDisposalId?: string | null;
     id?: string;
     quantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
     movementType: string;
@@ -591,6 +699,8 @@ export type ProductMovementScalarWhereInput = {
     AND?: Prisma.ProductMovementScalarWhereInput | Prisma.ProductMovementScalarWhereInput[];
     OR?: Prisma.ProductMovementScalarWhereInput[];
     NOT?: Prisma.ProductMovementScalarWhereInput | Prisma.ProductMovementScalarWhereInput[];
+    receiptLineId?: Prisma.UuidNullableFilter<"ProductMovement"> | string | null;
+    lotDisposalId?: Prisma.UuidNullableFilter<"ProductMovement"> | string | null;
     id?: Prisma.UuidFilter<"ProductMovement"> | string;
     quantity?: Prisma.DecimalFilter<"ProductMovement"> | runtime.Decimal | runtime.DecimalJsLike | number | string;
     movementType?: Prisma.StringFilter<"ProductMovement"> | string;
@@ -607,6 +717,8 @@ export type ProductMovementCreateWithoutWasteLineInput = {
     quantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
     movementType: string;
     postedAt?: Date | string;
+    receiptLine?: Prisma.ProductReceiptLineCreateNestedOneWithoutMovementInput;
+    lotDisposal?: Prisma.ProductLotDisposalCreateNestedOneWithoutMovementInput;
     product: Prisma.ProductCreateNestedOneWithoutMovementsInput;
     dispatchLine?: Prisma.StoreDispatchLineCreateNestedOneWithoutWarehouseMovementInput;
     storeAdjustment?: Prisma.StoreAdjustmentCreateNestedOneWithoutWarehouseMovementInput;
@@ -614,6 +726,8 @@ export type ProductMovementCreateWithoutWasteLineInput = {
     exportLine?: Prisma.ProductExportLineCreateNestedOneWithoutProductMovementInput;
 };
 export type ProductMovementUncheckedCreateWithoutWasteLineInput = {
+    receiptLineId?: string | null;
+    lotDisposalId?: string | null;
     id?: string;
     quantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
     movementType: string;
@@ -642,6 +756,8 @@ export type ProductMovementUpdateWithoutWasteLineInput = {
     quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     movementType?: Prisma.StringFieldUpdateOperationsInput | string;
     postedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    receiptLine?: Prisma.ProductReceiptLineUpdateOneWithoutMovementNestedInput;
+    lotDisposal?: Prisma.ProductLotDisposalUpdateOneWithoutMovementNestedInput;
     product?: Prisma.ProductUpdateOneRequiredWithoutMovementsNestedInput;
     dispatchLine?: Prisma.StoreDispatchLineUpdateOneWithoutWarehouseMovementNestedInput;
     storeAdjustment?: Prisma.StoreAdjustmentUpdateOneWithoutWarehouseMovementNestedInput;
@@ -649,6 +765,8 @@ export type ProductMovementUpdateWithoutWasteLineInput = {
     exportLine?: Prisma.ProductExportLineUpdateOneWithoutProductMovementNestedInput;
 };
 export type ProductMovementUncheckedUpdateWithoutWasteLineInput = {
+    receiptLineId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    lotDisposalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     movementType?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -659,11 +777,143 @@ export type ProductMovementUncheckedUpdateWithoutWasteLineInput = {
     runId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     exportLineId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 };
+export type ProductMovementCreateWithoutReceiptLineInput = {
+    id?: string;
+    quantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    movementType: string;
+    postedAt?: Date | string;
+    lotDisposal?: Prisma.ProductLotDisposalCreateNestedOneWithoutMovementInput;
+    product: Prisma.ProductCreateNestedOneWithoutMovementsInput;
+    dispatchLine?: Prisma.StoreDispatchLineCreateNestedOneWithoutWarehouseMovementInput;
+    storeAdjustment?: Prisma.StoreAdjustmentCreateNestedOneWithoutWarehouseMovementInput;
+    run?: Prisma.ProductionRunCreateNestedOneWithoutProductMovementInput;
+    exportLine?: Prisma.ProductExportLineCreateNestedOneWithoutProductMovementInput;
+    wasteLine?: Prisma.WasteLineCreateNestedOneWithoutProductMovementInput;
+};
+export type ProductMovementUncheckedCreateWithoutReceiptLineInput = {
+    lotDisposalId?: string | null;
+    id?: string;
+    quantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    movementType: string;
+    postedAt?: Date | string;
+    productId: string;
+    dispatchLineId?: string | null;
+    storeAdjustmentId?: string | null;
+    runId?: string | null;
+    exportLineId?: string | null;
+    wasteLineId?: string | null;
+};
+export type ProductMovementCreateOrConnectWithoutReceiptLineInput = {
+    where: Prisma.ProductMovementWhereUniqueInput;
+    create: Prisma.XOR<Prisma.ProductMovementCreateWithoutReceiptLineInput, Prisma.ProductMovementUncheckedCreateWithoutReceiptLineInput>;
+};
+export type ProductMovementUpsertWithoutReceiptLineInput = {
+    update: Prisma.XOR<Prisma.ProductMovementUpdateWithoutReceiptLineInput, Prisma.ProductMovementUncheckedUpdateWithoutReceiptLineInput>;
+    create: Prisma.XOR<Prisma.ProductMovementCreateWithoutReceiptLineInput, Prisma.ProductMovementUncheckedCreateWithoutReceiptLineInput>;
+    where?: Prisma.ProductMovementWhereInput;
+};
+export type ProductMovementUpdateToOneWithWhereWithoutReceiptLineInput = {
+    where?: Prisma.ProductMovementWhereInput;
+    data: Prisma.XOR<Prisma.ProductMovementUpdateWithoutReceiptLineInput, Prisma.ProductMovementUncheckedUpdateWithoutReceiptLineInput>;
+};
+export type ProductMovementUpdateWithoutReceiptLineInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    movementType?: Prisma.StringFieldUpdateOperationsInput | string;
+    postedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    lotDisposal?: Prisma.ProductLotDisposalUpdateOneWithoutMovementNestedInput;
+    product?: Prisma.ProductUpdateOneRequiredWithoutMovementsNestedInput;
+    dispatchLine?: Prisma.StoreDispatchLineUpdateOneWithoutWarehouseMovementNestedInput;
+    storeAdjustment?: Prisma.StoreAdjustmentUpdateOneWithoutWarehouseMovementNestedInput;
+    run?: Prisma.ProductionRunUpdateOneWithoutProductMovementNestedInput;
+    exportLine?: Prisma.ProductExportLineUpdateOneWithoutProductMovementNestedInput;
+    wasteLine?: Prisma.WasteLineUpdateOneWithoutProductMovementNestedInput;
+};
+export type ProductMovementUncheckedUpdateWithoutReceiptLineInput = {
+    lotDisposalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    movementType?: Prisma.StringFieldUpdateOperationsInput | string;
+    postedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    productId?: Prisma.StringFieldUpdateOperationsInput | string;
+    dispatchLineId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    storeAdjustmentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    runId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    exportLineId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    wasteLineId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+};
+export type ProductMovementCreateWithoutLotDisposalInput = {
+    id?: string;
+    quantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    movementType: string;
+    postedAt?: Date | string;
+    receiptLine?: Prisma.ProductReceiptLineCreateNestedOneWithoutMovementInput;
+    product: Prisma.ProductCreateNestedOneWithoutMovementsInput;
+    dispatchLine?: Prisma.StoreDispatchLineCreateNestedOneWithoutWarehouseMovementInput;
+    storeAdjustment?: Prisma.StoreAdjustmentCreateNestedOneWithoutWarehouseMovementInput;
+    run?: Prisma.ProductionRunCreateNestedOneWithoutProductMovementInput;
+    exportLine?: Prisma.ProductExportLineCreateNestedOneWithoutProductMovementInput;
+    wasteLine?: Prisma.WasteLineCreateNestedOneWithoutProductMovementInput;
+};
+export type ProductMovementUncheckedCreateWithoutLotDisposalInput = {
+    receiptLineId?: string | null;
+    id?: string;
+    quantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    movementType: string;
+    postedAt?: Date | string;
+    productId: string;
+    dispatchLineId?: string | null;
+    storeAdjustmentId?: string | null;
+    runId?: string | null;
+    exportLineId?: string | null;
+    wasteLineId?: string | null;
+};
+export type ProductMovementCreateOrConnectWithoutLotDisposalInput = {
+    where: Prisma.ProductMovementWhereUniqueInput;
+    create: Prisma.XOR<Prisma.ProductMovementCreateWithoutLotDisposalInput, Prisma.ProductMovementUncheckedCreateWithoutLotDisposalInput>;
+};
+export type ProductMovementUpsertWithoutLotDisposalInput = {
+    update: Prisma.XOR<Prisma.ProductMovementUpdateWithoutLotDisposalInput, Prisma.ProductMovementUncheckedUpdateWithoutLotDisposalInput>;
+    create: Prisma.XOR<Prisma.ProductMovementCreateWithoutLotDisposalInput, Prisma.ProductMovementUncheckedCreateWithoutLotDisposalInput>;
+    where?: Prisma.ProductMovementWhereInput;
+};
+export type ProductMovementUpdateToOneWithWhereWithoutLotDisposalInput = {
+    where?: Prisma.ProductMovementWhereInput;
+    data: Prisma.XOR<Prisma.ProductMovementUpdateWithoutLotDisposalInput, Prisma.ProductMovementUncheckedUpdateWithoutLotDisposalInput>;
+};
+export type ProductMovementUpdateWithoutLotDisposalInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    movementType?: Prisma.StringFieldUpdateOperationsInput | string;
+    postedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    receiptLine?: Prisma.ProductReceiptLineUpdateOneWithoutMovementNestedInput;
+    product?: Prisma.ProductUpdateOneRequiredWithoutMovementsNestedInput;
+    dispatchLine?: Prisma.StoreDispatchLineUpdateOneWithoutWarehouseMovementNestedInput;
+    storeAdjustment?: Prisma.StoreAdjustmentUpdateOneWithoutWarehouseMovementNestedInput;
+    run?: Prisma.ProductionRunUpdateOneWithoutProductMovementNestedInput;
+    exportLine?: Prisma.ProductExportLineUpdateOneWithoutProductMovementNestedInput;
+    wasteLine?: Prisma.WasteLineUpdateOneWithoutProductMovementNestedInput;
+};
+export type ProductMovementUncheckedUpdateWithoutLotDisposalInput = {
+    receiptLineId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    movementType?: Prisma.StringFieldUpdateOperationsInput | string;
+    postedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    productId?: Prisma.StringFieldUpdateOperationsInput | string;
+    dispatchLineId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    storeAdjustmentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    runId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    exportLineId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    wasteLineId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+};
 export type ProductMovementCreateWithoutRunInput = {
     id?: string;
     quantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
     movementType: string;
     postedAt?: Date | string;
+    receiptLine?: Prisma.ProductReceiptLineCreateNestedOneWithoutMovementInput;
+    lotDisposal?: Prisma.ProductLotDisposalCreateNestedOneWithoutMovementInput;
     product: Prisma.ProductCreateNestedOneWithoutMovementsInput;
     dispatchLine?: Prisma.StoreDispatchLineCreateNestedOneWithoutWarehouseMovementInput;
     storeAdjustment?: Prisma.StoreAdjustmentCreateNestedOneWithoutWarehouseMovementInput;
@@ -671,6 +921,8 @@ export type ProductMovementCreateWithoutRunInput = {
     wasteLine?: Prisma.WasteLineCreateNestedOneWithoutProductMovementInput;
 };
 export type ProductMovementUncheckedCreateWithoutRunInput = {
+    receiptLineId?: string | null;
+    lotDisposalId?: string | null;
     id?: string;
     quantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
     movementType: string;
@@ -699,6 +951,8 @@ export type ProductMovementUpdateWithoutRunInput = {
     quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     movementType?: Prisma.StringFieldUpdateOperationsInput | string;
     postedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    receiptLine?: Prisma.ProductReceiptLineUpdateOneWithoutMovementNestedInput;
+    lotDisposal?: Prisma.ProductLotDisposalUpdateOneWithoutMovementNestedInput;
     product?: Prisma.ProductUpdateOneRequiredWithoutMovementsNestedInput;
     dispatchLine?: Prisma.StoreDispatchLineUpdateOneWithoutWarehouseMovementNestedInput;
     storeAdjustment?: Prisma.StoreAdjustmentUpdateOneWithoutWarehouseMovementNestedInput;
@@ -706,6 +960,8 @@ export type ProductMovementUpdateWithoutRunInput = {
     wasteLine?: Prisma.WasteLineUpdateOneWithoutProductMovementNestedInput;
 };
 export type ProductMovementUncheckedUpdateWithoutRunInput = {
+    receiptLineId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    lotDisposalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     movementType?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -721,6 +977,8 @@ export type ProductMovementCreateWithoutExportLineInput = {
     quantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
     movementType: string;
     postedAt?: Date | string;
+    receiptLine?: Prisma.ProductReceiptLineCreateNestedOneWithoutMovementInput;
+    lotDisposal?: Prisma.ProductLotDisposalCreateNestedOneWithoutMovementInput;
     product: Prisma.ProductCreateNestedOneWithoutMovementsInput;
     dispatchLine?: Prisma.StoreDispatchLineCreateNestedOneWithoutWarehouseMovementInput;
     storeAdjustment?: Prisma.StoreAdjustmentCreateNestedOneWithoutWarehouseMovementInput;
@@ -728,6 +986,8 @@ export type ProductMovementCreateWithoutExportLineInput = {
     wasteLine?: Prisma.WasteLineCreateNestedOneWithoutProductMovementInput;
 };
 export type ProductMovementUncheckedCreateWithoutExportLineInput = {
+    receiptLineId?: string | null;
+    lotDisposalId?: string | null;
     id?: string;
     quantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
     movementType: string;
@@ -756,6 +1016,8 @@ export type ProductMovementUpdateWithoutExportLineInput = {
     quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     movementType?: Prisma.StringFieldUpdateOperationsInput | string;
     postedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    receiptLine?: Prisma.ProductReceiptLineUpdateOneWithoutMovementNestedInput;
+    lotDisposal?: Prisma.ProductLotDisposalUpdateOneWithoutMovementNestedInput;
     product?: Prisma.ProductUpdateOneRequiredWithoutMovementsNestedInput;
     dispatchLine?: Prisma.StoreDispatchLineUpdateOneWithoutWarehouseMovementNestedInput;
     storeAdjustment?: Prisma.StoreAdjustmentUpdateOneWithoutWarehouseMovementNestedInput;
@@ -763,6 +1025,8 @@ export type ProductMovementUpdateWithoutExportLineInput = {
     wasteLine?: Prisma.WasteLineUpdateOneWithoutProductMovementNestedInput;
 };
 export type ProductMovementUncheckedUpdateWithoutExportLineInput = {
+    receiptLineId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    lotDisposalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     movementType?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -778,6 +1042,8 @@ export type ProductMovementCreateWithoutDispatchLineInput = {
     quantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
     movementType: string;
     postedAt?: Date | string;
+    receiptLine?: Prisma.ProductReceiptLineCreateNestedOneWithoutMovementInput;
+    lotDisposal?: Prisma.ProductLotDisposalCreateNestedOneWithoutMovementInput;
     product: Prisma.ProductCreateNestedOneWithoutMovementsInput;
     storeAdjustment?: Prisma.StoreAdjustmentCreateNestedOneWithoutWarehouseMovementInput;
     run?: Prisma.ProductionRunCreateNestedOneWithoutProductMovementInput;
@@ -785,6 +1051,8 @@ export type ProductMovementCreateWithoutDispatchLineInput = {
     wasteLine?: Prisma.WasteLineCreateNestedOneWithoutProductMovementInput;
 };
 export type ProductMovementUncheckedCreateWithoutDispatchLineInput = {
+    receiptLineId?: string | null;
+    lotDisposalId?: string | null;
     id?: string;
     quantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
     movementType: string;
@@ -813,6 +1081,8 @@ export type ProductMovementUpdateWithoutDispatchLineInput = {
     quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     movementType?: Prisma.StringFieldUpdateOperationsInput | string;
     postedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    receiptLine?: Prisma.ProductReceiptLineUpdateOneWithoutMovementNestedInput;
+    lotDisposal?: Prisma.ProductLotDisposalUpdateOneWithoutMovementNestedInput;
     product?: Prisma.ProductUpdateOneRequiredWithoutMovementsNestedInput;
     storeAdjustment?: Prisma.StoreAdjustmentUpdateOneWithoutWarehouseMovementNestedInput;
     run?: Prisma.ProductionRunUpdateOneWithoutProductMovementNestedInput;
@@ -820,6 +1090,8 @@ export type ProductMovementUpdateWithoutDispatchLineInput = {
     wasteLine?: Prisma.WasteLineUpdateOneWithoutProductMovementNestedInput;
 };
 export type ProductMovementUncheckedUpdateWithoutDispatchLineInput = {
+    receiptLineId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    lotDisposalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     movementType?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -835,6 +1107,8 @@ export type ProductMovementCreateWithoutStoreAdjustmentInput = {
     quantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
     movementType: string;
     postedAt?: Date | string;
+    receiptLine?: Prisma.ProductReceiptLineCreateNestedOneWithoutMovementInput;
+    lotDisposal?: Prisma.ProductLotDisposalCreateNestedOneWithoutMovementInput;
     product: Prisma.ProductCreateNestedOneWithoutMovementsInput;
     dispatchLine?: Prisma.StoreDispatchLineCreateNestedOneWithoutWarehouseMovementInput;
     run?: Prisma.ProductionRunCreateNestedOneWithoutProductMovementInput;
@@ -842,6 +1116,8 @@ export type ProductMovementCreateWithoutStoreAdjustmentInput = {
     wasteLine?: Prisma.WasteLineCreateNestedOneWithoutProductMovementInput;
 };
 export type ProductMovementUncheckedCreateWithoutStoreAdjustmentInput = {
+    receiptLineId?: string | null;
+    lotDisposalId?: string | null;
     id?: string;
     quantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
     movementType: string;
@@ -870,6 +1146,8 @@ export type ProductMovementUpdateWithoutStoreAdjustmentInput = {
     quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     movementType?: Prisma.StringFieldUpdateOperationsInput | string;
     postedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    receiptLine?: Prisma.ProductReceiptLineUpdateOneWithoutMovementNestedInput;
+    lotDisposal?: Prisma.ProductLotDisposalUpdateOneWithoutMovementNestedInput;
     product?: Prisma.ProductUpdateOneRequiredWithoutMovementsNestedInput;
     dispatchLine?: Prisma.StoreDispatchLineUpdateOneWithoutWarehouseMovementNestedInput;
     run?: Prisma.ProductionRunUpdateOneWithoutProductMovementNestedInput;
@@ -877,6 +1155,8 @@ export type ProductMovementUpdateWithoutStoreAdjustmentInput = {
     wasteLine?: Prisma.WasteLineUpdateOneWithoutProductMovementNestedInput;
 };
 export type ProductMovementUncheckedUpdateWithoutStoreAdjustmentInput = {
+    receiptLineId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    lotDisposalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     movementType?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -888,6 +1168,8 @@ export type ProductMovementUncheckedUpdateWithoutStoreAdjustmentInput = {
     wasteLineId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 };
 export type ProductMovementCreateManyProductInput = {
+    receiptLineId?: string | null;
+    lotDisposalId?: string | null;
     id?: string;
     quantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
     movementType: string;
@@ -903,6 +1185,8 @@ export type ProductMovementUpdateWithoutProductInput = {
     quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     movementType?: Prisma.StringFieldUpdateOperationsInput | string;
     postedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    receiptLine?: Prisma.ProductReceiptLineUpdateOneWithoutMovementNestedInput;
+    lotDisposal?: Prisma.ProductLotDisposalUpdateOneWithoutMovementNestedInput;
     dispatchLine?: Prisma.StoreDispatchLineUpdateOneWithoutWarehouseMovementNestedInput;
     storeAdjustment?: Prisma.StoreAdjustmentUpdateOneWithoutWarehouseMovementNestedInput;
     run?: Prisma.ProductionRunUpdateOneWithoutProductMovementNestedInput;
@@ -910,6 +1194,8 @@ export type ProductMovementUpdateWithoutProductInput = {
     wasteLine?: Prisma.WasteLineUpdateOneWithoutProductMovementNestedInput;
 };
 export type ProductMovementUncheckedUpdateWithoutProductInput = {
+    receiptLineId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    lotDisposalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     movementType?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -921,6 +1207,8 @@ export type ProductMovementUncheckedUpdateWithoutProductInput = {
     wasteLineId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 };
 export type ProductMovementUncheckedUpdateManyWithoutProductInput = {
+    receiptLineId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    lotDisposalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     movementType?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -932,6 +1220,8 @@ export type ProductMovementUncheckedUpdateManyWithoutProductInput = {
     wasteLineId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 };
 export type ProductMovementSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+    receiptLineId?: boolean;
+    lotDisposalId?: boolean;
     id?: boolean;
     quantity?: boolean;
     movementType?: boolean;
@@ -942,6 +1232,8 @@ export type ProductMovementSelect<ExtArgs extends runtime.Types.Extensions.Inter
     runId?: boolean;
     exportLineId?: boolean;
     wasteLineId?: boolean;
+    receiptLine?: boolean | Prisma.ProductMovement$receiptLineArgs<ExtArgs>;
+    lotDisposal?: boolean | Prisma.ProductMovement$lotDisposalArgs<ExtArgs>;
     product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>;
     dispatchLine?: boolean | Prisma.ProductMovement$dispatchLineArgs<ExtArgs>;
     storeAdjustment?: boolean | Prisma.ProductMovement$storeAdjustmentArgs<ExtArgs>;
@@ -950,6 +1242,8 @@ export type ProductMovementSelect<ExtArgs extends runtime.Types.Extensions.Inter
     wasteLine?: boolean | Prisma.ProductMovement$wasteLineArgs<ExtArgs>;
 }, ExtArgs["result"]["productMovement"]>;
 export type ProductMovementSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+    receiptLineId?: boolean;
+    lotDisposalId?: boolean;
     id?: boolean;
     quantity?: boolean;
     movementType?: boolean;
@@ -960,6 +1254,8 @@ export type ProductMovementSelectCreateManyAndReturn<ExtArgs extends runtime.Typ
     runId?: boolean;
     exportLineId?: boolean;
     wasteLineId?: boolean;
+    receiptLine?: boolean | Prisma.ProductMovement$receiptLineArgs<ExtArgs>;
+    lotDisposal?: boolean | Prisma.ProductMovement$lotDisposalArgs<ExtArgs>;
     product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>;
     dispatchLine?: boolean | Prisma.ProductMovement$dispatchLineArgs<ExtArgs>;
     storeAdjustment?: boolean | Prisma.ProductMovement$storeAdjustmentArgs<ExtArgs>;
@@ -968,6 +1264,8 @@ export type ProductMovementSelectCreateManyAndReturn<ExtArgs extends runtime.Typ
     wasteLine?: boolean | Prisma.ProductMovement$wasteLineArgs<ExtArgs>;
 }, ExtArgs["result"]["productMovement"]>;
 export type ProductMovementSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+    receiptLineId?: boolean;
+    lotDisposalId?: boolean;
     id?: boolean;
     quantity?: boolean;
     movementType?: boolean;
@@ -978,6 +1276,8 @@ export type ProductMovementSelectUpdateManyAndReturn<ExtArgs extends runtime.Typ
     runId?: boolean;
     exportLineId?: boolean;
     wasteLineId?: boolean;
+    receiptLine?: boolean | Prisma.ProductMovement$receiptLineArgs<ExtArgs>;
+    lotDisposal?: boolean | Prisma.ProductMovement$lotDisposalArgs<ExtArgs>;
     product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>;
     dispatchLine?: boolean | Prisma.ProductMovement$dispatchLineArgs<ExtArgs>;
     storeAdjustment?: boolean | Prisma.ProductMovement$storeAdjustmentArgs<ExtArgs>;
@@ -986,6 +1286,8 @@ export type ProductMovementSelectUpdateManyAndReturn<ExtArgs extends runtime.Typ
     wasteLine?: boolean | Prisma.ProductMovement$wasteLineArgs<ExtArgs>;
 }, ExtArgs["result"]["productMovement"]>;
 export type ProductMovementSelectScalar = {
+    receiptLineId?: boolean;
+    lotDisposalId?: boolean;
     id?: boolean;
     quantity?: boolean;
     movementType?: boolean;
@@ -997,8 +1299,10 @@ export type ProductMovementSelectScalar = {
     exportLineId?: boolean;
     wasteLineId?: boolean;
 };
-export type ProductMovementOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "quantity" | "movementType" | "postedAt" | "productId" | "dispatchLineId" | "storeAdjustmentId" | "runId" | "exportLineId" | "wasteLineId", ExtArgs["result"]["productMovement"]>;
+export type ProductMovementOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"receiptLineId" | "lotDisposalId" | "id" | "quantity" | "movementType" | "postedAt" | "productId" | "dispatchLineId" | "storeAdjustmentId" | "runId" | "exportLineId" | "wasteLineId", ExtArgs["result"]["productMovement"]>;
 export type ProductMovementInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    receiptLine?: boolean | Prisma.ProductMovement$receiptLineArgs<ExtArgs>;
+    lotDisposal?: boolean | Prisma.ProductMovement$lotDisposalArgs<ExtArgs>;
     product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>;
     dispatchLine?: boolean | Prisma.ProductMovement$dispatchLineArgs<ExtArgs>;
     storeAdjustment?: boolean | Prisma.ProductMovement$storeAdjustmentArgs<ExtArgs>;
@@ -1007,6 +1311,8 @@ export type ProductMovementInclude<ExtArgs extends runtime.Types.Extensions.Inte
     wasteLine?: boolean | Prisma.ProductMovement$wasteLineArgs<ExtArgs>;
 };
 export type ProductMovementIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    receiptLine?: boolean | Prisma.ProductMovement$receiptLineArgs<ExtArgs>;
+    lotDisposal?: boolean | Prisma.ProductMovement$lotDisposalArgs<ExtArgs>;
     product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>;
     dispatchLine?: boolean | Prisma.ProductMovement$dispatchLineArgs<ExtArgs>;
     storeAdjustment?: boolean | Prisma.ProductMovement$storeAdjustmentArgs<ExtArgs>;
@@ -1015,6 +1321,8 @@ export type ProductMovementIncludeCreateManyAndReturn<ExtArgs extends runtime.Ty
     wasteLine?: boolean | Prisma.ProductMovement$wasteLineArgs<ExtArgs>;
 };
 export type ProductMovementIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    receiptLine?: boolean | Prisma.ProductMovement$receiptLineArgs<ExtArgs>;
+    lotDisposal?: boolean | Prisma.ProductMovement$lotDisposalArgs<ExtArgs>;
     product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>;
     dispatchLine?: boolean | Prisma.ProductMovement$dispatchLineArgs<ExtArgs>;
     storeAdjustment?: boolean | Prisma.ProductMovement$storeAdjustmentArgs<ExtArgs>;
@@ -1025,6 +1333,8 @@ export type ProductMovementIncludeUpdateManyAndReturn<ExtArgs extends runtime.Ty
 export type $ProductMovementPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     name: "ProductMovement";
     objects: {
+        receiptLine: Prisma.$ProductReceiptLinePayload<ExtArgs> | null;
+        lotDisposal: Prisma.$ProductLotDisposalPayload<ExtArgs> | null;
         product: Prisma.$ProductPayload<ExtArgs>;
         dispatchLine: Prisma.$StoreDispatchLinePayload<ExtArgs> | null;
         storeAdjustment: Prisma.$StoreAdjustmentPayload<ExtArgs> | null;
@@ -1033,6 +1343,8 @@ export type $ProductMovementPayload<ExtArgs extends runtime.Types.Extensions.Int
         wasteLine: Prisma.$WasteLinePayload<ExtArgs> | null;
     };
     scalars: runtime.Types.Extensions.GetPayloadResult<{
+        receiptLineId: string | null;
+        lotDisposalId: string | null;
         id: string;
         quantity: runtime.Decimal;
         movementType: string;
@@ -1095,6 +1407,8 @@ export interface ProductMovementDelegate<ExtArgs extends runtime.Types.Extension
 }
 export interface Prisma__ProductMovementClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise";
+    receiptLine<T extends Prisma.ProductMovement$receiptLineArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProductMovement$receiptLineArgs<ExtArgs>>): Prisma.Prisma__ProductReceiptLineClient<runtime.Types.Result.GetResult<Prisma.$ProductReceiptLinePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>;
+    lotDisposal<T extends Prisma.ProductMovement$lotDisposalArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProductMovement$lotDisposalArgs<ExtArgs>>): Prisma.Prisma__ProductLotDisposalClient<runtime.Types.Result.GetResult<Prisma.$ProductLotDisposalPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>;
     product<T extends Prisma.ProductDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProductDefaultArgs<ExtArgs>>): Prisma.Prisma__ProductClient<runtime.Types.Result.GetResult<Prisma.$ProductPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>;
     dispatchLine<T extends Prisma.ProductMovement$dispatchLineArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProductMovement$dispatchLineArgs<ExtArgs>>): Prisma.Prisma__StoreDispatchLineClient<runtime.Types.Result.GetResult<Prisma.$StoreDispatchLinePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>;
     storeAdjustment<T extends Prisma.ProductMovement$storeAdjustmentArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProductMovement$storeAdjustmentArgs<ExtArgs>>): Prisma.Prisma__StoreAdjustmentClient<runtime.Types.Result.GetResult<Prisma.$StoreAdjustmentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>;
@@ -1106,6 +1420,8 @@ export interface Prisma__ProductMovementClient<T, Null = never, ExtArgs extends 
     finally(onfinally?: (() => void) | undefined | null): runtime.Types.Utils.JsPromise<T>;
 }
 export interface ProductMovementFieldRefs {
+    readonly receiptLineId: Prisma.FieldRef<"ProductMovement", 'String'>;
+    readonly lotDisposalId: Prisma.FieldRef<"ProductMovement", 'String'>;
     readonly id: Prisma.FieldRef<"ProductMovement", 'String'>;
     readonly quantity: Prisma.FieldRef<"ProductMovement", 'Decimal'>;
     readonly movementType: Prisma.FieldRef<"ProductMovement", 'String'>;
@@ -1216,6 +1532,18 @@ export type ProductMovementDeleteArgs<ExtArgs extends runtime.Types.Extensions.I
 export type ProductMovementDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     where?: Prisma.ProductMovementWhereInput;
     limit?: number;
+};
+export type ProductMovement$receiptLineArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    select?: Prisma.ProductReceiptLineSelect<ExtArgs> | null;
+    omit?: Prisma.ProductReceiptLineOmit<ExtArgs> | null;
+    include?: Prisma.ProductReceiptLineInclude<ExtArgs> | null;
+    where?: Prisma.ProductReceiptLineWhereInput;
+};
+export type ProductMovement$lotDisposalArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    select?: Prisma.ProductLotDisposalSelect<ExtArgs> | null;
+    omit?: Prisma.ProductLotDisposalOmit<ExtArgs> | null;
+    include?: Prisma.ProductLotDisposalInclude<ExtArgs> | null;
+    where?: Prisma.ProductLotDisposalWhereInput;
 };
 export type ProductMovement$dispatchLineArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.StoreDispatchLineSelect<ExtArgs> | null;

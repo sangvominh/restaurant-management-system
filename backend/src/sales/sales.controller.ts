@@ -20,8 +20,9 @@ export class SalesController {
   @Put('areas/:name') updateArea(@Param('name') name: string, @Body() b: unknown, @Req() r: R) { allow(r, ['dining:manage']); return this.service.saveArea(b, name); }
   @Delete('areas/:name') deleteArea(@Param('name') name: string, @Req() r: R) { allow(r, ['dining:manage']); return this.service.deleteArea(name); }
   @Delete('tables/:id') deleteTable(@Param('id') id: string, @Req() r: R) { allow(r, ['dining:manage']); return this.service.deleteTable(id); }
-  @Get('reports/sales') report(@Query('month') month: string, @Req() r: R) { allow(r, ['report:sales']); return this.service.salesReport(month); }
-  @Put('products/:id/price') price(@Param('id') id: string, @Body() b: unknown, @Req() r: R) { allow(r, ['product:price', 'product:manage']); return this.service.setPrice(id, b); }
+  @Get('reports/sales') report(@Query('start') start: string, @Query('end') end: string, @Query('method') method: string, @Req() r: R) { allow(r, ['report:sales']); return this.service.salesReport(start, end, method); }
+  @Put('products/:id/price') price(@Param('id') id: string, @Body() b: unknown, @Req() r: R) { allow(r, ['product:price']); return this.service.setPrice(id, b); }
+  @Get('settings/products') settings(@Req() r: R) { allow(r, ['product:price']); return this.service.priceProducts(); }
   @Get('products') products(@Req() r: R) { allow(r); return this.service.products(); }
   @Post('sales/:id/change-line') changeLine(@Param('id') id: string, @Body() b: unknown, @Req() r: R) { allow(r, ['sale:create']); return this.service.changeLine(id, b, r.catalogUser); }
   @Get('areas') areas(@Req() r: R) { allow(r); return this.service.areas(); }

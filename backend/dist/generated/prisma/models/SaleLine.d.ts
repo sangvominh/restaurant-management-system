@@ -164,6 +164,7 @@ export type SaleLineWhereInput = {
     productName?: Prisma.StringFilter<"SaleLine"> | string;
     saleId?: Prisma.UuidFilter<"SaleLine"> | string;
     productId?: Prisma.UuidFilter<"SaleLine"> | string;
+    lotMovements?: Prisma.ProductLotMovementListRelationFilter;
     changes?: Prisma.SaleLineChangeListRelationFilter;
     replacementChanges?: Prisma.SaleLineChangeListRelationFilter;
     sentBy?: Prisma.XOR<Prisma.EmployeeNullableScalarRelationFilter, Prisma.EmployeeWhereInput> | null;
@@ -185,6 +186,7 @@ export type SaleLineOrderByWithRelationInput = {
     productName?: Prisma.SortOrder;
     saleId?: Prisma.SortOrder;
     productId?: Prisma.SortOrder;
+    lotMovements?: Prisma.ProductLotMovementOrderByRelationAggregateInput;
     changes?: Prisma.SaleLineChangeOrderByRelationAggregateInput;
     replacementChanges?: Prisma.SaleLineChangeOrderByRelationAggregateInput;
     sentBy?: Prisma.EmployeeOrderByWithRelationInput;
@@ -209,6 +211,7 @@ export type SaleLineWhereUniqueInput = Prisma.AtLeast<{
     productName?: Prisma.StringFilter<"SaleLine"> | string;
     saleId?: Prisma.UuidFilter<"SaleLine"> | string;
     productId?: Prisma.UuidFilter<"SaleLine"> | string;
+    lotMovements?: Prisma.ProductLotMovementListRelationFilter;
     changes?: Prisma.SaleLineChangeListRelationFilter;
     replacementChanges?: Prisma.SaleLineChangeListRelationFilter;
     sentBy?: Prisma.XOR<Prisma.EmployeeNullableScalarRelationFilter, Prisma.EmployeeWhereInput> | null;
@@ -259,6 +262,7 @@ export type SaleLineCreateInput = {
     sentAt?: Date | string | null;
     batch?: number | null;
     productName: string;
+    lotMovements?: Prisma.ProductLotMovementCreateNestedManyWithoutSaleLineInput;
     changes?: Prisma.SaleLineChangeCreateNestedManyWithoutSaleLineInput;
     replacementChanges?: Prisma.SaleLineChangeCreateNestedManyWithoutReplacementLineInput;
     sentBy?: Prisma.EmployeeCreateNestedOneWithoutSentLinesInput;
@@ -280,6 +284,7 @@ export type SaleLineUncheckedCreateInput = {
     productName: string;
     saleId: string;
     productId: string;
+    lotMovements?: Prisma.ProductLotMovementUncheckedCreateNestedManyWithoutSaleLineInput;
     changes?: Prisma.SaleLineChangeUncheckedCreateNestedManyWithoutSaleLineInput;
     replacementChanges?: Prisma.SaleLineChangeUncheckedCreateNestedManyWithoutReplacementLineInput;
     storeMovement?: Prisma.StoreMovementUncheckedCreateNestedOneWithoutSaleLineInput;
@@ -295,6 +300,7 @@ export type SaleLineUpdateInput = {
     sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     batch?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
     productName?: Prisma.StringFieldUpdateOperationsInput | string;
+    lotMovements?: Prisma.ProductLotMovementUpdateManyWithoutSaleLineNestedInput;
     changes?: Prisma.SaleLineChangeUpdateManyWithoutSaleLineNestedInput;
     replacementChanges?: Prisma.SaleLineChangeUpdateManyWithoutReplacementLineNestedInput;
     sentBy?: Prisma.EmployeeUpdateOneWithoutSentLinesNestedInput;
@@ -316,6 +322,7 @@ export type SaleLineUncheckedUpdateInput = {
     productName?: Prisma.StringFieldUpdateOperationsInput | string;
     saleId?: Prisma.StringFieldUpdateOperationsInput | string;
     productId?: Prisma.StringFieldUpdateOperationsInput | string;
+    lotMovements?: Prisma.ProductLotMovementUncheckedUpdateManyWithoutSaleLineNestedInput;
     changes?: Prisma.SaleLineChangeUncheckedUpdateManyWithoutSaleLineNestedInput;
     replacementChanges?: Prisma.SaleLineChangeUncheckedUpdateManyWithoutReplacementLineNestedInput;
     storeMovement?: Prisma.StoreMovementUncheckedUpdateOneWithoutSaleLineNestedInput;
@@ -363,6 +370,10 @@ export type SaleLineListRelationFilter = {
 };
 export type SaleLineOrderByRelationAggregateInput = {
     _count?: Prisma.SortOrder;
+};
+export type SaleLineNullableScalarRelationFilter = {
+    is?: Prisma.SaleLineWhereInput | null;
+    isNot?: Prisma.SaleLineWhereInput | null;
 };
 export type SaleLineCountOrderByAggregateInput = {
     id?: Prisma.SortOrder;
@@ -413,10 +424,6 @@ export type SaleLineSumOrderByAggregateInput = {
 export type SaleLineScalarRelationFilter = {
     is?: Prisma.SaleLineWhereInput;
     isNot?: Prisma.SaleLineWhereInput;
-};
-export type SaleLineNullableScalarRelationFilter = {
-    is?: Prisma.SaleLineWhereInput | null;
-    isNot?: Prisma.SaleLineWhereInput | null;
 };
 export type SaleLineCreateNestedManyWithoutSentByInput = {
     create?: Prisma.XOR<Prisma.SaleLineCreateWithoutSentByInput, Prisma.SaleLineUncheckedCreateWithoutSentByInput> | Prisma.SaleLineCreateWithoutSentByInput[] | Prisma.SaleLineUncheckedCreateWithoutSentByInput[];
@@ -493,6 +500,20 @@ export type SaleLineUncheckedUpdateManyWithoutProductNestedInput = {
     update?: Prisma.SaleLineUpdateWithWhereUniqueWithoutProductInput | Prisma.SaleLineUpdateWithWhereUniqueWithoutProductInput[];
     updateMany?: Prisma.SaleLineUpdateManyWithWhereWithoutProductInput | Prisma.SaleLineUpdateManyWithWhereWithoutProductInput[];
     deleteMany?: Prisma.SaleLineScalarWhereInput | Prisma.SaleLineScalarWhereInput[];
+};
+export type SaleLineCreateNestedOneWithoutLotMovementsInput = {
+    create?: Prisma.XOR<Prisma.SaleLineCreateWithoutLotMovementsInput, Prisma.SaleLineUncheckedCreateWithoutLotMovementsInput>;
+    connectOrCreate?: Prisma.SaleLineCreateOrConnectWithoutLotMovementsInput;
+    connect?: Prisma.SaleLineWhereUniqueInput;
+};
+export type SaleLineUpdateOneWithoutLotMovementsNestedInput = {
+    create?: Prisma.XOR<Prisma.SaleLineCreateWithoutLotMovementsInput, Prisma.SaleLineUncheckedCreateWithoutLotMovementsInput>;
+    connectOrCreate?: Prisma.SaleLineCreateOrConnectWithoutLotMovementsInput;
+    upsert?: Prisma.SaleLineUpsertWithoutLotMovementsInput;
+    disconnect?: Prisma.SaleLineWhereInput | boolean;
+    delete?: Prisma.SaleLineWhereInput | boolean;
+    connect?: Prisma.SaleLineWhereUniqueInput;
+    update?: Prisma.XOR<Prisma.XOR<Prisma.SaleLineUpdateToOneWithWhereWithoutLotMovementsInput, Prisma.SaleLineUpdateWithoutLotMovementsInput>, Prisma.SaleLineUncheckedUpdateWithoutLotMovementsInput>;
 };
 export type SaleLineCreateNestedManyWithoutSaleInput = {
     create?: Prisma.XOR<Prisma.SaleLineCreateWithoutSaleInput, Prisma.SaleLineUncheckedCreateWithoutSaleInput> | Prisma.SaleLineCreateWithoutSaleInput[] | Prisma.SaleLineUncheckedCreateWithoutSaleInput[];
@@ -623,6 +644,7 @@ export type SaleLineCreateWithoutSentByInput = {
     sentAt?: Date | string | null;
     batch?: number | null;
     productName: string;
+    lotMovements?: Prisma.ProductLotMovementCreateNestedManyWithoutSaleLineInput;
     changes?: Prisma.SaleLineChangeCreateNestedManyWithoutSaleLineInput;
     replacementChanges?: Prisma.SaleLineChangeCreateNestedManyWithoutReplacementLineInput;
     sale: Prisma.SaleCreateNestedOneWithoutLinesInput;
@@ -642,6 +664,7 @@ export type SaleLineUncheckedCreateWithoutSentByInput = {
     productName: string;
     saleId: string;
     productId: string;
+    lotMovements?: Prisma.ProductLotMovementUncheckedCreateNestedManyWithoutSaleLineInput;
     changes?: Prisma.SaleLineChangeUncheckedCreateNestedManyWithoutSaleLineInput;
     replacementChanges?: Prisma.SaleLineChangeUncheckedCreateNestedManyWithoutReplacementLineInput;
     storeMovement?: Prisma.StoreMovementUncheckedCreateNestedOneWithoutSaleLineInput;
@@ -693,6 +716,7 @@ export type SaleLineCreateWithoutProductInput = {
     sentAt?: Date | string | null;
     batch?: number | null;
     productName: string;
+    lotMovements?: Prisma.ProductLotMovementCreateNestedManyWithoutSaleLineInput;
     changes?: Prisma.SaleLineChangeCreateNestedManyWithoutSaleLineInput;
     replacementChanges?: Prisma.SaleLineChangeCreateNestedManyWithoutReplacementLineInput;
     sentBy?: Prisma.EmployeeCreateNestedOneWithoutSentLinesInput;
@@ -712,6 +736,7 @@ export type SaleLineUncheckedCreateWithoutProductInput = {
     batch?: number | null;
     productName: string;
     saleId: string;
+    lotMovements?: Prisma.ProductLotMovementUncheckedCreateNestedManyWithoutSaleLineInput;
     changes?: Prisma.SaleLineChangeUncheckedCreateNestedManyWithoutSaleLineInput;
     replacementChanges?: Prisma.SaleLineChangeUncheckedCreateNestedManyWithoutReplacementLineInput;
     storeMovement?: Prisma.StoreMovementUncheckedCreateNestedOneWithoutSaleLineInput;
@@ -740,6 +765,91 @@ export type SaleLineUpdateManyWithWhereWithoutProductInput = {
     where: Prisma.SaleLineScalarWhereInput;
     data: Prisma.XOR<Prisma.SaleLineUpdateManyMutationInput, Prisma.SaleLineUncheckedUpdateManyWithoutProductInput>;
 };
+export type SaleLineCreateWithoutLotMovementsInput = {
+    id?: string;
+    quantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    unitPrice: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    note?: string;
+    sentAt?: Date | string | null;
+    batch?: number | null;
+    productName: string;
+    changes?: Prisma.SaleLineChangeCreateNestedManyWithoutSaleLineInput;
+    replacementChanges?: Prisma.SaleLineChangeCreateNestedManyWithoutReplacementLineInput;
+    sentBy?: Prisma.EmployeeCreateNestedOneWithoutSentLinesInput;
+    sale: Prisma.SaleCreateNestedOneWithoutLinesInput;
+    product: Prisma.ProductCreateNestedOneWithoutSaleLinesInput;
+    storeMovement?: Prisma.StoreMovementCreateNestedOneWithoutSaleLineInput;
+    servings?: Prisma.ServingCreateNestedManyWithoutSaleLineInput;
+    replenishments?: Prisma.ReplenishmentRequestCreateNestedManyWithoutSaleLineInput;
+    exportLines?: Prisma.ProductExportLineCreateNestedManyWithoutSaleLineInput;
+};
+export type SaleLineUncheckedCreateWithoutLotMovementsInput = {
+    id?: string;
+    quantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    unitPrice: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    sentById?: string | null;
+    note?: string;
+    sentAt?: Date | string | null;
+    batch?: number | null;
+    productName: string;
+    saleId: string;
+    productId: string;
+    changes?: Prisma.SaleLineChangeUncheckedCreateNestedManyWithoutSaleLineInput;
+    replacementChanges?: Prisma.SaleLineChangeUncheckedCreateNestedManyWithoutReplacementLineInput;
+    storeMovement?: Prisma.StoreMovementUncheckedCreateNestedOneWithoutSaleLineInput;
+    servings?: Prisma.ServingUncheckedCreateNestedManyWithoutSaleLineInput;
+    replenishments?: Prisma.ReplenishmentRequestUncheckedCreateNestedManyWithoutSaleLineInput;
+    exportLines?: Prisma.ProductExportLineUncheckedCreateNestedManyWithoutSaleLineInput;
+};
+export type SaleLineCreateOrConnectWithoutLotMovementsInput = {
+    where: Prisma.SaleLineWhereUniqueInput;
+    create: Prisma.XOR<Prisma.SaleLineCreateWithoutLotMovementsInput, Prisma.SaleLineUncheckedCreateWithoutLotMovementsInput>;
+};
+export type SaleLineUpsertWithoutLotMovementsInput = {
+    update: Prisma.XOR<Prisma.SaleLineUpdateWithoutLotMovementsInput, Prisma.SaleLineUncheckedUpdateWithoutLotMovementsInput>;
+    create: Prisma.XOR<Prisma.SaleLineCreateWithoutLotMovementsInput, Prisma.SaleLineUncheckedCreateWithoutLotMovementsInput>;
+    where?: Prisma.SaleLineWhereInput;
+};
+export type SaleLineUpdateToOneWithWhereWithoutLotMovementsInput = {
+    where?: Prisma.SaleLineWhereInput;
+    data: Prisma.XOR<Prisma.SaleLineUpdateWithoutLotMovementsInput, Prisma.SaleLineUncheckedUpdateWithoutLotMovementsInput>;
+};
+export type SaleLineUpdateWithoutLotMovementsInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    unitPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    note?: Prisma.StringFieldUpdateOperationsInput | string;
+    sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    batch?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+    productName?: Prisma.StringFieldUpdateOperationsInput | string;
+    changes?: Prisma.SaleLineChangeUpdateManyWithoutSaleLineNestedInput;
+    replacementChanges?: Prisma.SaleLineChangeUpdateManyWithoutReplacementLineNestedInput;
+    sentBy?: Prisma.EmployeeUpdateOneWithoutSentLinesNestedInput;
+    sale?: Prisma.SaleUpdateOneRequiredWithoutLinesNestedInput;
+    product?: Prisma.ProductUpdateOneRequiredWithoutSaleLinesNestedInput;
+    storeMovement?: Prisma.StoreMovementUpdateOneWithoutSaleLineNestedInput;
+    servings?: Prisma.ServingUpdateManyWithoutSaleLineNestedInput;
+    replenishments?: Prisma.ReplenishmentRequestUpdateManyWithoutSaleLineNestedInput;
+    exportLines?: Prisma.ProductExportLineUpdateManyWithoutSaleLineNestedInput;
+};
+export type SaleLineUncheckedUpdateWithoutLotMovementsInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    unitPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    sentById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    note?: Prisma.StringFieldUpdateOperationsInput | string;
+    sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    batch?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+    productName?: Prisma.StringFieldUpdateOperationsInput | string;
+    saleId?: Prisma.StringFieldUpdateOperationsInput | string;
+    productId?: Prisma.StringFieldUpdateOperationsInput | string;
+    changes?: Prisma.SaleLineChangeUncheckedUpdateManyWithoutSaleLineNestedInput;
+    replacementChanges?: Prisma.SaleLineChangeUncheckedUpdateManyWithoutReplacementLineNestedInput;
+    storeMovement?: Prisma.StoreMovementUncheckedUpdateOneWithoutSaleLineNestedInput;
+    servings?: Prisma.ServingUncheckedUpdateManyWithoutSaleLineNestedInput;
+    replenishments?: Prisma.ReplenishmentRequestUncheckedUpdateManyWithoutSaleLineNestedInput;
+    exportLines?: Prisma.ProductExportLineUncheckedUpdateManyWithoutSaleLineNestedInput;
+};
 export type SaleLineCreateWithoutSaleInput = {
     id?: string;
     quantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
@@ -748,6 +858,7 @@ export type SaleLineCreateWithoutSaleInput = {
     sentAt?: Date | string | null;
     batch?: number | null;
     productName: string;
+    lotMovements?: Prisma.ProductLotMovementCreateNestedManyWithoutSaleLineInput;
     changes?: Prisma.SaleLineChangeCreateNestedManyWithoutSaleLineInput;
     replacementChanges?: Prisma.SaleLineChangeCreateNestedManyWithoutReplacementLineInput;
     sentBy?: Prisma.EmployeeCreateNestedOneWithoutSentLinesInput;
@@ -767,6 +878,7 @@ export type SaleLineUncheckedCreateWithoutSaleInput = {
     batch?: number | null;
     productName: string;
     productId: string;
+    lotMovements?: Prisma.ProductLotMovementUncheckedCreateNestedManyWithoutSaleLineInput;
     changes?: Prisma.SaleLineChangeUncheckedCreateNestedManyWithoutSaleLineInput;
     replacementChanges?: Prisma.SaleLineChangeUncheckedCreateNestedManyWithoutReplacementLineInput;
     storeMovement?: Prisma.StoreMovementUncheckedCreateNestedOneWithoutSaleLineInput;
@@ -803,6 +915,7 @@ export type SaleLineCreateWithoutExportLinesInput = {
     sentAt?: Date | string | null;
     batch?: number | null;
     productName: string;
+    lotMovements?: Prisma.ProductLotMovementCreateNestedManyWithoutSaleLineInput;
     changes?: Prisma.SaleLineChangeCreateNestedManyWithoutSaleLineInput;
     replacementChanges?: Prisma.SaleLineChangeCreateNestedManyWithoutReplacementLineInput;
     sentBy?: Prisma.EmployeeCreateNestedOneWithoutSentLinesInput;
@@ -823,6 +936,7 @@ export type SaleLineUncheckedCreateWithoutExportLinesInput = {
     productName: string;
     saleId: string;
     productId: string;
+    lotMovements?: Prisma.ProductLotMovementUncheckedCreateNestedManyWithoutSaleLineInput;
     changes?: Prisma.SaleLineChangeUncheckedCreateNestedManyWithoutSaleLineInput;
     replacementChanges?: Prisma.SaleLineChangeUncheckedCreateNestedManyWithoutReplacementLineInput;
     storeMovement?: Prisma.StoreMovementUncheckedCreateNestedOneWithoutSaleLineInput;
@@ -850,6 +964,7 @@ export type SaleLineUpdateWithoutExportLinesInput = {
     sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     batch?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
     productName?: Prisma.StringFieldUpdateOperationsInput | string;
+    lotMovements?: Prisma.ProductLotMovementUpdateManyWithoutSaleLineNestedInput;
     changes?: Prisma.SaleLineChangeUpdateManyWithoutSaleLineNestedInput;
     replacementChanges?: Prisma.SaleLineChangeUpdateManyWithoutReplacementLineNestedInput;
     sentBy?: Prisma.EmployeeUpdateOneWithoutSentLinesNestedInput;
@@ -870,6 +985,7 @@ export type SaleLineUncheckedUpdateWithoutExportLinesInput = {
     productName?: Prisma.StringFieldUpdateOperationsInput | string;
     saleId?: Prisma.StringFieldUpdateOperationsInput | string;
     productId?: Prisma.StringFieldUpdateOperationsInput | string;
+    lotMovements?: Prisma.ProductLotMovementUncheckedUpdateManyWithoutSaleLineNestedInput;
     changes?: Prisma.SaleLineChangeUncheckedUpdateManyWithoutSaleLineNestedInput;
     replacementChanges?: Prisma.SaleLineChangeUncheckedUpdateManyWithoutReplacementLineNestedInput;
     storeMovement?: Prisma.StoreMovementUncheckedUpdateOneWithoutSaleLineNestedInput;
@@ -884,6 +1000,7 @@ export type SaleLineCreateWithoutServingsInput = {
     sentAt?: Date | string | null;
     batch?: number | null;
     productName: string;
+    lotMovements?: Prisma.ProductLotMovementCreateNestedManyWithoutSaleLineInput;
     changes?: Prisma.SaleLineChangeCreateNestedManyWithoutSaleLineInput;
     replacementChanges?: Prisma.SaleLineChangeCreateNestedManyWithoutReplacementLineInput;
     sentBy?: Prisma.EmployeeCreateNestedOneWithoutSentLinesInput;
@@ -904,6 +1021,7 @@ export type SaleLineUncheckedCreateWithoutServingsInput = {
     productName: string;
     saleId: string;
     productId: string;
+    lotMovements?: Prisma.ProductLotMovementUncheckedCreateNestedManyWithoutSaleLineInput;
     changes?: Prisma.SaleLineChangeUncheckedCreateNestedManyWithoutSaleLineInput;
     replacementChanges?: Prisma.SaleLineChangeUncheckedCreateNestedManyWithoutReplacementLineInput;
     storeMovement?: Prisma.StoreMovementUncheckedCreateNestedOneWithoutSaleLineInput;
@@ -931,6 +1049,7 @@ export type SaleLineUpdateWithoutServingsInput = {
     sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     batch?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
     productName?: Prisma.StringFieldUpdateOperationsInput | string;
+    lotMovements?: Prisma.ProductLotMovementUpdateManyWithoutSaleLineNestedInput;
     changes?: Prisma.SaleLineChangeUpdateManyWithoutSaleLineNestedInput;
     replacementChanges?: Prisma.SaleLineChangeUpdateManyWithoutReplacementLineNestedInput;
     sentBy?: Prisma.EmployeeUpdateOneWithoutSentLinesNestedInput;
@@ -951,6 +1070,7 @@ export type SaleLineUncheckedUpdateWithoutServingsInput = {
     productName?: Prisma.StringFieldUpdateOperationsInput | string;
     saleId?: Prisma.StringFieldUpdateOperationsInput | string;
     productId?: Prisma.StringFieldUpdateOperationsInput | string;
+    lotMovements?: Prisma.ProductLotMovementUncheckedUpdateManyWithoutSaleLineNestedInput;
     changes?: Prisma.SaleLineChangeUncheckedUpdateManyWithoutSaleLineNestedInput;
     replacementChanges?: Prisma.SaleLineChangeUncheckedUpdateManyWithoutReplacementLineNestedInput;
     storeMovement?: Prisma.StoreMovementUncheckedUpdateOneWithoutSaleLineNestedInput;
@@ -965,6 +1085,7 @@ export type SaleLineCreateWithoutReplenishmentsInput = {
     sentAt?: Date | string | null;
     batch?: number | null;
     productName: string;
+    lotMovements?: Prisma.ProductLotMovementCreateNestedManyWithoutSaleLineInput;
     changes?: Prisma.SaleLineChangeCreateNestedManyWithoutSaleLineInput;
     replacementChanges?: Prisma.SaleLineChangeCreateNestedManyWithoutReplacementLineInput;
     sentBy?: Prisma.EmployeeCreateNestedOneWithoutSentLinesInput;
@@ -985,6 +1106,7 @@ export type SaleLineUncheckedCreateWithoutReplenishmentsInput = {
     productName: string;
     saleId: string;
     productId: string;
+    lotMovements?: Prisma.ProductLotMovementUncheckedCreateNestedManyWithoutSaleLineInput;
     changes?: Prisma.SaleLineChangeUncheckedCreateNestedManyWithoutSaleLineInput;
     replacementChanges?: Prisma.SaleLineChangeUncheckedCreateNestedManyWithoutReplacementLineInput;
     storeMovement?: Prisma.StoreMovementUncheckedCreateNestedOneWithoutSaleLineInput;
@@ -1012,6 +1134,7 @@ export type SaleLineUpdateWithoutReplenishmentsInput = {
     sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     batch?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
     productName?: Prisma.StringFieldUpdateOperationsInput | string;
+    lotMovements?: Prisma.ProductLotMovementUpdateManyWithoutSaleLineNestedInput;
     changes?: Prisma.SaleLineChangeUpdateManyWithoutSaleLineNestedInput;
     replacementChanges?: Prisma.SaleLineChangeUpdateManyWithoutReplacementLineNestedInput;
     sentBy?: Prisma.EmployeeUpdateOneWithoutSentLinesNestedInput;
@@ -1032,6 +1155,7 @@ export type SaleLineUncheckedUpdateWithoutReplenishmentsInput = {
     productName?: Prisma.StringFieldUpdateOperationsInput | string;
     saleId?: Prisma.StringFieldUpdateOperationsInput | string;
     productId?: Prisma.StringFieldUpdateOperationsInput | string;
+    lotMovements?: Prisma.ProductLotMovementUncheckedUpdateManyWithoutSaleLineNestedInput;
     changes?: Prisma.SaleLineChangeUncheckedUpdateManyWithoutSaleLineNestedInput;
     replacementChanges?: Prisma.SaleLineChangeUncheckedUpdateManyWithoutReplacementLineNestedInput;
     storeMovement?: Prisma.StoreMovementUncheckedUpdateOneWithoutSaleLineNestedInput;
@@ -1046,6 +1170,7 @@ export type SaleLineCreateWithoutChangesInput = {
     sentAt?: Date | string | null;
     batch?: number | null;
     productName: string;
+    lotMovements?: Prisma.ProductLotMovementCreateNestedManyWithoutSaleLineInput;
     replacementChanges?: Prisma.SaleLineChangeCreateNestedManyWithoutReplacementLineInput;
     sentBy?: Prisma.EmployeeCreateNestedOneWithoutSentLinesInput;
     sale: Prisma.SaleCreateNestedOneWithoutLinesInput;
@@ -1066,6 +1191,7 @@ export type SaleLineUncheckedCreateWithoutChangesInput = {
     productName: string;
     saleId: string;
     productId: string;
+    lotMovements?: Prisma.ProductLotMovementUncheckedCreateNestedManyWithoutSaleLineInput;
     replacementChanges?: Prisma.SaleLineChangeUncheckedCreateNestedManyWithoutReplacementLineInput;
     storeMovement?: Prisma.StoreMovementUncheckedCreateNestedOneWithoutSaleLineInput;
     servings?: Prisma.ServingUncheckedCreateNestedManyWithoutSaleLineInput;
@@ -1084,6 +1210,7 @@ export type SaleLineCreateWithoutReplacementChangesInput = {
     sentAt?: Date | string | null;
     batch?: number | null;
     productName: string;
+    lotMovements?: Prisma.ProductLotMovementCreateNestedManyWithoutSaleLineInput;
     changes?: Prisma.SaleLineChangeCreateNestedManyWithoutSaleLineInput;
     sentBy?: Prisma.EmployeeCreateNestedOneWithoutSentLinesInput;
     sale: Prisma.SaleCreateNestedOneWithoutLinesInput;
@@ -1104,6 +1231,7 @@ export type SaleLineUncheckedCreateWithoutReplacementChangesInput = {
     productName: string;
     saleId: string;
     productId: string;
+    lotMovements?: Prisma.ProductLotMovementUncheckedCreateNestedManyWithoutSaleLineInput;
     changes?: Prisma.SaleLineChangeUncheckedCreateNestedManyWithoutSaleLineInput;
     storeMovement?: Prisma.StoreMovementUncheckedCreateNestedOneWithoutSaleLineInput;
     servings?: Prisma.ServingUncheckedCreateNestedManyWithoutSaleLineInput;
@@ -1131,6 +1259,7 @@ export type SaleLineUpdateWithoutChangesInput = {
     sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     batch?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
     productName?: Prisma.StringFieldUpdateOperationsInput | string;
+    lotMovements?: Prisma.ProductLotMovementUpdateManyWithoutSaleLineNestedInput;
     replacementChanges?: Prisma.SaleLineChangeUpdateManyWithoutReplacementLineNestedInput;
     sentBy?: Prisma.EmployeeUpdateOneWithoutSentLinesNestedInput;
     sale?: Prisma.SaleUpdateOneRequiredWithoutLinesNestedInput;
@@ -1151,6 +1280,7 @@ export type SaleLineUncheckedUpdateWithoutChangesInput = {
     productName?: Prisma.StringFieldUpdateOperationsInput | string;
     saleId?: Prisma.StringFieldUpdateOperationsInput | string;
     productId?: Prisma.StringFieldUpdateOperationsInput | string;
+    lotMovements?: Prisma.ProductLotMovementUncheckedUpdateManyWithoutSaleLineNestedInput;
     replacementChanges?: Prisma.SaleLineChangeUncheckedUpdateManyWithoutReplacementLineNestedInput;
     storeMovement?: Prisma.StoreMovementUncheckedUpdateOneWithoutSaleLineNestedInput;
     servings?: Prisma.ServingUncheckedUpdateManyWithoutSaleLineNestedInput;
@@ -1174,6 +1304,7 @@ export type SaleLineUpdateWithoutReplacementChangesInput = {
     sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     batch?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
     productName?: Prisma.StringFieldUpdateOperationsInput | string;
+    lotMovements?: Prisma.ProductLotMovementUpdateManyWithoutSaleLineNestedInput;
     changes?: Prisma.SaleLineChangeUpdateManyWithoutSaleLineNestedInput;
     sentBy?: Prisma.EmployeeUpdateOneWithoutSentLinesNestedInput;
     sale?: Prisma.SaleUpdateOneRequiredWithoutLinesNestedInput;
@@ -1194,6 +1325,7 @@ export type SaleLineUncheckedUpdateWithoutReplacementChangesInput = {
     productName?: Prisma.StringFieldUpdateOperationsInput | string;
     saleId?: Prisma.StringFieldUpdateOperationsInput | string;
     productId?: Prisma.StringFieldUpdateOperationsInput | string;
+    lotMovements?: Prisma.ProductLotMovementUncheckedUpdateManyWithoutSaleLineNestedInput;
     changes?: Prisma.SaleLineChangeUncheckedUpdateManyWithoutSaleLineNestedInput;
     storeMovement?: Prisma.StoreMovementUncheckedUpdateOneWithoutSaleLineNestedInput;
     servings?: Prisma.ServingUncheckedUpdateManyWithoutSaleLineNestedInput;
@@ -1208,6 +1340,7 @@ export type SaleLineCreateWithoutStoreMovementInput = {
     sentAt?: Date | string | null;
     batch?: number | null;
     productName: string;
+    lotMovements?: Prisma.ProductLotMovementCreateNestedManyWithoutSaleLineInput;
     changes?: Prisma.SaleLineChangeCreateNestedManyWithoutSaleLineInput;
     replacementChanges?: Prisma.SaleLineChangeCreateNestedManyWithoutReplacementLineInput;
     sentBy?: Prisma.EmployeeCreateNestedOneWithoutSentLinesInput;
@@ -1228,6 +1361,7 @@ export type SaleLineUncheckedCreateWithoutStoreMovementInput = {
     productName: string;
     saleId: string;
     productId: string;
+    lotMovements?: Prisma.ProductLotMovementUncheckedCreateNestedManyWithoutSaleLineInput;
     changes?: Prisma.SaleLineChangeUncheckedCreateNestedManyWithoutSaleLineInput;
     replacementChanges?: Prisma.SaleLineChangeUncheckedCreateNestedManyWithoutReplacementLineInput;
     servings?: Prisma.ServingUncheckedCreateNestedManyWithoutSaleLineInput;
@@ -1255,6 +1389,7 @@ export type SaleLineUpdateWithoutStoreMovementInput = {
     sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     batch?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
     productName?: Prisma.StringFieldUpdateOperationsInput | string;
+    lotMovements?: Prisma.ProductLotMovementUpdateManyWithoutSaleLineNestedInput;
     changes?: Prisma.SaleLineChangeUpdateManyWithoutSaleLineNestedInput;
     replacementChanges?: Prisma.SaleLineChangeUpdateManyWithoutReplacementLineNestedInput;
     sentBy?: Prisma.EmployeeUpdateOneWithoutSentLinesNestedInput;
@@ -1275,6 +1410,7 @@ export type SaleLineUncheckedUpdateWithoutStoreMovementInput = {
     productName?: Prisma.StringFieldUpdateOperationsInput | string;
     saleId?: Prisma.StringFieldUpdateOperationsInput | string;
     productId?: Prisma.StringFieldUpdateOperationsInput | string;
+    lotMovements?: Prisma.ProductLotMovementUncheckedUpdateManyWithoutSaleLineNestedInput;
     changes?: Prisma.SaleLineChangeUncheckedUpdateManyWithoutSaleLineNestedInput;
     replacementChanges?: Prisma.SaleLineChangeUncheckedUpdateManyWithoutReplacementLineNestedInput;
     servings?: Prisma.ServingUncheckedUpdateManyWithoutSaleLineNestedInput;
@@ -1300,6 +1436,7 @@ export type SaleLineUpdateWithoutSentByInput = {
     sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     batch?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
     productName?: Prisma.StringFieldUpdateOperationsInput | string;
+    lotMovements?: Prisma.ProductLotMovementUpdateManyWithoutSaleLineNestedInput;
     changes?: Prisma.SaleLineChangeUpdateManyWithoutSaleLineNestedInput;
     replacementChanges?: Prisma.SaleLineChangeUpdateManyWithoutReplacementLineNestedInput;
     sale?: Prisma.SaleUpdateOneRequiredWithoutLinesNestedInput;
@@ -1319,6 +1456,7 @@ export type SaleLineUncheckedUpdateWithoutSentByInput = {
     productName?: Prisma.StringFieldUpdateOperationsInput | string;
     saleId?: Prisma.StringFieldUpdateOperationsInput | string;
     productId?: Prisma.StringFieldUpdateOperationsInput | string;
+    lotMovements?: Prisma.ProductLotMovementUncheckedUpdateManyWithoutSaleLineNestedInput;
     changes?: Prisma.SaleLineChangeUncheckedUpdateManyWithoutSaleLineNestedInput;
     replacementChanges?: Prisma.SaleLineChangeUncheckedUpdateManyWithoutReplacementLineNestedInput;
     storeMovement?: Prisma.StoreMovementUncheckedUpdateOneWithoutSaleLineNestedInput;
@@ -1356,6 +1494,7 @@ export type SaleLineUpdateWithoutProductInput = {
     sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     batch?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
     productName?: Prisma.StringFieldUpdateOperationsInput | string;
+    lotMovements?: Prisma.ProductLotMovementUpdateManyWithoutSaleLineNestedInput;
     changes?: Prisma.SaleLineChangeUpdateManyWithoutSaleLineNestedInput;
     replacementChanges?: Prisma.SaleLineChangeUpdateManyWithoutReplacementLineNestedInput;
     sentBy?: Prisma.EmployeeUpdateOneWithoutSentLinesNestedInput;
@@ -1375,6 +1514,7 @@ export type SaleLineUncheckedUpdateWithoutProductInput = {
     batch?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
     productName?: Prisma.StringFieldUpdateOperationsInput | string;
     saleId?: Prisma.StringFieldUpdateOperationsInput | string;
+    lotMovements?: Prisma.ProductLotMovementUncheckedUpdateManyWithoutSaleLineNestedInput;
     changes?: Prisma.SaleLineChangeUncheckedUpdateManyWithoutSaleLineNestedInput;
     replacementChanges?: Prisma.SaleLineChangeUncheckedUpdateManyWithoutReplacementLineNestedInput;
     storeMovement?: Prisma.StoreMovementUncheckedUpdateOneWithoutSaleLineNestedInput;
@@ -1412,6 +1552,7 @@ export type SaleLineUpdateWithoutSaleInput = {
     sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     batch?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
     productName?: Prisma.StringFieldUpdateOperationsInput | string;
+    lotMovements?: Prisma.ProductLotMovementUpdateManyWithoutSaleLineNestedInput;
     changes?: Prisma.SaleLineChangeUpdateManyWithoutSaleLineNestedInput;
     replacementChanges?: Prisma.SaleLineChangeUpdateManyWithoutReplacementLineNestedInput;
     sentBy?: Prisma.EmployeeUpdateOneWithoutSentLinesNestedInput;
@@ -1431,6 +1572,7 @@ export type SaleLineUncheckedUpdateWithoutSaleInput = {
     batch?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
     productName?: Prisma.StringFieldUpdateOperationsInput | string;
     productId?: Prisma.StringFieldUpdateOperationsInput | string;
+    lotMovements?: Prisma.ProductLotMovementUncheckedUpdateManyWithoutSaleLineNestedInput;
     changes?: Prisma.SaleLineChangeUncheckedUpdateManyWithoutSaleLineNestedInput;
     replacementChanges?: Prisma.SaleLineChangeUncheckedUpdateManyWithoutReplacementLineNestedInput;
     storeMovement?: Prisma.StoreMovementUncheckedUpdateOneWithoutSaleLineNestedInput;
@@ -1450,6 +1592,7 @@ export type SaleLineUncheckedUpdateManyWithoutSaleInput = {
     productId?: Prisma.StringFieldUpdateOperationsInput | string;
 };
 export type SaleLineCountOutputType = {
+    lotMovements: number;
     changes: number;
     replacementChanges: number;
     servings: number;
@@ -1457,6 +1600,7 @@ export type SaleLineCountOutputType = {
     exportLines: number;
 };
 export type SaleLineCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    lotMovements?: boolean | SaleLineCountOutputTypeCountLotMovementsArgs;
     changes?: boolean | SaleLineCountOutputTypeCountChangesArgs;
     replacementChanges?: boolean | SaleLineCountOutputTypeCountReplacementChangesArgs;
     servings?: boolean | SaleLineCountOutputTypeCountServingsArgs;
@@ -1465,6 +1609,9 @@ export type SaleLineCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensio
 };
 export type SaleLineCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.SaleLineCountOutputTypeSelect<ExtArgs> | null;
+};
+export type SaleLineCountOutputTypeCountLotMovementsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    where?: Prisma.ProductLotMovementWhereInput;
 };
 export type SaleLineCountOutputTypeCountChangesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     where?: Prisma.SaleLineChangeWhereInput;
@@ -1492,6 +1639,7 @@ export type SaleLineSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
     productName?: boolean;
     saleId?: boolean;
     productId?: boolean;
+    lotMovements?: boolean | Prisma.SaleLine$lotMovementsArgs<ExtArgs>;
     changes?: boolean | Prisma.SaleLine$changesArgs<ExtArgs>;
     replacementChanges?: boolean | Prisma.SaleLine$replacementChangesArgs<ExtArgs>;
     sentBy?: boolean | Prisma.SaleLine$sentByArgs<ExtArgs>;
@@ -1547,6 +1695,7 @@ export type SaleLineSelectScalar = {
 };
 export type SaleLineOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "quantity" | "unitPrice" | "sentById" | "note" | "sentAt" | "batch" | "productName" | "saleId" | "productId", ExtArgs["result"]["saleLine"]>;
 export type SaleLineInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    lotMovements?: boolean | Prisma.SaleLine$lotMovementsArgs<ExtArgs>;
     changes?: boolean | Prisma.SaleLine$changesArgs<ExtArgs>;
     replacementChanges?: boolean | Prisma.SaleLine$replacementChangesArgs<ExtArgs>;
     sentBy?: boolean | Prisma.SaleLine$sentByArgs<ExtArgs>;
@@ -1571,6 +1720,7 @@ export type SaleLineIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
 export type $SaleLinePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     name: "SaleLine";
     objects: {
+        lotMovements: Prisma.$ProductLotMovementPayload<ExtArgs>[];
         changes: Prisma.$SaleLineChangePayload<ExtArgs>[];
         replacementChanges: Prisma.$SaleLineChangePayload<ExtArgs>[];
         sentBy: Prisma.$EmployeePayload<ExtArgs> | null;
@@ -1644,6 +1794,7 @@ export interface SaleLineDelegate<ExtArgs extends runtime.Types.Extensions.Inter
 }
 export interface Prisma__SaleLineClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise";
+    lotMovements<T extends Prisma.SaleLine$lotMovementsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SaleLine$lotMovementsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProductLotMovementPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     changes<T extends Prisma.SaleLine$changesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SaleLine$changesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SaleLineChangePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     replacementChanges<T extends Prisma.SaleLine$replacementChangesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SaleLine$replacementChangesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SaleLineChangePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     sentBy<T extends Prisma.SaleLine$sentByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SaleLine$sentByArgs<ExtArgs>>): Prisma.Prisma__EmployeeClient<runtime.Types.Result.GetResult<Prisma.$EmployeePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>;
@@ -1768,6 +1919,17 @@ export type SaleLineDeleteArgs<ExtArgs extends runtime.Types.Extensions.Internal
 export type SaleLineDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     where?: Prisma.SaleLineWhereInput;
     limit?: number;
+};
+export type SaleLine$lotMovementsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    select?: Prisma.ProductLotMovementSelect<ExtArgs> | null;
+    omit?: Prisma.ProductLotMovementOmit<ExtArgs> | null;
+    include?: Prisma.ProductLotMovementInclude<ExtArgs> | null;
+    where?: Prisma.ProductLotMovementWhereInput;
+    orderBy?: Prisma.ProductLotMovementOrderByWithRelationInput | Prisma.ProductLotMovementOrderByWithRelationInput[];
+    cursor?: Prisma.ProductLotMovementWhereUniqueInput;
+    take?: number;
+    skip?: number;
+    distinct?: Prisma.ProductLotMovementScalarFieldEnum | Prisma.ProductLotMovementScalarFieldEnum[];
 };
 export type SaleLine$changesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.SaleLineChangeSelect<ExtArgs> | null;

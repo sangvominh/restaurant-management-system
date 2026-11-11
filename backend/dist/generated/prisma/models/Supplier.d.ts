@@ -104,6 +104,7 @@ export type SupplierWhereInput = {
     phone?: Prisma.StringNullableFilter<"Supplier"> | string | null;
     address?: Prisma.StringNullableFilter<"Supplier"> | string | null;
     status?: Prisma.StringFilter<"Supplier"> | string;
+    productReceipts?: Prisma.ProductReceiptListRelationFilter;
     receipts?: Prisma.MaterialReceiptListRelationFilter;
 };
 export type SupplierOrderByWithRelationInput = {
@@ -113,6 +114,7 @@ export type SupplierOrderByWithRelationInput = {
     phone?: Prisma.SortOrderInput | Prisma.SortOrder;
     address?: Prisma.SortOrderInput | Prisma.SortOrder;
     status?: Prisma.SortOrder;
+    productReceipts?: Prisma.ProductReceiptOrderByRelationAggregateInput;
     receipts?: Prisma.MaterialReceiptOrderByRelationAggregateInput;
 };
 export type SupplierWhereUniqueInput = Prisma.AtLeast<{
@@ -125,6 +127,7 @@ export type SupplierWhereUniqueInput = Prisma.AtLeast<{
     phone?: Prisma.StringNullableFilter<"Supplier"> | string | null;
     address?: Prisma.StringNullableFilter<"Supplier"> | string | null;
     status?: Prisma.StringFilter<"Supplier"> | string;
+    productReceipts?: Prisma.ProductReceiptListRelationFilter;
     receipts?: Prisma.MaterialReceiptListRelationFilter;
 }, "id" | "code">;
 export type SupplierOrderByWithAggregationInput = {
@@ -156,6 +159,7 @@ export type SupplierCreateInput = {
     phone?: string | null;
     address?: string | null;
     status?: string;
+    productReceipts?: Prisma.ProductReceiptCreateNestedManyWithoutSupplierInput;
     receipts?: Prisma.MaterialReceiptCreateNestedManyWithoutSupplierInput;
 };
 export type SupplierUncheckedCreateInput = {
@@ -165,6 +169,7 @@ export type SupplierUncheckedCreateInput = {
     phone?: string | null;
     address?: string | null;
     status?: string;
+    productReceipts?: Prisma.ProductReceiptUncheckedCreateNestedManyWithoutSupplierInput;
     receipts?: Prisma.MaterialReceiptUncheckedCreateNestedManyWithoutSupplierInput;
 };
 export type SupplierUpdateInput = {
@@ -174,6 +179,7 @@ export type SupplierUpdateInput = {
     phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     status?: Prisma.StringFieldUpdateOperationsInput | string;
+    productReceipts?: Prisma.ProductReceiptUpdateManyWithoutSupplierNestedInput;
     receipts?: Prisma.MaterialReceiptUpdateManyWithoutSupplierNestedInput;
 };
 export type SupplierUncheckedUpdateInput = {
@@ -183,6 +189,7 @@ export type SupplierUncheckedUpdateInput = {
     phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     status?: Prisma.StringFieldUpdateOperationsInput | string;
+    productReceipts?: Prisma.ProductReceiptUncheckedUpdateManyWithoutSupplierNestedInput;
     receipts?: Prisma.MaterialReceiptUncheckedUpdateManyWithoutSupplierNestedInput;
 };
 export type SupplierCreateManyInput = {
@@ -249,6 +256,18 @@ export type SupplierUpdateOneRequiredWithoutReceiptsNestedInput = {
     connect?: Prisma.SupplierWhereUniqueInput;
     update?: Prisma.XOR<Prisma.XOR<Prisma.SupplierUpdateToOneWithWhereWithoutReceiptsInput, Prisma.SupplierUpdateWithoutReceiptsInput>, Prisma.SupplierUncheckedUpdateWithoutReceiptsInput>;
 };
+export type SupplierCreateNestedOneWithoutProductReceiptsInput = {
+    create?: Prisma.XOR<Prisma.SupplierCreateWithoutProductReceiptsInput, Prisma.SupplierUncheckedCreateWithoutProductReceiptsInput>;
+    connectOrCreate?: Prisma.SupplierCreateOrConnectWithoutProductReceiptsInput;
+    connect?: Prisma.SupplierWhereUniqueInput;
+};
+export type SupplierUpdateOneRequiredWithoutProductReceiptsNestedInput = {
+    create?: Prisma.XOR<Prisma.SupplierCreateWithoutProductReceiptsInput, Prisma.SupplierUncheckedCreateWithoutProductReceiptsInput>;
+    connectOrCreate?: Prisma.SupplierCreateOrConnectWithoutProductReceiptsInput;
+    upsert?: Prisma.SupplierUpsertWithoutProductReceiptsInput;
+    connect?: Prisma.SupplierWhereUniqueInput;
+    update?: Prisma.XOR<Prisma.XOR<Prisma.SupplierUpdateToOneWithWhereWithoutProductReceiptsInput, Prisma.SupplierUpdateWithoutProductReceiptsInput>, Prisma.SupplierUncheckedUpdateWithoutProductReceiptsInput>;
+};
 export type SupplierCreateWithoutReceiptsInput = {
     id?: string;
     code: string;
@@ -256,6 +275,7 @@ export type SupplierCreateWithoutReceiptsInput = {
     phone?: string | null;
     address?: string | null;
     status?: string;
+    productReceipts?: Prisma.ProductReceiptCreateNestedManyWithoutSupplierInput;
 };
 export type SupplierUncheckedCreateWithoutReceiptsInput = {
     id?: string;
@@ -264,6 +284,7 @@ export type SupplierUncheckedCreateWithoutReceiptsInput = {
     phone?: string | null;
     address?: string | null;
     status?: string;
+    productReceipts?: Prisma.ProductReceiptUncheckedCreateNestedManyWithoutSupplierInput;
 };
 export type SupplierCreateOrConnectWithoutReceiptsInput = {
     where: Prisma.SupplierWhereUniqueInput;
@@ -285,6 +306,7 @@ export type SupplierUpdateWithoutReceiptsInput = {
     phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     status?: Prisma.StringFieldUpdateOperationsInput | string;
+    productReceipts?: Prisma.ProductReceiptUpdateManyWithoutSupplierNestedInput;
 };
 export type SupplierUncheckedUpdateWithoutReceiptsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -293,15 +315,70 @@ export type SupplierUncheckedUpdateWithoutReceiptsInput = {
     phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     status?: Prisma.StringFieldUpdateOperationsInput | string;
+    productReceipts?: Prisma.ProductReceiptUncheckedUpdateManyWithoutSupplierNestedInput;
+};
+export type SupplierCreateWithoutProductReceiptsInput = {
+    id?: string;
+    code: string;
+    name: string;
+    phone?: string | null;
+    address?: string | null;
+    status?: string;
+    receipts?: Prisma.MaterialReceiptCreateNestedManyWithoutSupplierInput;
+};
+export type SupplierUncheckedCreateWithoutProductReceiptsInput = {
+    id?: string;
+    code: string;
+    name: string;
+    phone?: string | null;
+    address?: string | null;
+    status?: string;
+    receipts?: Prisma.MaterialReceiptUncheckedCreateNestedManyWithoutSupplierInput;
+};
+export type SupplierCreateOrConnectWithoutProductReceiptsInput = {
+    where: Prisma.SupplierWhereUniqueInput;
+    create: Prisma.XOR<Prisma.SupplierCreateWithoutProductReceiptsInput, Prisma.SupplierUncheckedCreateWithoutProductReceiptsInput>;
+};
+export type SupplierUpsertWithoutProductReceiptsInput = {
+    update: Prisma.XOR<Prisma.SupplierUpdateWithoutProductReceiptsInput, Prisma.SupplierUncheckedUpdateWithoutProductReceiptsInput>;
+    create: Prisma.XOR<Prisma.SupplierCreateWithoutProductReceiptsInput, Prisma.SupplierUncheckedCreateWithoutProductReceiptsInput>;
+    where?: Prisma.SupplierWhereInput;
+};
+export type SupplierUpdateToOneWithWhereWithoutProductReceiptsInput = {
+    where?: Prisma.SupplierWhereInput;
+    data: Prisma.XOR<Prisma.SupplierUpdateWithoutProductReceiptsInput, Prisma.SupplierUncheckedUpdateWithoutProductReceiptsInput>;
+};
+export type SupplierUpdateWithoutProductReceiptsInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    code?: Prisma.StringFieldUpdateOperationsInput | string;
+    name?: Prisma.StringFieldUpdateOperationsInput | string;
+    phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    status?: Prisma.StringFieldUpdateOperationsInput | string;
+    receipts?: Prisma.MaterialReceiptUpdateManyWithoutSupplierNestedInput;
+};
+export type SupplierUncheckedUpdateWithoutProductReceiptsInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    code?: Prisma.StringFieldUpdateOperationsInput | string;
+    name?: Prisma.StringFieldUpdateOperationsInput | string;
+    phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    status?: Prisma.StringFieldUpdateOperationsInput | string;
+    receipts?: Prisma.MaterialReceiptUncheckedUpdateManyWithoutSupplierNestedInput;
 };
 export type SupplierCountOutputType = {
+    productReceipts: number;
     receipts: number;
 };
 export type SupplierCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    productReceipts?: boolean | SupplierCountOutputTypeCountProductReceiptsArgs;
     receipts?: boolean | SupplierCountOutputTypeCountReceiptsArgs;
 };
 export type SupplierCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.SupplierCountOutputTypeSelect<ExtArgs> | null;
+};
+export type SupplierCountOutputTypeCountProductReceiptsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    where?: Prisma.ProductReceiptWhereInput;
 };
 export type SupplierCountOutputTypeCountReceiptsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     where?: Prisma.MaterialReceiptWhereInput;
@@ -313,6 +390,7 @@ export type SupplierSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
     phone?: boolean;
     address?: boolean;
     status?: boolean;
+    productReceipts?: boolean | Prisma.Supplier$productReceiptsArgs<ExtArgs>;
     receipts?: boolean | Prisma.Supplier$receiptsArgs<ExtArgs>;
     _count?: boolean | Prisma.SupplierCountOutputTypeDefaultArgs<ExtArgs>;
 }, ExtArgs["result"]["supplier"]>;
@@ -342,6 +420,7 @@ export type SupplierSelectScalar = {
 };
 export type SupplierOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "name" | "phone" | "address" | "status", ExtArgs["result"]["supplier"]>;
 export type SupplierInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    productReceipts?: boolean | Prisma.Supplier$productReceiptsArgs<ExtArgs>;
     receipts?: boolean | Prisma.Supplier$receiptsArgs<ExtArgs>;
     _count?: boolean | Prisma.SupplierCountOutputTypeDefaultArgs<ExtArgs>;
 };
@@ -350,6 +429,7 @@ export type SupplierIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
 export type $SupplierPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     name: "Supplier";
     objects: {
+        productReceipts: Prisma.$ProductReceiptPayload<ExtArgs>[];
         receipts: Prisma.$MaterialReceiptPayload<ExtArgs>[];
     };
     scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -411,6 +491,7 @@ export interface SupplierDelegate<ExtArgs extends runtime.Types.Extensions.Inter
 }
 export interface Prisma__SupplierClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise";
+    productReceipts<T extends Prisma.Supplier$productReceiptsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Supplier$productReceiptsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProductReceiptPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     receipts<T extends Prisma.Supplier$receiptsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Supplier$receiptsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MaterialReceiptPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): runtime.Types.Utils.JsPromise<TResult1 | TResult2>;
     catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): runtime.Types.Utils.JsPromise<T | TResult>;
@@ -521,6 +602,17 @@ export type SupplierDeleteArgs<ExtArgs extends runtime.Types.Extensions.Internal
 export type SupplierDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     where?: Prisma.SupplierWhereInput;
     limit?: number;
+};
+export type Supplier$productReceiptsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    select?: Prisma.ProductReceiptSelect<ExtArgs> | null;
+    omit?: Prisma.ProductReceiptOmit<ExtArgs> | null;
+    include?: Prisma.ProductReceiptInclude<ExtArgs> | null;
+    where?: Prisma.ProductReceiptWhereInput;
+    orderBy?: Prisma.ProductReceiptOrderByWithRelationInput | Prisma.ProductReceiptOrderByWithRelationInput[];
+    cursor?: Prisma.ProductReceiptWhereUniqueInput;
+    take?: number;
+    skip?: number;
+    distinct?: Prisma.ProductReceiptScalarFieldEnum | Prisma.ProductReceiptScalarFieldEnum[];
 };
 export type Supplier$receiptsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.MaterialReceiptSelect<ExtArgs> | null;

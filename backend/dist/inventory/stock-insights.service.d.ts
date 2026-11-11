@@ -46,6 +46,11 @@ export declare class StockInsightsService {
             status: string;
             unit: string;
             category: string;
+            supplyType: string;
+            usable: import("@prisma/client-runtime-utils").Decimal;
+            expired: import("@prisma/client-runtime-utils").Decimal;
+            expiring: import("@prisma/client-runtime-utils").Decimal;
+            untracked: import("@prisma/client-runtime-utils").Decimal;
             stock: import("@prisma/client-runtime-utils").Decimal;
             storeStock: import("@prisma/client-runtime-utils").Decimal;
             totalStock: import("@prisma/client-runtime-utils").Decimal;

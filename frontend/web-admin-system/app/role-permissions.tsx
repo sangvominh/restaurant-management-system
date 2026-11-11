@@ -15,7 +15,7 @@ export default function RolePermissions({ permissions, selected, onChange, onApp
   const [presets, setPresets] = useState<RolePreset[]>([]), [loading, setLoading] = useState(true), [error, setError] = useState(''), [advanced, setAdvanced] = useState(false);
   const [chosen, setChosen] = useState('');
   const load = useCallback(async () => { setLoading(true); setError(''); try { const rows = await api<RolePreset[]>('role-presets'); if (!rows.length) throw new Error('Backend chưa trả về mẫu vai trò. Kiểm tra backend và tải lại.'); setPresets(rows.map(p => ({ ...p, workspace: p.workspace || (p.name === 'Admin hệ thống' ? 'Admin system' : ['Quản lý nhà hàng', 'Nhân viên phục vụ', 'Thu ngân'].includes(p.name) ? 'Quản lý nhà hàng' : 'Kho & Chế biến') }))); } catch (e) { setError(e instanceof Error ? e.message : 'Không tải được mẫu vai trò'); } finally { setLoading(false); } }, []);
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => { const initial = window.setTimeout(() => void load(), 0); return () => window.clearTimeout(initial); }, [load]);
   const full = selected.includes('*');
   const same = (p: RolePreset) => p.permissions.length === selected.length && p.permissions.every(c => selected.includes(c));
   const picked = presets.find(p => p.id === chosen), matching = picked && same(picked) ? picked : presets.find(same);

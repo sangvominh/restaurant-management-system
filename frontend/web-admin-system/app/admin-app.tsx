@@ -31,7 +31,7 @@ export default function AdminApp({ user, logout, logoutBusy }: { user: AdminUser
     } catch (err) { setError(err instanceof Error ? err.message : 'Không kết nối được backend'); }
     finally { setLoading(false); }
   }, []);
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => { const initial = window.setTimeout(() => void load(), 0); return () => window.clearTimeout(initial); }, [load]);
   function navigate(key: Section) { setSection(key); setSearch(''); setFilter(''); }
   async function remove(row: Entry) {
     const label = row.username || row.name || row.code || '';

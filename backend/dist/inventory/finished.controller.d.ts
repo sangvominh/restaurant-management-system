@@ -23,16 +23,34 @@ export declare class FinishedController {
             } & {
                 id: string;
                 name: string;
-                status: string;
                 code: string;
+                status: string;
                 unitId: string;
                 categoryId: string;
+                supplyType: string;
                 sellingPrice: import("@prisma/client-runtime-utils").Decimal;
             };
+            lotAllocations: ({
+                lot: {
+                    id: string;
+                    code: string;
+                    createdAt: Date;
+                    expiryDate: Date;
+                    productId: string;
+                    receiptLineId: string | null;
+                    manufacturedAt: Date;
+                    runId: string | null;
+                };
+            } & {
+                id: string;
+                quantity: import("@prisma/client-runtime-utils").Decimal;
+                lotId: string;
+                dispatchLineId: string;
+            })[];
         } & {
             id: string;
-            productId: string;
             quantity: import("@prisma/client-runtime-utils").Decimal;
+            productId: string;
             dispatchId: string;
         })[];
         requestedBy: {
@@ -44,9 +62,9 @@ export declare class FinishedController {
     } & {
         id: string;
         status: string;
-        reason: string;
         requestedAt: Date;
         approvedAt: Date | null;
+        reason: string;
         requestedById: string;
         reviewedById: string | null;
     })[]>;
@@ -54,15 +72,60 @@ export declare class FinishedController {
         stock: import("@prisma/client-runtime-utils").Decimal;
         available: import("@prisma/client-runtime-utils").Decimal;
         held: import("@prisma/client-runtime-utils").Decimal;
+        reserved: import("@prisma/client-runtime-utils").Decimal;
+        shortage: import("@prisma/client-runtime-utils").Decimal;
+        expired: import("@prisma/client-runtime-utils").Decimal;
+        untracked: import("@prisma/client-runtime-utils").Decimal;
         allocations: {
             lineId: string;
             ready: import("@prisma/client-runtime-utils").Decimal;
             missing: import("@prisma/client-runtime-utils").Decimal;
+            lots: {
+                lotId: string;
+                code: string;
+                expiryDate: Date;
+                quantity: import("../generated/prisma/internal/prismaNamespace.js").Decimal;
+            }[];
             exported: import("@prisma/client-runtime-utils").Decimal;
             pending: import("@prisma/client-runtime-utils").Decimal;
         }[];
+        lots: {
+            available: import("@prisma/client-runtime-utils").Decimal;
+            seenInStore: boolean;
+            warehouse: import("@prisma/client-runtime-utils").Decimal;
+            store: import("@prisma/client-runtime-utils").Decimal;
+            warehouseHeld: import("@prisma/client-runtime-utils").Decimal;
+            storeHeld: import("@prisma/client-runtime-utils").Decimal;
+            daysRemaining: number;
+            expired: boolean;
+            soon: boolean;
+            warehouseAvailable: import("@prisma/client-runtime-utils").Decimal;
+            storeAvailable: import("@prisma/client-runtime-utils").Decimal;
+            disposals: ({
+                createdBy: {
+                    name: string;
+                };
+            } & {
+                id: string;
+                createdById: string;
+                quantity: import("@prisma/client-runtime-utils").Decimal;
+                lotId: string;
+                reason: string;
+                postedAt: Date;
+            })[];
+            id: string;
+            code: string;
+            createdAt: Date;
+            expiryDate: Date;
+            productId: string;
+            receiptLineId: string | null;
+            manufacturedAt: Date;
+            runId: string | null;
+        }[];
         warehouse: import("@prisma/client-runtime-utils").Decimal;
         warehouseAvailable: import("@prisma/client-runtime-utils").Decimal;
+        warehouseExpired: import("@prisma/client-runtime-utils").Decimal;
+        warehouseUntracked: import("@prisma/client-runtime-utils").Decimal;
         unit: {
             symbol: string;
             id: string;
@@ -70,10 +133,11 @@ export declare class FinishedController {
         };
         id: string;
         name: string;
-        status: string;
         code: string;
+        status: string;
         unitId: string;
         categoryId: string;
+        supplyType: string;
         sellingPrice: import("@prisma/client-runtime-utils").Decimal;
     }[]>;
     create(b: unknown, r: R): Promise<{
@@ -87,16 +151,34 @@ export declare class FinishedController {
             } & {
                 id: string;
                 name: string;
-                status: string;
                 code: string;
+                status: string;
                 unitId: string;
                 categoryId: string;
+                supplyType: string;
                 sellingPrice: import("@prisma/client-runtime-utils").Decimal;
             };
+            lotAllocations: ({
+                lot: {
+                    id: string;
+                    code: string;
+                    createdAt: Date;
+                    expiryDate: Date;
+                    productId: string;
+                    receiptLineId: string | null;
+                    manufacturedAt: Date;
+                    runId: string | null;
+                };
+            } & {
+                id: string;
+                quantity: import("@prisma/client-runtime-utils").Decimal;
+                lotId: string;
+                dispatchLineId: string;
+            })[];
         } & {
             id: string;
-            productId: string;
             quantity: import("@prisma/client-runtime-utils").Decimal;
+            productId: string;
             dispatchId: string;
         })[];
         requestedBy: {
@@ -108,9 +190,9 @@ export declare class FinishedController {
     } & {
         id: string;
         status: string;
-        reason: string;
         requestedAt: Date;
         approvedAt: Date | null;
+        reason: string;
         requestedById: string;
         reviewedById: string | null;
     }>;
@@ -125,16 +207,34 @@ export declare class FinishedController {
             } & {
                 id: string;
                 name: string;
-                status: string;
                 code: string;
+                status: string;
                 unitId: string;
                 categoryId: string;
+                supplyType: string;
                 sellingPrice: import("@prisma/client-runtime-utils").Decimal;
             };
+            lotAllocations: ({
+                lot: {
+                    id: string;
+                    code: string;
+                    createdAt: Date;
+                    expiryDate: Date;
+                    productId: string;
+                    receiptLineId: string | null;
+                    manufacturedAt: Date;
+                    runId: string | null;
+                };
+            } & {
+                id: string;
+                quantity: import("@prisma/client-runtime-utils").Decimal;
+                lotId: string;
+                dispatchLineId: string;
+            })[];
         } & {
             id: string;
-            productId: string;
             quantity: import("@prisma/client-runtime-utils").Decimal;
+            productId: string;
             dispatchId: string;
         })[];
         requestedBy: {
@@ -146,9 +246,9 @@ export declare class FinishedController {
     } & {
         id: string;
         status: string;
-        reason: string;
         requestedAt: Date;
         approvedAt: Date | null;
+        reason: string;
         requestedById: string;
         reviewedById: string | null;
     }>;
@@ -163,16 +263,34 @@ export declare class FinishedController {
             } & {
                 id: string;
                 name: string;
-                status: string;
                 code: string;
+                status: string;
                 unitId: string;
                 categoryId: string;
+                supplyType: string;
                 sellingPrice: import("@prisma/client-runtime-utils").Decimal;
             };
+            lotAllocations: ({
+                lot: {
+                    id: string;
+                    code: string;
+                    createdAt: Date;
+                    expiryDate: Date;
+                    productId: string;
+                    receiptLineId: string | null;
+                    manufacturedAt: Date;
+                    runId: string | null;
+                };
+            } & {
+                id: string;
+                quantity: import("@prisma/client-runtime-utils").Decimal;
+                lotId: string;
+                dispatchLineId: string;
+            })[];
         } & {
             id: string;
-            productId: string;
             quantity: import("@prisma/client-runtime-utils").Decimal;
+            productId: string;
             dispatchId: string;
         })[];
         requestedBy: {
@@ -184,9 +302,9 @@ export declare class FinishedController {
     } & {
         id: string;
         status: string;
-        reason: string;
         requestedAt: Date;
         approvedAt: Date | null;
+        reason: string;
         requestedById: string;
         reviewedById: string | null;
     }>;
@@ -296,6 +414,10 @@ export declare class FinishedController {
             unit: string;
             status: string;
             category: string;
+            supplyType: string;
+            usable: import("@prisma/client-runtime-utils").Decimal;
+            storeUsable: import("@prisma/client-runtime-utils").Decimal;
+            expired: import("@prisma/client-runtime-utils").Decimal;
         }[];
         formulas: {
             id: string;

@@ -1,3 +1,5 @@
+import { randomUUID } from 'node:crypto';
+import { lotDates } from '../inventory/product-lots.js';
 import { BadRequestException, ConflictException, ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { Prisma } from '../generated/prisma/client.js';
@@ -17,7 +19,7 @@ export class ExecutionService {
   constructor(private readonly db: PrismaService) {}
   async detail(id: string, user: AdminUser) {
     return this.db.$transaction(async tx => {
-      const order = await tx.productionOrder.findUniqueOrThrow({ where: { id: uuid(id) }, include: { assignedBy: true, assignedTo: true, replenishments: { include: { saleLine: { include: { sale: { include: { table: true } } } } } }, bom: { include: { product: { include: { unit: true } }, lines: { include: { material: { include: { unit: true } } } } } }, materialIssues: { include: { requestedBy: { select: { name: true } }, reviewedBy: { select: { name: true } }, lines: { include: lineInclude } }, orderBy: { requestedAt: 'asc' } }, runs: { include: { consumptions: true, performedBy: { select: { accountId: true, name: true } }, inspectedBy: { select: { name: true } } }, orderBy: { recordedAt: 'asc' } } } });
+      const order = await tx.productionOrder.findUniqueOrThrow({ where: { id: uuid(id) }, include: { assignedBy: true, assignedTo: true, replenishments: { include: { saleLine: { include: { sale: { include: { table: true } } } } } }, bom: { include: { product: { include: { unit: true } }, lines: { include: { material: { include: { unit: true } } } } } }, materialIssues: { include: { requestedBy: { select: { name: true } }, reviewedBy: { select: { name: true } }, lines: { include: lineInclude } }, orderBy: { requestedAt: 'asc' } }, runs: { include: { productLot: true, consumptions: true, performedBy: { select: { accountId: true, name: true } }, inspectedBy: { select: { name: true } } }, orderBy: { recordedAt: 'asc' } } } });
       if (order.assignedTo.accountId !== user.id && !user.permissions.some(p => ['*', 'material:view', 'production:manage', 'material:approve', 'production:inspect', 'waste:approve'].includes(p))) throw new ForbiddenException('Không có quyền xem lệnh');
       // Bao gồm cả lô đã cấp ngoài BOM ở dữ liệu cũ để vẫn xử lý hoàn/hao hụt được.
       const materialIds = [...new Set([...order.bom.lines.map(l => l.materialId), ...order.materialIssues.flatMap(i => i.lines.map(l => l.lot.materialId))])];
@@ -85,7 +87,12 @@ export class ExecutionService {
         const run = await tx.productionRun.findUniqueOrThrow({ where: { id: uuid(b.targetId) } });
         const acceptedQuantity = qty(b.quantity, true), note = reason(b.reason);
         if (run.productionOrderId !== id || run.status !== 'PENDING' || acceptedQuantity.gt(run.actualQuantity)) throw new ConflictException('Lần sản xuất đã nghiệm thu hoặc số lượng không hợp lệ');
-        if (acceptedQuantity.gt(0)) await tx.productMovement.create({ data: { productId: order.bom.productId, quantity: acceptedQuantity, movementType: 'NHAP_SAN_XUAT', runId: run.id } });
+        if (acceptedQuantity.gt(0)) {
+          const dates = lotDates(b.manufacturedAt, b.expiryDate);
+          const lot = await tx.productLot.create({ data: { productId: order.bom.productId, code: 'SX-' + randomUUID().slice(0, 12).toUpperCase(), ...dates, runId: run.id } });
+          await tx.productMovement.create({ data: { productId: order.bom.productId, quantity: acceptedQuantity, movementType: 'NHAP_SAN_XUAT', runId: run.id } });
+          await tx.productLotMovement.create({ data: { lotId: lot.id, location: 'WAREHOUSE', quantity: acceptedQuantity, runId: run.id } });
+        }
         return tx.productionRun.update({ where: { id: run.id }, data: { acceptedQuantity, status: 'INSPECTED', inspectedAt: new Date(), inspectedById: employee.id, inspectionNote: note } });
       }
       if (b.action === 'return' || b.action === 'waste') {

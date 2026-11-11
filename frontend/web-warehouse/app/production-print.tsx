@@ -58,7 +58,7 @@ export default function ProductionPrint({ data, disabled }: { data: Detail; disa
         'Đã làm: ' + fmt(run.actualQuantity) + ' ' + unit + '\nĐạt: ' + (run.acceptedQuantity === null ? 'Chưa nghiệm thu' : fmt(run.acceptedQuantity)) + '\nKhông đạt: ' + (run.status === 'PENDING' ? 'Chưa xác định' : fmt(n(run.actualQuantity) - n(run.acceptedQuantity))),
         statusInfo('run', run.status).label,
         (run.inspectedBy?.name || 'Chưa nghiệm thu') + '\n' + when(run.inspectedAt),
-        run.inspectionNote || '—',
+        (run.inspectionNote || '—') + (run.productLot ? '\nLô TP: ' + run.productLot.code + '\nHSD: ' + run.productLot.expiryDate.slice(0, 10) : ''),
       ]),
     },
     {

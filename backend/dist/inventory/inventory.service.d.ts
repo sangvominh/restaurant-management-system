@@ -8,8 +8,8 @@ export declare class InventoryService {
         supplier: {
             id: string;
             name: string;
-            status: string;
             code: string;
+            status: string;
             phone: string | null;
             address: string | null;
         };
@@ -29,8 +29,8 @@ export declare class InventoryService {
                 } & {
                     id: string;
                     name: string;
-                    status: string;
                     code: string;
+                    status: string;
                     minStock: import("@prisma/client-runtime-utils").Decimal;
                     unitId: string;
                     categoryId: string;
@@ -38,31 +38,31 @@ export declare class InventoryService {
             } & {
                 id: string;
                 code: string;
-                materialId: string;
                 expiryDate: Date | null;
+                materialId: string;
             };
         } & {
             id: string;
             quantity: import("@prisma/client-runtime-utils").Decimal;
             unitPrice: import("@prisma/client-runtime-utils").Decimal;
-            lotId: string;
             receiptId: string;
+            lotId: string;
         })[];
     } & {
         id: string;
-        status: string;
         code: string;
-        createdById: string;
-        note: string | null;
+        status: string;
         receivedAt: Date;
+        note: string | null;
         supplierId: string;
+        createdById: string;
     })[]>;
     references(): Promise<{
         suppliers: {
             id: string;
             name: string;
-            status: string;
             code: string;
+            status: string;
             phone: string | null;
             address: string | null;
         }[];
@@ -75,8 +75,8 @@ export declare class InventoryService {
         } & {
             id: string;
             name: string;
-            status: string;
             code: string;
+            status: string;
             minStock: import("@prisma/client-runtime-utils").Decimal;
             unitId: string;
             categoryId: string;
@@ -87,8 +87,8 @@ export declare class InventoryService {
         supplier: {
             id: string;
             name: string;
-            status: string;
             code: string;
+            status: string;
             phone: string | null;
             address: string | null;
         };
@@ -108,8 +108,8 @@ export declare class InventoryService {
                 } & {
                     id: string;
                     name: string;
-                    status: string;
                     code: string;
+                    status: string;
                     minStock: import("@prisma/client-runtime-utils").Decimal;
                     unitId: string;
                     categoryId: string;
@@ -117,31 +117,31 @@ export declare class InventoryService {
             } & {
                 id: string;
                 code: string;
-                materialId: string;
                 expiryDate: Date | null;
+                materialId: string;
             };
         } & {
             id: string;
             quantity: import("@prisma/client-runtime-utils").Decimal;
             unitPrice: import("@prisma/client-runtime-utils").Decimal;
-            lotId: string;
             receiptId: string;
+            lotId: string;
         })[];
     } & {
         id: string;
-        status: string;
         code: string;
-        createdById: string;
-        note: string | null;
+        status: string;
         receivedAt: Date;
+        note: string | null;
         supplierId: string;
+        createdById: string;
     }>;
     post(receiptId: string): Promise<{
         supplier: {
             id: string;
             name: string;
-            status: string;
             code: string;
+            status: string;
             phone: string | null;
             address: string | null;
         };
@@ -161,8 +161,8 @@ export declare class InventoryService {
                 } & {
                     id: string;
                     name: string;
-                    status: string;
                     code: string;
+                    status: string;
                     minStock: import("@prisma/client-runtime-utils").Decimal;
                     unitId: string;
                     categoryId: string;
@@ -170,24 +170,24 @@ export declare class InventoryService {
             } & {
                 id: string;
                 code: string;
-                materialId: string;
                 expiryDate: Date | null;
+                materialId: string;
             };
         } & {
             id: string;
             quantity: import("@prisma/client-runtime-utils").Decimal;
             unitPrice: import("@prisma/client-runtime-utils").Decimal;
-            lotId: string;
             receiptId: string;
+            lotId: string;
         })[];
     } & {
         id: string;
-        status: string;
         code: string;
-        createdById: string;
-        note: string | null;
+        status: string;
         receivedAt: Date;
+        note: string | null;
         supplierId: string;
+        createdById: string;
     }>;
     remove(receiptId: string, user: AdminUser): Promise<{
         message: string;
@@ -200,19 +200,19 @@ export declare class InventoryService {
     discardLot(lotId: string, input: unknown, user: AdminUser): Promise<{
         lines: {
             id: string;
-            productId: string | null;
-            quantity: import("@prisma/client-runtime-utils").Decimal;
             note: string | null;
+            quantity: import("@prisma/client-runtime-utils").Decimal;
             lotId: string | null;
-            sourceType: string;
             issueLineId: string | null;
+            sourceType: string;
             wasteId: string;
+            productId: string | null;
         }[];
     } & {
         id: string;
         status: string;
-        reason: string;
         approvedAt: Date | null;
+        reason: string;
         reviewedById: string | null;
         reportedAt: Date;
         reportedById: string;

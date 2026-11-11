@@ -39,6 +39,9 @@ model Material {
 
 /// THANH_PHAM
 model Product {
+  supplyType String @default("PRODUCED")
+  lots ProductLot[]
+  productReceiptLines ProductReceiptLine[]
   id String @id @default(uuid()) @db.Uuid
   code String @unique
   name String
@@ -62,6 +65,7 @@ model Product {
 
 /// NHA_CUNG_CAP
 model Supplier {
+  productReceipts ProductReceipt[]
   id String @id @default(uuid()) @db.Uuid
   code String @unique
   name String

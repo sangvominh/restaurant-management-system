@@ -12,6 +12,8 @@ model StoreDispatch {
   lines StoreDispatchLine[]
 }
 model StoreDispatchLine {
+  lotAllocations StoreDispatchLot[]
+  lotMovements ProductLotMovement[]
   id String @id @default(uuid()) @db.Uuid
   dispatchId String @db.Uuid
   dispatch StoreDispatch @relation(fields: [dispatchId], references: [id], onDelete: Restrict)
@@ -23,6 +25,9 @@ model StoreDispatchLine {
   @@unique([dispatchId, productId])
 }
 model StoreAdjustment {
+  lotId String? @db.Uuid
+  lot ProductLot? @relation(fields: [lotId], references: [id], onDelete: Restrict)
+  lotMovements ProductLotMovement[]
   id String @id @default(uuid()) @db.Uuid
   productId String @db.Uuid
   product Product @relation(fields: [productId], references: [id], onDelete: Restrict)

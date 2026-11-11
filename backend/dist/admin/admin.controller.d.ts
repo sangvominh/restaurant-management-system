@@ -6,6 +6,11 @@ export declare class AdminController {
     private readonly templates;
     constructor(service: AdminService, templates: RoleTemplateService);
     accounts(): import("../generated/prisma/internal/prismaNamespace.js").PrismaPromise<{
+        id: string;
+        roleId: string;
+        username: string;
+        status: string;
+        createdAt: Date;
         role: {
             id: string;
             name: string;
@@ -15,13 +20,13 @@ export declare class AdminController {
             name: string;
             code: string;
         } | null;
-        id: string;
-        username: string;
-        status: string;
-        createdAt: Date;
-        roleId: string;
     }[]>;
     createAccount(b: unknown): Promise<{
+        id: string;
+        roleId: string;
+        username: string;
+        status: string;
+        createdAt: Date;
         role: {
             id: string;
             name: string;
@@ -31,13 +36,13 @@ export declare class AdminController {
             name: string;
             code: string;
         } | null;
-        id: string;
-        username: string;
-        status: string;
-        createdAt: Date;
-        roleId: string;
     }>;
     updateAccount(id: string, b: unknown, user: AdminUser): Promise<{
+        id: string;
+        roleId: string;
+        username: string;
+        status: string;
+        createdAt: Date;
         role: {
             id: string;
             name: string;
@@ -47,11 +52,6 @@ export declare class AdminController {
             name: string;
             code: string;
         } | null;
-        id: string;
-        username: string;
-        status: string;
-        createdAt: Date;
-        roleId: string;
     }>;
     deleteAccount(id: string, user: AdminUser): Promise<{
         message: string;
@@ -145,8 +145,8 @@ export declare class AdminController {
     employees(): import("../generated/prisma/internal/prismaNamespace.js").PrismaPromise<{
         id: string;
         name: string;
-        status: string;
         code: string;
+        status: string;
         phone: string | null;
         email: string | null;
         accountId: string | null;
@@ -154,8 +154,8 @@ export declare class AdminController {
     createEmployee(b: unknown): Promise<{
         id: string;
         name: string;
-        status: string;
         code: string;
+        status: string;
         phone: string | null;
         email: string | null;
         accountId: string | null;
@@ -163,8 +163,8 @@ export declare class AdminController {
     updateEmployee(id: string, b: unknown, user: AdminUser): Promise<{
         id: string;
         name: string;
-        status: string;
         code: string;
+        status: string;
         phone: string | null;
         email: string | null;
         accountId: string | null;

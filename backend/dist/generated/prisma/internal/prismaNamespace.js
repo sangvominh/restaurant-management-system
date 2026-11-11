@@ -45,6 +45,12 @@ export const ModelName = {
     Waste: 'Waste',
     WasteLine: 'WasteLine',
     MaterialMovement: 'MaterialMovement',
+    ProductLot: 'ProductLot',
+    ProductReceipt: 'ProductReceipt',
+    ProductReceiptLine: 'ProductReceiptLine',
+    StoreDispatchLot: 'StoreDispatchLot',
+    ProductLotDisposal: 'ProductLotDisposal',
+    ProductLotMovement: 'ProductLotMovement',
     Bom: 'Bom',
     BomLine: 'BomLine',
     ProductionOrder: 'ProductionOrder',
@@ -132,6 +138,7 @@ export const MaterialScalarFieldEnum = {
     categoryId: 'categoryId'
 };
 export const ProductScalarFieldEnum = {
+    supplyType: 'supplyType',
     id: 'id',
     code: 'code',
     name: 'name',
@@ -234,6 +241,64 @@ export const MaterialMovementScalarFieldEnum = {
     consumptionLineId: 'consumptionLineId',
     returnLineId: 'returnLineId',
     wasteLineId: 'wasteLineId'
+};
+export const ProductLotScalarFieldEnum = {
+    id: 'id',
+    productId: 'productId',
+    code: 'code',
+    manufacturedAt: 'manufacturedAt',
+    expiryDate: 'expiryDate',
+    createdAt: 'createdAt',
+    runId: 'runId',
+    receiptLineId: 'receiptLineId'
+};
+export const ProductReceiptScalarFieldEnum = {
+    id: 'id',
+    code: 'code',
+    receivedAt: 'receivedAt',
+    status: 'status',
+    note: 'note',
+    supplierId: 'supplierId',
+    createdById: 'createdById',
+    postedById: 'postedById',
+    postedAt: 'postedAt'
+};
+export const ProductReceiptLineScalarFieldEnum = {
+    id: 'id',
+    receiptId: 'receiptId',
+    productId: 'productId',
+    lotCode: 'lotCode',
+    manufacturedAt: 'manufacturedAt',
+    expiryDate: 'expiryDate',
+    quantity: 'quantity',
+    unitPrice: 'unitPrice'
+};
+export const StoreDispatchLotScalarFieldEnum = {
+    id: 'id',
+    dispatchLineId: 'dispatchLineId',
+    lotId: 'lotId',
+    quantity: 'quantity'
+};
+export const ProductLotDisposalScalarFieldEnum = {
+    id: 'id',
+    lotId: 'lotId',
+    quantity: 'quantity',
+    reason: 'reason',
+    postedAt: 'postedAt',
+    createdById: 'createdById'
+};
+export const ProductLotMovementScalarFieldEnum = {
+    id: 'id',
+    lotId: 'lotId',
+    location: 'location',
+    quantity: 'quantity',
+    postedAt: 'postedAt',
+    runId: 'runId',
+    receiptLineId: 'receiptLineId',
+    dispatchLineId: 'dispatchLineId',
+    saleLineId: 'saleLineId',
+    adjustmentId: 'adjustmentId',
+    disposalId: 'disposalId'
 };
 export const BomScalarFieldEnum = {
     id: 'id',
@@ -341,6 +406,8 @@ export const PaymentScalarFieldEnum = {
     saleId: 'saleId'
 };
 export const ProductMovementScalarFieldEnum = {
+    receiptLineId: 'receiptLineId',
+    lotDisposalId: 'lotDisposalId',
     id: 'id',
     quantity: 'quantity',
     movementType: 'movementType',
@@ -409,6 +476,7 @@ export const StoreDispatchLineScalarFieldEnum = {
     quantity: 'quantity'
 };
 export const StoreAdjustmentScalarFieldEnum = {
+    lotId: 'lotId',
     id: 'id',
     productId: 'productId',
     quantity: 'quantity',

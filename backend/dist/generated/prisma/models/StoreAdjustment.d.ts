@@ -15,6 +15,7 @@ export type StoreAdjustmentSumAggregateOutputType = {
     quantity: runtime.Decimal | null;
 };
 export type StoreAdjustmentMinAggregateOutputType = {
+    lotId: string | null;
     id: string | null;
     productId: string | null;
     quantity: runtime.Decimal | null;
@@ -27,6 +28,7 @@ export type StoreAdjustmentMinAggregateOutputType = {
     reviewedById: string | null;
 };
 export type StoreAdjustmentMaxAggregateOutputType = {
+    lotId: string | null;
     id: string | null;
     productId: string | null;
     quantity: runtime.Decimal | null;
@@ -39,6 +41,7 @@ export type StoreAdjustmentMaxAggregateOutputType = {
     reviewedById: string | null;
 };
 export type StoreAdjustmentCountAggregateOutputType = {
+    lotId: number;
     id: number;
     productId: number;
     quantity: number;
@@ -58,6 +61,7 @@ export type StoreAdjustmentSumAggregateInputType = {
     quantity?: true;
 };
 export type StoreAdjustmentMinAggregateInputType = {
+    lotId?: true;
     id?: true;
     productId?: true;
     quantity?: true;
@@ -70,6 +74,7 @@ export type StoreAdjustmentMinAggregateInputType = {
     reviewedById?: true;
 };
 export type StoreAdjustmentMaxAggregateInputType = {
+    lotId?: true;
     id?: true;
     productId?: true;
     quantity?: true;
@@ -82,6 +87,7 @@ export type StoreAdjustmentMaxAggregateInputType = {
     reviewedById?: true;
 };
 export type StoreAdjustmentCountAggregateInputType = {
+    lotId?: true;
     id?: true;
     productId?: true;
     quantity?: true;
@@ -123,6 +129,7 @@ export type StoreAdjustmentGroupByArgs<ExtArgs extends runtime.Types.Extensions.
     _max?: StoreAdjustmentMaxAggregateInputType;
 };
 export type StoreAdjustmentGroupByOutputType = {
+    lotId: string | null;
     id: string;
     productId: string;
     quantity: runtime.Decimal;
@@ -146,6 +153,7 @@ export type StoreAdjustmentWhereInput = {
     AND?: Prisma.StoreAdjustmentWhereInput | Prisma.StoreAdjustmentWhereInput[];
     OR?: Prisma.StoreAdjustmentWhereInput[];
     NOT?: Prisma.StoreAdjustmentWhereInput | Prisma.StoreAdjustmentWhereInput[];
+    lotId?: Prisma.UuidNullableFilter<"StoreAdjustment"> | string | null;
     id?: Prisma.UuidFilter<"StoreAdjustment"> | string;
     productId?: Prisma.UuidFilter<"StoreAdjustment"> | string;
     quantity?: Prisma.DecimalFilter<"StoreAdjustment"> | runtime.Decimal | runtime.DecimalJsLike | number | string;
@@ -156,6 +164,8 @@ export type StoreAdjustmentWhereInput = {
     approvedAt?: Prisma.DateTimeNullableFilter<"StoreAdjustment"> | Date | string | null;
     requestedById?: Prisma.UuidFilter<"StoreAdjustment"> | string;
     reviewedById?: Prisma.UuidNullableFilter<"StoreAdjustment"> | string | null;
+    lot?: Prisma.XOR<Prisma.ProductLotNullableScalarRelationFilter, Prisma.ProductLotWhereInput> | null;
+    lotMovements?: Prisma.ProductLotMovementListRelationFilter;
     product?: Prisma.XOR<Prisma.ProductScalarRelationFilter, Prisma.ProductWhereInput>;
     requestedBy?: Prisma.XOR<Prisma.EmployeeScalarRelationFilter, Prisma.EmployeeWhereInput>;
     reviewedBy?: Prisma.XOR<Prisma.EmployeeNullableScalarRelationFilter, Prisma.EmployeeWhereInput> | null;
@@ -163,6 +173,7 @@ export type StoreAdjustmentWhereInput = {
     warehouseMovement?: Prisma.XOR<Prisma.ProductMovementNullableScalarRelationFilter, Prisma.ProductMovementWhereInput> | null;
 };
 export type StoreAdjustmentOrderByWithRelationInput = {
+    lotId?: Prisma.SortOrderInput | Prisma.SortOrder;
     id?: Prisma.SortOrder;
     productId?: Prisma.SortOrder;
     quantity?: Prisma.SortOrder;
@@ -173,6 +184,8 @@ export type StoreAdjustmentOrderByWithRelationInput = {
     approvedAt?: Prisma.SortOrderInput | Prisma.SortOrder;
     requestedById?: Prisma.SortOrder;
     reviewedById?: Prisma.SortOrderInput | Prisma.SortOrder;
+    lot?: Prisma.ProductLotOrderByWithRelationInput;
+    lotMovements?: Prisma.ProductLotMovementOrderByRelationAggregateInput;
     product?: Prisma.ProductOrderByWithRelationInput;
     requestedBy?: Prisma.EmployeeOrderByWithRelationInput;
     reviewedBy?: Prisma.EmployeeOrderByWithRelationInput;
@@ -184,6 +197,7 @@ export type StoreAdjustmentWhereUniqueInput = Prisma.AtLeast<{
     AND?: Prisma.StoreAdjustmentWhereInput | Prisma.StoreAdjustmentWhereInput[];
     OR?: Prisma.StoreAdjustmentWhereInput[];
     NOT?: Prisma.StoreAdjustmentWhereInput | Prisma.StoreAdjustmentWhereInput[];
+    lotId?: Prisma.UuidNullableFilter<"StoreAdjustment"> | string | null;
     productId?: Prisma.UuidFilter<"StoreAdjustment"> | string;
     quantity?: Prisma.DecimalFilter<"StoreAdjustment"> | runtime.Decimal | runtime.DecimalJsLike | number | string;
     kind?: Prisma.StringFilter<"StoreAdjustment"> | string;
@@ -193,6 +207,8 @@ export type StoreAdjustmentWhereUniqueInput = Prisma.AtLeast<{
     approvedAt?: Prisma.DateTimeNullableFilter<"StoreAdjustment"> | Date | string | null;
     requestedById?: Prisma.UuidFilter<"StoreAdjustment"> | string;
     reviewedById?: Prisma.UuidNullableFilter<"StoreAdjustment"> | string | null;
+    lot?: Prisma.XOR<Prisma.ProductLotNullableScalarRelationFilter, Prisma.ProductLotWhereInput> | null;
+    lotMovements?: Prisma.ProductLotMovementListRelationFilter;
     product?: Prisma.XOR<Prisma.ProductScalarRelationFilter, Prisma.ProductWhereInput>;
     requestedBy?: Prisma.XOR<Prisma.EmployeeScalarRelationFilter, Prisma.EmployeeWhereInput>;
     reviewedBy?: Prisma.XOR<Prisma.EmployeeNullableScalarRelationFilter, Prisma.EmployeeWhereInput> | null;
@@ -200,6 +216,7 @@ export type StoreAdjustmentWhereUniqueInput = Prisma.AtLeast<{
     warehouseMovement?: Prisma.XOR<Prisma.ProductMovementNullableScalarRelationFilter, Prisma.ProductMovementWhereInput> | null;
 }, "id">;
 export type StoreAdjustmentOrderByWithAggregationInput = {
+    lotId?: Prisma.SortOrderInput | Prisma.SortOrder;
     id?: Prisma.SortOrder;
     productId?: Prisma.SortOrder;
     quantity?: Prisma.SortOrder;
@@ -220,6 +237,7 @@ export type StoreAdjustmentScalarWhereWithAggregatesInput = {
     AND?: Prisma.StoreAdjustmentScalarWhereWithAggregatesInput | Prisma.StoreAdjustmentScalarWhereWithAggregatesInput[];
     OR?: Prisma.StoreAdjustmentScalarWhereWithAggregatesInput[];
     NOT?: Prisma.StoreAdjustmentScalarWhereWithAggregatesInput | Prisma.StoreAdjustmentScalarWhereWithAggregatesInput[];
+    lotId?: Prisma.UuidNullableWithAggregatesFilter<"StoreAdjustment"> | string | null;
     id?: Prisma.UuidWithAggregatesFilter<"StoreAdjustment"> | string;
     productId?: Prisma.UuidWithAggregatesFilter<"StoreAdjustment"> | string;
     quantity?: Prisma.DecimalWithAggregatesFilter<"StoreAdjustment"> | runtime.Decimal | runtime.DecimalJsLike | number | string;
@@ -239,6 +257,8 @@ export type StoreAdjustmentCreateInput = {
     status?: string;
     requestedAt?: Date | string;
     approvedAt?: Date | string | null;
+    lot?: Prisma.ProductLotCreateNestedOneWithoutAdjustmentsInput;
+    lotMovements?: Prisma.ProductLotMovementCreateNestedManyWithoutAdjustmentInput;
     product: Prisma.ProductCreateNestedOneWithoutStoreAdjustmentsInput;
     requestedBy: Prisma.EmployeeCreateNestedOneWithoutRequestedStoreAdjustmentsInput;
     reviewedBy?: Prisma.EmployeeCreateNestedOneWithoutReviewedStoreAdjustmentsInput;
@@ -246,6 +266,7 @@ export type StoreAdjustmentCreateInput = {
     warehouseMovement?: Prisma.ProductMovementCreateNestedOneWithoutStoreAdjustmentInput;
 };
 export type StoreAdjustmentUncheckedCreateInput = {
+    lotId?: string | null;
     id?: string;
     productId: string;
     quantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
@@ -256,6 +277,7 @@ export type StoreAdjustmentUncheckedCreateInput = {
     approvedAt?: Date | string | null;
     requestedById: string;
     reviewedById?: string | null;
+    lotMovements?: Prisma.ProductLotMovementUncheckedCreateNestedManyWithoutAdjustmentInput;
     storeMovement?: Prisma.StoreMovementUncheckedCreateNestedOneWithoutAdjustmentInput;
     warehouseMovement?: Prisma.ProductMovementUncheckedCreateNestedOneWithoutStoreAdjustmentInput;
 };
@@ -267,6 +289,8 @@ export type StoreAdjustmentUpdateInput = {
     status?: Prisma.StringFieldUpdateOperationsInput | string;
     requestedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    lot?: Prisma.ProductLotUpdateOneWithoutAdjustmentsNestedInput;
+    lotMovements?: Prisma.ProductLotMovementUpdateManyWithoutAdjustmentNestedInput;
     product?: Prisma.ProductUpdateOneRequiredWithoutStoreAdjustmentsNestedInput;
     requestedBy?: Prisma.EmployeeUpdateOneRequiredWithoutRequestedStoreAdjustmentsNestedInput;
     reviewedBy?: Prisma.EmployeeUpdateOneWithoutReviewedStoreAdjustmentsNestedInput;
@@ -274,6 +298,7 @@ export type StoreAdjustmentUpdateInput = {
     warehouseMovement?: Prisma.ProductMovementUpdateOneWithoutStoreAdjustmentNestedInput;
 };
 export type StoreAdjustmentUncheckedUpdateInput = {
+    lotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     productId?: Prisma.StringFieldUpdateOperationsInput | string;
     quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
@@ -284,10 +309,12 @@ export type StoreAdjustmentUncheckedUpdateInput = {
     approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     requestedById?: Prisma.StringFieldUpdateOperationsInput | string;
     reviewedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    lotMovements?: Prisma.ProductLotMovementUncheckedUpdateManyWithoutAdjustmentNestedInput;
     storeMovement?: Prisma.StoreMovementUncheckedUpdateOneWithoutAdjustmentNestedInput;
     warehouseMovement?: Prisma.ProductMovementUncheckedUpdateOneWithoutStoreAdjustmentNestedInput;
 };
 export type StoreAdjustmentCreateManyInput = {
+    lotId?: string | null;
     id?: string;
     productId: string;
     quantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
@@ -309,6 +336,7 @@ export type StoreAdjustmentUpdateManyMutationInput = {
     approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
 };
 export type StoreAdjustmentUncheckedUpdateManyInput = {
+    lotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     productId?: Prisma.StringFieldUpdateOperationsInput | string;
     quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
@@ -333,6 +361,7 @@ export type StoreAdjustmentNullableScalarRelationFilter = {
     isNot?: Prisma.StoreAdjustmentWhereInput | null;
 };
 export type StoreAdjustmentCountOrderByAggregateInput = {
+    lotId?: Prisma.SortOrder;
     id?: Prisma.SortOrder;
     productId?: Prisma.SortOrder;
     quantity?: Prisma.SortOrder;
@@ -348,6 +377,7 @@ export type StoreAdjustmentAvgOrderByAggregateInput = {
     quantity?: Prisma.SortOrder;
 };
 export type StoreAdjustmentMaxOrderByAggregateInput = {
+    lotId?: Prisma.SortOrder;
     id?: Prisma.SortOrder;
     productId?: Prisma.SortOrder;
     quantity?: Prisma.SortOrder;
@@ -360,6 +390,7 @@ export type StoreAdjustmentMaxOrderByAggregateInput = {
     reviewedById?: Prisma.SortOrder;
 };
 export type StoreAdjustmentMinOrderByAggregateInput = {
+    lotId?: Prisma.SortOrder;
     id?: Prisma.SortOrder;
     productId?: Prisma.SortOrder;
     quantity?: Prisma.SortOrder;
@@ -488,6 +519,58 @@ export type StoreAdjustmentUncheckedUpdateManyWithoutProductNestedInput = {
     updateMany?: Prisma.StoreAdjustmentUpdateManyWithWhereWithoutProductInput | Prisma.StoreAdjustmentUpdateManyWithWhereWithoutProductInput[];
     deleteMany?: Prisma.StoreAdjustmentScalarWhereInput | Prisma.StoreAdjustmentScalarWhereInput[];
 };
+export type StoreAdjustmentCreateNestedManyWithoutLotInput = {
+    create?: Prisma.XOR<Prisma.StoreAdjustmentCreateWithoutLotInput, Prisma.StoreAdjustmentUncheckedCreateWithoutLotInput> | Prisma.StoreAdjustmentCreateWithoutLotInput[] | Prisma.StoreAdjustmentUncheckedCreateWithoutLotInput[];
+    connectOrCreate?: Prisma.StoreAdjustmentCreateOrConnectWithoutLotInput | Prisma.StoreAdjustmentCreateOrConnectWithoutLotInput[];
+    createMany?: Prisma.StoreAdjustmentCreateManyLotInputEnvelope;
+    connect?: Prisma.StoreAdjustmentWhereUniqueInput | Prisma.StoreAdjustmentWhereUniqueInput[];
+};
+export type StoreAdjustmentUncheckedCreateNestedManyWithoutLotInput = {
+    create?: Prisma.XOR<Prisma.StoreAdjustmentCreateWithoutLotInput, Prisma.StoreAdjustmentUncheckedCreateWithoutLotInput> | Prisma.StoreAdjustmentCreateWithoutLotInput[] | Prisma.StoreAdjustmentUncheckedCreateWithoutLotInput[];
+    connectOrCreate?: Prisma.StoreAdjustmentCreateOrConnectWithoutLotInput | Prisma.StoreAdjustmentCreateOrConnectWithoutLotInput[];
+    createMany?: Prisma.StoreAdjustmentCreateManyLotInputEnvelope;
+    connect?: Prisma.StoreAdjustmentWhereUniqueInput | Prisma.StoreAdjustmentWhereUniqueInput[];
+};
+export type StoreAdjustmentUpdateManyWithoutLotNestedInput = {
+    create?: Prisma.XOR<Prisma.StoreAdjustmentCreateWithoutLotInput, Prisma.StoreAdjustmentUncheckedCreateWithoutLotInput> | Prisma.StoreAdjustmentCreateWithoutLotInput[] | Prisma.StoreAdjustmentUncheckedCreateWithoutLotInput[];
+    connectOrCreate?: Prisma.StoreAdjustmentCreateOrConnectWithoutLotInput | Prisma.StoreAdjustmentCreateOrConnectWithoutLotInput[];
+    upsert?: Prisma.StoreAdjustmentUpsertWithWhereUniqueWithoutLotInput | Prisma.StoreAdjustmentUpsertWithWhereUniqueWithoutLotInput[];
+    createMany?: Prisma.StoreAdjustmentCreateManyLotInputEnvelope;
+    set?: Prisma.StoreAdjustmentWhereUniqueInput | Prisma.StoreAdjustmentWhereUniqueInput[];
+    disconnect?: Prisma.StoreAdjustmentWhereUniqueInput | Prisma.StoreAdjustmentWhereUniqueInput[];
+    delete?: Prisma.StoreAdjustmentWhereUniqueInput | Prisma.StoreAdjustmentWhereUniqueInput[];
+    connect?: Prisma.StoreAdjustmentWhereUniqueInput | Prisma.StoreAdjustmentWhereUniqueInput[];
+    update?: Prisma.StoreAdjustmentUpdateWithWhereUniqueWithoutLotInput | Prisma.StoreAdjustmentUpdateWithWhereUniqueWithoutLotInput[];
+    updateMany?: Prisma.StoreAdjustmentUpdateManyWithWhereWithoutLotInput | Prisma.StoreAdjustmentUpdateManyWithWhereWithoutLotInput[];
+    deleteMany?: Prisma.StoreAdjustmentScalarWhereInput | Prisma.StoreAdjustmentScalarWhereInput[];
+};
+export type StoreAdjustmentUncheckedUpdateManyWithoutLotNestedInput = {
+    create?: Prisma.XOR<Prisma.StoreAdjustmentCreateWithoutLotInput, Prisma.StoreAdjustmentUncheckedCreateWithoutLotInput> | Prisma.StoreAdjustmentCreateWithoutLotInput[] | Prisma.StoreAdjustmentUncheckedCreateWithoutLotInput[];
+    connectOrCreate?: Prisma.StoreAdjustmentCreateOrConnectWithoutLotInput | Prisma.StoreAdjustmentCreateOrConnectWithoutLotInput[];
+    upsert?: Prisma.StoreAdjustmentUpsertWithWhereUniqueWithoutLotInput | Prisma.StoreAdjustmentUpsertWithWhereUniqueWithoutLotInput[];
+    createMany?: Prisma.StoreAdjustmentCreateManyLotInputEnvelope;
+    set?: Prisma.StoreAdjustmentWhereUniqueInput | Prisma.StoreAdjustmentWhereUniqueInput[];
+    disconnect?: Prisma.StoreAdjustmentWhereUniqueInput | Prisma.StoreAdjustmentWhereUniqueInput[];
+    delete?: Prisma.StoreAdjustmentWhereUniqueInput | Prisma.StoreAdjustmentWhereUniqueInput[];
+    connect?: Prisma.StoreAdjustmentWhereUniqueInput | Prisma.StoreAdjustmentWhereUniqueInput[];
+    update?: Prisma.StoreAdjustmentUpdateWithWhereUniqueWithoutLotInput | Prisma.StoreAdjustmentUpdateWithWhereUniqueWithoutLotInput[];
+    updateMany?: Prisma.StoreAdjustmentUpdateManyWithWhereWithoutLotInput | Prisma.StoreAdjustmentUpdateManyWithWhereWithoutLotInput[];
+    deleteMany?: Prisma.StoreAdjustmentScalarWhereInput | Prisma.StoreAdjustmentScalarWhereInput[];
+};
+export type StoreAdjustmentCreateNestedOneWithoutLotMovementsInput = {
+    create?: Prisma.XOR<Prisma.StoreAdjustmentCreateWithoutLotMovementsInput, Prisma.StoreAdjustmentUncheckedCreateWithoutLotMovementsInput>;
+    connectOrCreate?: Prisma.StoreAdjustmentCreateOrConnectWithoutLotMovementsInput;
+    connect?: Prisma.StoreAdjustmentWhereUniqueInput;
+};
+export type StoreAdjustmentUpdateOneWithoutLotMovementsNestedInput = {
+    create?: Prisma.XOR<Prisma.StoreAdjustmentCreateWithoutLotMovementsInput, Prisma.StoreAdjustmentUncheckedCreateWithoutLotMovementsInput>;
+    connectOrCreate?: Prisma.StoreAdjustmentCreateOrConnectWithoutLotMovementsInput;
+    upsert?: Prisma.StoreAdjustmentUpsertWithoutLotMovementsInput;
+    disconnect?: Prisma.StoreAdjustmentWhereInput | boolean;
+    delete?: Prisma.StoreAdjustmentWhereInput | boolean;
+    connect?: Prisma.StoreAdjustmentWhereUniqueInput;
+    update?: Prisma.XOR<Prisma.XOR<Prisma.StoreAdjustmentUpdateToOneWithWhereWithoutLotMovementsInput, Prisma.StoreAdjustmentUpdateWithoutLotMovementsInput>, Prisma.StoreAdjustmentUncheckedUpdateWithoutLotMovementsInput>;
+};
 export type StoreAdjustmentCreateNestedOneWithoutWarehouseMovementInput = {
     create?: Prisma.XOR<Prisma.StoreAdjustmentCreateWithoutWarehouseMovementInput, Prisma.StoreAdjustmentUncheckedCreateWithoutWarehouseMovementInput>;
     connectOrCreate?: Prisma.StoreAdjustmentCreateOrConnectWithoutWarehouseMovementInput;
@@ -524,12 +607,15 @@ export type StoreAdjustmentCreateWithoutRequestedByInput = {
     status?: string;
     requestedAt?: Date | string;
     approvedAt?: Date | string | null;
+    lot?: Prisma.ProductLotCreateNestedOneWithoutAdjustmentsInput;
+    lotMovements?: Prisma.ProductLotMovementCreateNestedManyWithoutAdjustmentInput;
     product: Prisma.ProductCreateNestedOneWithoutStoreAdjustmentsInput;
     reviewedBy?: Prisma.EmployeeCreateNestedOneWithoutReviewedStoreAdjustmentsInput;
     storeMovement?: Prisma.StoreMovementCreateNestedOneWithoutAdjustmentInput;
     warehouseMovement?: Prisma.ProductMovementCreateNestedOneWithoutStoreAdjustmentInput;
 };
 export type StoreAdjustmentUncheckedCreateWithoutRequestedByInput = {
+    lotId?: string | null;
     id?: string;
     productId: string;
     quantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
@@ -539,6 +625,7 @@ export type StoreAdjustmentUncheckedCreateWithoutRequestedByInput = {
     requestedAt?: Date | string;
     approvedAt?: Date | string | null;
     reviewedById?: string | null;
+    lotMovements?: Prisma.ProductLotMovementUncheckedCreateNestedManyWithoutAdjustmentInput;
     storeMovement?: Prisma.StoreMovementUncheckedCreateNestedOneWithoutAdjustmentInput;
     warehouseMovement?: Prisma.ProductMovementUncheckedCreateNestedOneWithoutStoreAdjustmentInput;
 };
@@ -558,12 +645,15 @@ export type StoreAdjustmentCreateWithoutReviewedByInput = {
     status?: string;
     requestedAt?: Date | string;
     approvedAt?: Date | string | null;
+    lot?: Prisma.ProductLotCreateNestedOneWithoutAdjustmentsInput;
+    lotMovements?: Prisma.ProductLotMovementCreateNestedManyWithoutAdjustmentInput;
     product: Prisma.ProductCreateNestedOneWithoutStoreAdjustmentsInput;
     requestedBy: Prisma.EmployeeCreateNestedOneWithoutRequestedStoreAdjustmentsInput;
     storeMovement?: Prisma.StoreMovementCreateNestedOneWithoutAdjustmentInput;
     warehouseMovement?: Prisma.ProductMovementCreateNestedOneWithoutStoreAdjustmentInput;
 };
 export type StoreAdjustmentUncheckedCreateWithoutReviewedByInput = {
+    lotId?: string | null;
     id?: string;
     productId: string;
     quantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
@@ -573,6 +663,7 @@ export type StoreAdjustmentUncheckedCreateWithoutReviewedByInput = {
     requestedAt?: Date | string;
     approvedAt?: Date | string | null;
     requestedById: string;
+    lotMovements?: Prisma.ProductLotMovementUncheckedCreateNestedManyWithoutAdjustmentInput;
     storeMovement?: Prisma.StoreMovementUncheckedCreateNestedOneWithoutAdjustmentInput;
     warehouseMovement?: Prisma.ProductMovementUncheckedCreateNestedOneWithoutStoreAdjustmentInput;
 };
@@ -601,6 +692,7 @@ export type StoreAdjustmentScalarWhereInput = {
     AND?: Prisma.StoreAdjustmentScalarWhereInput | Prisma.StoreAdjustmentScalarWhereInput[];
     OR?: Prisma.StoreAdjustmentScalarWhereInput[];
     NOT?: Prisma.StoreAdjustmentScalarWhereInput | Prisma.StoreAdjustmentScalarWhereInput[];
+    lotId?: Prisma.UuidNullableFilter<"StoreAdjustment"> | string | null;
     id?: Prisma.UuidFilter<"StoreAdjustment"> | string;
     productId?: Prisma.UuidFilter<"StoreAdjustment"> | string;
     quantity?: Prisma.DecimalFilter<"StoreAdjustment"> | runtime.Decimal | runtime.DecimalJsLike | number | string;
@@ -633,12 +725,15 @@ export type StoreAdjustmentCreateWithoutProductInput = {
     status?: string;
     requestedAt?: Date | string;
     approvedAt?: Date | string | null;
+    lot?: Prisma.ProductLotCreateNestedOneWithoutAdjustmentsInput;
+    lotMovements?: Prisma.ProductLotMovementCreateNestedManyWithoutAdjustmentInput;
     requestedBy: Prisma.EmployeeCreateNestedOneWithoutRequestedStoreAdjustmentsInput;
     reviewedBy?: Prisma.EmployeeCreateNestedOneWithoutReviewedStoreAdjustmentsInput;
     storeMovement?: Prisma.StoreMovementCreateNestedOneWithoutAdjustmentInput;
     warehouseMovement?: Prisma.ProductMovementCreateNestedOneWithoutStoreAdjustmentInput;
 };
 export type StoreAdjustmentUncheckedCreateWithoutProductInput = {
+    lotId?: string | null;
     id?: string;
     quantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
     kind: string;
@@ -648,6 +743,7 @@ export type StoreAdjustmentUncheckedCreateWithoutProductInput = {
     approvedAt?: Date | string | null;
     requestedById: string;
     reviewedById?: string | null;
+    lotMovements?: Prisma.ProductLotMovementUncheckedCreateNestedManyWithoutAdjustmentInput;
     storeMovement?: Prisma.StoreMovementUncheckedCreateNestedOneWithoutAdjustmentInput;
     warehouseMovement?: Prisma.ProductMovementUncheckedCreateNestedOneWithoutStoreAdjustmentInput;
 };
@@ -672,7 +768,7 @@ export type StoreAdjustmentUpdateManyWithWhereWithoutProductInput = {
     where: Prisma.StoreAdjustmentScalarWhereInput;
     data: Prisma.XOR<Prisma.StoreAdjustmentUpdateManyMutationInput, Prisma.StoreAdjustmentUncheckedUpdateManyWithoutProductInput>;
 };
-export type StoreAdjustmentCreateWithoutWarehouseMovementInput = {
+export type StoreAdjustmentCreateWithoutLotInput = {
     id?: string;
     quantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
     kind: string;
@@ -680,12 +776,14 @@ export type StoreAdjustmentCreateWithoutWarehouseMovementInput = {
     status?: string;
     requestedAt?: Date | string;
     approvedAt?: Date | string | null;
+    lotMovements?: Prisma.ProductLotMovementCreateNestedManyWithoutAdjustmentInput;
     product: Prisma.ProductCreateNestedOneWithoutStoreAdjustmentsInput;
     requestedBy: Prisma.EmployeeCreateNestedOneWithoutRequestedStoreAdjustmentsInput;
     reviewedBy?: Prisma.EmployeeCreateNestedOneWithoutReviewedStoreAdjustmentsInput;
     storeMovement?: Prisma.StoreMovementCreateNestedOneWithoutAdjustmentInput;
+    warehouseMovement?: Prisma.ProductMovementCreateNestedOneWithoutStoreAdjustmentInput;
 };
-export type StoreAdjustmentUncheckedCreateWithoutWarehouseMovementInput = {
+export type StoreAdjustmentUncheckedCreateWithoutLotInput = {
     id?: string;
     productId: string;
     quantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
@@ -696,6 +794,132 @@ export type StoreAdjustmentUncheckedCreateWithoutWarehouseMovementInput = {
     approvedAt?: Date | string | null;
     requestedById: string;
     reviewedById?: string | null;
+    lotMovements?: Prisma.ProductLotMovementUncheckedCreateNestedManyWithoutAdjustmentInput;
+    storeMovement?: Prisma.StoreMovementUncheckedCreateNestedOneWithoutAdjustmentInput;
+    warehouseMovement?: Prisma.ProductMovementUncheckedCreateNestedOneWithoutStoreAdjustmentInput;
+};
+export type StoreAdjustmentCreateOrConnectWithoutLotInput = {
+    where: Prisma.StoreAdjustmentWhereUniqueInput;
+    create: Prisma.XOR<Prisma.StoreAdjustmentCreateWithoutLotInput, Prisma.StoreAdjustmentUncheckedCreateWithoutLotInput>;
+};
+export type StoreAdjustmentCreateManyLotInputEnvelope = {
+    data: Prisma.StoreAdjustmentCreateManyLotInput | Prisma.StoreAdjustmentCreateManyLotInput[];
+    skipDuplicates?: boolean;
+};
+export type StoreAdjustmentUpsertWithWhereUniqueWithoutLotInput = {
+    where: Prisma.StoreAdjustmentWhereUniqueInput;
+    update: Prisma.XOR<Prisma.StoreAdjustmentUpdateWithoutLotInput, Prisma.StoreAdjustmentUncheckedUpdateWithoutLotInput>;
+    create: Prisma.XOR<Prisma.StoreAdjustmentCreateWithoutLotInput, Prisma.StoreAdjustmentUncheckedCreateWithoutLotInput>;
+};
+export type StoreAdjustmentUpdateWithWhereUniqueWithoutLotInput = {
+    where: Prisma.StoreAdjustmentWhereUniqueInput;
+    data: Prisma.XOR<Prisma.StoreAdjustmentUpdateWithoutLotInput, Prisma.StoreAdjustmentUncheckedUpdateWithoutLotInput>;
+};
+export type StoreAdjustmentUpdateManyWithWhereWithoutLotInput = {
+    where: Prisma.StoreAdjustmentScalarWhereInput;
+    data: Prisma.XOR<Prisma.StoreAdjustmentUpdateManyMutationInput, Prisma.StoreAdjustmentUncheckedUpdateManyWithoutLotInput>;
+};
+export type StoreAdjustmentCreateWithoutLotMovementsInput = {
+    id?: string;
+    quantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    kind: string;
+    reason: string;
+    status?: string;
+    requestedAt?: Date | string;
+    approvedAt?: Date | string | null;
+    lot?: Prisma.ProductLotCreateNestedOneWithoutAdjustmentsInput;
+    product: Prisma.ProductCreateNestedOneWithoutStoreAdjustmentsInput;
+    requestedBy: Prisma.EmployeeCreateNestedOneWithoutRequestedStoreAdjustmentsInput;
+    reviewedBy?: Prisma.EmployeeCreateNestedOneWithoutReviewedStoreAdjustmentsInput;
+    storeMovement?: Prisma.StoreMovementCreateNestedOneWithoutAdjustmentInput;
+    warehouseMovement?: Prisma.ProductMovementCreateNestedOneWithoutStoreAdjustmentInput;
+};
+export type StoreAdjustmentUncheckedCreateWithoutLotMovementsInput = {
+    lotId?: string | null;
+    id?: string;
+    productId: string;
+    quantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    kind: string;
+    reason: string;
+    status?: string;
+    requestedAt?: Date | string;
+    approvedAt?: Date | string | null;
+    requestedById: string;
+    reviewedById?: string | null;
+    storeMovement?: Prisma.StoreMovementUncheckedCreateNestedOneWithoutAdjustmentInput;
+    warehouseMovement?: Prisma.ProductMovementUncheckedCreateNestedOneWithoutStoreAdjustmentInput;
+};
+export type StoreAdjustmentCreateOrConnectWithoutLotMovementsInput = {
+    where: Prisma.StoreAdjustmentWhereUniqueInput;
+    create: Prisma.XOR<Prisma.StoreAdjustmentCreateWithoutLotMovementsInput, Prisma.StoreAdjustmentUncheckedCreateWithoutLotMovementsInput>;
+};
+export type StoreAdjustmentUpsertWithoutLotMovementsInput = {
+    update: Prisma.XOR<Prisma.StoreAdjustmentUpdateWithoutLotMovementsInput, Prisma.StoreAdjustmentUncheckedUpdateWithoutLotMovementsInput>;
+    create: Prisma.XOR<Prisma.StoreAdjustmentCreateWithoutLotMovementsInput, Prisma.StoreAdjustmentUncheckedCreateWithoutLotMovementsInput>;
+    where?: Prisma.StoreAdjustmentWhereInput;
+};
+export type StoreAdjustmentUpdateToOneWithWhereWithoutLotMovementsInput = {
+    where?: Prisma.StoreAdjustmentWhereInput;
+    data: Prisma.XOR<Prisma.StoreAdjustmentUpdateWithoutLotMovementsInput, Prisma.StoreAdjustmentUncheckedUpdateWithoutLotMovementsInput>;
+};
+export type StoreAdjustmentUpdateWithoutLotMovementsInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    kind?: Prisma.StringFieldUpdateOperationsInput | string;
+    reason?: Prisma.StringFieldUpdateOperationsInput | string;
+    status?: Prisma.StringFieldUpdateOperationsInput | string;
+    requestedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    lot?: Prisma.ProductLotUpdateOneWithoutAdjustmentsNestedInput;
+    product?: Prisma.ProductUpdateOneRequiredWithoutStoreAdjustmentsNestedInput;
+    requestedBy?: Prisma.EmployeeUpdateOneRequiredWithoutRequestedStoreAdjustmentsNestedInput;
+    reviewedBy?: Prisma.EmployeeUpdateOneWithoutReviewedStoreAdjustmentsNestedInput;
+    storeMovement?: Prisma.StoreMovementUpdateOneWithoutAdjustmentNestedInput;
+    warehouseMovement?: Prisma.ProductMovementUpdateOneWithoutStoreAdjustmentNestedInput;
+};
+export type StoreAdjustmentUncheckedUpdateWithoutLotMovementsInput = {
+    lotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    productId?: Prisma.StringFieldUpdateOperationsInput | string;
+    quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    kind?: Prisma.StringFieldUpdateOperationsInput | string;
+    reason?: Prisma.StringFieldUpdateOperationsInput | string;
+    status?: Prisma.StringFieldUpdateOperationsInput | string;
+    requestedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    requestedById?: Prisma.StringFieldUpdateOperationsInput | string;
+    reviewedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    storeMovement?: Prisma.StoreMovementUncheckedUpdateOneWithoutAdjustmentNestedInput;
+    warehouseMovement?: Prisma.ProductMovementUncheckedUpdateOneWithoutStoreAdjustmentNestedInput;
+};
+export type StoreAdjustmentCreateWithoutWarehouseMovementInput = {
+    id?: string;
+    quantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    kind: string;
+    reason: string;
+    status?: string;
+    requestedAt?: Date | string;
+    approvedAt?: Date | string | null;
+    lot?: Prisma.ProductLotCreateNestedOneWithoutAdjustmentsInput;
+    lotMovements?: Prisma.ProductLotMovementCreateNestedManyWithoutAdjustmentInput;
+    product: Prisma.ProductCreateNestedOneWithoutStoreAdjustmentsInput;
+    requestedBy: Prisma.EmployeeCreateNestedOneWithoutRequestedStoreAdjustmentsInput;
+    reviewedBy?: Prisma.EmployeeCreateNestedOneWithoutReviewedStoreAdjustmentsInput;
+    storeMovement?: Prisma.StoreMovementCreateNestedOneWithoutAdjustmentInput;
+};
+export type StoreAdjustmentUncheckedCreateWithoutWarehouseMovementInput = {
+    lotId?: string | null;
+    id?: string;
+    productId: string;
+    quantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    kind: string;
+    reason: string;
+    status?: string;
+    requestedAt?: Date | string;
+    approvedAt?: Date | string | null;
+    requestedById: string;
+    reviewedById?: string | null;
+    lotMovements?: Prisma.ProductLotMovementUncheckedCreateNestedManyWithoutAdjustmentInput;
     storeMovement?: Prisma.StoreMovementUncheckedCreateNestedOneWithoutAdjustmentInput;
 };
 export type StoreAdjustmentCreateOrConnectWithoutWarehouseMovementInput = {
@@ -719,12 +943,15 @@ export type StoreAdjustmentUpdateWithoutWarehouseMovementInput = {
     status?: Prisma.StringFieldUpdateOperationsInput | string;
     requestedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    lot?: Prisma.ProductLotUpdateOneWithoutAdjustmentsNestedInput;
+    lotMovements?: Prisma.ProductLotMovementUpdateManyWithoutAdjustmentNestedInput;
     product?: Prisma.ProductUpdateOneRequiredWithoutStoreAdjustmentsNestedInput;
     requestedBy?: Prisma.EmployeeUpdateOneRequiredWithoutRequestedStoreAdjustmentsNestedInput;
     reviewedBy?: Prisma.EmployeeUpdateOneWithoutReviewedStoreAdjustmentsNestedInput;
     storeMovement?: Prisma.StoreMovementUpdateOneWithoutAdjustmentNestedInput;
 };
 export type StoreAdjustmentUncheckedUpdateWithoutWarehouseMovementInput = {
+    lotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     productId?: Prisma.StringFieldUpdateOperationsInput | string;
     quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
@@ -735,6 +962,7 @@ export type StoreAdjustmentUncheckedUpdateWithoutWarehouseMovementInput = {
     approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     requestedById?: Prisma.StringFieldUpdateOperationsInput | string;
     reviewedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    lotMovements?: Prisma.ProductLotMovementUncheckedUpdateManyWithoutAdjustmentNestedInput;
     storeMovement?: Prisma.StoreMovementUncheckedUpdateOneWithoutAdjustmentNestedInput;
 };
 export type StoreAdjustmentCreateWithoutStoreMovementInput = {
@@ -745,12 +973,15 @@ export type StoreAdjustmentCreateWithoutStoreMovementInput = {
     status?: string;
     requestedAt?: Date | string;
     approvedAt?: Date | string | null;
+    lot?: Prisma.ProductLotCreateNestedOneWithoutAdjustmentsInput;
+    lotMovements?: Prisma.ProductLotMovementCreateNestedManyWithoutAdjustmentInput;
     product: Prisma.ProductCreateNestedOneWithoutStoreAdjustmentsInput;
     requestedBy: Prisma.EmployeeCreateNestedOneWithoutRequestedStoreAdjustmentsInput;
     reviewedBy?: Prisma.EmployeeCreateNestedOneWithoutReviewedStoreAdjustmentsInput;
     warehouseMovement?: Prisma.ProductMovementCreateNestedOneWithoutStoreAdjustmentInput;
 };
 export type StoreAdjustmentUncheckedCreateWithoutStoreMovementInput = {
+    lotId?: string | null;
     id?: string;
     productId: string;
     quantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
@@ -761,6 +992,7 @@ export type StoreAdjustmentUncheckedCreateWithoutStoreMovementInput = {
     approvedAt?: Date | string | null;
     requestedById: string;
     reviewedById?: string | null;
+    lotMovements?: Prisma.ProductLotMovementUncheckedCreateNestedManyWithoutAdjustmentInput;
     warehouseMovement?: Prisma.ProductMovementUncheckedCreateNestedOneWithoutStoreAdjustmentInput;
 };
 export type StoreAdjustmentCreateOrConnectWithoutStoreMovementInput = {
@@ -784,12 +1016,15 @@ export type StoreAdjustmentUpdateWithoutStoreMovementInput = {
     status?: Prisma.StringFieldUpdateOperationsInput | string;
     requestedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    lot?: Prisma.ProductLotUpdateOneWithoutAdjustmentsNestedInput;
+    lotMovements?: Prisma.ProductLotMovementUpdateManyWithoutAdjustmentNestedInput;
     product?: Prisma.ProductUpdateOneRequiredWithoutStoreAdjustmentsNestedInput;
     requestedBy?: Prisma.EmployeeUpdateOneRequiredWithoutRequestedStoreAdjustmentsNestedInput;
     reviewedBy?: Prisma.EmployeeUpdateOneWithoutReviewedStoreAdjustmentsNestedInput;
     warehouseMovement?: Prisma.ProductMovementUpdateOneWithoutStoreAdjustmentNestedInput;
 };
 export type StoreAdjustmentUncheckedUpdateWithoutStoreMovementInput = {
+    lotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     productId?: Prisma.StringFieldUpdateOperationsInput | string;
     quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
@@ -800,9 +1035,11 @@ export type StoreAdjustmentUncheckedUpdateWithoutStoreMovementInput = {
     approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     requestedById?: Prisma.StringFieldUpdateOperationsInput | string;
     reviewedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    lotMovements?: Prisma.ProductLotMovementUncheckedUpdateManyWithoutAdjustmentNestedInput;
     warehouseMovement?: Prisma.ProductMovementUncheckedUpdateOneWithoutStoreAdjustmentNestedInput;
 };
 export type StoreAdjustmentCreateManyRequestedByInput = {
+    lotId?: string | null;
     id?: string;
     productId: string;
     quantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
@@ -814,6 +1051,7 @@ export type StoreAdjustmentCreateManyRequestedByInput = {
     reviewedById?: string | null;
 };
 export type StoreAdjustmentCreateManyReviewedByInput = {
+    lotId?: string | null;
     id?: string;
     productId: string;
     quantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
@@ -832,12 +1070,15 @@ export type StoreAdjustmentUpdateWithoutRequestedByInput = {
     status?: Prisma.StringFieldUpdateOperationsInput | string;
     requestedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    lot?: Prisma.ProductLotUpdateOneWithoutAdjustmentsNestedInput;
+    lotMovements?: Prisma.ProductLotMovementUpdateManyWithoutAdjustmentNestedInput;
     product?: Prisma.ProductUpdateOneRequiredWithoutStoreAdjustmentsNestedInput;
     reviewedBy?: Prisma.EmployeeUpdateOneWithoutReviewedStoreAdjustmentsNestedInput;
     storeMovement?: Prisma.StoreMovementUpdateOneWithoutAdjustmentNestedInput;
     warehouseMovement?: Prisma.ProductMovementUpdateOneWithoutStoreAdjustmentNestedInput;
 };
 export type StoreAdjustmentUncheckedUpdateWithoutRequestedByInput = {
+    lotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     productId?: Prisma.StringFieldUpdateOperationsInput | string;
     quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
@@ -847,10 +1088,12 @@ export type StoreAdjustmentUncheckedUpdateWithoutRequestedByInput = {
     requestedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     reviewedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    lotMovements?: Prisma.ProductLotMovementUncheckedUpdateManyWithoutAdjustmentNestedInput;
     storeMovement?: Prisma.StoreMovementUncheckedUpdateOneWithoutAdjustmentNestedInput;
     warehouseMovement?: Prisma.ProductMovementUncheckedUpdateOneWithoutStoreAdjustmentNestedInput;
 };
 export type StoreAdjustmentUncheckedUpdateManyWithoutRequestedByInput = {
+    lotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     productId?: Prisma.StringFieldUpdateOperationsInput | string;
     quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
@@ -869,12 +1112,15 @@ export type StoreAdjustmentUpdateWithoutReviewedByInput = {
     status?: Prisma.StringFieldUpdateOperationsInput | string;
     requestedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    lot?: Prisma.ProductLotUpdateOneWithoutAdjustmentsNestedInput;
+    lotMovements?: Prisma.ProductLotMovementUpdateManyWithoutAdjustmentNestedInput;
     product?: Prisma.ProductUpdateOneRequiredWithoutStoreAdjustmentsNestedInput;
     requestedBy?: Prisma.EmployeeUpdateOneRequiredWithoutRequestedStoreAdjustmentsNestedInput;
     storeMovement?: Prisma.StoreMovementUpdateOneWithoutAdjustmentNestedInput;
     warehouseMovement?: Prisma.ProductMovementUpdateOneWithoutStoreAdjustmentNestedInput;
 };
 export type StoreAdjustmentUncheckedUpdateWithoutReviewedByInput = {
+    lotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     productId?: Prisma.StringFieldUpdateOperationsInput | string;
     quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
@@ -884,10 +1130,12 @@ export type StoreAdjustmentUncheckedUpdateWithoutReviewedByInput = {
     requestedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     requestedById?: Prisma.StringFieldUpdateOperationsInput | string;
+    lotMovements?: Prisma.ProductLotMovementUncheckedUpdateManyWithoutAdjustmentNestedInput;
     storeMovement?: Prisma.StoreMovementUncheckedUpdateOneWithoutAdjustmentNestedInput;
     warehouseMovement?: Prisma.ProductMovementUncheckedUpdateOneWithoutStoreAdjustmentNestedInput;
 };
 export type StoreAdjustmentUncheckedUpdateManyWithoutReviewedByInput = {
+    lotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     productId?: Prisma.StringFieldUpdateOperationsInput | string;
     quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
@@ -899,6 +1147,7 @@ export type StoreAdjustmentUncheckedUpdateManyWithoutReviewedByInput = {
     requestedById?: Prisma.StringFieldUpdateOperationsInput | string;
 };
 export type StoreAdjustmentCreateManyProductInput = {
+    lotId?: string | null;
     id?: string;
     quantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
     kind: string;
@@ -917,12 +1166,15 @@ export type StoreAdjustmentUpdateWithoutProductInput = {
     status?: Prisma.StringFieldUpdateOperationsInput | string;
     requestedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    lot?: Prisma.ProductLotUpdateOneWithoutAdjustmentsNestedInput;
+    lotMovements?: Prisma.ProductLotMovementUpdateManyWithoutAdjustmentNestedInput;
     requestedBy?: Prisma.EmployeeUpdateOneRequiredWithoutRequestedStoreAdjustmentsNestedInput;
     reviewedBy?: Prisma.EmployeeUpdateOneWithoutReviewedStoreAdjustmentsNestedInput;
     storeMovement?: Prisma.StoreMovementUpdateOneWithoutAdjustmentNestedInput;
     warehouseMovement?: Prisma.ProductMovementUpdateOneWithoutStoreAdjustmentNestedInput;
 };
 export type StoreAdjustmentUncheckedUpdateWithoutProductInput = {
+    lotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     kind?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -932,10 +1184,12 @@ export type StoreAdjustmentUncheckedUpdateWithoutProductInput = {
     approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     requestedById?: Prisma.StringFieldUpdateOperationsInput | string;
     reviewedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    lotMovements?: Prisma.ProductLotMovementUncheckedUpdateManyWithoutAdjustmentNestedInput;
     storeMovement?: Prisma.StoreMovementUncheckedUpdateOneWithoutAdjustmentNestedInput;
     warehouseMovement?: Prisma.ProductMovementUncheckedUpdateOneWithoutStoreAdjustmentNestedInput;
 };
 export type StoreAdjustmentUncheckedUpdateManyWithoutProductInput = {
+    lotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
     kind?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -946,7 +1200,74 @@ export type StoreAdjustmentUncheckedUpdateManyWithoutProductInput = {
     requestedById?: Prisma.StringFieldUpdateOperationsInput | string;
     reviewedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 };
+export type StoreAdjustmentCreateManyLotInput = {
+    id?: string;
+    productId: string;
+    quantity: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    kind: string;
+    reason: string;
+    status?: string;
+    requestedAt?: Date | string;
+    approvedAt?: Date | string | null;
+    requestedById: string;
+    reviewedById?: string | null;
+};
+export type StoreAdjustmentUpdateWithoutLotInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    kind?: Prisma.StringFieldUpdateOperationsInput | string;
+    reason?: Prisma.StringFieldUpdateOperationsInput | string;
+    status?: Prisma.StringFieldUpdateOperationsInput | string;
+    requestedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    lotMovements?: Prisma.ProductLotMovementUpdateManyWithoutAdjustmentNestedInput;
+    product?: Prisma.ProductUpdateOneRequiredWithoutStoreAdjustmentsNestedInput;
+    requestedBy?: Prisma.EmployeeUpdateOneRequiredWithoutRequestedStoreAdjustmentsNestedInput;
+    reviewedBy?: Prisma.EmployeeUpdateOneWithoutReviewedStoreAdjustmentsNestedInput;
+    storeMovement?: Prisma.StoreMovementUpdateOneWithoutAdjustmentNestedInput;
+    warehouseMovement?: Prisma.ProductMovementUpdateOneWithoutStoreAdjustmentNestedInput;
+};
+export type StoreAdjustmentUncheckedUpdateWithoutLotInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    productId?: Prisma.StringFieldUpdateOperationsInput | string;
+    quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    kind?: Prisma.StringFieldUpdateOperationsInput | string;
+    reason?: Prisma.StringFieldUpdateOperationsInput | string;
+    status?: Prisma.StringFieldUpdateOperationsInput | string;
+    requestedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    requestedById?: Prisma.StringFieldUpdateOperationsInput | string;
+    reviewedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    lotMovements?: Prisma.ProductLotMovementUncheckedUpdateManyWithoutAdjustmentNestedInput;
+    storeMovement?: Prisma.StoreMovementUncheckedUpdateOneWithoutAdjustmentNestedInput;
+    warehouseMovement?: Prisma.ProductMovementUncheckedUpdateOneWithoutStoreAdjustmentNestedInput;
+};
+export type StoreAdjustmentUncheckedUpdateManyWithoutLotInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    productId?: Prisma.StringFieldUpdateOperationsInput | string;
+    quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    kind?: Prisma.StringFieldUpdateOperationsInput | string;
+    reason?: Prisma.StringFieldUpdateOperationsInput | string;
+    status?: Prisma.StringFieldUpdateOperationsInput | string;
+    requestedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    requestedById?: Prisma.StringFieldUpdateOperationsInput | string;
+    reviewedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+};
+export type StoreAdjustmentCountOutputType = {
+    lotMovements: number;
+};
+export type StoreAdjustmentCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    lotMovements?: boolean | StoreAdjustmentCountOutputTypeCountLotMovementsArgs;
+};
+export type StoreAdjustmentCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    select?: Prisma.StoreAdjustmentCountOutputTypeSelect<ExtArgs> | null;
+};
+export type StoreAdjustmentCountOutputTypeCountLotMovementsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    where?: Prisma.ProductLotMovementWhereInput;
+};
 export type StoreAdjustmentSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+    lotId?: boolean;
     id?: boolean;
     productId?: boolean;
     quantity?: boolean;
@@ -957,13 +1278,17 @@ export type StoreAdjustmentSelect<ExtArgs extends runtime.Types.Extensions.Inter
     approvedAt?: boolean;
     requestedById?: boolean;
     reviewedById?: boolean;
+    lot?: boolean | Prisma.StoreAdjustment$lotArgs<ExtArgs>;
+    lotMovements?: boolean | Prisma.StoreAdjustment$lotMovementsArgs<ExtArgs>;
     product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>;
     requestedBy?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>;
     reviewedBy?: boolean | Prisma.StoreAdjustment$reviewedByArgs<ExtArgs>;
     storeMovement?: boolean | Prisma.StoreAdjustment$storeMovementArgs<ExtArgs>;
     warehouseMovement?: boolean | Prisma.StoreAdjustment$warehouseMovementArgs<ExtArgs>;
+    _count?: boolean | Prisma.StoreAdjustmentCountOutputTypeDefaultArgs<ExtArgs>;
 }, ExtArgs["result"]["storeAdjustment"]>;
 export type StoreAdjustmentSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+    lotId?: boolean;
     id?: boolean;
     productId?: boolean;
     quantity?: boolean;
@@ -974,11 +1299,13 @@ export type StoreAdjustmentSelectCreateManyAndReturn<ExtArgs extends runtime.Typ
     approvedAt?: boolean;
     requestedById?: boolean;
     reviewedById?: boolean;
+    lot?: boolean | Prisma.StoreAdjustment$lotArgs<ExtArgs>;
     product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>;
     requestedBy?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>;
     reviewedBy?: boolean | Prisma.StoreAdjustment$reviewedByArgs<ExtArgs>;
 }, ExtArgs["result"]["storeAdjustment"]>;
 export type StoreAdjustmentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+    lotId?: boolean;
     id?: boolean;
     productId?: boolean;
     quantity?: boolean;
@@ -989,11 +1316,13 @@ export type StoreAdjustmentSelectUpdateManyAndReturn<ExtArgs extends runtime.Typ
     approvedAt?: boolean;
     requestedById?: boolean;
     reviewedById?: boolean;
+    lot?: boolean | Prisma.StoreAdjustment$lotArgs<ExtArgs>;
     product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>;
     requestedBy?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>;
     reviewedBy?: boolean | Prisma.StoreAdjustment$reviewedByArgs<ExtArgs>;
 }, ExtArgs["result"]["storeAdjustment"]>;
 export type StoreAdjustmentSelectScalar = {
+    lotId?: boolean;
     id?: boolean;
     productId?: boolean;
     quantity?: boolean;
@@ -1005,20 +1334,25 @@ export type StoreAdjustmentSelectScalar = {
     requestedById?: boolean;
     reviewedById?: boolean;
 };
-export type StoreAdjustmentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "productId" | "quantity" | "kind" | "reason" | "status" | "requestedAt" | "approvedAt" | "requestedById" | "reviewedById", ExtArgs["result"]["storeAdjustment"]>;
+export type StoreAdjustmentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"lotId" | "id" | "productId" | "quantity" | "kind" | "reason" | "status" | "requestedAt" | "approvedAt" | "requestedById" | "reviewedById", ExtArgs["result"]["storeAdjustment"]>;
 export type StoreAdjustmentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    lot?: boolean | Prisma.StoreAdjustment$lotArgs<ExtArgs>;
+    lotMovements?: boolean | Prisma.StoreAdjustment$lotMovementsArgs<ExtArgs>;
     product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>;
     requestedBy?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>;
     reviewedBy?: boolean | Prisma.StoreAdjustment$reviewedByArgs<ExtArgs>;
     storeMovement?: boolean | Prisma.StoreAdjustment$storeMovementArgs<ExtArgs>;
     warehouseMovement?: boolean | Prisma.StoreAdjustment$warehouseMovementArgs<ExtArgs>;
+    _count?: boolean | Prisma.StoreAdjustmentCountOutputTypeDefaultArgs<ExtArgs>;
 };
 export type StoreAdjustmentIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    lot?: boolean | Prisma.StoreAdjustment$lotArgs<ExtArgs>;
     product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>;
     requestedBy?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>;
     reviewedBy?: boolean | Prisma.StoreAdjustment$reviewedByArgs<ExtArgs>;
 };
 export type StoreAdjustmentIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    lot?: boolean | Prisma.StoreAdjustment$lotArgs<ExtArgs>;
     product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>;
     requestedBy?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>;
     reviewedBy?: boolean | Prisma.StoreAdjustment$reviewedByArgs<ExtArgs>;
@@ -1026,6 +1360,8 @@ export type StoreAdjustmentIncludeUpdateManyAndReturn<ExtArgs extends runtime.Ty
 export type $StoreAdjustmentPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     name: "StoreAdjustment";
     objects: {
+        lot: Prisma.$ProductLotPayload<ExtArgs> | null;
+        lotMovements: Prisma.$ProductLotMovementPayload<ExtArgs>[];
         product: Prisma.$ProductPayload<ExtArgs>;
         requestedBy: Prisma.$EmployeePayload<ExtArgs>;
         reviewedBy: Prisma.$EmployeePayload<ExtArgs> | null;
@@ -1033,6 +1369,7 @@ export type $StoreAdjustmentPayload<ExtArgs extends runtime.Types.Extensions.Int
         warehouseMovement: Prisma.$ProductMovementPayload<ExtArgs> | null;
     };
     scalars: runtime.Types.Extensions.GetPayloadResult<{
+        lotId: string | null;
         id: string;
         productId: string;
         quantity: runtime.Decimal;
@@ -1095,6 +1432,8 @@ export interface StoreAdjustmentDelegate<ExtArgs extends runtime.Types.Extension
 }
 export interface Prisma__StoreAdjustmentClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise";
+    lot<T extends Prisma.StoreAdjustment$lotArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.StoreAdjustment$lotArgs<ExtArgs>>): Prisma.Prisma__ProductLotClient<runtime.Types.Result.GetResult<Prisma.$ProductLotPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>;
+    lotMovements<T extends Prisma.StoreAdjustment$lotMovementsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.StoreAdjustment$lotMovementsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProductLotMovementPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     product<T extends Prisma.ProductDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProductDefaultArgs<ExtArgs>>): Prisma.Prisma__ProductClient<runtime.Types.Result.GetResult<Prisma.$ProductPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>;
     requestedBy<T extends Prisma.EmployeeDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EmployeeDefaultArgs<ExtArgs>>): Prisma.Prisma__EmployeeClient<runtime.Types.Result.GetResult<Prisma.$EmployeePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>;
     reviewedBy<T extends Prisma.StoreAdjustment$reviewedByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.StoreAdjustment$reviewedByArgs<ExtArgs>>): Prisma.Prisma__EmployeeClient<runtime.Types.Result.GetResult<Prisma.$EmployeePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>;
@@ -1105,6 +1444,7 @@ export interface Prisma__StoreAdjustmentClient<T, Null = never, ExtArgs extends 
     finally(onfinally?: (() => void) | undefined | null): runtime.Types.Utils.JsPromise<T>;
 }
 export interface StoreAdjustmentFieldRefs {
+    readonly lotId: Prisma.FieldRef<"StoreAdjustment", 'String'>;
     readonly id: Prisma.FieldRef<"StoreAdjustment", 'String'>;
     readonly productId: Prisma.FieldRef<"StoreAdjustment", 'String'>;
     readonly quantity: Prisma.FieldRef<"StoreAdjustment", 'Decimal'>;
@@ -1215,6 +1555,23 @@ export type StoreAdjustmentDeleteArgs<ExtArgs extends runtime.Types.Extensions.I
 export type StoreAdjustmentDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     where?: Prisma.StoreAdjustmentWhereInput;
     limit?: number;
+};
+export type StoreAdjustment$lotArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    select?: Prisma.ProductLotSelect<ExtArgs> | null;
+    omit?: Prisma.ProductLotOmit<ExtArgs> | null;
+    include?: Prisma.ProductLotInclude<ExtArgs> | null;
+    where?: Prisma.ProductLotWhereInput;
+};
+export type StoreAdjustment$lotMovementsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    select?: Prisma.ProductLotMovementSelect<ExtArgs> | null;
+    omit?: Prisma.ProductLotMovementOmit<ExtArgs> | null;
+    include?: Prisma.ProductLotMovementInclude<ExtArgs> | null;
+    where?: Prisma.ProductLotMovementWhereInput;
+    orderBy?: Prisma.ProductLotMovementOrderByWithRelationInput | Prisma.ProductLotMovementOrderByWithRelationInput[];
+    cursor?: Prisma.ProductLotMovementWhereUniqueInput;
+    take?: number;
+    skip?: number;
+    distinct?: Prisma.ProductLotMovementScalarFieldEnum | Prisma.ProductLotMovementScalarFieldEnum[];
 };
 export type StoreAdjustment$reviewedByArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.EmployeeSelect<ExtArgs> | null;

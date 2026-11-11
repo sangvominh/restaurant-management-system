@@ -4,13 +4,14 @@ import { api, can, type User } from './catalog-api';
 import { Drawer } from './workspace-ui';
 import { StatusBadge } from './status-ui';
 import ProductionPrint from './production-print';
-import { statusInfo } from './status-ui';
+
 import WorkerTicket from './worker-ticket';
 import MaterialShortages from './material-shortages';
 import { usePagination, Pagination } from './list-pagination';
 import './execution-panel.css';
 import type { Detail } from './execution-types';
 export type { Detail } from './execution-types';
+const todayVN = () => new Date(Date.now() + 7 * 3600000).toISOString().slice(0, 10);
 const fmt = (v: string | null) => Number(v || 0).toLocaleString('vi-VN', { maximumFractionDigits: 3 });
 export default function ExecutionPanel({ orderId, user, close, changed, overview }: { orderId: string; user: User; close: () => void; changed: () => Promise<void>; overview?: { assignedBy: string; assignedTo: string; dueAt: string | null; version: number; plan: { name: string; quantity: number; unit: string }[] } }) {
   const [data, setData] = useState<Detail>(), [error, setError] = useState(''), [saving, setBusy] = useState(false);
@@ -25,7 +26,7 @@ export default function ExecutionPanel({ orderId, user, close, changed, overview
     catch (e) { if (request === sequence.current) { if (!quiet) setData(undefined); setError(e instanceof Error ? e.message : 'Không tải được lệnh'); } }
     finally { if (!quiet && request === sequence.current) setLoading(false); }
   }, [orderId]);
-  useEffect(() => { void load(); return () => { sequence.current++; }; }, [load]);
+  useEffect(() => { const pending = sequence; const initial = window.setTimeout(() => void load(), 0); return () => { window.clearTimeout(initial); pending.current++; }; }, [load]);
   useEffect(() => { if (saving || loading) return; const timer = setInterval(() => void load(true), 15000); return () => clearInterval(timer); }, [load, saving, loading]);
   async function send(payload: object, confirm = false) {
     const command = payload as { action?: string; quantity?: string };
@@ -79,7 +80,7 @@ export default function ExecutionPanel({ orderId, user, close, changed, overview
   type Entry = { response?: string | null; reviewedBy?: string; reviewedAt?: string | null; requestedBy?: string; key: string; id: string; area: 'issue' | 'run' | 'return' | 'waste'; title: string; status: string; at: string; note?: string | null; rows: string[]; actual?: string; approve?: string; reject?: string; allowed: boolean };
   const entries: Entry[] = [];
   for (const i of data?.order.materialIssues || []) entries.push({ key: 'issue-' + i.id, id: i.id, area: 'issue', title: 'Đề nghị cấp NVL', status: i.status, at: i.requestedAt, note: i.reason, response: i.reviewNote, reviewedBy: i.reviewedBy?.name, reviewedAt: i.approvedAt, requestedBy: i.requestedBy.name, rows: i.lines.map(l => l.lot.material.name + ' · ' + l.lot.code + ': đề nghị ' + fmt(l.requestedQuantity) + ' ' + l.lot.material.unit.symbol + (i.status === 'PENDING' ? ' · Chưa cấp (chờ duyệt)' : i.status === 'REJECTED' ? ' · Không cấp (đã từ chối)' : l.issuedQuantity === null ? ' · Thiếu số liệu đã cấp, cần đối chiếu' : ' · Đã cấp ' + fmt(l.issuedQuantity) + ' ' + l.lot.material.unit.symbol)), approve: 'approveIssue', reject: 'rejectIssue', allowed: can(user, 'material:approve') });
-  for (const r of data?.order.runs || []) entries.push({ key: 'run-' + r.id, id: r.id, area: 'run', title: 'Ghi nhận chế biến', status: r.status, at: r.recordedAt, note: r.inspectionNote, requestedBy: r.performedBy.name, reviewedBy: r.inspectedBy?.name, reviewedAt: r.inspectedAt, rows: ['Đã làm ' + fmt(r.actualQuantity) + ' · Đạt ' + (r.acceptedQuantity === null ? 'chưa nghiệm thu' : fmt(r.acceptedQuantity)) + ' ' + data!.order.bom.product.unit.symbol], actual: r.actualQuantity, allowed: can(user, 'production:inspect') });
+  for (const r of data?.order.runs || []) entries.push({ key: 'run-' + r.id, id: r.id, area: 'run', title: 'Ghi nhận chế biến', status: r.status, at: r.recordedAt, note: r.inspectionNote, requestedBy: r.performedBy.name, response: r.productLot ? 'Lô TP ' + r.productLot.code + ' · HSD ' + r.productLot.expiryDate.slice(0, 10) : undefined, reviewedBy: r.inspectedBy?.name, reviewedAt: r.inspectedAt, rows: ['Đã làm ' + fmt(r.actualQuantity) + ' · Đạt ' + (r.acceptedQuantity === null ? 'chưa nghiệm thu' : fmt(r.acceptedQuantity)) + ' ' + data!.order.bom.product.unit.symbol], actual: r.actualQuantity, allowed: can(user, 'production:inspect') });
   const grouped = new Map<string, Entry>();
   for (const l of lines) for (const d of [
     ...l.returnLines.map(r => ({ ...r, doc: r.return, area: 'return' as const, title: 'Hoàn nguyên liệu', approve: 'approveReturn', reject: 'rejectReturn', right: 'material:approve' })),
@@ -111,8 +112,8 @@ export default function ExecutionPanel({ orderId, user, close, changed, overview
         <span className="order-entry-title"><strong>{e.title}</strong><small>{e.rows.length === 1 ? e.rows[0] : e.rows.length + ' dòng nguyên liệu'}{e.at ? ' · ' + new Date(e.at).toLocaleString('vi-VN') : ''}</small></span>
         <StatusBadge area={e.area} code={e.status} /><span className="order-chevron" aria-hidden="true">{expanded ? '−' : '+'}</span>
       </button>
-      <div hidden={!expanded} className="order-entry-body"><small>Phiếu {e.id}</small>{e.rows.map((row, i) => <p key={e.key + '-' + i}>{row}</p>)}{e.requestedBy && <p>Người {e.area === 'run' ? 'ghi nhận' : 'đề nghị'}: {e.requestedBy}</p>}{e.note && <p className="order-note"><strong>{e.area === 'run' ? 'Nhận xét nghiệm thu' : 'Lý do đề nghị'}:</strong> {e.note}</p>}{e.status !== 'PENDING' && <div className="order-review-response"><strong>{e.area === 'run' ? 'Nghiệm thu' : 'Phản hồi xử lý'}</strong><p>{e.reviewedBy || 'Chưa có thông tin người xử lý'}{e.reviewedAt ? ' · ' + new Date(e.reviewedAt).toLocaleString('vi-VN') : ''}</p>{e.area === 'issue' && <p>{e.response || (e.status === 'REJECTED' ? 'Phiếu cũ chưa lưu lý do từ chối.' : 'Không có ghi chú thêm.')}</p>}</div>}
-        {review && e.allowed && (e.area === 'run' ? <Inspection busy={busy} actual={e.actual!} save={(quantity, reason) => send({ action: 'inspect', targetId: e.id, quantity, reason }, true)} /> : e.area === 'issue' ? <IssueReview busy={busy} save={(approve, reviewNote) => send({ action: approve ? e.approve : e.reject, targetId: e.id, reviewNote }, true)} /> : <div className="order-review-actions"><button className="primary" disabled={busy} onClick={() => void send({ action: e.approve, targetId: e.id }, true)}>{e.area === 'return' ? 'Nhận hoàn vào kho' : 'Xác nhận hao hụt'}</button><button className="danger" disabled={busy} onClick={() => void send({ action: e.reject, targetId: e.id }, true)}>Từ chối</button></div>)}
+      <div hidden={!expanded} className="order-entry-body"><small>Phiếu {e.id}</small>{e.rows.map((row, i) => <p key={e.key + '-' + i}>{row}</p>)}{e.requestedBy && <p>Người {e.area === 'run' ? 'ghi nhận' : 'đề nghị'}: {e.requestedBy}</p>}{e.note && <p className="order-note"><strong>{e.area === 'run' ? 'Nhận xét nghiệm thu' : 'Lý do đề nghị'}:</strong> {e.note}</p>}{e.status !== 'PENDING' && <div className="order-review-response"><strong>{e.area === 'run' ? 'Nghiệm thu' : 'Phản hồi xử lý'}</strong><p>{e.reviewedBy || 'Chưa có thông tin người xử lý'}{e.reviewedAt ? ' · ' + new Date(e.reviewedAt).toLocaleString('vi-VN') : ''}</p>{e.area === 'run' && e.response && <p>{e.response}</p>}{e.area === 'issue' && <p>{e.response || (e.status === 'REJECTED' ? 'Phiếu cũ chưa lưu lý do từ chối.' : 'Không có ghi chú thêm.')}</p>}</div>}
+        {review && e.allowed && (e.area === 'run' ? <Inspection busy={busy} actual={e.actual!} save={(quantity, reason, manufacturedAt, expiryDate) => send({ action: 'inspect', targetId: e.id, quantity, reason, manufacturedAt, expiryDate }, true)} /> : e.area === 'issue' ? <IssueReview busy={busy} save={(approve, reviewNote) => send({ action: approve ? e.approve : e.reject, targetId: e.id, reviewNote }, true)} /> : <div className="order-review-actions"><button className="primary" disabled={busy} onClick={() => void send({ action: e.approve, targetId: e.id }, true)}>{e.area === 'return' ? 'Nhận hoàn vào kho' : 'Xác nhận hao hụt'}</button><button className="danger" disabled={busy} onClick={() => void send({ action: e.reject, targetId: e.id }, true)}>Từ chối</button></div>)}
         {review && !e.allowed && <p className="order-note">{e.area === 'run' ? 'Chờ tài khoản có quyền nghiệm thu xác nhận sản lượng.' : 'Đã gửi · chờ người có quyền xử lý.'}</p>}
       </div>
     </article>;
@@ -141,9 +142,9 @@ export default function ExecutionPanel({ orderId, user, close, changed, overview
     </>}
   </div></Drawer>;
 }
-function Inspection({ busy, actual, save }: { busy: boolean; actual: string; save: (quantity: string, reason: string) => Promise<unknown> }) {
-  const [quantity, setQuantity] = useState(actual), [note, setNote] = useState('');
-  return <form className="order-inspection" onSubmit={e => { e.preventDefault(); void save(quantity, note); }}><fieldset disabled={busy}><p className="footnote">Quyền nghiệm thu cho phép xác nhận cả sản lượng tự làm. Hệ thống lưu người làm và người nghiệm thu.</p><div className="form-grid"><label className="field">Số lượng đạt<input required type="number" min="0" max={actual} step="0.001" value={quantity} onChange={e => setQuantity(e.target.value)} /></label><label className="field">Nhận xét nghiệm thu<input required maxLength={1000} value={note} onChange={e => setNote(e.target.value)} /></label></div><button className="primary">Nghiệm thu và nhập kho</button></fieldset></form>;
+function Inspection({ busy, actual, save }: { busy: boolean; actual: string; save: (quantity: string, reason: string, manufacturedAt: string, expiryDate: string) => Promise<unknown> }) {
+  const [quantity, setQuantity] = useState(actual), [note, setNote] = useState(''), [manufacturedAt, setManufactured] = useState(todayVN), [expiryDate, setExpiry] = useState('');
+  return <form className="order-inspection" onSubmit={e => { e.preventDefault(); void save(quantity, note, manufacturedAt, expiryDate); }}><fieldset disabled={busy}><p className="footnote">Quyền nghiệm thu cho phép xác nhận cả sản lượng tự làm. Hệ thống lưu người làm và người nghiệm thu.</p><div className="form-grid"><label className="field">Số lượng đạt<input required type="number" min="0" max={actual} step="0.001" value={quantity} onChange={e => setQuantity(e.target.value)} /></label><label className="field">Nhận xét nghiệm thu<input required maxLength={1000} value={note} onChange={e => setNote(e.target.value)} /></label></div>{Number(quantity) > 0 && <><div className="form-grid"><label className="field">Ngày sản xuất<input required type="date" max={todayVN()} value={manufacturedAt} onChange={e => setManufactured(e.target.value)} /></label><label className="field">Hạn sử dụng của lô TP<input required type="date" min={manufacturedAt > todayVN() ? manufacturedAt : todayVN()} value={expiryDate} onChange={e => setExpiry(e.target.value)} /></label></div><p className="footnote">Phần đạt tạo một lô tự cấp mã. HSD giữ nguyên khi bàn giao cửa hàng. Nếu các phần có HSD khác nhau, ghi nhận và nghiệm thu thành các lần riêng.</p></>}<button className="primary">Nghiệm thu và nhập kho</button></fieldset></form>;
 }
 function IssueReview({ busy, save }: { busy: boolean; save: (approve: boolean, note: string) => Promise<boolean> }) {
   const [note, setNote] = useState('');

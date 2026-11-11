@@ -5,7 +5,7 @@ export const ROLE_PRESETS = [
   { id: 'head-chef', name: 'Trưởng bếp', workspace: 'Kho & Chế biến', description: 'Quản lý công thức, lập kế hoạch chế biến, giao lệnh và nghiệm thu theo quyền được cấp.', permissions: ['bom:manage', 'production:manage', 'production:inspect', 'production:perform', 'material:request', 'waste:request', 'inventory:view', 'report:stock'] },
   { id: 'cook', name: 'Nhân viên chế biến', workspace: 'Kho & Chế biến', description: 'Thực hiện lệnh được giao, cấp/hoàn/báo thiếu và ghi tiêu hao tại web Kho & Chế biến.', permissions: ['production:perform', 'material:request', 'waste:request'] },
   { id: 'restaurant-manager', name: 'Quản lý nhà hàng', workspace: 'Quản lý nhà hàng', description: 'Điều hành bàn/đơn, tồn cửa hàng, hoàn/hao hụt, giá bán, thu tiền và báo cáo.', permissions: ['sale:view', 'sale:create', 'dining:manage', 'product:price', 'payment:create', 'store:manage', 'report:sales'] },
-  { id: 'waiter', name: 'Nhân viên phục vụ', workspace: 'Quản lý nhà hàng', description: 'Nhận món trong lượng cửa hàng còn sẵn, đổi/hủy món chưa mang ra và theo dõi phục vụ.', permissions: ['sale:view', 'sale:create'] },
-  { id: 'cashier', name: 'Thu ngân', workspace: 'Quản lý nhà hàng', description: 'Đối chiếu đơn đã phục vụ và thu tiền; không tự xuất kho.', permissions: ['sale:view', 'payment:create'] },
+  { id: 'waiter', name: 'Nhân viên phục vụ', workspace: 'Quản lý nhà hàng', description: 'Nhận món trong lượng cửa hàng còn sẵn, giảm/bỏ món có lý do và đối chiếu đơn trước thanh toán.', permissions: ['sale:view', 'sale:create'] },
+  { id: 'cashier', name: 'Thu ngân', workspace: 'Quản lý nhà hàng', description: 'Đối chiếu đơn với khách và thu tiền; không tự xuất kho.', permissions: ['sale:view', 'payment:create'] },
   { id: 'system-admin', name: 'Admin hệ thống', workspace: 'Admin system', description: 'Quản trị toàn hệ thống; không phải bước duyệt bắt buộc trong luồng phục vụ.', permissions: ['*'] },
 ];

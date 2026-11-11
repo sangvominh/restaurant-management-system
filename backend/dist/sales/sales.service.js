@@ -12,7 +12,7 @@ import { BadRequestException, ConflictException, ForbiddenException, Injectable 
 import { PrismaService } from '../prisma/prisma.service.js';
 import { Prisma } from '../generated/prisma/client.js';
 import { productAvailability } from '../inventory/product-availability.js';
-const include = { table: true, createdBy: { select: { id: true, name: true } }, lines: { orderBy: { id: 'asc' }, include: { changes: { include: { changedBy: { select: { name: true } } } }, replenishments: { orderBy: { requestedAt: 'desc' }, include: { productionOrder: { select: { id: true, status: true, dueAt: true, assignedTo: { select: { name: true, accountId: true } }, assignedBy: { select: { name: true } }, runs: { select: { status: true, actualQuantity: true, acceptedQuantity: true } } } } } }, product: { include: { unit: true } } } }, payment: true, exports: { include: { requestedBy: { select: { name: true } }, reviewedBy: { select: { name: true } }, lines: true }, orderBy: { requestedAt: 'desc' } } };
+const include = { table: true, createdBy: { select: { id: true, name: true } }, lines: { orderBy: { id: 'asc' }, include: { lotMovements: { include: { lot: { select: { code: true, expiryDate: true } } } }, changes: { include: { changedBy: { select: { name: true } } } }, replenishments: { orderBy: { requestedAt: 'desc' }, include: { productionOrder: { select: { id: true, status: true, dueAt: true, assignedTo: { select: { name: true, accountId: true } }, assignedBy: { select: { name: true } }, runs: { select: { status: true, actualQuantity: true, acceptedQuantity: true } } } } } }, product: { include: { unit: true } } } }, payment: true, exports: { include: { requestedBy: { select: { name: true } }, reviewedBy: { select: { name: true } }, lines: true }, orderBy: { requestedAt: 'desc' } } };
 function object(v) { if (!v || typeof v !== 'object' || Array.isArray(v))
     throw new BadRequestException('Dữ liệu không hợp lệ'); return v; }
 function uuid(v) { if (typeof v !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v))
@@ -29,34 +29,56 @@ let SalesService = class SalesService {
     }
     async products() {
         return this.db.$transaction(async (tx) => {
-            const products = await tx.product.findMany({ where: { status: 'ACTIVE' }, include: { unit: true, category: true }, orderBy: { code: 'asc' } });
+            const products = await tx.product.findMany({ where: { status: 'ACTIVE', sellingPrice: { gt: 0 } }, include: { unit: true, category: true }, orderBy: { code: 'asc' } });
             return Promise.all(products.map(async (p) => ({ ...p, ...await productAvailability(tx, p.id) })));
         }, { isolationLevel: 'RepeatableRead', timeout: 15000 });
     }
-    async salesReport(month) {
-        if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month || ''))
-            throw new BadRequestException('Chọn tháng báo cáo hợp lệ');
-        const [year, numberMonth] = month.split('-').map(Number);
-        if (year < 2000 || year > 9999)
-            throw new BadRequestException('Chọn năm từ 2000 đến 9999');
-        const start = new Date(month + '-01T00:00:00+07:00'), end = new Date(Date.UTC(year, numberMonth, 1) - 25200000);
-        const sales = await this.db.sale.findMany({ where: { status: 'COMPLETED', payment: { status: 'PAID', paidAt: { gte: start, lt: end } } }, include: { payment: true, lines: { include: { product: { include: { unit: true } } } } } });
-        const products = new Map();
-        for (const s of sales)
+    priceProducts() { return this.db.product.findMany({ include: { unit: true, category: true }, orderBy: { name: 'asc' } }); }
+    async salesReport(start, end, method) {
+        const day = (v) => { const d = new Date(v + 'T00:00:00+07:00'); if (!/^\d{4}-\d{2}-\d{2}$/.test(v || '') || !Number.isFinite(d.getTime()) || new Date(d.getTime() + 25200000).toISOString().slice(0, 10) !== v)
+            throw new BadRequestException('Ngày báo cáo không hợp lệ'); return d; };
+        const from = day(start), until = new Date(day(end).getTime() + 86400000), days = Math.round((until.getTime() - from.getTime()) / 86400000);
+        if (days < 1 || days > 1096)
+            throw new BadRequestException('Chọn khoảng báo cáo từ 1 đến 1096 ngày');
+        if (method && !['CASH', 'TRANSFER'].includes(method))
+            throw new BadRequestException('Phương thức không hợp lệ');
+        const sales = await this.db.sale.findMany({ where: { status: 'COMPLETED', payment: { status: 'PAID', paidAt: { gte: from, lt: until }, ...(method ? { method } : {}) } }, include: { payment: true, table: true, createdBy: { select: { name: true } }, lines: { include: { product: { include: { unit: true, category: true } } } } }, orderBy: { payment: { paidAt: 'desc' } } });
+        const items = new Map();
+        const buckets = new Map();
+        const keyOf = (d) => new Date(d.getTime() + 25200000).toISOString().slice(0, days === 1 ? 13 : days <= 62 ? 10 : 7);
+        if (days === 1)
+            for (let h = 0; h < 24; h++) {
+                const key = start + 'T' + String(h).padStart(2, '0');
+                buckets.set(key, { key, paid: new Prisma.Decimal(0), orders: 0 });
+            }
+        else
+            for (let at = from.getTime(); at < until.getTime(); at += 86400000) {
+                const key = keyOf(new Date(at));
+                if (!buckets.has(key))
+                    buckets.set(key, { key, paid: new Prisma.Decimal(0), orders: 0 });
+            }
+        for (const s of sales) {
+            const point = buckets.get(keyOf(s.payment.paidAt));
+            point.paid = point.paid.plus(s.payment.amount);
+            point.orders++;
             for (const l of s.lines.filter(l => l.quantity.gt(0))) {
-                const p = products.get(l.productId) || { id: l.productId, name: l.productName, unit: l.product.unit.symbol, quantity: new Prisma.Decimal(0), revenue: new Prisma.Decimal(0) };
+                const p = items.get(l.productId) || { id: l.productId, name: l.productName, category: l.product.category.name, unit: l.product.unit.symbol, quantity: new Prisma.Decimal(0), revenue: new Prisma.Decimal(0) };
                 p.quantity = p.quantity.plus(l.quantity);
                 p.revenue = p.revenue.plus(l.quantity.mul(l.unitPrice));
-                products.set(p.id, p);
+                items.set(p.id, p);
             }
-        const paid = (method) => Prisma.Decimal.sum(0, ...sales.filter(s => !method || s.payment?.method === method).map(s => s.payment.amount));
-        return { month, orders: sales.length, paid: paid(), cash: paid('CASH'), transfer: paid('TRANSFER'), products: [...products.values()].sort((a, b) => b.revenue.cmp(a.revenue)) };
+        }
+        const paid = (m) => Prisma.Decimal.sum(0, ...sales.filter(s => !m || s.payment.method === m).map(s => s.payment.amount));
+        return { start, end, method: method || '', orders: sales.length, paid: paid(), average: sales.length ? paid().div(sales.length).toDecimalPlaces(2) : new Prisma.Decimal(0), cash: paid('CASH'), transfer: paid('TRANSFER'), granularity: days === 1 ? 'hour' : days <= 62 ? 'day' : 'month', trend: [...buckets.values()], products: [...items.values()].sort((a, b) => b.revenue.cmp(a.revenue)), sales: sales.map(s => ({ id: s.id, code: s.code, table: s.table?.name || 'Mang đi', paidAt: s.payment.paidAt, method: s.payment.method, total: s.payment.amount, createdBy: s.createdBy.name, productIds: [...new Set(s.lines.filter(l => l.quantity.gt(0)).map(l => l.productId))] })) };
     }
     async setPrice(productId, input) {
         const b = object(input);
-        if (!['string', 'number'].includes(typeof b.price) || !/^\d{1,16}(\.\d{1,2})?$/.test(String(b.price)))
-            throw new BadRequestException('Giá bán phải không âm, tối đa 2 chữ số lẻ');
-        return this.db.product.update({ where: { id: uuid(productId) }, data: { sellingPrice: new Prisma.Decimal(String(b.price)) }, select: { id: true, sellingPrice: true } });
+        if (!['string', 'number'].includes(typeof b.price) || !/^\d{1,16}(\.\d{1,2})?$/.test(String(b.price)) || new Prisma.Decimal(String(b.price)).lte(0))
+            throw new BadRequestException('Giá bán phải lớn hơn 0, tối đa 2 chữ số lẻ');
+        return this.db.$transaction(async (tx) => {
+            await tx.$queryRaw `SELECT pg_advisory_xact_lock(8112028)::text`;
+            return tx.product.update({ where: { id: uuid(productId) }, data: { sellingPrice: new Prisma.Decimal(String(b.price)) }, select: { id: true, sellingPrice: true } });
+        });
     }
     async list() { return (await this.db.sale.findMany({ include, orderBy: { createdAt: 'desc' } })).map(serialized); }
     async save(input, user, existingId) {
@@ -99,8 +121,8 @@ let SalesService = class SalesService {
                 if (l.id && (!previous || previous.sentAt || previous.productId !== l.productId))
                     throw new ConflictException('Không được sửa món đã gửi hoặc thay tham chiếu dòng món');
                 const p = products.find(p => p.id === l.productId);
-                if (!p)
-                    throw new BadRequestException('Món không tồn tại hoặc ngừng bán');
+                if (!p || p.sellingPrice.lte(0))
+                    throw new BadRequestException('Món ngừng bán hoặc chưa được quản lý thiết lập giá bán');
                 return { ...l, productName: previous?.productName ?? p.name, unitPrice: previous?.unitPrice ?? p.sellingPrice };
             });
             const sent = current?.lines.filter(l => l.sentAt) || [];
@@ -120,7 +142,7 @@ let SalesService = class SalesService {
                 const updated = await tx.sale.update({ where: { id: current.id }, data: { version: { increment: 1 } }, include });
                 return serialized(b.confirm ? await this.confirmLines(tx, updated, employee.id) : updated);
             }
-            const created = await tx.sale.create({ data: { code: 'DB-' + randomUUID().replaceAll('-', '').slice(0, 16).toUpperCase(), tableId, createdById: employee.id, lines: { create: lines.map(({ id, ...l }) => l) } }, include });
+            const created = await tx.sale.create({ data: { code: 'DB-' + randomUUID().replaceAll('-', '').slice(0, 16).toUpperCase(), tableId, createdById: employee.id, lines: { create: lines.map(({ id: _id, ...l }) => l) } }, include });
             return serialized(b.confirm ? await this.confirmLines(tx, created, employee.id) : created);
         });
     }
@@ -150,8 +172,8 @@ let SalesService = class SalesService {
             let replacementLineId = null;
             if (b.productId) {
                 const product = await tx.product.findUniqueOrThrow({ where: { id: uuid(b.productId) } });
-                if (product.status !== 'ACTIVE')
-                    throw new BadRequestException('Món thay thế đã ngừng bán');
+                if (product.status !== 'ACTIVE' || product.sellingPrice.lte(0))
+                    throw new BadRequestException('Món thay thế ngừng bán hoặc chưa thiết lập giá');
                 const replacementAmount = quantity(b.replacementQuantity);
                 if (total(sale.lines).minus(line.unitPrice.mul(amount)).plus(product.sellingPrice.mul(replacementAmount)).gt('9999999999999999.99'))
                     throw new BadRequestException('Tổng tiền vượt giới hạn');
@@ -175,7 +197,9 @@ let SalesService = class SalesService {
         const b = object(input);
         if (typeof b.name !== 'string' || !b.name.trim() || b.name.length > 60)
             throw new BadRequestException('Tên khu vực cần 1–60 ký tự');
-        const name = b.name.trim(), columns = Number(b.columns ?? 8), rows = Number(b.rows ?? 4), color = String(b.color ?? '#42688b');
+        if (b.color != null && typeof b.color !== 'string')
+            throw new BadRequestException('Màu khu vực không hợp lệ');
+        const name = b.name.trim(), columns = Number(b.columns ?? 8), rows = Number(b.rows ?? 4), color = b.color ?? '#42688b';
         if (!Number.isInteger(columns) || columns < 2 || columns > 16 || !Number.isInteger(rows) || rows < 2 || rows > 100 || !/^#[0-9a-f]{6}$/i.test(color))
             throw new BadRequestException('Sơ đồ cần 2–16 cột, 2–100 hàng và mã màu hợp lệ');
         return this.db.$transaction(async (tx) => {
@@ -310,13 +334,17 @@ let SalesService = class SalesService {
                 throw new ConflictException('Xử lý phiếu xuất cũ đang chờ trước khi đóng đơn');
             if (sale.exports.some(e => e.status === 'APPROVED'))
                 throw new ConflictException('Đơn thuộc luồng xuất bán cũ. Không chuyển sang tồn cửa hàng tự động; dùng đơn mới để kiểm thử luồng mới');
+            const byProduct = new Map();
             for (const productId of new Set(sale.lines.map(l => l.productId))) {
                 const availability = await productAvailability(tx, productId);
+                byProduct.set(productId, availability);
                 if (sale.lines.some(l => l.productId === productId && l.quantity.gt(0) && (!availability.allocations.find(a => a.lineId === l.id) || availability.allocations.find(a => a.lineId === l.id).missing.gt(0))))
                     throw new ConflictException('Tồn cửa hàng không đủ cho đơn; đối chiếu trước khi thanh toán');
             }
             for (const line of sale.lines.filter(l => l.quantity.gt(0))) {
                 await tx.storeMovement.create({ data: { productId: line.productId, quantity: line.quantity, movementType: 'SALE', saleLineId: line.id } });
+                const allocation = byProduct.get(line.productId).allocations.find(a => a.lineId === line.id);
+                await tx.productLotMovement.createMany({ data: allocation.lots.map(l => ({ lotId: l.lotId, location: 'STORE', quantity: l.quantity.negated(), saleLineId: line.id })) });
             }
             await tx.payment.create({ data: { saleId: sale.id, amount: total(sale.lines), receivedById: employee.id, method: String(b.method), status: 'PAID', paidAt: new Date() } });
             return serialized(await tx.sale.update({ where: { id: sale.id }, data: { status: 'COMPLETED', closedAt: new Date(), closedById: employee.id, version: { increment: 1 } }, include }));

@@ -21,7 +21,7 @@ export default function MaterialShortages({ user, orderId, view, onCount, onBusy
   const manager = can(user, 'production:manage', 'material:approve');
   const allowed = manager || can(user, 'material:request');
   const load = useCallback(async () => { if (!allowed) return; const request = ++sequence.current; try { const result = await api<Report[]>('production/material-shortages'); if (request === sequence.current) { setRows(result); setError(''); } } catch (e) { if (request === sequence.current) setError(e instanceof Error ? e.message : 'Không tải được báo thiếu'); } }, [allowed]);
-  useEffect(() => { void load(); const timer = window.setInterval(() => void load(), 20000); const refresh = () => { void load(); }; window.addEventListener('material-shortage-changed', refresh); return () => { sequence.current++; window.clearInterval(timer); window.removeEventListener('material-shortage-changed', refresh); }; }, [load]);
+  useEffect(() => { const pending = sequence; const initial = window.setTimeout(() => void load(), 0); const timer = window.setInterval(() => void load(), 20000); const refresh = () => { void load(); }; window.addEventListener('material-shortage-changed', refresh); return () => { window.clearTimeout(initial); pending.current++; window.clearInterval(timer); window.removeEventListener('material-shortage-changed', refresh); }; }, [load]);
   useEffect(() => { onCount?.(rows.filter(r => (!orderId || r.productionOrderId === orderId) && ['PENDING', 'PROCESSING'].includes(r.status)).length); }, [rows, orderId, onCount]);
   async function review(r: Report, status: string) {
     if (!window.confirm('Xác nhận cập nhật báo thiếu?')) return;

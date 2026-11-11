@@ -8,7 +8,7 @@ const workspaces = ['Kho & Chế biến', 'Quản lý nhà hàng', 'Admin system
 export default function RoleTemplateManager({ permissions }: { permissions: Permission[] }) {
   const [rows, setRows] = useState<RolePreset[]>([]), [loading, setLoading] = useState(true), [error, setError] = useState(''), [editing, setEditing] = useState<RolePreset>(), [resetting, setResetting] = useState(''), [notice, setNotice] = useState('');
   const load = useCallback(async () => { setLoading(true); setError(''); try { setRows(await api<RolePreset[]>('role-presets')); } catch (e) { setError(e instanceof Error ? e.message : 'Không tải được mẫu'); } finally { setLoading(false); } }, []);
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => { const initial = window.setTimeout(() => void load(), 0); return () => window.clearTimeout(initial); }, [load]);
   async function reset(p: RolePreset) {
     if (!window.confirm('Khôi phục mẫu ' + p.name + ' về mặc định? Vai trò và tài khoản hiện có không thay đổi.')) return;
     setResetting(p.id); setNotice(''); setError('');

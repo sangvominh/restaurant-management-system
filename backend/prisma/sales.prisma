@@ -21,6 +21,7 @@ model Sale {
 
 /// CT_DON_BAN — lưu tên/giá tại thời điểm bán
 model SaleLine {
+  lotMovements ProductLotMovement[]
   id String @id @default(uuid()) @db.Uuid
   quantity Decimal @db.Decimal(18, 3)
   unitPrice Decimal @db.Decimal(18, 2)
@@ -95,6 +96,10 @@ model Payment {
 
 /// BIEN_DONG_TP — số lượng dương, đúng một nguồn
 model ProductMovement {
+  receiptLineId String? @unique @db.Uuid
+  receiptLine ProductReceiptLine? @relation(fields: [receiptLineId], references: [id], onDelete: Restrict)
+  lotDisposalId String? @unique @db.Uuid
+  lotDisposal ProductLotDisposal? @relation(fields: [lotDisposalId], references: [id], onDelete: Restrict)
   id String @id @default(uuid()) @db.Uuid
   quantity Decimal @db.Decimal(18, 3)
   movementType String

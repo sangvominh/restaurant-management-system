@@ -1,18 +1,19 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
-import { api, can, fmt, money, statuses, type Product, type Sale, type User, type DiningTable } from './sales-api';
+import { api, can, type Product, type Sale, type User, type DiningTable } from './sales-api';
 import TablesPanel from './tables-panel';
+import SalesOrders from './sales-orders';
 import SalesReport from './sales-report';
-import MenuPrice from './menu-price';
+import SalesSettings from './sales-settings';
 import StoreInventory from './store-inventory';
 import SaleEditor from './sale-editor';
-import { DocumentCard, AppIcon } from './document-ui';
-import { Pagination, usePagination } from './list-pagination';
-type Tab = 'tables' | 'sales' | 'products' | 'reports' | 'store';
+import { AppIcon } from './document-ui';
+import './sales-management.css';
+type Tab = 'tables' | 'sales' | 'store' | 'reports' | 'settings';
 export default function SalesApp({ user, logout, logoutBusy }: { user: User; logout: () => Promise<void>; logoutBusy: boolean }) {
  const [tab,setTab]=useState<Tab>('tables');
  const [products,setProducts]=useState<Product[]>([]),[sales,setSales]=useState<Sale[]>([]),[tables,setTables]=useState<DiningTable[]>([]);
- const [loading,setLoading]=useState(true),[error,setError]=useState(''),[search,setSearch]=useState(''),[filter,setFilter]=useState(''),[category,setCategory]=useState('');
+ const [loading,setLoading]=useState(true),[error,setError]=useState('');
  const [editing,setEditing]=useState<Sale|null|undefined>(),[initialTableId,setInitialTable]=useState('');
  const load=useCallback(async(quiet=false)=>{
   if(!quiet)setLoading(true);setError('');
@@ -22,13 +23,14 @@ export default function SalesApp({ user, logout, logoutBusy }: { user: User; log
  useEffect(()=>{void load().catch(()=>{});},[load]);
  useEffect(()=>{if(editing!==undefined)return;const timer=setInterval(()=>void load(true).catch(()=>{}),15000);return()=>clearInterval(timer);},[load,editing]);
  const saved=()=>load(true);
- const labels:Record<Tab,string>={tables:'Bàn phục vụ',sales:'Đơn bán',products:'Thực đơn và tồn',reports:'Báo cáo bán hàng',store:'Tồn cửa hàng'};
- function navigate(t:Tab){setTab(t);setSearch('');setFilter('');setCategory('');}
+ const labels:Record<Tab,string>={tables:'Bàn phục vụ',sales:'Đơn bán',reports:'Báo cáo bán hàng',store:'Tồn cửa hàng',settings:'Thiết lập bán hàng'};
  function create(tableId=''){setInitialTable(tableId);setEditing(null);}
- const match=(text:string)=>text.toLocaleLowerCase('vi').includes(search.trim().toLocaleLowerCase('vi'));
- const shownSales=sales.filter(s=>match(s.code+' '+(s.table?.name||'Mang đi')+' '+s.lines.map(l=>l.productName).join(' '))&&(!filter||s.status===filter));
- const shownProducts=products.filter(p=>match(p.code+' '+p.name)&&(!category||p.category.name===category)&&(!filter || (filter==='OUT' ? Number(p.available)<=0 : Number(p.available)>0)));
- const sp=usePagination(shownSales,JSON.stringify([search,filter,tab])),pp=usePagination(shownProducts,JSON.stringify([search,filter,category,tab]));
- return <div className="shell"><aside><div className="brand">Quản lý nhà hàng</div><nav aria-label="Khu vực làm việc">{(['tables','sales','products','store','reports'] as Tab[]).filter(t=>(t!=='reports'||can(user,'report:sales'))&&(t!=='store'||can(user,'store:manage'))).map(t=><button key={t} aria-current={tab===t?'page':undefined} className={tab===t?'selected':''} onClick={()=>navigate(t)}><AppIcon name={t === 'reports' ? 'sales' : t === 'store' ? 'products' : t}/>{labels[t]}</button>)}</nav><div className="profile"><div><strong>{user.name}</strong><small>{user.username}</small></div><button disabled={logoutBusy} onClick={()=>void logout()}>Đăng xuất</button></div></aside><main><h1 className="sr-only">{labels[tab]}</h1>{error&&<div className="error" role="alert">{error} <button className="text-button" onClick={()=>void load().catch(()=>{})}>Thử lại</button></div>}{loading?<p className="empty" role="status">Đang tải…</p>:tab==='store'?<StoreInventory/>:tab==='reports'?<SalesReport/>:tab==='tables'?<TablesPanel tables={tables} sales={sales} user={user} loading={loading} saved={saved} open={s=>setEditing(s)} create={create}/>:<section className="panel"><div className="sales-controls"><input aria-label="Tìm kiếm" placeholder={tab==='sales'?'Tìm bàn, mã đơn hoặc món…':'Tìm tên món hoặc mã…'} value={search} onChange={e=>setSearch(e.target.value)}/>{tab==='products'&&<select aria-label="Nhóm món" value={category} onChange={e=>setCategory(e.target.value)}><option value="">Mọi nhóm món</option>{[...new Set(products.map(p=>p.category.name))].map(c=><option key={c}>{c}</option>)}</select>}<select aria-label="Trạng thái" value={filter} onChange={e=>setFilter(e.target.value)}><option value="">Mọi trạng thái</option>{tab==='sales'?['DRAFT','CONFIRMED','COMPLETED','CANCELLED'].map(v=><option key={v} value={v}>{statuses[v]}</option>):<><option value="IN">Còn sẵn</option><option value="OUT">Hết tại cửa hàng</option></>}</select>{tab==='sales'&&can(user,'sale:create')&&<button className="primary" disabled={!!error||!products.length} onClick={()=>create()}>+ Mở đơn</button>}</div>{tab==='sales'?<div className="document-grid">{sp.rows.map(s=><DocumentCard key={s.id} type="Đơn bán" title={s.table?.name||'Mang đi'} status={statuses[s.status]||s.status} tone={s.status==='COMPLETED'?'done':s.status==='CANCELLED'?'muted':s.status==='DRAFT'?'draft':'pending'} onOpen={()=>setEditing(s)} footer={<strong>{money(s.total)}</strong>}><small>{s.code} · {new Date(s.createdAt).toLocaleString('vi-VN')}</small><div className="document-lines">{s.lines.filter(l=>Number(l.quantity)>0).slice(0,3).map(l=><div key={l.id}><span>{l.productName}</span><strong>{fmt(l.quantity)}</strong></div>)}</div><p>{s.status==='COMPLETED'?'Đã thu tiền':s.status==='CANCELLED'?'Đã hủy':s.lines.some(l=>!l.sentAt)?'Có món chưa gửi':'Đang phục vụ'}</p></DocumentCard>)}</div>:<div className="table-wrap sales-stock"><table><thead><tr><th>Món</th><th>Nhóm món</th><th>Giá bán</th><th>Tồn sổ cửa hàng</th><th>Còn nhận mới</th></tr></thead><tbody>{pp.rows.map(p=><tr key={p.id}><td><strong>{p.name}</strong><small>{p.code}</small></td><td>{p.category.name}</td><td className="numeric">{money(p.sellingPrice)}{can(user, 'product:price', 'product:manage') && <MenuPrice product={p} saved={saved} />}</td><td className="numeric">{fmt(p.stock)} {p.unit.symbol}</td><td className="numeric"><span className={Number(p.available)<=0?'stock-empty':''}>{fmt(p.available)} {p.unit.symbol}</span></td></tr>)}</tbody></table></div>}{!(tab==='sales'?shownSales:shownProducts).length&&<p className="empty">Không có kết quả phù hợp.</p>}<Pagination pager={tab==='sales'?sp:pp}/>{tab==='products'&&<details className="subtle-help"><summary>Cách đọc lượng sẵn</summary><p>Còn nhận mới = tồn cửa hàng trừ lượng đã giữ cho đơn xác nhận và đề nghị hoàn/hao hụt đang chờ. Đơn nháp chưa giữ hàng. Thu tiền mới ghi giảm tồn cửa hàng; không trừ kho lần nữa.</p></details>}</section>}</main>{editing!==undefined&&<SaleEditor user={user} sale={editing} products={products} tables={tables.filter(t=>!sales.some(s=>s.tableId===t.id&&['DRAFT','CONFIRMED'].includes(s.status))||t.id===editing?.tableId)} initialTableId={initialTableId} close={()=>setEditing(undefined)} saved={saved}/>}</div>;
+ async function openReportSale(id:string){try{const latest=await api<Sale[]>('sales');setSales(latest);const order=latest.find(s=>s.id===id);if(!order)throw new Error('Không tìm thấy đơn');setEditing(order);}catch(e){setError(e instanceof Error?e.message:'Không mở được đơn');}}
+ const nav=Object.keys(labels) as Tab[];
+ return <div className="shell"><aside><div className="brand">Quản lý nhà hàng</div><nav aria-label="Khu vực làm việc">{nav.filter(t=>(t!=='reports'||can(user,'report:sales'))&&(t!=='store'||can(user,'store:manage'))&&(t!=='settings'||can(user,'product:price'))).map(t=><button key={t} aria-current={tab===t?'page':undefined} className={tab===t?'selected':''} onClick={()=>setTab(t)}><AppIcon name={t==='tables'?'tables':t==='store'||t==='settings'?'products':'sales'}/>{labels[t]}</button>)}</nav><div className="profile"><div><strong>{user.name}</strong><small>{user.username}</small></div><button disabled={logoutBusy} onClick={()=>void logout()}>Đăng xuất</button></div></aside>
+ <main><h1 className="sr-only">{labels[tab]}</h1>{error&&<div className="error" role="alert">{error} <button onClick={()=>void load().catch(()=>{})}>Tải lại</button></div>}{loading?<p className="empty">Đang tải…</p>:tab==='store'?<StoreInventory/>:tab==='settings'?<SalesSettings saved={saved}/>:tab==='reports'?<SalesReport open={openReportSale}/>:tab==='sales'?<SalesOrders sales={sales} user={user} open={setEditing} create={()=>create()}/>:<TablesPanel tables={tables} sales={sales} user={user} loading={loading} saved={saved} open={setEditing} create={create}/>}</main>
+ {editing!==undefined&&<SaleEditor user={user} sale={editing} products={products} tables={tables.filter(t=>!sales.some(s=>s.tableId===t.id&&['DRAFT','CONFIRMED'].includes(s.status))||t.id===editing?.tableId)} initialTableId={initialTableId} close={()=>setEditing(undefined)} saved={saved}/>}
+ </div>;
 }
+
 
