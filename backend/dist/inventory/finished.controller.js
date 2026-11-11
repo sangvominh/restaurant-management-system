@@ -1,0 +1,110 @@
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+import { Body, Controller, ForbiddenException, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { CatalogGuard } from '../catalog/catalog.guard.js';
+import { StoreService } from './store.service.js';
+import { FinishedService } from './finished.service.js';
+import { WarehouseReportService } from './warehouse-report.service.js';
+let FinishedController = class FinishedController {
+    service;
+    reports;
+    store;
+    constructor(service, reports, store) {
+        this.service = service;
+        this.reports = reports;
+        this.store = store;
+    }
+    allow(r, ...rights) { if (!r.catalogUser.permissions.includes('*') && !rights.some(p => r.catalogUser.permissions.includes(p)))
+        throw new ForbiddenException('Chưa có quyền chức năng này'); }
+    list(r) { this.allow(r, 'export:request', 'export:approve'); return this.store.list(); }
+    sales(r) { this.allow(r, 'export:request'); return this.store.stock(); }
+    create(b, r) { this.allow(r, 'export:request'); return this.store.create(b, r.catalogUser); }
+    approve(id, r) { this.allow(r, 'export:approve'); return this.store.review(id, true, r.catalogUser); }
+    reject(id, r) { this.allow(r, 'export:approve'); return this.store.review(id, false, r.catalogUser); }
+    stock(r) { this.allow(r, 'inventory:view'); return this.service.report('products'); }
+    analytics(start, end, horizon, r) { this.allow(r, 'report:stock'); return this.reports.read(start, end, horizon); }
+    report(kind, start, end, r) { this.allow(r, 'report:stock'); if (!start || !end)
+        throw new ForbiddenException('Cần chọn kỳ báo cáo'); return this.service.report(kind, start, end); }
+};
+__decorate([
+    Get('exports'),
+    __param(0, Req()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], FinishedController.prototype, "list", null);
+__decorate([
+    Get('exports/products'),
+    __param(0, Req()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], FinishedController.prototype, "sales", null);
+__decorate([
+    Post('exports'),
+    __param(0, Body()),
+    __param(1, Req()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", void 0)
+], FinishedController.prototype, "create", null);
+__decorate([
+    Post('exports/:id/approve'),
+    __param(0, Param('id')),
+    __param(1, Req()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], FinishedController.prototype, "approve", null);
+__decorate([
+    Post('exports/:id/reject'),
+    __param(0, Param('id')),
+    __param(1, Req()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], FinishedController.prototype, "reject", null);
+__decorate([
+    Get('finished-stock'),
+    __param(0, Req()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], FinishedController.prototype, "stock", null);
+__decorate([
+    Get('warehouse-report'),
+    __param(0, Query('start')),
+    __param(1, Query('end')),
+    __param(2, Query('horizon')),
+    __param(3, Req()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String, Object]),
+    __metadata("design:returntype", void 0)
+], FinishedController.prototype, "analytics", null);
+__decorate([
+    Get('stock-report'),
+    __param(0, Query('kind')),
+    __param(1, Query('start')),
+    __param(2, Query('end')),
+    __param(3, Req()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String, Object]),
+    __metadata("design:returntype", void 0)
+], FinishedController.prototype, "report", null);
+FinishedController = __decorate([
+    Controller('api/warehouse'),
+    UseGuards(CatalogGuard),
+    __metadata("design:paramtypes", [FinishedService, WarehouseReportService, StoreService])
+], FinishedController);
+export { FinishedController };
+//# sourceMappingURL=finished.controller.js.map

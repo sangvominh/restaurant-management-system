@@ -1,0 +1,26 @@
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+import { ProductReceiptsService } from './product-receipts.service.js';
+import { ProductReceiptsController } from './product-receipts.controller.js';
+import { StoreService } from './store.service.js';
+import { StoreController } from './store.controller.js';
+import { Module } from '@nestjs/common';
+import { PrismaModule } from '../prisma/prisma.module.js';
+import { CatalogModule } from '../catalog/catalog.module.js';
+import { InventoryController } from './inventory.controller.js';
+import { InventoryService } from './inventory.service.js';
+import { FinishedService } from './finished.service.js';
+import { FinishedController } from './finished.controller.js';
+import { StockInsightsService } from './stock-insights.service.js';
+import { WarehouseReportService } from './warehouse-report.service.js';
+let InventoryModule = class InventoryModule {
+};
+InventoryModule = __decorate([
+    Module({ imports: [PrismaModule, CatalogModule], controllers: [ProductReceiptsController, StoreController, InventoryController, FinishedController], providers: [ProductReceiptsService, StoreService, InventoryService, FinishedService, StockInsightsService, WarehouseReportService], exports: [FinishedService] })
+], InventoryModule);
+export { InventoryModule };
+//# sourceMappingURL=inventory.module.js.map

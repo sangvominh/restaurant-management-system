@@ -1,0 +1,92 @@
+/// DON_VI_TINH
+model Unit {
+  id String @id @default(uuid()) @db.Uuid
+  name String
+  symbol String @unique
+  materials Material[] @relation("Material_unit")
+  products Product[] @relation("Product_unit")
+}
+
+/// PHAN_LOAI — objectType: MATERIAL / PRODUCT
+model Category {
+  id String @id @default(uuid()) @db.Uuid
+  name String
+  objectType String
+  materials Material[] @relation("Material_category")
+  products Product[] @relation("Product_category")
+
+  @@unique([name, objectType])
+}
+
+/// NGUYEN_VAT_LIEU
+model Material {
+  id String @id @default(uuid()) @db.Uuid
+  code String @unique
+  name String
+  minStock Decimal @db.Decimal(18, 3) @default(0)
+  status String @default("ACTIVE")
+  unitId String @db.Uuid
+  unit Unit @relation("Material_unit", fields: [unitId], references: [id], onDelete: Restrict)
+  categoryId String @db.Uuid
+  category Category @relation("Material_category", fields: [categoryId], references: [id], onDelete: Restrict)
+  lots MaterialLot[] @relation("MaterialLot_material")
+  bomLines BomLine[] @relation("BomLine_material")
+  shortages MaterialShortage[]
+
+  @@index([unitId])
+  @@index([categoryId])
+}
+
+/// THANH_PHAM
+model Product {
+  supplyType String @default("PRODUCED")
+  lots ProductLot[]
+  productReceiptLines ProductReceiptLine[]
+  id String @id @default(uuid()) @db.Uuid
+  code String @unique
+  name String
+  storeDispatchLines StoreDispatchLine[]
+  storeMovements StoreMovement[]
+  storeAdjustments StoreAdjustment[]
+  sellingPrice Decimal @db.Decimal(18, 2)
+  status String @default("ACTIVE")
+  unitId String @db.Uuid
+  unit Unit @relation("Product_unit", fields: [unitId], references: [id], onDelete: Restrict)
+  categoryId String @db.Uuid
+  category Category @relation("Product_category", fields: [categoryId], references: [id], onDelete: Restrict)
+  boms Bom[] @relation("Bom_product")
+  saleLines SaleLine[] @relation("SaleLine_product")
+  movements ProductMovement[] @relation("ProductMovement_product")
+  wasteLines WasteLine[] @relation("WasteLine_product")
+
+  @@index([unitId])
+  @@index([categoryId])
+}
+
+/// NHA_CUNG_CAP
+model Supplier {
+  productReceipts ProductReceipt[]
+  id String @id @default(uuid()) @db.Uuid
+  code String @unique
+  name String
+  phone String?
+  address String?
+  status String @default("ACTIVE")
+  receipts MaterialReceipt[] @relation("MaterialReceipt_supplier")
+}
+
+/// LO_NVL
+model MaterialLot {
+  id String @id @default(uuid()) @db.Uuid
+  code String
+  expiryDate DateTime? @db.Date
+  materialId String @db.Uuid
+  material Material @relation("MaterialLot_material", fields: [materialId], references: [id], onDelete: Restrict)
+  receiptLines MaterialReceiptLine[] @relation("MaterialReceiptLine_lot")
+  issueLines MaterialIssueLine[] @relation("MaterialIssueLine_lot")
+  movements MaterialMovement[] @relation("MaterialMovement_lot")
+  wasteLines WasteLine[] @relation("WasteLine_lot")
+
+  @@unique([materialId, code])
+  @@index([materialId])
+}

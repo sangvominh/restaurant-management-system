@@ -1,0 +1,92 @@
+/// Cấu hình mẫu điền quyền; không liên kết tài khoản hay tự cập nhật vai trò đã cấp.
+model RoleTemplate {
+  id String @id
+  name String
+  workspace String
+  description String
+  permissions String[]
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+}
+
+/// VAI_TRO
+model Role {
+  id String @id @default(uuid()) @db.Uuid
+  name String @unique
+  description String?
+  permissions RolePermission[] @relation("RolePermission_role")
+  accounts Account[] @relation("Account_role")
+}
+
+/// QUYEN
+model Permission {
+  id String @id @default(uuid()) @db.Uuid
+  code String @unique
+  name String
+  roles RolePermission[] @relation("RolePermission_permission")
+}
+
+/// Bảng nối quan hệ CO_QUYEN
+model RolePermission {
+  roleId String @db.Uuid
+  role Role @relation("RolePermission_role", fields: [roleId], references: [id], onDelete: Restrict)
+  permissionId String @db.Uuid
+  permission Permission @relation("RolePermission_permission", fields: [permissionId], references: [id], onDelete: Restrict)
+
+  @@id([roleId, permissionId])
+}
+
+/// TAI_KHOAN
+model Account {
+  id String @id @default(uuid()) @db.Uuid
+  username String @unique
+  passwordHash String
+  status String @default("ACTIVE")
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  roleId String @db.Uuid
+  role Role @relation("Account_role", fields: [roleId], references: [id], onDelete: Restrict)
+  employee Employee? @relation("Employee_account")
+
+  @@index([roleId])
+}
+
+/// NHAN_VIEN
+model Employee {
+  createdProductReceipts ProductReceipt[] @relation("ProductReceiptCreator")
+  postedProductReceipts ProductReceipt[] @relation("ProductReceiptPoster")
+  productLotDisposals ProductLotDisposal[]
+  id String @id @default(uuid()) @db.Uuid
+  code String @unique
+  name String
+  phone String?
+  email String? @unique
+  status String @default("ACTIVE")
+  requestedDispatches StoreDispatch[] @relation("DispatchRequester")
+  reviewedDispatches StoreDispatch[] @relation("DispatchReviewer")
+  requestedStoreAdjustments StoreAdjustment[] @relation("StoreAdjustmentRequester")
+  reviewedStoreAdjustments StoreAdjustment[] @relation("StoreAdjustmentReviewer")
+  createdReceipts MaterialReceipt[] @relation("MaterialReceipt_createdBy")
+  createdBoms Bom[] @relation("Bom_createdBy")
+  assignedOrders ProductionOrder[] @relation("ProductionOrder_assignedBy")
+  receivedOrders ProductionOrder[] @relation("ProductionOrder_assignedTo")
+  requestedIssues MaterialIssue[] @relation("MaterialIssue_requestedBy")
+  performedRuns ProductionRun[] @relation("ProductionRun_performedBy")
+  requestedReturns MaterialReturn[] @relation("MaterialReturn_requestedBy")
+  reportedWastes Waste[] @relation("Waste_reportedBy")
+  requestedMaterialShortages MaterialShortage[] @relation("ShortageRequester")
+  reviewedMaterialShortages MaterialShortage[] @relation("ShortageReviewer")
+  closedSales Sale[] @relation("SaleCloser")
+  lineChanges SaleLineChange[]
+  sentLines SaleLine[] @relation("LineSender")
+  receivedPayments Payment[] @relation("PaymentReceiver")
+  servings Serving[]
+  replenishments ReplenishmentRequest[]
+  createdSales Sale[] @relation("Sale_createdBy")
+  requestedExports ProductExport[] @relation("ProductExport_requestedBy")
+  accountId String? @unique @db.Uuid
+  account Account? @relation("Employee_account", fields: [accountId], references: [id], onDelete: Restrict)
+  reviewedIssues MaterialIssue[] @relation("MaterialIssue_reviewedBy")
+  inspectedRuns ProductionRun[] @relation("ProductionRun_inspectedBy")
+  reviewedReturns MaterialReturn[] @relation("MaterialReturn_reviewedBy")
+  reviewedWastes Waste[] @relation("Waste_reviewedBy")
+  reviewedExports ProductExport[] @relation("ProductExport_reviewedBy")
+}
