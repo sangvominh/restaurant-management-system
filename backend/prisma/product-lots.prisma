@@ -1,0 +1,102 @@
+model ProductLot {
+  id String @id @default(uuid()) @db.Uuid
+  productId String @db.Uuid
+  product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+  code String
+  manufacturedAt DateTime @db.Date
+  expiryDate DateTime @db.Date
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  runId String? @unique @db.Uuid
+  run ProductionRun? @relation(fields: [runId], references: [id], onDelete: Restrict)
+  receiptLineId String? @unique @db.Uuid
+  receiptLine ProductReceiptLine? @relation(fields: [receiptLineId], references: [id], onDelete: Restrict)
+  ledger ProductLotMovement[]
+  dispatchAllocations StoreDispatchLot[]
+  adjustments StoreAdjustment[]
+  disposals ProductLotDisposal[]
+  @@unique([productId, code])
+  @@index([productId, expiryDate])
+}
+
+model ProductReceipt {
+  id String @id @default(uuid()) @db.Uuid
+  code String @unique
+  receivedAt DateTime @default(now()) @db.Timestamptz(3)
+  status String @default("DRAFT")
+  note String?
+  supplierId String @db.Uuid
+  supplier Supplier @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  createdById String @db.Uuid
+  createdBy Employee @relation("ProductReceiptCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  postedById String? @db.Uuid
+  postedBy Employee? @relation("ProductReceiptPoster", fields: [postedById], references: [id], onDelete: Restrict)
+  postedAt DateTime? @db.Timestamptz(3)
+  lines ProductReceiptLine[]
+}
+model ProductReceiptLine {
+  id String @id @default(uuid()) @db.Uuid
+  receiptId String @db.Uuid
+  receipt ProductReceipt @relation(fields: [receiptId], references: [id], onDelete: Restrict)
+  productId String @db.Uuid
+  product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+  lotCode String
+  manufacturedAt DateTime @db.Date
+  expiryDate DateTime @db.Date
+  quantity Decimal @db.Decimal(18, 3)
+  unitPrice Decimal @db.Decimal(18, 2)
+  lot ProductLot?
+  movement ProductMovement?
+  ledger ProductLotMovement[]
+  @@unique([receiptId, productId, lotCode])
+}
+model StoreDispatchLot {
+  id String @id @default(uuid()) @db.Uuid
+  dispatchLineId String @db.Uuid
+  dispatchLine StoreDispatchLine @relation(fields: [dispatchLineId], references: [id], onDelete: Restrict)
+  lotId String @db.Uuid
+  lot ProductLot @relation(fields: [lotId], references: [id], onDelete: Restrict)
+  quantity Decimal @db.Decimal(18, 3)
+  @@unique([dispatchLineId, lotId])
+}
+model ProductLotDisposal {
+  id String @id @default(uuid()) @db.Uuid
+  lotId String @db.Uuid
+  lot ProductLot @relation(fields: [lotId], references: [id], onDelete: Restrict)
+  quantity Decimal @db.Decimal(18, 3)
+  reason String
+  postedAt DateTime @default(now()) @db.Timestamptz(3)
+  createdById String @db.Uuid
+  createdBy Employee @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  movement ProductMovement?
+  ledger ProductLotMovement[]
+}
+/// Chi tiết lô của biến động tổng; quantity có dấu, location WAREHOUSE / STORE.
+/// Mỗi ghi nhận mới gắn đúng một chứng từ nguồn.
+model ProductLotMovement {
+  id String @id @default(uuid()) @db.Uuid
+  lotId String @db.Uuid
+  lot ProductLot @relation(fields: [lotId], references: [id], onDelete: Restrict)
+  location String
+  quantity Decimal @db.Decimal(18, 3)
+  postedAt DateTime @default(now()) @db.Timestamptz(3)
+  runId String? @db.Uuid
+  run ProductionRun? @relation(fields: [runId], references: [id], onDelete: Restrict)
+  receiptLineId String? @db.Uuid
+  receiptLine ProductReceiptLine? @relation(fields: [receiptLineId], references: [id], onDelete: Restrict)
+  dispatchLineId String? @db.Uuid
+  dispatchLine StoreDispatchLine? @relation(fields: [dispatchLineId], references: [id], onDelete: Restrict)
+  saleLineId String? @db.Uuid
+  saleLine SaleLine? @relation(fields: [saleLineId], references: [id], onDelete: Restrict)
+  adjustmentId String? @db.Uuid
+  adjustment StoreAdjustment? @relation(fields: [adjustmentId], references: [id], onDelete: Restrict)
+  disposalId String? @db.Uuid
+  disposal ProductLotDisposal? @relation(fields: [disposalId], references: [id], onDelete: Restrict)
+  @@index([lotId, location])
+  @@unique([dispatchLineId, lotId, location])
+  @@unique([saleLineId, lotId, location])
+  @@unique([adjustmentId, lotId, location])
+  @@unique([runId, lotId, location])
+  @@unique([receiptLineId, lotId, location])
+  @@unique([disposalId, lotId, location])
+}
+

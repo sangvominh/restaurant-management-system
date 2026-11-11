@@ -1,0 +1,104 @@
+/* Order entry: cart changes, confirmed items and payment have separate actions. */
+.drawer-backdrop:has(.pos-mode) {
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: #23364c30;
+  backdrop-filter: blur(2px);
+}
+.drawer-backdrop > .document-drawer:has(.pos-mode) {
+  width: min(1280px, 100%);
+  max-width: 100%;
+  height: min(900px, calc(100dvh - 40px));
+  border: 1px solid #dce4eb;
+  border-radius: 14px;
+  box-shadow: 0 20px 80px #15253638;
+  overflow: hidden;
+}
+.document-drawer:has(.pos-mode) .drawer-heading { padding: 15px 20px; }
+.document-drawer:has(.pos-mode) .pos-mode { align-items: center; gap: 5px; padding: 8px 14px; }
+.document-drawer:has(.pos-mode) .pos-mode button { font-size: 13px; padding: 9px 12px; }
+.document-drawer:has(.pos-mode) .pos-mode .order-refresh { margin-left: auto; color: var(--muted); }
+.document-drawer:has(.pos-mode) .pos-cancel { margin-left: 0; }
+.document-drawer:has(.pos-mode) .pos-workspace { grid-template-columns: minmax(0, 1fr) 420px; }
+.document-drawer:has(.pos-mode) .pos-menu { padding: 18px; }
+.order-menu-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 16px; }
+.order-menu-heading h3 { margin: 0 !important; font-size: 17px !important; }
+.order-menu-heading p { font-size: 12px; color: var(--muted); margin: 5px 0 0; }
+.order-stock-toggle { display: flex; align-items: center; gap: 7px; margin: 2px 0 0; flex-shrink: 0; font-size: 12px; font-weight: 400; }
+.order-stock-toggle input { width: 15px; height: 15px; margin: 0; accent-color: var(--green); }
+.document-drawer:has(.pos-mode) .pos-menu-grid { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; }
+.document-drawer:has(.pos-mode) .pos-menu-item { position: relative; min-height: 158px; padding: 14px; gap: 9px; }
+.document-drawer:has(.pos-mode) .pos-menu-item.is-choosing { border-color: #6b94b7; background: #f1f6fc; box-shadow: inset 0 0 0 1px #8caac633; }
+.document-drawer:has(.pos-mode) .pos-menu-item.is-choosing:disabled { opacity: .85; }
+.document-drawer:has(.pos-mode) .pos-menu-item > span { margin-top: 0; }
+.document-drawer:has(.pos-mode) .pos-menu-item > span > small { display: inline; font-size: 11px; }
+.menu-item-top { display: flex; flex-direction: column; gap: 7px; min-height: 43px; }
+.document-drawer:has(.pos-mode) .menu-item-top > strong { font-size: 15px; }
+.menu-chosen-count { align-self: flex-start; font-size: 10px; padding: 2px 6px; border-radius: 4px; background: #dae9f8; color: #315e86; }
+.document-drawer:has(.pos-mode) .pos-menu-item .menu-add-hint { margin-top: auto; padding-top: 8px; border-top: 1px solid #e3eaf1; width: 100%; font-size: 11px; color: #406788; }
+.document-drawer:has(.pos-mode) .pos-ticket-context { padding: 12px 16px; background: #f8fafc; font-size: 13px; }
+.document-drawer:has(.pos-mode) .pos-ticket-context select { padding: 8px 10px; margin-top: 5px; }
+.document-drawer:has(.pos-mode) .pos-ticket-lines { padding: 0 16px 16px; }
+.order-section-label { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 16px 0 5px; }
+.document-drawer:has(.pos-mode) .order-section-label h3 { font-size: 14px; color: #304f6e; margin: 0; }
+.order-section-label > span { font-size: 11px; color: var(--muted); }
+.order-section-help { font-size: 11px; color: var(--muted); line-height: 1.6; margin: 4px 0 10px; }
+.choosing-order { padding-bottom: 12px; }
+.document-drawer:has(.pos-mode) .pos-ticket-item { display: flex; flex-direction: column; align-items: stretch; gap: 9px; padding: 12px; margin-bottom: 9px; border: 1px solid #dce5ee; border-radius: 8px; background: #fafcfe; }
+.document-drawer:has(.pos-mode) .pos-ticket-item.has-problem { border-color: #d7a382; background: #fffaf5; }
+.document-drawer:has(.pos-mode) .pos-item-heading { justify-content: space-between; align-items: flex-start; gap: 10px; }
+.document-drawer:has(.pos-mode) .pos-item-heading small { font-size: 11px; margin-top: 3px; }
+.document-drawer:has(.pos-mode) .pos-remove { font-size: 11px; padding: 3px 5px; margin-top: 2px; }
+.document-drawer:has(.pos-mode) .pos-item-quantity { gap: 5px; }
+.document-drawer:has(.pos-mode) .pos-item-quantity input { width: 68px; }
+.document-drawer:has(.pos-mode) .pos-item-quantity strong { margin-left: auto; min-width: 0; }
+.document-drawer:has(.pos-mode) .pos-line-note { font-size: 11px; }
+.document-drawer:has(.pos-mode) .pos-line-note input { margin-top: 6px; padding: 8px; font-size: 12px; }
+.order-line-error { font-size: 11px; line-height: 1.6; margin: 0; color: #a15e38; }
+.confirmed-order { padding-top: 4px; border-top: 2px solid #e5ebf1; }
+.document-drawer:has(.pos-mode) .confirmed-order .order-section-label h3 { color: #52675c; }
+.confirmed-item { padding: 12px 0; border-bottom: 1px solid var(--line); }
+.confirmed-item-heading { display: flex; justify-content: space-between; gap: 14px; font-size: 13px; }
+.confirmed-item-heading > strong { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.confirmed-item-heading small { font-size: 11px; margin-top: 4px; }
+.confirmed-note { margin: 6px 0 0; color: var(--muted); font-size: 11px; white-space: pre-wrap; }
+.confirmed-order .line-change > button { font-size: 11px; }
+.confirmed-order .line-change form { background: #fbfcfd; padding: 10px; }
+.confirmed-order .line-change form small { font-size: 11px; line-height: 1.6; }
+.document-drawer:has(.pos-mode) .pos-ticket-footer { padding: 12px 16px; box-shadow: 0 -4px 14px #29456205; }
+.order-subtotal { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+.order-subtotal strong { font-weight: 500; font-variant-numeric: tabular-nums; }
+.document-drawer:has(.pos-mode) .pos-total { padding-top: 8px; margin-top: 4px; font-size: 13px; }
+.document-drawer:has(.pos-mode) .pos-total strong { font-size: 22px; }
+.document-drawer:has(.pos-mode) .pos-submit { grid-template-columns: 1fr 2fr; }
+.document-drawer:has(.pos-mode) .pos-submit button { font-size: 12px; }
+.order-save-help { font-size: 10px; margin-top: 9px; line-height: 1.5; color: var(--muted); }
+.order-global-error { flex-shrink: 0; margin: 0; border-radius: 0; border-inline: 0; padding: 8px 18px; font-size: 12px; }
+.order-refresh-error { flex-shrink: 0; margin: 0; padding: 7px 18px; background: #fff8e9; color: #866727; font-size: 12px; }
+.order-payment, .order-payment-warning { max-width: 450px; margin: 16px auto; }
+.order-payment-warning { padding: 12px 14px; background: #fff8e9; border: 1px solid #efdfb7; border-radius: 7px; font-size: 12px; }
+.order-payment-warning p { margin: 0 0 8px; }
+.order-payment-warning button { padding: 7px 10px; font-size: 12px; }
+.order-payment label { font-size: 12px; }
+.order-payment > .primary { width: 100%; }
+.order-payment > small { font-size: 11px; line-height: 1.6; text-align: center; }
+.order-empty-state { padding: 28px 18px; text-align: center; color: var(--muted); font-size: 13px; }
+@media (max-width: 1000px) {
+  .document-drawer:has(.pos-mode) .pos-workspace { grid-template-columns: minmax(0,1fr) 365px; }
+  .order-menu-heading { flex-wrap: wrap; gap: 8px; }
+  .document-drawer:has(.pos-mode) .pos-menu-grid { grid-template-columns: repeat(auto-fill,minmax(145px,1fr)); }
+}
+@media (max-width: 760px) {
+  .drawer-backdrop:has(.pos-mode) { padding: 10px; }
+  .drawer-backdrop > .document-drawer:has(.pos-mode) { height: calc(100dvh - 20px); border-radius: 10px; }
+  .document-drawer:has(.pos-mode) .drawer-body { overflow: auto; }
+  .document-drawer:has(.pos-mode) .pos-workspace { display: flex; flex-direction: column; flex: none; }
+  .document-drawer:has(.pos-mode) .pos-menu { max-height: 43dvh; min-height: 220px; padding: 14px; }
+  .document-drawer:has(.pos-mode) .pos-menu-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .document-drawer:has(.pos-mode) .pos-ticket { min-height: 40dvh; border-left: 0; border-top: 1px solid var(--line); }
+  .document-drawer:has(.pos-mode) .pos-ticket-lines { overflow: visible; }
+  .document-drawer:has(.pos-mode) .pos-mode { flex-wrap: wrap; }
+  .document-drawer:has(.pos-mode) .pos-bill { overflow: visible; }
+}
+
