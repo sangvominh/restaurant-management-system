@@ -20,7 +20,7 @@ export async function api<T>(path: string, method = 'GET', body?: unknown): Prom
     body: body === undefined ? undefined : JSON.stringify(body),
   });
   const result = await response.json().catch(() => ({ message: 'Máy chủ trả về phản hồi không hợp lệ' }));
-  if (response.status === 401 && path !== 'auth/login') {
+  if (response.status === 401 && path !== 'auth/login' && token && sessionStorage.getItem(TOKEN_KEY) === token) {
     sessionStorage.removeItem(TOKEN_KEY);
     window.dispatchEvent(new Event('admin-session-ended'));
   }

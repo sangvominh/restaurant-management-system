@@ -38,7 +38,7 @@ for (const scenario of ['service', 'sold-out']) {
   test(`${scenario}: each ledger entry has exactly one matching document source`, () => {
     for (const [table, sources] of [
       ['MaterialMovement', { receiptLineId: 'MaterialReceiptLine', issueLineId: 'MaterialIssueLine', consumptionLineId: 'ConsumptionLine', returnLineId: 'MaterialReturnLine', wasteLineId: 'WasteLine' }],
-      ['ProductMovement', { dispatchLineId: 'StoreDispatchLine', storeAdjustmentId: 'StoreAdjustment', runId: 'ProductionRun', exportLineId: 'ProductExportLine', wasteLineId: 'WasteLine' }],
+      ['ProductMovement', { receiptLineId: 'ProductReceiptLine', dispatchLineId: 'StoreDispatchLine', storeAdjustmentId: 'StoreAdjustment', runId: 'ProductionRun', exportLineId: 'ProductExportLine', wasteLineId: 'WasteLine', lotDisposalId: 'ProductLotDisposal' }],
       ['StoreMovement', { dispatchLineId: 'StoreDispatchLine', saleLineId: 'SaleLine', adjustmentId: 'StoreAdjustment' }],
     ]) {
       const seen = new Set();
@@ -56,7 +56,7 @@ for (const scenario of ['service', 'sold-out']) {
       }
     }
   });
-  test(`${scenario}: warehouse, store and material balances never go negative over time`, () => {
+  test(`${scenario}: warehouse, store, product lot and material balances never go negative over time`, () => {
     for (const [table, idField, places] of [
       ['MaterialMovement', 'lotId', ['TRONG_KHO', 'DA_CAP']],
       ['ProductMovement', 'productId', ['warehouse']],
@@ -66,7 +66,7 @@ for (const scenario of ['service', 'sold-out']) {
         const changes = new Map();
         for (const m of rows[table]) {
           const change = table === 'MaterialMovement' ? (m.toSource === place ? number(m.quantity) : 0) - (m.fromSource === place ? number(m.quantity) : 0)
-            : number(m.quantity) * (table === 'ProductMovement' ? ['NHAP_SAN_XUAT', 'HOAN_CUA_HANG'].includes(m.movementType) ? 1 : -1 : m.movementType === 'IN_TRANSFER' ? 1 : -1);
+            : number(m.quantity) * (table === 'ProductMovement' ? ['NHAP_SAN_XUAT', 'NHAP_MUA', 'HOAN_CUA_HANG'].includes(m.movementType) ? 1 : -1 : m.movementType === 'IN_TRANSFER' ? 1 : -1);
           const key = `${m.postedAt}|${m[idField]}`;
           changes.set(key, (changes.get(key) || 0) + change);
         }
@@ -83,6 +83,38 @@ for (const scenario of ['service', 'sold-out']) {
       const lot = get('MaterialLot', m.lotId);
       const localDay = new Date(Date.parse(m.postedAt) + 7 * 3600000).toISOString().slice(0, 10);
       assert.ok(!lot.expiryDate || localDay <= lot.expiryDate, 'expired ingredients used');
+    }
+    const lotBalances = new Map();
+    const lotSources = ['runId', 'receiptLineId', 'dispatchLineId', 'saleLineId', 'adjustmentId', 'disposalId'];
+    for (const m of [...rows.ProductLotMovement].sort((a, b) => a.postedAt.localeCompare(b.postedAt))) {
+      const sources = lotSources.filter(k => m[k]);
+      assert.equal(sources.length, 1, 'ProductLotMovement must have exactly one source');
+      const lot = get('ProductLot', m.lotId);
+      assert.ok(lot);
+      const localDay = new Date(Date.parse(m.postedAt) + 7 * 3600000).toISOString().slice(0, 10);
+      if (number(m.quantity) < 0 && (m.dispatchLineId || m.saleLineId || (m.adjustmentId && get('StoreAdjustment', m.adjustmentId).kind === 'RETURN'))) {
+        assert.ok(localDay <= lot.expiryDate, `expired product lot used: ${lot.code}`);
+      }
+      const key = `${m.lotId}:${m.location}`;
+      const next = (lotBalances.get(key) || 0) + number(m.quantity);
+      assert.ok(next >= 0, `ProductLotMovement negative balance for ${key}: ${next}`);
+      lotBalances.set(key, next);
+    }
+    for (const item of sampleSummary(data)) {
+      const productId = sampleId(`Product:${item.code.replace('BBQ-TP-', '')}`);
+      const lotIds = new Set(rows.ProductLot.filter(l => l.productId === productId).map(l => l.id));
+      const lotWh = rows.ProductLotMovement.filter(m => m.location === 'WAREHOUSE' && lotIds.has(m.lotId)).reduce((s, m) => s + number(m.quantity), 0);
+      const lotStore = rows.ProductLotMovement.filter(m => m.location === 'STORE' && lotIds.has(m.lotId)).reduce((s, m) => s + number(m.quantity), 0);
+      assert.equal(lotWh, number(item.warehouse), `${item.code}: warehouse untracked stock`);
+      assert.equal(lotStore, number(item.stock), `${item.code}: store untracked stock`);
+    }
+    for (const a of rows.StoreAdjustment) assert.ok(get('ProductLot', a.lotId), 'StoreAdjustment missing lotId');
+    for (const dl of rows.StoreDispatchLine) {
+      const dispatch = get('StoreDispatch', dl.dispatchId);
+      if (dispatch.status === 'REJECTED') continue;
+      const allocs = rows.StoreDispatchLot.filter(a => a.dispatchLineId === dl.id);
+      assert.ok(allocs.length > 0);
+      assert.equal(sum(allocs), number(dl.quantity));
     }
   });
   test(`${scenario}: payments equal line totals and only completed sales reduce stock`, () => {
@@ -122,6 +154,14 @@ for (const scenario of ['service', 'sold-out']) {
     for (const run of rows.ProductionRun.filter(r => r.status === 'PENDING')) assert.ok(!rows.ProductMovement.some(m => m.runId === run.id));
     assert.equal(rows.ProductExport, undefined);
     assert.equal(rows.ReplenishmentRequest, undefined);
+    assert.ok(rows.Bom.every(b => b.outputQuantity === '1.000'));
+    for (const code of ['COKE', 'WATER']) {
+      const p = rows.Product.find(item => item.code === `BBQ-TP-${code}`);
+      assert.equal(p.supplyType, 'PURCHASED');
+      assert.ok(!rows.Bom.some(b => b.productId === p.id));
+      assert.ok(rows.ProductReceiptLine.some(l => l.productId === p.id && get('ProductReceipt', l.receiptId).status === 'POSTED'));
+      assert.ok(rows.ProductLot.some(l => l.productId === p.id && l.receiptLineId));
+    }
   });
   test(`${scenario}: deterministic data has six historical service days and valid reservations`, () => {
     assert.equal(data.historyDays.length, 6);
@@ -145,7 +185,8 @@ test('service: finite stock, pending holds, fractional sales and sold-out menu i
   assert.equal(item('BEANS').held, '1.000');
   assert.equal(item('BEANS').available, '2.000');
   assert.equal(data.rows.Sale.filter(s => s.status === 'DRAFT').length, 1);
-  assert.equal(data.rows.Account.filter(a => a.status === 'INACTIVE').length, 1);
+  assert.equal(data.rows.Account.filter(a => a.status === 'LOCKED').length, 1);
+  assert.equal(data.rows.Employee.filter(e => e.status === 'INACTIVE').length, 1);
   assert.ok(data.rows.MaterialLot.some(l => l.expiryDate && l.expiryDate < data.date));
 });
 test('sold-out: no available or reserved finished goods and no open customer orders', () => {
