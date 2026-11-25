@@ -49,6 +49,8 @@ model Product {
   storeMovements StoreMovement[]
   storeAdjustments StoreAdjustment[]
   sellingPrice Decimal @db.Decimal(18, 2)
+  description String?
+  imageUrl String?
   status String @default("ACTIVE")
   unitId String @db.Uuid
   unit Unit @relation("Product_unit", fields: [unitId], references: [id], onDelete: Restrict)
@@ -56,6 +58,7 @@ model Product {
   category Category @relation("Product_category", fields: [categoryId], references: [id], onDelete: Restrict)
   boms Bom[] @relation("Bom_product")
   saleLines SaleLine[] @relation("SaleLine_product")
+  customerOrderLines CustomerOrderLine[]
   movements ProductMovement[] @relation("ProductMovement_product")
   wasteLines WasteLine[] @relation("WasteLine_product")
 

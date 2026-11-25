@@ -1,0 +1,54 @@
+/// KHACH_HANG — Tài khoản khách hàng (tùy chọn; khách vãng lai quét QR vẫn đặt món không cần đăng nhập)
+model Customer {
+  id           String          @id @default(uuid()) @db.Uuid
+  phone        String          @unique
+  name         String
+  passwordHash String
+  status       String          @default("ACTIVE")
+  createdAt    DateTime        @default(now()) @db.Timestamptz(3)
+  orders       CustomerOrder[]
+}
+
+/// DON_KHACH_DAT — Phiếu đặt món từ Customer Web/PWA hoặc Mobile App.
+/// status: PENDING (chờ phục vụ duyệt) | APPROVED (đã đổ vào Sale) | REJECTED (từ chối)
+model CustomerOrder {
+  id            String              @id @default(uuid()) @db.Uuid
+  code          String              @unique
+  status        String              @default("PENDING")
+  customerName  String?
+  customerPhone String?
+  note          String              @default("")
+  rejectReason  String?
+  createdAt     DateTime            @default(now()) @db.Timestamptz(3)
+  reviewedAt    DateTime?           @db.Timestamptz(3)
+  tableId       String?             @db.Uuid
+  table         DiningTable?        @relation(fields: [tableId], references: [id], onDelete: Restrict)
+  customerId    String?             @db.Uuid
+  customer      Customer?           @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  saleId        String?             @db.Uuid
+  sale          Sale?               @relation(fields: [saleId], references: [id], onDelete: Restrict)
+  reviewedById  String?             @db.Uuid
+  reviewedBy    Employee?           @relation("CustomerOrderReviewer", fields: [reviewedById], references: [id], onDelete: Restrict)
+  lines         CustomerOrderLine[]
+
+  @@index([status, createdAt])
+  @@index([tableId])
+  @@index([customerId])
+  @@index([saleId])
+}
+
+/// CT_DON_KHACH_DAT — Chi tiết món khách chọn tại thời điểm gửi đơn
+model CustomerOrderLine {
+  id          String        @id @default(uuid()) @db.Uuid
+  quantity    Decimal       @db.Decimal(18, 3)
+  unitPrice   Decimal       @db.Decimal(18, 2)
+  productName String
+  note        String        @default("")
+  orderId     String        @db.Uuid
+  order       CustomerOrder @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  productId   String        @db.Uuid
+  product     Product       @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([orderId])
+  @@index([productId])
+}
