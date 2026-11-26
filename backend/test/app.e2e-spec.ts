@@ -29,6 +29,7 @@ describe('AppController (e2e)', () => {
     '/api/admin/accounts', '/api/admin/roles', '/api/warehouse/receipts',
     '/api/warehouse/product-receipts', '/api/warehouse/production/orders',
     '/api/warehouse/store/stock', '/api/restaurant/sales', '/api/restaurant/reports/sales',
+    '/api/customer/orders', '/api/restaurant/customer-orders',
   ])('GET %s không đăng nhập phải trả 401', async path => { await request(app.getHttpServer()).get(path).expect(401); });
 
   it.each([

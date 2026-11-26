@@ -89,4 +89,5 @@ model Employee {
   reviewedReturns MaterialReturn[] @relation("MaterialReturn_reviewedBy")
   reviewedWastes Waste[] @relation("Waste_reviewedBy")
   reviewedExports ProductExport[] @relation("ProductExport_reviewedBy")
+  reviewedCustomerOrders CustomerOrder[] @relation("CustomerOrderReviewer")
 }

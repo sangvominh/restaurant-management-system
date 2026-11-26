@@ -15,6 +15,7 @@ model Sale {
   lines SaleLine[] @relation("SaleLine_sale")
   exports ProductExport[] @relation("ProductExport_sale")
   payment Payment? @relation("Payment_sale")
+  customerOrders CustomerOrder[]
 
   @@index([createdById])
 }
@@ -129,6 +130,7 @@ model DiningTable {
   y Int @default(0)
   status String @default("ACTIVE")
   sales Sale[]
+  customerOrders CustomerOrder[]
 }
 model DiningArea {
   columns Int @default(8)

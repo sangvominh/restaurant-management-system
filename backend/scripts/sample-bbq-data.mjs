@@ -36,8 +36,6 @@ const materials = [
   ['CUCUMBER', 'Dưa leo', 'kg', 'Rau củ', 2, 24000, 2],
   ['VINEGAR', 'Giấm táo', 'lit', 'Gia vị', 2, 45000, 90],
   ['SUGAR', 'Đường', 'kg', 'Đồ khô', 3, 25000, 90],
-  ['COKE', 'Coca-Cola lon nguyên liệu đóng gói', 'lon', 'Đồ uống đóng gói', 24, 10000, 180],
-  ['WATER', 'Nước suối chai nguyên liệu đóng gói', 'chai', 'Đồ uống đóng gói', 24, 5000, 180],
   ['FLOUR', 'Bột bắp', 'kg', 'Đồ khô', 3, 42000, 90],
   ['EGG', 'Trứng gà', 'qua', 'Sữa và trứng', 20, 3500, 7],
   ['MILK', 'Sữa tươi', 'lit', 'Sữa và trứng', 5, 32000, 3],
@@ -45,21 +43,24 @@ const materials = [
   ['BANANA', 'Chuối chín', 'kg', 'Rau củ', 3, 30000, 1],
   ['OLD-RUB', 'Gia vị cũ ngừng sử dụng', 'kg', 'Gia vị', 0, 70000, 90],
 ];
+
+// BOMs for PRODUCED items are always defined per 1 unit of finished product.
+// PURCHASED items specify supplyType: 'PURCHASED' and costPrice instead of a recipe.
 const menu = [
-  ['BRISKET', 'Ức bò hun khói / Brisket', 'kg', 'Thịt hun khói', 980000, 10, { BRISKET: 20, SALT: .3, PEPPER: .3, WOOD: 4 }, 18],
-  ['RIBS', 'Sườn heo hun khói', 'kg', 'Thịt hun khói', 690000, 10, { RIBS: 15, SALT: .2, PEPPER: .15, SAUCE: .8, WOOD: 3 }, 12],
-  ['PULLED', 'Heo xé hun khói', 'kg', 'Thịt hun khói', 640000, 10, { PORK: 17, SALT: .25, PEPPER: .2, WOOD: 3 }, 10],
-  ['TURKEY', 'Ức gà tây hun khói', 'kg', 'Thịt hun khói', 720000, 10, { TURKEY: 14, SALT: .25, PEPPER: .15, WOOD: 2 }, 7],
-  ['SAUSAGE', 'Xúc xích hun khói', 'cay', 'Thịt hun khói', 85000, 20, { SAUSAGE: 20, WOOD: 1 }, 40],
-  ['BEANS', 'Đậu hầm BBQ', 'phan', 'Món phụ', 35000, 20, { BEANS: 1.5, SAUCE: .5, SALT: .04 }, 50],
-  ['SLAW', 'Salad bắp cải', 'phan', 'Món phụ', 30000, 20, { CABBAGE: 2, CARROT: .5, MAYO: .5 }, 40],
-  ['POTATO', 'Salad khoai tây', 'phan', 'Món phụ', 35000, 20, { POTATO: 3, MAYO: .5, SALT: .03 }, 45],
-  ['PICKLES', 'Dưa chua ăn kèm miễn phí', 'phan', 'Món phụ', 0, 20, { CUCUMBER: 1, VINEGAR: .5, SUGAR: .15 }, 60],
-  ['COKE', 'Coca-Cola', 'lon', 'Đồ uống', 25000, 24, { COKE: 24 }, 72],
-  ['WATER', 'Nước suối', 'chai', 'Đồ uống', 15000, 24, { WATER: 24 }, 72],
-  ['CORN', 'Bánh bắp', 'phan', 'Món phụ', 25000, 20, { FLOUR: 1.2, EGG: 4, MILK: 1, BUTTER: .3, SUGAR: .3 }, 35],
-  ['PUDDING', 'Pudding chuối', 'ly', 'Tráng miệng', 45000, 20, { BANANA: 1.8, MILK: 2, SUGAR: .3, FLOUR: .2 }, 30],
-  ['BEEF-RIB', 'Sườn bò đặc biệt (tạm ngừng)', 'kg', 'Thịt hun khói', 1250000, 10, { BRISKET: 16, SALT: .2, PEPPER: .2, WOOD: 4 }, 0],
+  ['BRISKET', 'Ức bò hun khói / Brisket', 'kg', 'Thịt hun khói', 980000, 'PRODUCED', { BRISKET: 2, SALT: 0.03, PEPPER: 0.03, WOOD: 0.4 }, 18],
+  ['RIBS', 'Sườn heo hun khói', 'kg', 'Thịt hun khói', 690000, 'PRODUCED', { RIBS: 1.5, SALT: 0.02, PEPPER: 0.015, SAUCE: 0.08, WOOD: 0.3 }, 12],
+  ['PULLED', 'Heo xé hun khói', 'kg', 'Thịt hun khói', 640000, 'PRODUCED', { PORK: 1.7, SALT: 0.025, PEPPER: 0.02, WOOD: 0.3 }, 10],
+  ['TURKEY', 'Ức gà tây hun khói', 'kg', 'Thịt hun khói', 720000, 'PRODUCED', { TURKEY: 1.4, SALT: 0.025, PEPPER: 0.015, WOOD: 0.2 }, 7],
+  ['SAUSAGE', 'Xúc xích hun khói', 'cay', 'Thịt hun khói', 85000, 'PRODUCED', { SAUSAGE: 1, WOOD: 0.05 }, 40],
+  ['BEANS', 'Đậu hầm BBQ', 'phan', 'Món phụ', 35000, 'PRODUCED', { BEANS: 0.075, SAUCE: 0.025, SALT: 0.002 }, 50],
+  ['SLAW', 'Salad bắp cải', 'phan', 'Món phụ', 30000, 'PRODUCED', { CABBAGE: 0.1, CARROT: 0.025, MAYO: 0.025 }, 40],
+  ['POTATO', 'Salad khoai tây', 'phan', 'Món phụ', 35000, 'PRODUCED', { POTATO: 0.15, MAYO: 0.025, SALT: 0.002 }, 45],
+  ['PICKLES', 'Dưa chua ăn kèm miễn phí', 'phan', 'Món phụ', 0, 'PRODUCED', { CUCUMBER: 0.05, VINEGAR: 0.025, SUGAR: 0.008 }, 60],
+  ['COKE', 'Coca-Cola', 'lon', 'Đồ uống', 25000, 'PURCHASED', { costPrice: 10000 }, 72],
+  ['WATER', 'Nước suối', 'chai', 'Đồ uống', 15000, 'PURCHASED', { costPrice: 5000 }, 72],
+  ['CORN', 'Bánh bắp', 'phan', 'Món phụ', 25000, 'PRODUCED', { FLOUR: 0.06, EGG: 0.2, MILK: 0.05, BUTTER: 0.015, SUGAR: 0.015 }, 35],
+  ['PUDDING', 'Pudding chuối', 'ly', 'Tráng miệng', 45000, 'PRODUCED', { BANANA: 0.09, MILK: 0.1, SUGAR: 0.015, FLOUR: 0.01 }, 30],
+  ['BEEF-RIB', 'Sườn bò đặc biệt (tạm ngừng)', 'kg', 'Thịt hun khói', 1250000, 'PRODUCED', { BRISKET: 1.6, SALT: 0.02, PEPPER: 0.02, WOOD: 0.4 }, 0],
 ];
 
 export function createSampleData({ date = vietnamToday(), scenario = 'service' } = {}) {
@@ -101,17 +102,20 @@ export function createSampleData({ date = vietnamToday(), scenario = 'service' }
     ['nghiviec', 'waiter', 'Nhân viên ngừng hoạt động'],
   ];
   for (const [key, role, name] of people) {
-    const account = add('Account', key, { username: `bbq_${key}`, passwordHash: '__SAMPLE_PASSWORD_HASH__', status: key === 'nghiviec' ? 'INACTIVE' : 'ACTIVE', createdAt: at(shiftDay(date, -15), '08:00'), roleId: sampleId(`Role:${role}`) });
-    add('Employee', key, { code: `BBQ-NV-${key.toUpperCase()}`, name, email: `${key}@bbq.example.test`, status: account.status, accountId: account.id });
+    const inactive = key === 'nghiviec';
+    const account = add('Account', key, { username: `bbq_${key}`, passwordHash: '__SAMPLE_PASSWORD_HASH__', status: inactive ? 'LOCKED' : 'ACTIVE', createdAt: at(shiftDay(date, -15), '08:00'), roleId: sampleId(`Role:${role}`) });
+    add('Employee', key, { code: `BBQ-NV-${key.toUpperCase()}`, name, email: `${key}@bbq.example.test`, status: inactive ? 'INACTIVE' : 'ACTIVE', accountId: account.id });
   }
   for (const [key, name, symbol, group, minimum] of materials) add('Material', key, { code: `BBQ-NVL-${key}`, name, unitId: unit(symbol), categoryId: category(group, 'MATERIAL'), minStock: q(minimum), status: key === 'OLD-RUB' ? 'INACTIVE' : 'ACTIVE' });
-  for (const [key, name, symbol, group, sellingPrice, outputQuantity, recipe, quantity] of menu) {
-    add('Product', key, { code: `BBQ-TP-${key}`, name, sellingPrice: price(sellingPrice), unitId: unit(symbol), categoryId: category(group, 'PRODUCT'), status: quantity ? 'ACTIVE' : 'INACTIVE' });
-    const bom = add('Bom', key, { version: 1, outputQuantity: q(outputQuantity), effectiveAt: at(shiftDay(date, -20), '00:00'), status: quantity ? 'ACTIVE' : 'DRAFT', productId: product(key), createdById: employee('beptruong') });
-    for (const [m, amount] of Object.entries(recipe)) add('BomLine', `${key}:${m}`, { bomId: bom.id, materialId: material(m), quantity: q(amount) });
+  for (const [key, name, symbol, group, sellingPrice, supplyType, recipe, quantity] of menu) {
+    add('Product', key, { code: `BBQ-TP-${key}`, name, supplyType, sellingPrice: price(sellingPrice), unitId: unit(symbol), categoryId: category(group, 'PRODUCT'), status: quantity ? 'ACTIVE' : 'INACTIVE' });
+    if (supplyType === 'PRODUCED') {
+      const bom = add('Bom', key, { version: 1, outputQuantity: q(1), effectiveAt: at(shiftDay(date, -20), '00:00'), status: quantity ? 'ACTIVE' : 'DRAFT', productId: product(key), createdById: employee('beptruong') });
+      for (const [m, amount] of Object.entries(recipe)) add('BomLine', `${key}:${m}`, { bomId: bom.id, materialId: material(m), quantity: q(amount) });
+    }
   }
-  const newBom = add('Bom', 'BRISKET-v2', { version: 2, outputQuantity: '10.000', effectiveAt: at(shiftDay(date, 1), '00:00'), status: 'DRAFT', productId: product('BRISKET'), createdById: employee('beptruong') });
-  for (const [key, amount] of Object.entries({ BRISKET: 19.5, SALT: .28, PEPPER: .3, WOOD: 4 })) add('BomLine', `BRISKET-v2:${key}`, { bomId: newBom.id, materialId: material(key), quantity: q(amount) });
+  const newBom = add('Bom', 'BRISKET-v2', { version: 2, outputQuantity: q(1), effectiveAt: at(shiftDay(date, 1), '00:00'), status: 'DRAFT', productId: product('BRISKET'), createdById: employee('beptruong') });
+  for (const [key, amount] of Object.entries({ BRISKET: 1.95, SALT: 0.028, PEPPER: 0.03, WOOD: 0.4 })) add('BomLine', `BRISKET-v2:${key}`, { bomId: newBom.id, materialId: material(key), quantity: q(amount) });
   for (const [key, name] of [['MEAT', 'Thịt sạch mẫu'], ['FRESH', 'Nông trại rau sữa mẫu'], ['DRY', 'Đồ khô và nhiên liệu mẫu'], ['DRINK', 'Đồ uống mẫu']]) add('Supplier', key, { code: `BBQ-NCC-${key}`, name: `${name} (hư cấu)`, address: 'Địa chỉ mô phỏng, TP.HCM', status: 'ACTIVE' });
   add('Supplier', 'OLD', { code: 'BBQ-NCC-OLD', name: 'Nhà cung cấp đã ngừng hợp tác (hư cấu)', status: 'INACTIVE' });
   const areaName = key => `[BBQ mẫu] ${key}`;
@@ -123,9 +127,43 @@ export function createSampleData({ date = vietnamToday(), scenario = 'service' }
   const activeMenu = menu.filter(m => m[7] > 0);
   const warehouse = new Map(activeMenu.map(m => [m[0], 0]));
   const store = new Map(activeMenu.map(m => [m[0], 0]));
+  const lotState = new Map();
+
+  function registerProductLot(key, p, fields) {
+    const lot = add('ProductLot', key, { productId: product(p), ...fields });
+    lotState.set(lot.id, { ...lot, warehouse: 0, store: 0, warehouseHeld: 0, storeHeld: 0 });
+    return lot;
+  }
+  function lotMove(key, lotId, location, amount, postedAt, source) {
+    add('ProductLotMovement', key, { lotId, location, quantity: q(amount), postedAt, ...source });
+    const state = lotState.get(lotId);
+    if (location === 'WAREHOUSE') state.warehouse = Number(q(state.warehouse + amount));
+    else state.store = Number(q(state.store + amount));
+  }
+  function fefoLots(productId, location, day) {
+    return [...lotState.values()]
+      .filter(l => l.productId === productId && l.expiryDate >= day)
+      .sort((a, b) => a.expiryDate.localeCompare(b.expiryDate) || a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id))
+      .map(l => ({ lot: l, available: Number(q(location === 'WAREHOUSE' ? l.warehouse - l.warehouseHeld : l.store - l.storeHeld)) }))
+      .filter(entry => entry.available > 0);
+  }
+  function allocateLots(productId, location, day, amount) {
+    let left = Number(q(amount));
+    const allocations = [];
+    for (const { lot, available } of fefoLots(productId, location, day)) {
+      const take = Math.min(left, available);
+      if (take > 0) {
+        allocations.push({ lot, quantity: Number(q(take)) });
+        left = Number(q(left - take));
+      }
+      if (left <= 0) break;
+    }
+    if (left > 0) throw new Error(`Không đủ lô ${location} cho ${productId} vào ${day} (thiếu ${left})`);
+    return allocations;
+  }
   function productMove(key, amount, type, time, source) {
     add('ProductMovement', `${type}:${Object.values(source)[0]}`, { productId: product(key), quantity: q(amount), movementType: type, postedAt: time, ...source });
-    warehouse.set(key, Number(q(warehouse.get(key) + (['NHAP_SAN_XUAT', 'HOAN_CUA_HANG'].includes(type) ? amount : -amount))));
+    warehouse.set(key, Number(q(warehouse.get(key) + (['NHAP_SAN_XUAT', 'NHAP_MUA', 'HOAN_CUA_HANG'].includes(type) ? amount : -amount))));
   }
   function storeMove(key, amount, type, time, source) {
     add('StoreMovement', `${type}:${Object.values(source)[0]}`, { productId: product(key), quantity: q(amount), movementType: type, postedAt: time, ...source });
@@ -140,7 +178,7 @@ export function createSampleData({ date = vietnamToday(), scenario = 'service' }
     for (const [key, amount] of Object.entries(amounts)) {
       if (amount <= 0) continue;
       const m = materials.find(m => m[0] === key);
-      const supplierKey = m[3] === 'Thịt tươi' ? 'MEAT' : ['Rau củ', 'Sữa và trứng'].includes(m[3]) ? 'FRESH' : m[3] === 'Đồ uống đóng gói' ? 'DRINK' : 'DRY';
+      const supplierKey = m[3] === 'Thịt tươi' ? 'MEAT' : ['Rau củ', 'Sữa và trứng'].includes(m[3]) ? 'FRESH' : 'DRY';
       const time = at(shiftDay(day, -1), '16:00');
       docs[supplierKey] ??= add('MaterialReceipt', `${day}:${suffix}:${supplierKey}`, { code: `BBQ-PN-${day.replaceAll('-', '')}-${suffix}-${supplierKey}`, receivedAt: time, status, note: 'Nhập theo kế hoạch mẻ bán ngày ' + day, supplierId: sampleId(`Supplier:${supplierKey}`), createdById: employee('nvkho') });
       const lot = add('MaterialLot', `${day}:${suffix}:${key}`, { code: `BBQ-LO-${day}-${suffix}-${key}`, materialId: material(key), expiryDate: expiryOverride === undefined ? m[6] === null ? null : shiftDay(day, m[6]) : expiryOverride });
@@ -155,6 +193,16 @@ export function createSampleData({ date = vietnamToday(), scenario = 'service' }
     for (const [p, amount] of Object.entries(amounts)) {
       if (amount <= 0) continue;
       const line = add('StoreDispatchLine', `${key}:${p}`, { dispatchId: doc.id, productId: product(p), quantity: q(amount) });
+      const allocs = status === 'REJECTED' ? [] : allocateLots(product(p), 'WAREHOUSE', day, amount);
+      for (const a of allocs) {
+        add('StoreDispatchLot', `${line.id}:${a.lot.id}`, { dispatchLineId: line.id, lotId: a.lot.id, quantity: q(a.quantity) });
+        if (status === 'APPROVED') {
+          lotMove(`dispatch-wh:${line.id}:${a.lot.id}`, a.lot.id, 'WAREHOUSE', -a.quantity, at(day, time), { dispatchLineId: line.id });
+          lotMove(`dispatch-st:${line.id}:${a.lot.id}`, a.lot.id, 'STORE', a.quantity, at(day, time), { dispatchLineId: line.id });
+        } else if (status === 'PENDING') {
+          a.lot.warehouseHeld = Number(q(a.lot.warehouseHeld + a.quantity));
+        }
+      }
       if (status === 'APPROVED') {
         productMove(p, amount, 'CHUYEN_CUA_HANG', at(day, time), { dispatchLineId: line.id });
         storeMove(p, amount, 'IN_TRANSFER', at(day, time), { dispatchLineId: line.id });
@@ -163,10 +211,19 @@ export function createSampleData({ date = vietnamToday(), scenario = 'service' }
     return doc;
   }
   function adjustment(key, p, amount, kind, status, day, time, reason) {
-    const doc = add('StoreAdjustment', key, { productId: product(p), quantity: q(amount), kind, status, reason, requestedAt: at(day, time), approvedAt: status === 'PENDING' ? null : at(day, time), requestedById: employee('quanly'), reviewedById: status === 'PENDING' ? null : employee('kho') });
+    const candidates = fefoLots(product(p), 'STORE', day).filter(e => e.available >= amount);
+    if (!candidates.length) throw new Error(`Không có lô cửa hàng đủ ${amount} cho ${p} (${key})`);
+    const chosenLot = candidates[0].lot;
+    const doc = add('StoreAdjustment', key, { productId: product(p), lotId: chosenLot.id, quantity: q(amount), kind, status, reason, requestedAt: at(day, time), approvedAt: status === 'PENDING' ? null : at(day, time), requestedById: employee('quanly'), reviewedById: status === 'PENDING' ? null : employee('kho') });
     if (status === 'APPROVED') {
       storeMove(p, amount, kind, at(day, time), { adjustmentId: doc.id });
-      if (kind === 'RETURN') productMove(p, amount, 'HOAN_CUA_HANG', at(day, time), { storeAdjustmentId: doc.id });
+      lotMove(`adj-st:${doc.id}`, chosenLot.id, 'STORE', -amount, at(day, time), { adjustmentId: doc.id });
+      if (kind === 'RETURN') {
+        productMove(p, amount, 'HOAN_CUA_HANG', at(day, time), { storeAdjustmentId: doc.id });
+        lotMove(`adj-wh:${doc.id}`, chosenLot.id, 'WAREHOUSE', amount, at(day, time), { adjustmentId: doc.id });
+      }
+    } else if (status === 'PENDING') {
+      chosenLot.storeHeld = Number(q(chosenLot.storeHeld + amount));
     }
     return doc;
   }
@@ -182,7 +239,12 @@ export function createSampleData({ date = vietnamToday(), scenario = 'service' }
       const line = add('SaleLine', `${key}:${p}`, { saleId: doc.id, productId: product(p), productName: oldPrice && p === 'BRISKET' ? 'Brisket hun khói (tên thực đơn cũ)' : item[1], quantity: q(amount), unitPrice: price(unitPrice), note, sentAt: status === 'DRAFT' ? null : dateTime, sentById: status === 'DRAFT' ? null : employee('phucvu'), batch: status === 'DRAFT' ? null : 1 });
       total += Math.round(amount * unitPrice * 100);
       if (served && status !== 'DRAFT') add('Serving', line.id, { saleLineId: line.id, quantity: q(amount), servedAt: new Date(Date.parse(dateTime) + 5 * 60000).toISOString(), servedById: employee('phucvu') });
-      if (status === 'COMPLETED') storeMove(p, amount, 'SALE', close, { saleLineId: line.id });
+      if (status === 'COMPLETED') {
+        storeMove(p, amount, 'SALE', close, { saleLineId: line.id });
+        for (const a of allocateLots(product(p), 'STORE', day, amount)) {
+          lotMove(`sale:${line.id}:${a.lot.id}`, a.lot.id, 'STORE', -a.quantity, close, { saleLineId: line.id });
+        }
+      }
     }
     if (status === 'COMPLETED') add('Payment', key, { saleId: doc.id, amount: price(total / 100), method, status: 'PAID', paidAt: close, receivedById: employee('thungan') });
     return doc;
@@ -198,20 +260,63 @@ export function createSampleData({ date = vietnamToday(), scenario = 'service' }
     const current = day === date;
     const quantities = Object.fromEntries(activeMenu.map(m => [m[0], m[2] === 'kg' ? Number(q(m[7] * (current ? 1 : 1 + (index % 3) * .1))) : Math.round(m[7] * (current ? 1 : 1 + (index % 3) * .1))]));
     const needs = {};
-    for (const item of activeMenu) for (const [m, amount] of Object.entries(item[6])) needs[m] = Number(q((needs[m] || 0) + Number(q(amount * quantities[item[0]] / item[5]))));
+    for (const item of activeMenu) {
+      if (item[5] !== 'PRODUCED') continue;
+      for (const [m, amount] of Object.entries(item[6])) needs[m] = Number(q((needs[m] || 0) + Number(q(amount * quantities[item[0]]))));
+    }
     // One closed batch demonstrates surplus returned and waste approved separately.
     if (index === 0) needs.SALT = Number(q(needs.SALT + .2));
     if (current) for (const m of materials.filter(m => m[0] !== 'OLD-RUB')) needs[m[0]] = Number(q((needs[m[0]] || 0) + (m[0] === 'TURKEY' ? .2 : m[0] === 'SAUSAGE' ? 20 : m[4] * 2)));
     const lots = receipt(day, needs);
     if (current) currentLots = lots;
-    for (const item of activeMenu) {
-      const [p, , , , , output, recipe] = item;
+
+    const purchasedItems = activeMenu.filter(item => item[5] === 'PURCHASED');
+    if (purchasedItems.length) {
+      const drinkTime = at(day, '09:30');
+      const productReceipt = add('ProductReceipt', `${day}:DRINK`, {
+        code: `BBQ-NTP-${day.replaceAll('-', '')}-DRINK`,
+        receivedAt: drinkTime,
+        status: 'POSTED',
+        note: 'Nhập thành phẩm đóng gói bán trực tiếp',
+        supplierId: sampleId('Supplier:DRINK'),
+        createdById: employee('nvkho'),
+        postedById: employee('kho'),
+        postedAt: drinkTime,
+      });
+      for (const [p, , , , , , meta] of purchasedItems) {
+        const qty = quantities[p];
+        const mfg = shiftDay(day, -30);
+        const exp = shiftDay(day, 180);
+        const lotCode = `BBQ-TP-LO-${day}-${p}`;
+        const receiptLine = add('ProductReceiptLine', `${day}:${p}`, {
+          receiptId: productReceipt.id,
+          productId: product(p),
+          lotCode,
+          manufacturedAt: mfg,
+          expiryDate: exp,
+          quantity: q(qty),
+          unitPrice: price(meta.costPrice),
+        });
+        const lot = registerProductLot(`${day}:PURCHASED:${p}`, p, {
+          code: lotCode,
+          manufacturedAt: mfg,
+          expiryDate: exp,
+          createdAt: drinkTime,
+          receiptLineId: receiptLine.id,
+        });
+        productMove(p, qty, 'NHAP_MUA', drinkTime, { receiptLineId: receiptLine.id });
+        lotMove(`pr:${receiptLine.id}`, lot.id, 'WAREHOUSE', qty, drinkTime, { receiptLineId: receiptLine.id });
+      }
+    }
+
+    for (const item of activeMenu.filter(m => m[5] === 'PRODUCED')) {
+      const [p, , , , , , recipe] = item;
       const order = add('ProductionOrder', `${day}:${p}`, { quantity: q(quantities[p]), assignedAt: at(shiftDay(day, -1), '18:00'), dueAt: at(day, '10:00'), status: 'COMPLETED', bomId: sampleId(`Bom:${p}`), assignedById: employee('beptruong'), assignedToId: employee('bep') });
       const issue = add('MaterialIssue', order.id, { productionOrderId: order.id, requestedAt: at(shiftDay(day, -1), '18:10'), approvedAt: at(shiftDay(day, -1), '18:15'), status: 'APPROVED', reason: 'Cấp cho mẻ kế hoạch; thịt hun khói chuẩn bị từ tối hôm trước', requestedById: employee('bep'), reviewedById: employee('kho') });
       const accepted = p === 'BRISKET' ? quantities[p] - .5 : quantities[p];
-      const run = add('ProductionRun', order.id, { productionOrderId: order.id, recordedAt: at(day, '09:00'), actualQuantity: q(quantities[p]), acceptedQuantity: q(accepted), status: 'INSPECTED', inspectedAt: at(day, '09:30'), inspectionNote: p === 'BRISKET' ? 'Loại 0,5 kg phần khô; chỉ nhập lượng đạt. Không hủy kho lần hai.' : ['COKE', 'WATER'].includes(p) ? 'Soạn lô đồ uống đóng gói qua BOM 1:1; không phải nấu đồ uống' : 'Mẻ đạt kiểm tra chất lượng mô phỏng', performedById: employee('bep'), inspectedById: employee('beptruong') });
+      const run = add('ProductionRun', order.id, { productionOrderId: order.id, recordedAt: at(day, '09:00'), actualQuantity: q(quantities[p]), acceptedQuantity: q(accepted), status: 'INSPECTED', inspectedAt: at(day, '09:30'), inspectionNote: p === 'BRISKET' ? 'Loại 0,5 kg phần khô; chỉ nhập lượng đạt. Không hủy kho lần hai.' : 'Mẻ đạt kiểm tra chất lượng mô phỏng', performedById: employee('bep'), inspectedById: employee('beptruong') });
       for (const [m, amount] of Object.entries(recipe)) {
-        const used = Number(q(amount * quantities[p] / output));
+        const used = Number(q(amount * quantities[p]));
         const extra = index === 0 && p === 'BRISKET' && m === 'SALT' ? .2 : 0;
         const line = add('MaterialIssueLine', `${order.id}:${m}`, { issueId: issue.id, lotId: lots[m], requestedQuantity: q(used + extra), issuedQuantity: q(used + extra) });
         materialMove(`issue:${line.id}`, lots[m], used + extra, 'TRONG_KHO', 'DA_CAP', issue.approvedAt, { issueLineId: line.id });
@@ -226,7 +331,15 @@ export function createSampleData({ date = vietnamToday(), scenario = 'service' }
           materialMove(`waste:${wasteLine.id}`, lots[m], .05, 'DA_CAP', 'DA_HUY', waste.approvedAt, { wasteLineId: wasteLine.id });
         }
       }
+      const prodLot = registerProductLot(`${day}:PRODUCED:${p}`, p, {
+        code: `BBQ-SX-${day}-${p}`,
+        manufacturedAt: day,
+        expiryDate: shiftDay(day, 3),
+        createdAt: run.inspectedAt,
+        runId: run.id,
+      });
       productMove(p, accepted, 'NHAP_SAN_XUAT', run.inspectedAt, { runId: run.id });
+      lotMove(`run:${run.id}`, prodLot.id, 'WAREHOUSE', accepted, run.inspectedAt, { runId: run.id });
     }
     const reserve = current ? { BRISKET: 2.5, TURKEY: 1, COKE: 12, WATER: 12 } : {};
     dispatch(`${day}:OPEN`, day, Object.fromEntries(activeMenu.map(m => [m[0], quantities[m[0]] - (m[0] === 'BRISKET' ? .5 : 0) - (reserve[m[0]] || 0)])));
@@ -248,6 +361,27 @@ export function createSampleData({ date = vietnamToday(), scenario = 'service' }
       sale(`${current ? 'NOW' : `D${index + 1}`}-${String(n + 1).padStart(2, '0')}`, day, current ? `11:${String(n * 8).padStart(2, '0')}` : `${11 + Math.floor(n / 3)}:${String((n % 3) * 18).padStart(2, '0')}`, amounts, { method: n % 2 ? 'TRANSFER' : 'CASH', oldPrice: !current, table: n < 3 ? n + 1 : undefined, note: n === 7 ? 'Nhóm cuối nhận lượng mẻ còn lại; không chế biến theo đơn' : n % 2 ? 'Mang về, chia hộp riêng món phụ' : 'Ăn tại chỗ, cắt thịt tại quầy' });
     }
   }
+
+  // Draft direct purchase receipt (no ProductLot / movements until posted).
+  const draftProductReceipt = add('ProductReceipt', `${date}:DRINK-DRAFT`, {
+    code: `BBQ-NTP-${date.replaceAll('-', '')}-NHAP`,
+    receivedAt: at(date, '12:35'),
+    status: 'DRAFT',
+    note: 'Phiếu nháp nhập bổ sung nước ngọt, chờ ghi sổ',
+    supplierId: sampleId('Supplier:DRINK'),
+    createdById: employee('nvkho'),
+    postedById: null,
+    postedAt: null,
+  });
+  add('ProductReceiptLine', `${date}:DRAFT:COKE`, {
+    receiptId: draftProductReceipt.id,
+    productId: product('COKE'),
+    lotCode: `BBQ-TP-LO-${date}-NHAP-COKE`,
+    manufacturedAt: shiftDay(date, -20),
+    expiryDate: shiftDay(date, 180),
+    quantity: q(24),
+    unitPrice: price(10000),
+  });
 
   const ready = sale('CHO-THU', date, '12:25', { RIBS: .5, SAUSAGE: 2, BEANS: 2, COKE: 2 }, { status: 'CONFIRMED', table: 1, note: 'Đã phục vụ đủ, chờ thu tiền' });
   const partial = sale('DANG-PHUC-VU', date, '12:29', { PULLED: .5, TURKEY: .5, WATER: 3, POTATO: 1, PICKLES: 2, SLAW: 1 }, { status: 'CONFIRMED', table: 2, served: false, note: 'Giữ phần đã có; chỉ mang ra một phần' });
@@ -300,12 +434,26 @@ export function createSampleData({ date = vietnamToday(), scenario = 'service' }
 
   if (scenario === 'sold-out') {
     // Settle reservations before selling the remainder of the finite daily batch.
-    for (const doc of rows.StoreDispatch.filter(d => d.status === 'PENDING')) { doc.status = 'REJECTED'; doc.approvedAt = at(date, '13:00'); doc.reviewedById = employee('kho'); }
+    for (const doc of rows.StoreDispatch.filter(d => d.status === 'PENDING')) {
+      doc.status = 'REJECTED'; doc.approvedAt = at(date, '13:00'); doc.reviewedById = employee('kho');
+      for (const dl of rows.StoreDispatchLine.filter(l => l.dispatchId === doc.id)) {
+        for (const alloc of rows.StoreDispatchLot.filter(a => a.dispatchLineId === dl.id)) {
+          const st = lotState.get(alloc.lotId);
+          st.warehouseHeld = Number(q(st.warehouseHeld - Number(alloc.quantity)));
+        }
+      }
+    }
     for (const doc of rows.StoreAdjustment.filter(a => a.status === 'PENDING')) {
       doc.status = 'APPROVED'; doc.approvedAt = at(date, '13:00'); doc.reviewedById = employee('kho');
       const p = activeMenu.find(m => product(m[0]) === doc.productId)[0];
+      const st = lotState.get(doc.lotId);
+      st.storeHeld = Number(q(st.storeHeld - Number(doc.quantity)));
       storeMove(p, Number(doc.quantity), doc.kind, doc.approvedAt, { adjustmentId: doc.id });
-      if (doc.kind === 'RETURN') productMove(p, Number(doc.quantity), 'HOAN_CUA_HANG', doc.approvedAt, { storeAdjustmentId: doc.id });
+      lotMove(`adj-st-close:${doc.id}`, doc.lotId, 'STORE', -Number(doc.quantity), doc.approvedAt, { adjustmentId: doc.id });
+      if (doc.kind === 'RETURN') {
+        productMove(p, Number(doc.quantity), 'HOAN_CUA_HANG', doc.approvedAt, { storeAdjustmentId: doc.id });
+        lotMove(`adj-wh-close:${doc.id}`, doc.lotId, 'WAREHOUSE', Number(doc.quantity), doc.approvedAt, { adjustmentId: doc.id });
+      }
     }
     for (const doc of rows.Sale.filter(s => s.status === 'DRAFT' || s.status === 'CONFIRMED')) {
       if (doc.status === 'DRAFT') {
@@ -317,15 +465,19 @@ export function createSampleData({ date = vietnamToday(), scenario = 'service' }
         continue;
       }
       let cents = 0;
+      const closeTime = at(date, '13:10');
       for (const line of rows.SaleLine.filter(l => l.saleId === doc.id && Number(l.quantity) > 0)) {
         const p = activeMenu.find(m => product(m[0]) === line.productId)[0];
         const served = rows.Serving.filter(s => s.saleLineId === line.id).reduce((sum, s) => sum + Number(s.quantity), 0);
         if (Number(q(Number(line.quantity) - served)) > 0) add('Serving', `CLOSE:${line.id}`, { saleLineId: line.id, quantity: q(Number(line.quantity) - served), servedAt: at(date, '13:05'), servedById: employee('phucvu') });
-        storeMove(p, Number(line.quantity), 'SALE', at(date, '13:10'), { saleLineId: line.id });
+        storeMove(p, Number(line.quantity), 'SALE', closeTime, { saleLineId: line.id });
+        for (const a of allocateLots(line.productId, 'STORE', date, Number(line.quantity))) {
+          lotMove(`sale-close:${line.id}:${a.lot.id}`, a.lot.id, 'STORE', -a.quantity, closeTime, { saleLineId: line.id });
+        }
         cents += Math.round(Number(line.quantity) * Number(line.unitPrice) * 100);
       }
-      add('Payment', `CLOSE:${doc.id}`, { saleId: doc.id, amount: price(cents / 100), method: 'TRANSFER', status: 'PAID', paidAt: at(date, '13:10'), receivedById: employee('thungan') });
-      Object.assign(doc, { status: 'COMPLETED', closedAt: at(date, '13:10'), closedById: employee('thungan'), version: doc.version + 1 });
+      add('Payment', `CLOSE:${doc.id}`, { saleId: doc.id, amount: price(cents / 100), method: 'TRANSFER', status: 'PAID', paidAt: closeTime, receivedById: employee('thungan') });
+      Object.assign(doc, { status: 'COMPLETED', closedAt: closeTime, closedById: employee('thungan'), version: doc.version + 1 });
     }
     dispatch('LAST-TRANSFER', date, Object.fromEntries(warehouse), 'APPROVED', '13:15');
     sale('KHACH-CUOI', date, '13:25', Object.fromEntries(store), { method: 'TRANSFER', note: 'Bán toàn bộ phần đạt còn lại. Hết mẻ hôm nay; không nhận đơn chờ nấu.' });
@@ -334,12 +486,12 @@ export function createSampleData({ date = vietnamToday(), scenario = 'service' }
 }
 
 // Parent tables precede children; no legacy per-sale exports/replenishments.
-export const INSERT_ORDER = ['Unit', 'Permission', 'Role', 'RolePermission', 'Account', 'Employee', 'Category', 'Material', 'Product', 'Supplier', 'DiningArea', 'DiningTable', 'MaterialLot', 'MaterialReceipt', 'MaterialReceiptLine', 'Bom', 'BomLine', 'ProductionOrder', 'MaterialIssue', 'MaterialIssueLine', 'ProductionRun', 'ConsumptionLine', 'MaterialReturn', 'MaterialReturnLine', 'Waste', 'WasteLine', 'MaterialMovement', 'StoreDispatch', 'StoreDispatchLine', 'StoreAdjustment', 'Sale', 'SaleLine', 'SaleLineChange', 'Serving', 'Payment', 'ProductMovement', 'StoreMovement', 'MaterialShortage'];
+export const INSERT_ORDER = ['Unit', 'Permission', 'Role', 'RolePermission', 'Account', 'Employee', 'Category', 'Material', 'Product', 'Supplier', 'DiningArea', 'DiningTable', 'MaterialLot', 'MaterialReceipt', 'MaterialReceiptLine', 'ProductReceipt', 'ProductReceiptLine', 'Bom', 'BomLine', 'ProductionOrder', 'MaterialIssue', 'MaterialIssueLine', 'ProductionRun', 'ConsumptionLine', 'MaterialReturn', 'MaterialReturnLine', 'Waste', 'WasteLine', 'MaterialMovement', 'ProductLot', 'StoreDispatch', 'StoreDispatchLine', 'StoreDispatchLot', 'StoreAdjustment', 'Sale', 'SaleLine', 'SaleLineChange', 'Serving', 'Payment', 'ProductMovement', 'StoreMovement', 'ProductLotMovement', 'MaterialShortage'];
 
 export function sampleSummary(data) {
   return data.rows.Product.filter(p => p.status === 'ACTIVE').map(p => {
     const sum = (table, predicate) => (data.rows[table] || []).filter(predicate).reduce((s, row) => s + Number(row.quantity), 0);
-    const warehouse = sum('ProductMovement', m => m.productId === p.id && ['NHAP_SAN_XUAT', 'HOAN_CUA_HANG'].includes(m.movementType)) - sum('ProductMovement', m => m.productId === p.id && !['NHAP_SAN_XUAT', 'HOAN_CUA_HANG'].includes(m.movementType));
+    const warehouse = sum('ProductMovement', m => m.productId === p.id && ['NHAP_SAN_XUAT', 'NHAP_MUA', 'HOAN_CUA_HANG'].includes(m.movementType)) - sum('ProductMovement', m => m.productId === p.id && !['NHAP_SAN_XUAT', 'NHAP_MUA', 'HOAN_CUA_HANG'].includes(m.movementType));
     const stock = sum('StoreMovement', m => m.productId === p.id && m.movementType === 'IN_TRANSFER') - sum('StoreMovement', m => m.productId === p.id && m.movementType !== 'IN_TRANSFER');
     const reserved = sum('SaleLine', l => l.productId === p.id && l.sentAt && data.rows.Sale.some(s => s.id === l.saleId && s.status === 'CONFIRMED'));
     const held = sum('StoreAdjustment', a => a.productId === p.id && a.status === 'PENDING');

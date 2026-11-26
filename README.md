@@ -74,5 +74,5 @@ Tồn sổ có thể gồm hàng đã giữ cho đơn và hàng hết hạn chư
 - **Phiên hết hạn:** đăng nhập lại. Phiên có hạn 8 giờ; restart backend hoặc đổi quyền/mật khẩu cũng kết thúc phiên.
 - **Cần liên kết người sử dụng:** tài khoản phải gắn hồ sơ đang hoạt động để lập/duyệt chứng từ.
 - **Có tồn nhưng không bán được:** kiểm tra đã bàn giao cửa hàng, giá bán > 0, mặt hàng hoạt động, lô còn hạn và lượng chưa giữ cho đơn khác. Tồn cũ chưa gán lô bị loại khỏi lượng chuyển/bán; không tự suy đoán HSD.
-- **Dữ liệu mẫu:** seed BBQ cũ chưa đồng bộ lô TP/nhập trực tiếp; chưa dùng để kiểm tra luồng mới.
+- **Dữ liệu mẫu:** Bộ mẫu BBQ đã đồng bộ lô thành phẩm (`ProductLot`), nhập TP trực tiếp (`COKE`, `WATER`), và công thức 1 đơn vị. Kiểm tra trước bằng `npm --prefix backend run seed:sample -- --dry-run`; để nhập vào CSDL test (chưa có dữ liệu mẫu), đặt `SAMPLE_DATA_PASSWORD` (8–128 ký tự) rồi chạy `npm --prefix backend run seed:sample -- --apply`.
 
